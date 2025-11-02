@@ -1,19 +1,12 @@
-import { Package, TrendingDown, TrendingUp, Boxes } from "lucide-react";
+import { Package, TrendingDown, TrendingUp, Boxes, RefreshCw } from "lucide-react";
 import { StatsCard } from "@/components/StatsCard";
 import { InventoryTable } from "@/components/InventoryTable";
+import { useInventoryData } from "@/hooks/useInventoryData";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
-  // Mock data - em produção, virá do Google Sheets
-  const inventoryData = [
-    { id: "1", name: "Parafuso M6", category: "Fixação", current: 45, minimum: 50, maximum: 200, unit: "un" },
-    { id: "2", name: "Porca Sextavada", category: "Fixação", current: 120, minimum: 100, maximum: 500, unit: "un" },
-    { id: "3", name: "Arruela Lisa", category: "Fixação", current: 25, minimum: 80, maximum: 400, unit: "un" },
-    { id: "4", name: "Cabo USB-C", category: "Eletrônicos", current: 8, minimum: 15, maximum: 50, unit: "un" },
-    { id: "5", name: "Resistor 10kΩ", category: "Eletrônicos", current: 350, minimum: 200, maximum: 1000, unit: "un" },
-    { id: "6", name: "LED 5mm Vermelho", category: "Eletrônicos", current: 180, minimum: 100, maximum: 500, unit: "un" },
-    { id: "7", name: "Tinta Spray Preta", category: "Acabamento", current: 12, minimum: 20, maximum: 80, unit: "un" },
-    { id: "8", name: "Lixa Grão 120", category: "Acabamento", current: 45, minimum: 30, maximum: 100, unit: "un" },
-  ];
+  const { data: inventoryData, loading, error, refetch } = useInventoryData();
 
   const totalItems = inventoryData.length;
   const criticalItems = inventoryData.filter(item => item.current <= item.minimum).length;
@@ -39,58 +32,83 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatsCard
-            title="Total de Itens"
-            value={totalItems}
-            icon={Package}
-            trend={{ value: "12% vs mês anterior", positive: true }}
-            variant="default"
-          />
-          <StatsCard
-            title="Itens Críticos"
-            value={criticalItems}
-            icon={TrendingDown}
-            variant="danger"
-          />
-          <StatsCard
-            title="Capacidade do Estoque"
-            value={`${stockPercentage}%`}
-            icon={TrendingUp}
-            trend={{ value: "5% vs semana anterior", positive: false }}
-            variant="warning"
-          />
-          <StatsCard
-            title="Unidades Totais"
-            value={totalValue.toLocaleString()}
-            icon={Boxes}
-            trend={{ value: "8% vs mês anterior", positive: true }}
-            variant="success"
-          />
-        </div>
-
-        {/* Inventory Table */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-foreground">Itens do Estoque</h2>
-            <div className="flex gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-success-light">
-                <div className="w-2 h-2 rounded-full bg-success"></div>
-                <span className="text-sm font-medium">Normal</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-warning-light">
-                <div className="w-2 h-2 rounded-full bg-warning"></div>
-                <span className="text-sm font-medium">Atenção</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-danger-light">
-                <div className="w-2 h-2 rounded-full bg-danger"></div>
-                <span className="text-sm font-medium">Crítico</span>
-              </div>
+        {loading ? (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-32 rounded-lg" />
+              ))}
             </div>
+            <Skeleton className="h-96 rounded-lg" />
           </div>
-          <InventoryTable items={inventoryData} />
-        </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-destructive mb-4">Erro ao carregar dados: {error}</p>
+            <Button onClick={refetch} variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Tentar Novamente
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <StatsCard
+                title="Total de Itens"
+                value={totalItems}
+                icon={Package}
+                trend={{ value: "12% vs mês anterior", positive: true }}
+                variant="default"
+              />
+              <StatsCard
+                title="Itens Críticos"
+                value={criticalItems}
+                icon={TrendingDown}
+                variant="danger"
+              />
+              <StatsCard
+                title="Capacidade do Estoque"
+                value={`${stockPercentage}%`}
+                icon={TrendingUp}
+                trend={{ value: "5% vs semana anterior", positive: false }}
+                variant="warning"
+              />
+              <StatsCard
+                title="Unidades Totais"
+                value={totalValue.toLocaleString()}
+                icon={Boxes}
+                trend={{ value: "8% vs mês anterior", positive: true }}
+                variant="success"
+              />
+            </div>
+
+            {/* Inventory Table */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-foreground">Itens do Estoque</h2>
+                <div className="flex gap-2">
+                  <Button onClick={refetch} variant="outline" size="sm">
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Atualizar
+                  </Button>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-success-light">
+                    <div className="w-2 h-2 rounded-full bg-success"></div>
+                    <span className="text-sm font-medium">Normal</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-warning-light">
+                    <div className="w-2 h-2 rounded-full bg-warning"></div>
+                    <span className="text-sm font-medium">Atenção</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-danger-light">
+                    <div className="w-2 h-2 rounded-full bg-danger"></div>
+                    <span className="text-sm font-medium">Crítico</span>
+                  </div>
+                </div>
+              </div>
+              <InventoryTable items={inventoryData} />
+            </div>
+          </>
+        )}
       </main>
     </div>
   );
