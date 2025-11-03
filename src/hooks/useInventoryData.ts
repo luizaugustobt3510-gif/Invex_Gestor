@@ -29,8 +29,20 @@ export const useInventoryData = () => {
         throw new Error('Erro ao buscar dados do Google Sheets');
       }
       
-      const jsonData = await response.json();
-      setData(jsonData);
+      const text = await response.text();
+      
+      // Verifica se a resposta começa com "Erro:" (resposta de erro do Apps Script)
+      if (text.startsWith('Erro:')) {
+        throw new Error(text);
+      }
+      
+      // Tenta fazer parse do JSON
+      try {
+        const jsonData = JSON.parse(text);
+        setData(jsonData);
+      } catch {
+        throw new Error('Resposta inválida do servidor. Verifique a configuração do Google Apps Script.');
+      }
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
