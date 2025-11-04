@@ -1,17 +1,19 @@
-import { Package, TrendingDown, TrendingUp, Boxes, RefreshCw } from "lucide-react";
+import { Package, TrendingDown, AlertTriangle, DollarSign, Boxes, RefreshCw } from "lucide-react";
 import { StatsCard } from "@/components/StatsCard";
 import { InventoryTable } from "@/components/InventoryTable";
 import { useInventoryData } from "@/hooks/useInventoryData";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CurvaABCChart } from "@/components/charts/CurvaABCChart";
+import { ProductValueChart } from "@/components/charts/ProductValueChart";
 
 const Index = () => {
   const { data: inventoryData, loading, error, refetch } = useInventoryData();
 
   const totalItems = inventoryData.length;
-  const criticalItems = inventoryData.filter(item => item.current <= item.minimum).length;
-  const totalValue = inventoryData.reduce((acc, item) => acc + item.current, 0);
-  const stockPercentage = ((totalValue / inventoryData.reduce((acc, item) => acc + item.maximum, 0)) * 100).toFixed(1);
+  const totalStockValue = inventoryData.reduce((acc, item) => acc + item.valorTotal, 0);
+  const zeradosCount = inventoryData.filter(item => item.status.includes("Zerado")).length;
+  const abaixoMinimoCount = inventoryData.filter(item => item.status.includes("Abaixo do mínimo")).length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -57,53 +59,42 @@ const Index = () => {
                 title="Total de Itens"
                 value={totalItems}
                 icon={Package}
-                trend={{ value: "12% vs mês anterior", positive: true }}
                 variant="default"
               />
               <StatsCard
-                title="Itens Críticos"
-                value={criticalItems}
-                icon={TrendingDown}
+                title="Valor Total em Estoque"
+                value={`R$ ${totalStockValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                icon={DollarSign}
+                variant="success"
+              />
+              <StatsCard
+                title="Itens Zerados"
+                value={zeradosCount}
+                icon={AlertTriangle}
                 variant="danger"
               />
               <StatsCard
-                title="Capacidade do Estoque"
-                value={`${stockPercentage}%`}
-                icon={TrendingUp}
-                trend={{ value: "5% vs semana anterior", positive: false }}
+                title="Itens Abaixo do Mínimo"
+                value={abaixoMinimoCount}
+                icon={TrendingDown}
                 variant="warning"
               />
-              <StatsCard
-                title="Unidades Totais"
-                value={totalValue.toLocaleString()}
-                icon={Boxes}
-                trend={{ value: "8% vs mês anterior", positive: true }}
-                variant="success"
-              />
+            </div>
+
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <CurvaABCChart items={inventoryData} />
+              <ProductValueChart items={inventoryData} />
             </div>
 
             {/* Inventory Table */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-foreground">Itens do Estoque</h2>
-                <div className="flex gap-2">
-                  <Button onClick={refetch} variant="outline" size="sm">
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Atualizar
-                  </Button>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-success-light">
-                    <div className="w-2 h-2 rounded-full bg-success"></div>
-                    <span className="text-sm font-medium">Normal</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-warning-light">
-                    <div className="w-2 h-2 rounded-full bg-warning"></div>
-                    <span className="text-sm font-medium">Atenção</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-danger-light">
-                    <div className="w-2 h-2 rounded-full bg-danger"></div>
-                    <span className="text-sm font-medium">Crítico</span>
-                  </div>
-                </div>
+                <h2 className="text-2xl font-bold text-foreground">Tabela Detalhada</h2>
+                <Button onClick={refetch} variant="outline" size="sm">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Atualizar
+                </Button>
               </div>
               <InventoryTable items={inventoryData} />
             </div>

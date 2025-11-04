@@ -2,16 +2,19 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 export interface InventoryItem {
-  id: string;
-  name: string;
-  category: string;
-  current: number;
-  minimum: number;
-  maximum: number;
-  unit: string;
+  codigo: string;
+  material: string;
+  unidade: string;
+  quantidade: number;
+  minimo: number;
+  maximo: number;
+  preco: number;
+  valorTotal: number;
+  status: string;
+  curva: string;
 }
 
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzdOamEJhLocYbu3h6jqObIb4CNHiP44-QutumzBPRakYrIqk9BQoP3AmHtrs9CmtM/exec';
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyJvWpesXsksx9RxmR5gfQFd_01iH8S1bNGnK0MLrr9z6Jo3I3DnmN_Qgx0sMKXmng/exec';
 
 export const useInventoryData = () => {
   const [data, setData] = useState<InventoryItem[]>([]);
