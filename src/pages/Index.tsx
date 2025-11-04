@@ -1,4 +1,4 @@
-import { Package, TrendingDown, AlertTriangle, DollarSign, Boxes, RefreshCw } from "lucide-react";
+import { Package, TrendingDown, AlertTriangle, DollarSign, Boxes, RefreshCw, TrendingUp, BarChart3 } from "lucide-react";
 import { StatsCard } from "@/components/StatsCard";
 import { InventoryTable } from "@/components/InventoryTable";
 import { useInventoryData } from "@/hooks/useInventoryData";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CurvaABCChart } from "@/components/charts/CurvaABCChart";
 import { ProductValueChart } from "@/components/charts/ProductValueChart";
+import { StatusDistributionChart } from "@/components/charts/StatusDistributionChart";
 
 const Index = () => {
   const { data: inventoryData, loading, error, refetch } = useInventoryData();
@@ -14,6 +15,9 @@ const Index = () => {
   const totalStockValue = inventoryData.reduce((acc, item) => acc + item.valorTotal, 0);
   const zeradosCount = inventoryData.filter(item => item.status.includes("Zerado")).length;
   const abaixoMinimoCount = inventoryData.filter(item => item.status.includes("Abaixo do mínimo")).length;
+  const okCount = inventoryData.filter(item => item.status.includes("OK")).length;
+  const eficienciaEstoque = totalItems > 0 ? (okCount / totalItems) * 100 : 0;
+  const valorMedioPorProduto = totalItems > 0 ? totalStockValue / totalItems : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -56,33 +60,34 @@ const Index = () => {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <StatsCard
-                title="Total de Itens"
-                value={totalItems}
-                icon={Package}
-                variant="default"
-              />
-              <StatsCard
                 title="Valor Total em Estoque"
                 value={`R$ ${totalStockValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 icon={DollarSign}
                 variant="success"
               />
               <StatsCard
-                title="Itens Zerados"
-                value={zeradosCount}
-                icon={AlertTriangle}
-                variant="danger"
+                title="Eficiência do Estoque"
+                value={`${eficienciaEstoque.toFixed(1)}%`}
+                icon={TrendingUp}
+                variant={eficienciaEstoque >= 80 ? "success" : eficienciaEstoque < 50 ? "danger" : "warning"}
               />
               <StatsCard
-                title="Itens Abaixo do Mínimo"
-                value={abaixoMinimoCount}
-                icon={TrendingDown}
-                variant="warning"
+                title="Valor Médio por Produto"
+                value={`R$ ${valorMedioPorProduto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                icon={BarChart3}
+                variant="default"
+              />
+              <StatsCard
+                title="Total de Itens"
+                value={totalItems}
+                icon={Package}
+                variant="default"
               />
             </div>
 
             {/* Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <StatusDistributionChart items={inventoryData} />
               <CurvaABCChart items={inventoryData} />
               <ProductValueChart items={inventoryData} />
             </div>
