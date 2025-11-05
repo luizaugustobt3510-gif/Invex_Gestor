@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react';
 interface User {
   nome: string;
   email: string;
+  admin: boolean;
 }
 
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwDOb6lOiqOcjM8o4C6-PrJLgSjOy3KEy-MVmLOnnr6zSqme3WJVrSZOk3buLspIgY/exec';
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbylAYnS1bMRlvOfh_os7uXyrP7KnMqLTbR7lyr00b1U4Zfh2QkpXo-Ii4QYx8W_xbo/exec';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -23,7 +24,6 @@ export const useAuth = () => {
     try {
       const response = await fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
-        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -34,12 +34,20 @@ export const useAuth = () => {
         })
       });
 
-      // Como no-cors não permite ler a resposta, vamos simular o login
-      // Em produção, você precisaria configurar CORS no Apps Script
-      const userData = { nome: 'Administrador', email };
-      localStorage.setItem('invex_user', JSON.stringify(userData));
-      setUser(userData);
-      return { success: true };
+      const data = await response.json();
+      
+      if (data.ok) {
+        const userData = { 
+          nome: data.nome, 
+          email,
+          admin: data.admin || false
+        };
+        localStorage.setItem('invex_user', JSON.stringify(userData));
+        setUser(userData);
+        return { success: true };
+      } else {
+        return { success: false, error: data.msg || 'Credenciais inválidas' };
+      }
     } catch (error) {
       return { success: false, error: 'Erro ao fazer login' };
     }

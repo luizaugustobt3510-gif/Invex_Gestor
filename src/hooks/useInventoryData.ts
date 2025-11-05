@@ -32,7 +32,7 @@ interface InventoryResponse {
   produtos: InventoryItem[];
 }
 
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwDOb6lOiqOcjM8o4C6-PrJLgSjOy3KEy-MVmLOnnr6zSqme3WJVrSZOk3buLspIgY/exec';
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbylAYnS1bMRlvOfh_os7uXyrP7KnMqLTbR7lyr00b1U4Zfh2QkpXo-Ii4QYx8W_xbo/exec';
 
 export const useInventoryData = () => {
   const [data, setData] = useState<InventoryItem[]>([]);
@@ -89,7 +89,6 @@ export const useInventoryData = () => {
     try {
       const response = await fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
-        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -109,6 +108,59 @@ export const useInventoryData = () => {
     }
   };
 
+  const massUpdate = async (user: string, produtos: Array<{ codigo: string; quantidade: string }>) => {
+    try {
+      const response = await fetch(GOOGLE_SHEETS_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'mass_update',
+          user,
+          produtos
+        })
+      });
+
+      const data = await response.json();
+      toast.success('Atualização em massa concluída!');
+      await fetchData();
+      return { success: true, data };
+    } catch (error) {
+      toast.error('Erro ao atualizar estoque em massa');
+      return { success: false };
+    }
+  };
+
+  const movimentarEstoque = async (
+    user: string, 
+    tipo: 'entrada' | 'saida', 
+    produtos: Array<{ codigo: string; quantidade: string; obs: string }>
+  ) => {
+    try {
+      const response = await fetch(GOOGLE_SHEETS_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'movimentar',
+          user,
+          tipo,
+          produtos
+        })
+      });
+
+      const data = await response.json();
+      toast.success(`Movimentação de ${tipo} concluída!`);
+      await fetchData();
+      return { success: true, data };
+    } catch (error) {
+      toast.error('Erro ao movimentar estoque');
+      return { success: false };
+    }
+  };
+
   useEffect(() => {
     fetchData();
     
@@ -118,5 +170,14 @@ export const useInventoryData = () => {
     return () => clearInterval(interval);
   }, []);
 
-  return { data, summary, loading, error, refetch: fetchData, updateStock };
+  return { 
+    data, 
+    summary, 
+    loading, 
+    error, 
+    refetch: fetchData, 
+    updateStock,
+    massUpdate,
+    movimentarEstoque
+  };
 };

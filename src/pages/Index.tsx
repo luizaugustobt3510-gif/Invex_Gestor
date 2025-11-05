@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, TrendingDown, AlertTriangle, DollarSign, Boxes, RefreshCw, TrendingUp, BarChart3, LogOut, Search, Edit } from "lucide-react";
+import { Package, TrendingDown, AlertTriangle, DollarSign, Boxes, RefreshCw, BarChart3, LogOut, Search, LayoutDashboard, TrendingUp } from "lucide-react";
 import { StatsCard } from "@/components/StatsCard";
 import { InventoryTable } from "@/components/InventoryTable";
 import { useInventoryData, InventoryItem } from "@/hooks/useInventoryData";
@@ -13,6 +13,7 @@ import { ProductValueChart } from "@/components/charts/ProductValueChart";
 import { StatusDistributionChart } from "@/components/charts/StatusDistributionChart";
 import { StockUpdateDialog } from "@/components/StockUpdateDialog";
 import { Badge } from "@/components/ui/badge";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from "@/components/ui/sidebar";
 
 const Index = () => {
   const { data: inventoryData, summary, loading, error, refetch, updateStock } = useInventoryData();
@@ -83,11 +84,8 @@ const Index = () => {
     );
   }
 
-  const eficienciaEstoque = summary.total_itens > 0 ? (summary.total_ok / summary.total_itens) * 100 : 0;
-  const valorMedioPorProduto = summary.total_itens > 0 ? summary.total_estoque_valor / summary.total_itens : 0;
-
-  return (
-    <div className="min-h-screen bg-background">
+  const content = (
+    <div className="flex-1">
       {/* Header */}
       <header className="border-b border-border bg-gradient-to-r from-primary/5 to-primary/10">
         <div className="container mx-auto px-4 py-6">
@@ -253,7 +251,7 @@ const Index = () => {
               <InventoryTable 
                 items={filteredData} 
                 onEdit={handleEditClick}
-                showEditButton={true}
+                showEditButton={user?.admin}
               />
             </div>
 
@@ -266,6 +264,51 @@ const Index = () => {
           </>
         )}
       </main>
+    </div>
+  );
+
+  if (user?.admin) {
+    return (
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          <Sidebar className="border-r">
+            <SidebarContent>
+              <SidebarGroup>
+                <SidebarGroupLabel>Menu Admin</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton onClick={() => navigate('/')}>
+                        <LayoutDashboard className="w-4 h-4" />
+                        <span>Dashboard</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton onClick={() => navigate('/mass-update')}>
+                        <Package className="w-4 h-4" />
+                        <span>Atualizar Estoque</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton onClick={() => navigate('/stock-movement')}>
+                        <TrendingUp className="w-4 h-4" />
+                        <span>Movimentar Estoque</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </SidebarContent>
+          </Sidebar>
+          {content}
+        </div>
+      </SidebarProvider>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {content}
     </div>
   );
 };
