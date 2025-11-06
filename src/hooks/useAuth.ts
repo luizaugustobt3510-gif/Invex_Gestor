@@ -6,7 +6,7 @@ interface User {
   admin: boolean;
 }
 
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbylAYnS1bMRlvOfh_os7uXyrP7KnMqLTbR7lyr00b1U4Zfh2QkpXo-Ii4QYx8W_xbo/exec';
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbx0_BygXBmPN7YOnbKv5i0mjrgoVHBLaWEZP8uAdbBbeQyhJ-6qbjRbEFxTl3wQE9Q/exec';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
