@@ -37,22 +37,24 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-primary/5 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4 text-center">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="space-y-4 text-center pb-6">
           <div className="flex justify-center">
-            <div className="p-3 bg-primary rounded-xl">
-              <Boxes className="w-10 h-10 text-primary-foreground" />
+            <div className="p-4 bg-primary rounded-2xl shadow-md">
+              <Boxes className="w-12 h-12 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold">Invex</CardTitle>
-          <CardDescription>
-            Sistema de Controle de Estoque
-          </CardDescription>
+          <div className="space-y-2">
+            <CardTitle className="text-4xl font-bold tracking-tight">Invex</CardTitle>
+            <CardDescription className="text-base">
+              Sistema de Controle de Estoque
+            </CardDescription>
+          </div>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="pt-0">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-semibold">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -60,10 +62,12 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
+                className="h-11"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="senha">Senha</Label>
+              <Label htmlFor="senha" className="text-sm font-semibold">Senha</Label>
               <Input
                 id="senha"
                 type="password"
@@ -71,9 +75,11 @@ const Login = () => {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 required
+                disabled={loading}
+                className="h-11"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-11 text-base font-semibold" disabled={loading}>
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
