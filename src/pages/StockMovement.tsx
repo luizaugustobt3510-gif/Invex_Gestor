@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
 import { useInventoryData } from '@/hooks/useInventoryData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,17 +18,12 @@ interface MovementItem {
 
 const StockMovement = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { data, movimentarEstoque } = useInventoryData();
   const [tipo, setTipo] = useState<'entrada' | 'saida'>('entrada');
   const [searchTerm, setSearchTerm] = useState('');
   const [movementList, setMovementList] = useState<MovementItem[]>([]);
   const [loading, setLoading] = useState(false);
-
-  if (!user?.admin) {
-    navigate('/');
-    return null;
-  }
+  const userName = 'Admin'; // Nome padrão já que não há mais autenticação
 
   const filteredProducts = data.filter(item =>
     item.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -75,7 +69,7 @@ const StockMovement = () => {
     }
 
     setLoading(true);
-    const result = await movimentarEstoque(user.nome, tipo, movementList);
+    const result = await movimentarEstoque(userName, tipo, movementList);
     
     if (result.success) {
       setMovementList([]);

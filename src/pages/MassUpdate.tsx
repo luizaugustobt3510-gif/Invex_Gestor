@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
 import { useInventoryData } from '@/hooks/useInventoryData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,16 +17,11 @@ interface UpdateItem {
 
 const MassUpdate = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { data, massUpdate } = useInventoryData();
   const [searchTerm, setSearchTerm] = useState('');
   const [updateList, setUpdateList] = useState<UpdateItem[]>([]);
   const [loading, setLoading] = useState(false);
-
-  if (!user?.admin) {
-    navigate('/');
-    return null;
-  }
+  const userName = 'Admin'; // Nome padrão já que não há mais autenticação
 
   const filteredProducts = data.filter(item =>
     item.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -71,7 +65,7 @@ const MassUpdate = () => {
       quantidade: item.novaQuantidade
     }));
 
-    const result = await massUpdate(user.nome, produtos);
+    const result = await massUpdate(userName, produtos);
     
     if (result.success) {
       setUpdateList([]);

@@ -1,10 +1,9 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, TrendingDown, AlertTriangle, DollarSign, Boxes, RefreshCw, BarChart3, LogOut, Search, LayoutDashboard, TrendingUp } from "lucide-react";
+import { Package, TrendingDown, AlertTriangle, DollarSign, Boxes, RefreshCw, BarChart3, Search, LayoutDashboard, TrendingUp } from "lucide-react";
 import { StatsCard } from "@/components/StatsCard";
 import { InventoryTable } from "@/components/InventoryTable";
 import { useInventoryData, InventoryItem } from "@/hooks/useInventoryData";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -17,24 +16,13 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 
 const Index = () => {
   const { data: inventoryData, summary, loading, error, refetch, updateStock } = useInventoryData();
-  const { user, logout, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [curvaFilter, setCurvaFilter] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/login');
-    }
-  }, [user, authLoading, navigate]);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const [isAdmin] = useState(true); // Simulando que todos são admin agora
 
   const filteredData = useMemo(() => {
     let filtered = inventoryData;
@@ -76,14 +64,6 @@ const Index = () => {
     setUpdateDialogOpen(true);
   };
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Skeleton className="h-12 w-48" />
-      </div>
-    );
-  }
-
   const content = (
     <div className="flex-1">
       {/* Header */}
@@ -96,13 +76,9 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-foreground">Invex</h1>
-                <p className="text-muted-foreground">Bem-vindo, {user?.nome}</p>
+                <p className="text-muted-foreground">Sistema de Controle de Estoque</p>
               </div>
             </div>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
-            </Button>
           </div>
         </div>
       </header>
@@ -251,7 +227,7 @@ const Index = () => {
               <InventoryTable 
                 items={filteredData} 
                 onEdit={handleEditClick}
-                showEditButton={user?.admin}
+                showEditButton={isAdmin}
               />
             </div>
 
@@ -267,7 +243,7 @@ const Index = () => {
     </div>
   );
 
-  if (user?.admin) {
+  if (isAdmin) {
     return (
       <SidebarProvider>
         <div className="min-h-screen flex w-full">
