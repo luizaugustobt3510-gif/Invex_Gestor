@@ -26,7 +26,7 @@ const StockMovement = () => {
   const userName = 'Admin'; // Nome padrão já que não há mais autenticação
 
   const filteredProducts = data.filter(item =>
-    item.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.codigo.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.material.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -37,7 +37,7 @@ const StockMovement = () => {
     }
 
     setMovementList([...movementList, {
-      codigo: item.codigo,
+      codigo: item.codigo.toString(),
       material: item.material,
       quantidade: '1',
       obs: ''
