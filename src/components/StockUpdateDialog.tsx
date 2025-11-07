@@ -34,7 +34,7 @@ export const StockUpdateDialog = ({ item, open, onOpenChange, onUpdate }: StockU
         body: JSON.stringify({
           action: 'update',
           codigo: item.codigo.toString(),
-          quantidade: quantidade,
+          quantidade: Number(quantidade),
         }),
       });
 
