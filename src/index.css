@@ -8,35 +8,35 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 0 0% 35%;
+    --background: 210 17% 98%;
+    --foreground: 0 0% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 35%;
+    --card-foreground: 0 0% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 35%;
+    --popover-foreground: 0 0% 20%;
 
-    --primary: 207 73% 57%;
+    --primary: 207 90% 54%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 207 73% 70%;
+    --primary-glow: 207 90% 70%;
 
-    --secondary: 174 47% 60%;
+    --secondary: 174 50% 60%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 210 20% 95%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 45 97% 70%;
-    --accent-foreground: 0 0% 35%;
+    --accent: 48 100% 67%;
+    --accent-foreground: 0 0% 20%;
 
-    --success: 142 71% 45%;
+    --success: 207 90% 54%;
     --success-foreground: 0 0% 100%;
-    --success-light: 142 71% 95%;
+    --success-light: 207 90% 95%;
 
-    --warning: 45 97% 70%;
-    --warning-foreground: 0 0% 35%;
-    --warning-light: 45 97% 95%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --warning-light: 38 92% 95%;
 
     --danger: 0 72% 51%;
     --danger-foreground: 0 0% 100%;
@@ -45,33 +45,33 @@ All colors MUST be HSL.
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 207 73% 57%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 207 90% 54%;
 
     --radius: 0.75rem;
 
-    --gradient-primary: linear-gradient(135deg, hsl(207 73% 57%), hsl(207 73% 70%));
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 98%));
+    --gradient-primary: linear-gradient(135deg, hsl(207 90% 54%), hsl(207 90% 70%));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 17% 98%));
     --shadow-card: 0 2px 8px -2px hsl(0 0% 0% / 0.05);
     --shadow-elevated: 0 8px 24px -6px hsl(0 0% 0% / 0.08);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 0 0% 100%;
 
-    --sidebar-foreground: 0 0% 35%;
+    --sidebar-foreground: 0 0% 20%;
 
-    --sidebar-primary: 207 73% 57%;
+    --sidebar-primary: 207 90% 54%;
 
     --sidebar-primary-foreground: 0 0% 100%;
 
     --sidebar-accent: 210 20% 95%;
 
-    --sidebar-accent-foreground: 0 0% 35%;
+    --sidebar-accent-foreground: 0 0% 20%;
 
-    --sidebar-border: 0 0% 90%;
+    --sidebar-border: 214 32% 91%;
 
-    --sidebar-ring: 207 73% 57%;
+    --sidebar-ring: 207 90% 54%;
   }
 
   .dark {

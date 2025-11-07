@@ -13,7 +13,7 @@ interface InventoryTableProps {
 export const InventoryTable = ({ items, onEdit, showEditButton = false }: InventoryTableProps) => {
   const getStatusVariant = (status: string) => {
     if (status.includes("Zerado")) return "destructive" as const;
-    if (status.includes("Abaixo")) return "secondary" as const;
+    if (status.includes("Abaixo")) return "warning" as const;
     return "default" as const;
   };
 

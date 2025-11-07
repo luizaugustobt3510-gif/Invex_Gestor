@@ -105,7 +105,7 @@ const Index = () => {
         ) : (
           <>
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
               <div className="cursor-pointer" onClick={() => handleStatusCardClick("OK")}>
                 <StatsCard
                   title="Produtos OK"
@@ -131,7 +131,7 @@ const Index = () => {
                 />
               </div>
               <StatsCard
-                title="Valor Total"
+                title="Valor Total em Estoque"
                 value={`R$ ${summary.total_estoque_valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 icon={DollarSign}
                 variant="success"
@@ -144,58 +144,60 @@ const Index = () => {
               />
             </div>
 
-            {/* Filters */}
-            <div className="mb-6 space-y-4">
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={curvaFilter === "A" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleCurvaFilterClick("A")}
-                >
-                  Curva A ({summary.curvaA})
-                </Button>
-                <Button
-                  variant={curvaFilter === "B" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleCurvaFilterClick("B")}
-                >
-                  Curva B ({summary.curvaB})
-                </Button>
-                <Button
-                  variant={curvaFilter === "C" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleCurvaFilterClick("C")}
-                >
-                  Curva C ({summary.curvaC})
-                </Button>
-                {(statusFilter || curvaFilter) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setStatusFilter(null);
-                      setCurvaFilter(null);
-                    }}
-                  >
-                    Limpar Filtros
-                  </Button>
-                )}
+            {/* Curva ABC Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div className="cursor-pointer" onClick={() => handleCurvaFilterClick("A")}>
+                <StatsCard
+                  title="Curva A"
+                  value={summary.curvaA}
+                  icon={TrendingUp}
+                  variant="success"
+                />
               </div>
-              {(statusFilter || curvaFilter) && (
-                <div className="flex gap-2">
-                  {statusFilter && (
-                    <Badge variant="secondary">
-                      Status: {statusFilter}
-                    </Badge>
-                  )}
-                  {curvaFilter && (
-                    <Badge variant="secondary">
-                      Curva: {curvaFilter}
-                    </Badge>
-                  )}
-                </div>
-              )}
+              <div className="cursor-pointer" onClick={() => handleCurvaFilterClick("B")}>
+                <StatsCard
+                  title="Curva B"
+                  value={summary.curvaB}
+                  icon={BarChart3}
+                  variant="warning"
+                />
+              </div>
+              <div className="cursor-pointer" onClick={() => handleCurvaFilterClick("C")}>
+                <StatsCard
+                  title="Curva C"
+                  value={summary.curvaC}
+                  icon={Package}
+                  variant="default"
+                />
+              </div>
             </div>
+
+            {/* Active Filters */}
+            {(statusFilter || curvaFilter) && (
+              <div className="mb-6 flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-muted-foreground">Filtros ativos:</span>
+                {statusFilter && (
+                  <Badge variant="secondary" className="cursor-pointer" onClick={() => setStatusFilter(null)}>
+                    Status: {statusFilter} ✕
+                  </Badge>
+                )}
+                {curvaFilter && (
+                  <Badge variant="secondary" className="cursor-pointer" onClick={() => setCurvaFilter(null)}>
+                    Curva: {curvaFilter} ✕
+                  </Badge>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setStatusFilter(null);
+                    setCurvaFilter(null);
+                  }}
+                >
+                  Limpar Todos
+                </Button>
+              </div>
+            )}
 
             {/* Charts Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
