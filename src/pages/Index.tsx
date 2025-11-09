@@ -10,8 +10,11 @@ import { Input } from "@/components/ui/input";
 import { CurvaABCChart } from "@/components/charts/CurvaABCChart";
 import { ProductValueChart } from "@/components/charts/ProductValueChart";
 import { StatusDistributionChart } from "@/components/charts/StatusDistributionChart";
+import { StockEvolutionChart } from "@/components/charts/StockEvolutionChart";
+import { MovementsChart } from "@/components/charts/MovementsChart";
 import { StockUpdateDialog } from "@/components/StockUpdateDialog";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const { data: inventoryData, summary, loading, error, refetch, updateStock } = useInventoryData();
@@ -61,9 +64,53 @@ const Index = () => {
     setUpdateDialogOpen(true);
   };
 
+  const handleExportReport = () => {
+    try {
+      // Preparar dados para exportação
+      const csvContent = [
+        ['Código', 'Material', 'Quantidade', 'Valor Unitário', 'Valor Total', 'Status'],
+        ...inventoryData.map(item => [
+          item.codigo,
+          item.material,
+          item.quantidade,
+          item.preco.toFixed(2),
+          item.valorTotal.toFixed(2),
+          item.status
+        ])
+      ].map(row => row.join(';')).join('\n');
+
+      // Criar blob e download
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('pt-BR').replace(/\//g, '-');
+      const timeStr = now.toLocaleTimeString('pt-BR').replace(/:/g, '-');
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Relatorio_Estoque_Invex_${dateStr}_${timeStr}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Relatório exportado com sucesso!",
+        description: "O arquivo CSV foi baixado.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao exportar relatório",
+        description: "Ocorreu um erro ao gerar o arquivo.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <TopNav />
+      <TopNav onExportReport={handleExportReport} />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -182,9 +229,17 @@ const Index = () => {
             )}
 
             {/* Charts Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
               <StatusDistributionChart items={inventoryData} />
               <CurvaABCChart items={inventoryData} />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+              <StockEvolutionChart items={inventoryData} />
+              <MovementsChart />
+            </div>
+
+            <div className="mb-8">
               <ProductValueChart items={inventoryData} />
             </div>
 

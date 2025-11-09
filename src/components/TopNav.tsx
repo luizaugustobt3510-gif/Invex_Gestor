@@ -1,9 +1,13 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Package, TrendingUp, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, TrendingUp, LogOut, Download } from 'lucide-react';
 
-export const TopNav = () => {
+interface TopNavProps {
+  onExportReport?: () => void;
+}
+
+export const TopNav = ({ onExportReport }: TopNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -22,9 +26,9 @@ export const TopNav = () => {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <img 
-                src="https://cdn.openai.com/files/file_000000007e50720e957e1927fdf818ef.png" 
+                src="https://i.imgur.com/NAvjmcb.png" 
                 alt="Invex Logo" 
-                className="w-8 h-8 object-contain"
+                className="h-10 w-auto object-contain"
               />
               <span className="text-xl font-bold text-primary">Invex 5.0</span>
             </div>
@@ -58,6 +62,16 @@ export const TopNav = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            {onExportReport && location.pathname === '/' && (
+              <Button 
+                onClick={onExportReport}
+                className="gap-2 bg-primary hover:bg-primary/90"
+                size="sm"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden md:inline">Exportar Relatório</span>
+              </Button>
+            )}
             {user && (
               <div className="hidden md:block">
                 <p className="text-sm text-muted-foreground">Bem-vindo,</p>
