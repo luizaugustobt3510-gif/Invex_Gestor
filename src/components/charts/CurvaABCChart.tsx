@@ -17,9 +17,9 @@ export const CurvaABCChart = ({ items }: CurvaABCChartProps) => {
   const chartData = Object.entries(curvaData).map(([name, value]) => ({
     name: `Curva ${name}`,
     value,
-    fill: name === 'A' ? 'hsl(var(--success))' : 
-          name === 'B' ? 'hsl(var(--warning))' : 
-          name === 'C' ? 'hsl(var(--danger))' :
+    fill: name === 'A' ? 'hsl(142 76% 36%)' : 
+          name === 'B' ? 'hsl(45 97% 70%)' : 
+          name === 'C' ? 'hsl(0 72% 51%)' :
           'hsl(var(--muted))'
   }));
 

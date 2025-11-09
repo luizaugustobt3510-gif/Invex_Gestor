@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useInventoryData } from '@/hooks/useInventoryData';
+import { TopNav } from '@/components/TopNav';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Plus, Save, Search, Trash2 } from 'lucide-react';
+import { Plus, Save, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface UpdateItem {
@@ -16,12 +16,11 @@ interface UpdateItem {
 }
 
 const MassUpdate = () => {
-  const navigate = useNavigate();
   const { data, massUpdate } = useInventoryData();
   const [searchTerm, setSearchTerm] = useState('');
   const [updateList, setUpdateList] = useState<UpdateItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const userName = 'Admin'; // Nome padrão já que não há mais autenticação
+  const userName = 'Admin';
 
   const filteredProducts = data.filter(item =>
     item.codigo.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -76,15 +75,12 @@ const MassUpdate = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
+    <div className="min-h-screen bg-background">
+      <TopNav />
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold">Atualizar Estoque em Massa</h1>
-          </div>
           <Button onClick={handleSave} disabled={loading || updateList.length === 0}>
             <Save className="w-4 h-4 mr-2" />
             Salvar Alterações
@@ -191,6 +187,7 @@ const MassUpdate = () => {
           </Card>
         </div>
       </div>
+    </div>
     </div>
   );
 };

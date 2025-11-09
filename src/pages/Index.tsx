@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { Package, TrendingDown, AlertTriangle, DollarSign, Boxes, RefreshCw, BarChart3, Search, LayoutDashboard, TrendingUp } from "lucide-react";
+import { Package, TrendingDown, AlertTriangle, DollarSign, RefreshCw, BarChart3, Search, TrendingUp } from "lucide-react";
 import { StatsCard } from "@/components/StatsCard";
 import { InventoryTable } from "@/components/InventoryTable";
 import { useInventoryData, InventoryItem } from "@/hooks/useInventoryData";
+import { TopNav } from "@/components/TopNav";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -12,17 +12,14 @@ import { ProductValueChart } from "@/components/charts/ProductValueChart";
 import { StatusDistributionChart } from "@/components/charts/StatusDistributionChart";
 import { StockUpdateDialog } from "@/components/StockUpdateDialog";
 import { Badge } from "@/components/ui/badge";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from "@/components/ui/sidebar";
 
 const Index = () => {
   const { data: inventoryData, summary, loading, error, refetch, updateStock } = useInventoryData();
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [curvaFilter, setCurvaFilter] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
-  const [isAdmin] = useState(true); // Simulando que todos são admin agora
 
   const filteredData = useMemo(() => {
     let filtered = inventoryData;
@@ -64,24 +61,9 @@ const Index = () => {
     setUpdateDialogOpen(true);
   };
 
-  const content = (
-    <div className="flex-1">
-      {/* Header */}
-      <header className="border-b border-border bg-gradient-to-r from-primary/5 to-primary/10">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary rounded-lg">
-                <Boxes className="w-8 h-8 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">Invex</h1>
-                <p className="text-muted-foreground">Sistema de Controle de Estoque</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+  return (
+    <div className="min-h-screen bg-background">
+      <TopNav />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -229,7 +211,7 @@ const Index = () => {
               <InventoryTable 
                 items={filteredData} 
                 onEdit={handleEditClick}
-                showEditButton={isAdmin}
+                showEditButton={true}
               />
             </div>
 
@@ -242,51 +224,6 @@ const Index = () => {
           </>
         )}
       </main>
-    </div>
-  );
-
-  if (isAdmin) {
-    return (
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full">
-          <Sidebar className="border-r">
-            <SidebarContent>
-              <SidebarGroup>
-                <SidebarGroupLabel>Menu Admin</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton onClick={() => navigate('/')}>
-                        <LayoutDashboard className="w-4 h-4" />
-                        <span>Dashboard</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton onClick={() => navigate('/mass-update')}>
-                        <Package className="w-4 h-4" />
-                        <span>Atualizar Estoque</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton onClick={() => navigate('/stock-movement')}>
-                        <TrendingUp className="w-4 h-4" />
-                        <span>Movimentar Estoque</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            </SidebarContent>
-          </Sidebar>
-          {content}
-        </div>
-      </SidebarProvider>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-background">
-      {content}
     </div>
   );
 };

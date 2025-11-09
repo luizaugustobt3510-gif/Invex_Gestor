@@ -53,11 +53,11 @@ export const ProductValueChart = ({ items }: ProductValueChartProps) => {
               <YAxis 
                 dataKey="materialShort" 
                 type="category" 
-                width={110}
+                width={150}
                 tick={{ fontSize: 11 }}
               />
               <ChartTooltip content={<CustomTooltip />} />
-              <Bar dataKey="valorTotal" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="valorTotal" fill="hsl(142 76% 36%)" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>

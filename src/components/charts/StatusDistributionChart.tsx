@@ -24,9 +24,9 @@ export const StatusDistributionChart = ({ items }: StatusDistributionChartProps)
   const chartData = Object.entries(statusData).map(([name, value]) => ({
     name,
     value,
-    fill: name.includes('OK') ? 'hsl(var(--success))' : 
-          name.includes('Zerado') ? 'hsl(var(--danger))' : 
-          name.includes('Abaixo do mínimo') ? 'hsl(var(--warning))' :
+    fill: name.includes('OK') ? 'hsl(142 76% 36%)' : 
+          name.includes('Zerado') ? 'hsl(0 72% 51%)' : 
+          name.includes('Abaixo do mínimo') ? 'hsl(45 97% 70%)' :
           'hsl(var(--muted))'
   }));
 

@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useInventoryData } from '@/hooks/useInventoryData';
+import { TopNav } from '@/components/TopNav';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, ArrowDown, ArrowUp, Save, Search, Trash2, Plus } from 'lucide-react';
+import { ArrowDown, ArrowUp, Save, Search, Trash2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MovementItem {
@@ -17,13 +17,12 @@ interface MovementItem {
 }
 
 const StockMovement = () => {
-  const navigate = useNavigate();
   const { data, movimentarEstoque } = useInventoryData();
   const [tipo, setTipo] = useState<'entrada' | 'saida'>('entrada');
   const [searchTerm, setSearchTerm] = useState('');
   const [movementList, setMovementList] = useState<MovementItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const userName = 'Admin'; // Nome padrão já que não há mais autenticação
+  const userName = 'Admin';
 
   const filteredProducts = data.filter(item =>
     item.codigo.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,16 +78,11 @@ const StockMovement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <h1 className="text-3xl font-bold">Movimentar Estoque</h1>
-          </div>
-        </div>
+    <div className="min-h-screen bg-background">
+      <TopNav />
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <h1 className="text-3xl font-bold">Movimentar Estoque</h1>
 
         {/* Seleção de Tipo */}
         <div className="flex gap-4">
@@ -228,6 +222,7 @@ const StockMovement = () => {
           </Card>
         </div>
       </div>
+    </div>
     </div>
   );
 };
