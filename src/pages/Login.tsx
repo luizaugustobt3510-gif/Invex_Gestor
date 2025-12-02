@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Boxes, Mail, Lock } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import { InvexLogo } from '@/components/InvexLogo';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -18,13 +19,18 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !senha) {
-      toast.error('Por favor, preencha todos os campos');
+    if (!email.trim()) {
+      toast.error('Por favor, informe o e-mail.');
+      return;
+    }
+
+    if (!senha.trim()) {
+      toast.error('Por favor, informe a senha.');
       return;
     }
 
     setLoading(true);
-    const result = await login(email, senha);
+    const result = await login(email.trim(), senha);
     setLoading(false);
 
     if (result.success) {
@@ -41,15 +47,13 @@ const Login = () => {
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
             <div className="p-4 bg-primary/10 rounded-2xl">
-              <img 
-                src="https://cdn.openai.com/files/file_000000007e50720e957e1927fdf818ef.png" 
-                alt="Invex Logo" 
-                className="w-16 h-16 object-contain"
-              />
+              <InvexLogo size="lg" />
             </div>
           </div>
           <div>
-            <CardTitle className="text-3xl font-bold">Invex 5.0</CardTitle>
+            <CardTitle className="text-2xl font-bold text-foreground">
+              Bem-vindo ao Invex
+            </CardTitle>
             <CardDescription className="text-base mt-2">
               Sistema de Controle de Estoque
             </CardDescription>
@@ -71,6 +75,7 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   disabled={loading}
+                  autoComplete="email"
                 />
               </div>
             </div>
@@ -89,6 +94,7 @@ const Login = () => {
                   onChange={(e) => setSenha(e.target.value)}
                   className="pl-10"
                   disabled={loading}
+                  autoComplete="current-password"
                 />
               </div>
             </div>
@@ -98,7 +104,7 @@ const Login = () => {
               className="w-full h-11 text-base font-semibold"
               disabled={loading}
             >
-              {loading ? 'Entrando...' : 'Entrar'}
+              {loading ? 'Verificando...' : 'Entrar'}
             </Button>
           </form>
         </CardContent>
