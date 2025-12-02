@@ -10,8 +10,6 @@ import { Input } from "@/components/ui/input";
 import { CurvaABCChart } from "@/components/charts/CurvaABCChart";
 import { ProductValueChart } from "@/components/charts/ProductValueChart";
 import { StatusDistributionChart } from "@/components/charts/StatusDistributionChart";
-import { StockEvolutionChart } from "@/components/charts/StockEvolutionChart";
-import { MovementsChart } from "@/components/charts/MovementsChart";
 import { StockUpdateDialog } from "@/components/StockUpdateDialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
@@ -232,11 +230,6 @@ const Index = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
               <StatusDistributionChart items={inventoryData} />
               <CurvaABCChart items={inventoryData} />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-              <StockEvolutionChart items={inventoryData} />
-              <MovementsChart />
             </div>
 
             <div className="mb-8">
