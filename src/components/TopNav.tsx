@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, Package, TrendingUp, LogOut, Download } from 'lucide-react';
+import { InvexLogo } from '@/components/InvexLogo';
 
 interface TopNavProps {
   onExportReport?: () => void;
@@ -24,13 +25,8 @@ export const TopNav = ({ onExportReport }: TopNavProps) => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <img 
-                src="https://i.imgur.com/NAvjmcb.png" 
-                alt="Invex Logo" 
-                className="h-10 w-auto object-contain"
-              />
-              <span className="text-xl font-bold text-primary">Invex 5.0</span>
+            <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
+              <InvexLogo size="sm" />
             </div>
             
             <div className="hidden md:flex items-center gap-2">
