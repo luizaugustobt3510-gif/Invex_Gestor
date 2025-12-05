@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TopNav } from '@/components/TopNav';
+import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -66,62 +66,59 @@ const ListarSolicitacoes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <TopNav />
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="w-5 h-5" />
-              Solicitações de Material
-            </CardTitle>
-            <Button variant="outline" size="sm" onClick={fetchSolicitacoes} disabled={loading}>
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Carregando...</div>
-            ) : solicitacoes.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">Nenhuma solicitação encontrada.</div>
-            ) : (
-              <div className="border rounded-lg overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Usuário</TableHead>
-                      <TableHead>Setor</TableHead>
-                      <TableHead>Código</TableHead>
-                      <TableHead>Material</TableHead>
-                      <TableHead>Qtd</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Obs</TableHead>
+    <MainLayout>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <ClipboardList className="w-5 h-5" />
+            Solicitações de Material
+          </CardTitle>
+          <Button variant="outline" size="sm" onClick={fetchSolicitacoes} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground">Carregando...</div>
+          ) : solicitacoes.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">Nenhuma solicitação encontrada.</div>
+          ) : (
+            <div className="border rounded-lg overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Usuário</TableHead>
+                    <TableHead>Setor</TableHead>
+                    <TableHead>Código</TableHead>
+                    <TableHead>Material</TableHead>
+                    <TableHead>Qtd</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Obs</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {solicitacoes.map((sol) => (
+                    <TableRow key={sol.id}>
+                      <TableCell className="font-mono">{sol.id}</TableCell>
+                      <TableCell>{sol.data}</TableCell>
+                      <TableCell>{sol.email_usuario}</TableCell>
+                      <TableCell>{sol.setor}</TableCell>
+                      <TableCell>{sol.codigo}</TableCell>
+                      <TableCell>{sol.material}</TableCell>
+                      <TableCell>{sol.quantidade}</TableCell>
+                      <TableCell>{getStatusBadge(sol.status)}</TableCell>
+                      <TableCell>{sol.obs || '-'}</TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {solicitacoes.map((sol) => (
-                      <TableRow key={sol.id}>
-                        <TableCell className="font-mono">{sol.id}</TableCell>
-                        <TableCell>{sol.data}</TableCell>
-                        <TableCell>{sol.email_usuario}</TableCell>
-                        <TableCell>{sol.setor}</TableCell>
-                        <TableCell>{sol.codigo}</TableCell>
-                        <TableCell>{sol.material}</TableCell>
-                        <TableCell>{sol.quantidade}</TableCell>
-                        <TableCell>{getStatusBadge(sol.status)}</TableCell>
-                        <TableCell>{sol.obs || '-'}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </MainLayout>
   );
 };
 
