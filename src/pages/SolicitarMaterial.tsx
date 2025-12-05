@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TopNav } from '@/components/TopNav';
+import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -90,77 +90,74 @@ const SolicitarMaterial = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <TopNav />
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-lg mx-auto">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="w-5 h-5" />
-              Solicitar Material
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Setor *</Label>
-                <Select value={formData.setor} onValueChange={(v) => setFormData(prev => ({ ...prev, setor: v }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o setor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {setores.map((s) => (
-                      <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="codigo">Código *</Label>
-                <Input
-                  id="codigo"
-                  value={formData.codigo}
-                  onChange={(e) => setFormData(prev => ({ ...prev, codigo: e.target.value }))}
-                  placeholder="Código do material"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="material">Material *</Label>
-                <Input
-                  id="material"
-                  value={formData.material}
-                  onChange={(e) => setFormData(prev => ({ ...prev, material: e.target.value }))}
-                  placeholder="Nome do material"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="quantidade">Quantidade *</Label>
-                <Input
-                  id="quantidade"
-                  type="number"
-                  value={formData.quantidade}
-                  onChange={(e) => setFormData(prev => ({ ...prev, quantidade: e.target.value }))}
-                  placeholder="0"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="obs">Observação</Label>
-                <Textarea
-                  id="obs"
-                  value={formData.obs}
-                  onChange={(e) => setFormData(prev => ({ ...prev, obs: e.target.value }))}
-                  placeholder="Observações adicionais (opcional)"
-                />
-              </div>
-              <Button type="submit" className="w-full gap-2" disabled={loading}>
-                <Send className="w-4 h-4" />
-                {loading ? 'Enviando...' : 'Enviar Solicitação'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <MainLayout>
+      <Card className="max-w-lg mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ClipboardList className="w-5 h-5" />
+            Solicitar Material
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Setor *</Label>
+              <Select value={formData.setor} onValueChange={(v) => setFormData(prev => ({ ...prev, setor: v }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o setor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {setores.map((s) => (
+                    <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="codigo">Código *</Label>
+              <Input
+                id="codigo"
+                value={formData.codigo}
+                onChange={(e) => setFormData(prev => ({ ...prev, codigo: e.target.value }))}
+                placeholder="Código do material"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="material">Material *</Label>
+              <Input
+                id="material"
+                value={formData.material}
+                onChange={(e) => setFormData(prev => ({ ...prev, material: e.target.value }))}
+                placeholder="Nome do material"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="quantidade">Quantidade *</Label>
+              <Input
+                id="quantidade"
+                type="number"
+                value={formData.quantidade}
+                onChange={(e) => setFormData(prev => ({ ...prev, quantidade: e.target.value }))}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="obs">Observação</Label>
+              <Textarea
+                id="obs"
+                value={formData.obs}
+                onChange={(e) => setFormData(prev => ({ ...prev, obs: e.target.value }))}
+                placeholder="Observações adicionais (opcional)"
+              />
+            </div>
+            <Button type="submit" className="w-full gap-2" disabled={loading}>
+              <Send className="w-4 h-4" />
+              {loading ? 'Enviando...' : 'Enviar Solicitação'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </MainLayout>
   );
 };
 

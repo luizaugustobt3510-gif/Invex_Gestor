@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TopNav } from '@/components/TopNav';
+import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
@@ -39,50 +39,47 @@ const ListarSetores = () => {
   }, [user?.email]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <TopNav />
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-3xl mx-auto">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="w-5 h-5" />
-              Setores Cadastrados
-            </CardTitle>
-            <Button variant="outline" size="sm" onClick={fetchSetores} disabled={loading}>
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Carregando...</div>
-            ) : setores.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">Nenhum setor cadastrado.</div>
-            ) : (
-              <div className="border rounded-lg overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Descrição</TableHead>
+    <MainLayout>
+      <Card className="max-w-3xl mx-auto">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="w-5 h-5" />
+            Setores Cadastrados
+          </CardTitle>
+          <Button variant="outline" size="sm" onClick={fetchSetores} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground">Carregando...</div>
+          ) : setores.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">Nenhum setor cadastrado.</div>
+          ) : (
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Descrição</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {setores.map((setor) => (
+                    <TableRow key={setor.id}>
+                      <TableCell className="font-mono">{setor.id}</TableCell>
+                      <TableCell className="font-medium">{setor.nome}</TableCell>
+                      <TableCell>{setor.descricao || '-'}</TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {setores.map((setor) => (
-                      <TableRow key={setor.id}>
-                        <TableCell className="font-mono">{setor.id}</TableCell>
-                        <TableCell className="font-medium">{setor.nome}</TableCell>
-                        <TableCell>{setor.descricao || '-'}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </MainLayout>
   );
 };
 

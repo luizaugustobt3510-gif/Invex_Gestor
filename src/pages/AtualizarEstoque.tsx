@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TopNav } from '@/components/TopNav';
+import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -60,46 +60,43 @@ const AtualizarEstoque = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <TopNav />
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Atualizar Estoque
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="codigo">Código do Produto *</Label>
-                <Input
-                  id="codigo"
-                  value={codigo}
-                  onChange={(e) => setCodigo(e.target.value)}
-                  placeholder="Ex: 001"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="quantidade">Nova Quantidade *</Label>
-                <Input
-                  id="quantidade"
-                  type="number"
-                  value={quantidade}
-                  onChange={(e) => setQuantidade(e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-              <Button type="submit" className="w-full gap-2" disabled={loading}>
-                <Save className="w-4 h-4" />
-                {loading ? 'Atualizando...' : 'Atualizar Estoque'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <MainLayout>
+      <Card className="max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="w-5 h-5" />
+            Atualizar Estoque
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="codigo">Código do Produto *</Label>
+              <Input
+                id="codigo"
+                value={codigo}
+                onChange={(e) => setCodigo(e.target.value)}
+                placeholder="Ex: 001"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="quantidade">Nova Quantidade *</Label>
+              <Input
+                id="quantidade"
+                type="number"
+                value={quantidade}
+                onChange={(e) => setQuantidade(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+            <Button type="submit" className="w-full gap-2" disabled={loading}>
+              <Save className="w-4 h-4" />
+              {loading ? 'Atualizando...' : 'Atualizar Estoque'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </MainLayout>
   );
 };
 

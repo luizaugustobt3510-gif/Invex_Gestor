@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TopNav } from '@/components/TopNav';
+import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -61,45 +61,42 @@ const CriarSetor = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <TopNav />
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="w-5 h-5" />
-              Criar Setor
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome do Setor *</Label>
-                <Input
-                  id="nome"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  placeholder="Ex: Almoxarifado Central"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="descricao">Descrição</Label>
-                <Textarea
-                  id="descricao"
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  placeholder="Descrição do setor (opcional)"
-                />
-              </div>
-              <Button type="submit" className="w-full gap-2" disabled={loading}>
-                <Save className="w-4 h-4" />
-                {loading ? 'Criando...' : 'Criar Setor'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <MainLayout>
+      <Card className="max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="w-5 h-5" />
+            Criar Setor
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="nome">Nome do Setor *</Label>
+              <Input
+                id="nome"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                placeholder="Ex: Almoxarifado Central"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="descricao">Descrição</Label>
+              <Textarea
+                id="descricao"
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                placeholder="Descrição do setor (opcional)"
+              />
+            </div>
+            <Button type="submit" className="w-full gap-2" disabled={loading}>
+              <Save className="w-4 h-4" />
+              {loading ? 'Criando...' : 'Criar Setor'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </MainLayout>
   );
 };
 
