@@ -72,8 +72,8 @@ const AtualizarEstoque = () => {
   };
 
   const filteredItems = inventoryData.filter(item => 
-    item.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.material.toLowerCase().includes(searchTerm.toLowerCase())
+    String(item.codigo).toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(item.material).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
