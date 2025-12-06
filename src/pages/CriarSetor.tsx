@@ -9,11 +9,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/services/api';
-import { Building2, Save, RefreshCw } from 'lucide-react';
+import { Building2, Save, RefreshCw, Trash2 } from 'lucide-react';
 
 interface Setor {
-  id: string;
-  nome: string;
+  id_setor: number;
+  nome_setor: string;
   descricao: string;
 }
 
@@ -22,6 +22,7 @@ const CriarSetor = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [loadingSetores, setLoadingSetores] = useState(true);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
   const [setores, setSetores] = useState<Setor[]>([]);
@@ -98,6 +99,37 @@ const CriarSetor = () => {
     }
   };
 
+  const handleDelete = async (idSetor: number) => {
+    if (!user?.email) return;
+    
+    setDeletingId(idSetor);
+    try {
+      const response = await api.excluirSetor(user.email, idSetor);
+      
+      if (response.ok) {
+        toast({
+          title: 'Sucesso!',
+          description: response.msg || 'Setor excluído com sucesso.',
+        });
+        fetchSetores();
+      } else {
+        toast({
+          title: 'Erro',
+          description: response.msg || 'Erro ao excluir setor.',
+          variant: 'destructive',
+        });
+      }
+    } catch {
+      toast({
+        title: 'Erro',
+        description: 'Erro ao conectar com o servidor.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto space-y-6">
@@ -156,14 +188,25 @@ const CriarSetor = () => {
                       <TableHead>ID</TableHead>
                       <TableHead>Nome</TableHead>
                       <TableHead>Descrição</TableHead>
+                      <TableHead className="w-[80px]">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {setores.map((setor, index) => (
-                      <TableRow key={setor.id || index}>
-                        <TableCell className="font-mono">{setor.id || index + 1}</TableCell>
-                        <TableCell className="font-medium">{setor.nome}</TableCell>
+                    {setores.map((setor) => (
+                      <TableRow key={setor.id_setor}>
+                        <TableCell className="font-mono">{setor.id_setor}</TableCell>
+                        <TableCell className="font-medium">{setor.nome_setor}</TableCell>
                         <TableCell>{setor.descricao || '-'}</TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => handleDelete(setor.id_setor)}
+                            disabled={deletingId === setor.id_setor}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

@@ -12,7 +12,7 @@ const ListarSetores = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [setores, setSetores] = useState<Array<{ id: string; nome: string; descricao: string }>>([]);
+  const [setores, setSetores] = useState<Array<{ id_setor: number; nome_setor: string; descricao: string }>>([]);
 
   const fetchSetores = async () => {
     if (!user?.email) return;
@@ -67,9 +67,9 @@ const ListarSetores = () => {
                 </TableHeader>
                 <TableBody>
                   {setores.map((setor) => (
-                    <TableRow key={setor.id}>
-                      <TableCell className="font-mono">{setor.id}</TableCell>
-                      <TableCell className="font-medium">{setor.nome}</TableCell>
+                    <TableRow key={setor.id_setor}>
+                      <TableCell className="font-mono">{setor.id_setor}</TableCell>
+                      <TableCell className="font-medium">{setor.nome_setor}</TableCell>
                       <TableCell>{setor.descricao || '-'}</TableCell>
                     </TableRow>
                   ))}
