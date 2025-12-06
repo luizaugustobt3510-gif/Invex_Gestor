@@ -30,41 +30,53 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             
-            {/* Rotas para superadm e admin */}
+            {/* Dashboard - todos menos usuario almox */}
+            <Route path="/" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante']}>
+                <Index />
+              </RoleProtectedRoute>
+            } />
+            
+            {/* Estoque - Cadastrar e Atualizar: apenas superadm e admin */}
             <Route path="/cadastrar-material" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
                 <CadastrarMaterial />
               </RoleProtectedRoute>
             } />
-            <Route path="/gerar-oc" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
-                <GerarOC />
-              </RoleProtectedRoute>
-            } />
             <Route path="/atualizar-estoque" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
                 <AtualizarEstoque />
               </RoleProtectedRoute>
             } />
+            
+            {/* Movimentar Estoque: superadm, admin e usuario almox */}
             <Route path="/movimentar-estoque" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
                 <MovimentarEstoqueNew />
               </RoleProtectedRoute>
             } />
+            
+            {/* Ordens de Compra: apenas superadm e admin */}
+            <Route path="/gerar-oc" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+                <GerarOC />
+              </RoleProtectedRoute>
+            } />
+            
+            {/* Setores: apenas superadm e admin */}
             <Route path="/criar-setor" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
                 <CriarSetor />
               </RoleProtectedRoute>
             } />
             <Route path="/listar-setores" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
                 <ListarSetores />
               </RoleProtectedRoute>
             } />
             
-            {/* Rotas para solicitantes */}
+            {/* Solicitações: todos */}
             <Route path="/solicitar-material" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante']}>
                 <SolicitarMaterial />
@@ -76,7 +88,7 @@ const App = () => (
               </RoleProtectedRoute>
             } />
             
-            {/* Rota exclusiva superadm */}
+            {/* Administração: apenas superadm */}
             <Route path="/criar-usuario" element={
               <RoleProtectedRoute allowedRoles={['superadm']}>
                 <CriarUsuario />

@@ -25,26 +25,77 @@ const CriarUsuario = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.email || !formData.senha || !formData.nome || !formData.autenticacao) {
+    const email = formData.email.trim();
+    const senha = formData.senha.trim();
+    const nome = formData.nome.trim();
+    const autenticacao = formData.autenticacao;
+
+    console.log('Validando campos:', { email, senha, nome, autenticacao });
+
+    if (!email) {
       toast({
-        title: 'Campos obrigatórios',
-        description: 'Preencha todos os campos.',
+        title: 'Campo obrigatório',
+        description: 'Informe o e-mail do usuário.',
         variant: 'destructive',
       });
       return;
     }
 
-    if (!user?.email) return;
+    if (!senha) {
+      toast({
+        title: 'Campo obrigatório',
+        description: 'Informe a senha do usuário.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!nome) {
+      toast({
+        title: 'Campo obrigatório',
+        description: 'Informe o nome do usuário.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!autenticacao) {
+      toast({
+        title: 'Campo obrigatório',
+        description: 'Selecione o nível de acesso.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!user?.email) {
+      toast({
+        title: 'Erro',
+        description: 'Usuário não autenticado.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     setLoading(true);
     try {
+      console.log('Enviando para API:', {
+        adminEmail: user.email,
+        email,
+        senha,
+        nome,
+        autenticacao
+      });
+
       const response = await api.criarUsuario(
         user.email,
-        formData.email,
-        formData.senha,
-        formData.nome,
-        formData.autenticacao
+        email,
+        senha,
+        nome,
+        autenticacao
       );
+
+      console.log('Resposta API:', response);
 
       if (response.ok) {
         toast({
@@ -59,7 +110,8 @@ const CriarUsuario = () => {
           variant: 'destructive',
         });
       }
-    } catch {
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao conectar com o servidor.',
@@ -112,7 +164,10 @@ const CriarUsuario = () => {
             </div>
             <div className="space-y-2">
               <Label>Nível de Acesso *</Label>
-              <Select value={formData.autenticacao} onValueChange={(v) => setFormData(prev => ({ ...prev, autenticacao: v }))}>
+              <Select 
+                value={formData.autenticacao} 
+                onValueChange={(v) => setFormData(prev => ({ ...prev, autenticacao: v }))}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o nível" />
                 </SelectTrigger>

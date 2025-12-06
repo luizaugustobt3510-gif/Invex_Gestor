@@ -3,10 +3,12 @@ import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/services/api';
-import { ClipboardList, RefreshCw } from 'lucide-react';
+import { ClipboardList, RefreshCw, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface Solicitacao {
@@ -26,6 +28,8 @@ const ListarSolicitacoes = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
+  const [dataInicial, setDataInicial] = useState('');
+  const [dataFinal, setDataFinal] = useState('');
 
   const fetchSolicitacoes = async () => {
     if (!user?.email) return;
@@ -35,6 +39,8 @@ const ListarSolicitacoes = () => {
       const response = await api.listarSolicitacoes(user.email);
       if (response.solicitacoes) {
         setSolicitacoes(response.solicitacoes);
+      } else if (Array.isArray(response)) {
+        setSolicitacoes(response);
       }
     } catch {
       toast({
@@ -51,6 +57,51 @@ const ListarSolicitacoes = () => {
     fetchSolicitacoes();
   }, [user?.email]);
 
+  const parseDate = (dateStr: string): Date | null => {
+    if (!dateStr) return null;
+    
+    // Try different date formats
+    const formats = [
+      /(\d{2})\/(\d{2})\/(\d{4})/, // DD/MM/YYYY
+      /(\d{4})-(\d{2})-(\d{2})/,   // YYYY-MM-DD
+    ];
+    
+    for (const format of formats) {
+      const match = dateStr.match(format);
+      if (match) {
+        if (format === formats[0]) {
+          return new Date(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1]));
+        } else {
+          return new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
+        }
+      }
+    }
+    
+    return new Date(dateStr);
+  };
+
+  const filteredSolicitacoes = solicitacoes.filter(sol => {
+    if (!dataInicial && !dataFinal) return true;
+    
+    const solDate = parseDate(sol.data);
+    if (!solDate || isNaN(solDate.getTime())) return true;
+    
+    const startDate = dataInicial ? new Date(dataInicial) : null;
+    const endDate = dataFinal ? new Date(dataFinal) : null;
+    
+    if (startDate && endDate) {
+      endDate.setHours(23, 59, 59, 999);
+      return solDate >= startDate && solDate <= endDate;
+    } else if (startDate) {
+      return solDate >= startDate;
+    } else if (endDate) {
+      endDate.setHours(23, 59, 59, 999);
+      return solDate <= endDate;
+    }
+    
+    return true;
+  });
+
   const getStatusBadge = (status: string) => {
     const statusLower = status.toLowerCase();
     if (statusLower.includes('pendente')) {
@@ -65,6 +116,11 @@ const ListarSolicitacoes = () => {
     return <Badge>{status}</Badge>;
   };
 
+  const clearFilters = () => {
+    setDataInicial('');
+    setDataFinal('');
+  };
+
   return (
     <MainLayout>
       <Card>
@@ -77,10 +133,37 @@ const ListarSolicitacoes = () => {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-4 items-end p-4 bg-muted/50 rounded-lg">
+            <Filter className="w-4 h-4 text-muted-foreground" />
+            <div className="space-y-1">
+              <Label className="text-xs">Data Inicial</Label>
+              <Input
+                type="date"
+                value={dataInicial}
+                onChange={(e) => setDataInicial(e.target.value)}
+                className="w-[160px]"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Data Final</Label>
+              <Input
+                type="date"
+                value={dataFinal}
+                onChange={(e) => setDataFinal(e.target.value)}
+                className="w-[160px]"
+              />
+            </div>
+            {(dataInicial || dataFinal) && (
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                Limpar
+              </Button>
+            )}
+          </div>
+
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">Carregando...</div>
-          ) : solicitacoes.length === 0 ? (
+          ) : filteredSolicitacoes.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">Nenhuma solicitação encontrada.</div>
           ) : (
             <div className="border rounded-lg overflow-x-auto">
@@ -99,8 +182,8 @@ const ListarSolicitacoes = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {solicitacoes.map((sol) => (
-                    <TableRow key={sol.id}>
+                  {filteredSolicitacoes.map((sol, index) => (
+                    <TableRow key={sol.id || index}>
                       <TableCell className="font-mono">{sol.id}</TableCell>
                       <TableCell>{sol.data}</TableCell>
                       <TableCell>{sol.email_usuario}</TableCell>
@@ -116,6 +199,10 @@ const ListarSolicitacoes = () => {
               </Table>
             </div>
           )}
+          
+          <div className="text-sm text-muted-foreground">
+            Exibindo {filteredSolicitacoes.length} de {solicitacoes.length} solicitações
+          </div>
         </CardContent>
       </Card>
     </MainLayout>

@@ -7,10 +7,10 @@ import {
   RefreshCw,
   TrendingUp,
   FileText,
-  ClipboardList,
   Building2,
   List,
   Send,
+  ClipboardList,
   Inbox,
   UserPlus,
   LogOut,
@@ -56,10 +56,10 @@ const menuGroups: MenuGroup[] = [
   {
     label: 'Estoque',
     icon: <Package className="w-4 h-4" />,
-    allowedRoles: ['superadm', 'admin', 'usuario almox'],
+    allowedRoles: ['superadm', 'admin'],
     items: [
-      { path: '/cadastrar-material', label: 'Cadastrar Material', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
-      { path: '/atualizar-estoque', label: 'Atualizar Estoque', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
+      { path: '/cadastrar-material', label: 'Cadastrar Material', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
+      { path: '/atualizar-estoque', label: 'Atualizar Estoque', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
       { path: '/movimentar-estoque', label: 'Movimentar Estoque', icon: <TrendingUp className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
     ],
   },
@@ -74,10 +74,10 @@ const menuGroups: MenuGroup[] = [
   {
     label: 'Setores',
     icon: <Building2 className="w-4 h-4" />,
-    allowedRoles: ['superadm', 'admin', 'usuario almox'],
+    allowedRoles: ['superadm', 'admin'],
     items: [
       { path: '/criar-setor', label: 'Criar Setor', icon: <Building2 className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
-      { path: '/listar-setores', label: 'Setores Cadastrados', icon: <List className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
+      { path: '/listar-setores', label: 'Setores Cadastrados', icon: <List className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
     ],
   },
   {
@@ -113,7 +113,11 @@ export function AppSidebar() {
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Filter groups based on user permissions
   const visibleGroups = menuGroups.filter(group => hasPermission(group.allowedRoles));
+
+  // Check if user is 'usuario almox' - they should NOT see Dashboard
+  const canSeeDashboard = hasPermission(['superadm', 'admin', 'solicitante']);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -127,25 +131,29 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        {/* Dashboard - item standalone */}
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={() => navigate('/')}
-              isActive={isActive('/')}
-              tooltip="Dashboard"
-              className={cn(
-                "w-full justify-start gap-3 font-medium transition-colors",
-                isActive('/') && "bg-primary/10 text-primary"
-              )}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Dashboard</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        {/* Dashboard - item standalone - hidden for 'usuario almox' */}
+        {canSeeDashboard && (
+          <>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate('/')}
+                  isActive={isActive('/')}
+                  tooltip="Dashboard"
+                  className={cn(
+                    "w-full justify-start gap-3 font-medium transition-colors",
+                    isActive('/') && "bg-primary/10 text-primary"
+                  )}
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Dashboard</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
 
-        <SidebarSeparator className="my-2" />
+            <SidebarSeparator className="my-2" />
+          </>
+        )}
 
         {/* Grouped menu items */}
         {visibleGroups.map((group) => {
