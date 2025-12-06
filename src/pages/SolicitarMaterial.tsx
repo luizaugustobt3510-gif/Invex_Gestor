@@ -15,7 +15,7 @@ const SolicitarMaterial = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [setores, setSetores] = useState<Array<{ id: string; nome: string }>>([]);
+  const [setores, setSetores] = useState<Array<{ id_setor: number; nome_setor: string }>>([]);
   
   const [formData, setFormData] = useState({
     setor: '',
@@ -108,7 +108,7 @@ const SolicitarMaterial = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {setores.map((s) => (
-                    <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                    <SelectItem key={s.id_setor} value={s.nome_setor}>{s.nome_setor}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

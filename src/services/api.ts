@@ -7,7 +7,7 @@ export interface ApiResponse {
   email?: string;
   role?: string;
   link?: string;
-  setores?: Array<{ id: string; nome: string; descricao: string }>;
+  setores?: Array<{ id_setor: number; nome_setor: string; descricao: string }>;
   solicitacoes?: Array<{
     id: string;
     data: string;
@@ -136,6 +136,14 @@ export const api = {
     return apiRequest({
       action: 'listar_setores',
       email,
+    });
+  },
+
+  excluirSetor: async (email: string, id_setor: number): Promise<ApiResponse> => {
+    return apiRequest({
+      action: 'excluir_setor',
+      email,
+      id_setor,
     });
   },
 
