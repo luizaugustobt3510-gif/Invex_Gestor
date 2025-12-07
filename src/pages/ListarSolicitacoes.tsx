@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/services/api';
-import { ClipboardList, RefreshCw, Filter } from 'lucide-react';
+import { ClipboardList, RefreshCw, Filter, PackageCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface Solicitacao {
@@ -27,6 +27,7 @@ const ListarSolicitacoes = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [delivering, setDelivering] = useState<string | null>(null);
   const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
   const [dataInicial, setDataInicial] = useState('');
   const [dataFinal, setDataFinal] = useState('');
@@ -121,6 +122,44 @@ const ListarSolicitacoes = () => {
     setDataFinal('');
   };
 
+  const handleDeliver = async (sol: Solicitacao) => {
+    if (!user?.email) return;
+    
+    const confirmDeliver = window.confirm(`Confirma a entrega de ${sol.quantidade} unidade(s) de ${sol.material}? Isso dará baixa no estoque.`);
+    if (!confirmDeliver) return;
+    
+    setDelivering(sol.id);
+    try {
+      const response = await api.movimentarEstoque(user.email, 'saida', [{
+        codigo: sol.codigo,
+        quantidade: String(sol.quantidade),
+        obs: `Entrega solicitação #${sol.id} - ${sol.setor}`
+      }]);
+      
+      if (response.ok) {
+        toast({
+          title: 'Sucesso!',
+          description: 'Material entregue e baixa realizada no estoque.',
+        });
+        fetchSolicitacoes();
+      } else {
+        toast({
+          title: 'Erro',
+          description: response.msg || 'Erro ao registrar entrega.',
+          variant: 'destructive',
+        });
+      }
+    } catch {
+      toast({
+        title: 'Erro',
+        description: 'Erro ao conectar com o servidor.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDelivering(null);
+    }
+  };
+
   return (
     <MainLayout>
       <Card>
@@ -179,6 +218,7 @@ const ListarSolicitacoes = () => {
                     <TableHead>Qtd</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Obs</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -193,6 +233,20 @@ const ListarSolicitacoes = () => {
                       <TableCell>{sol.quantidade}</TableCell>
                       <TableCell>{getStatusBadge(sol.status)}</TableCell>
                       <TableCell>{sol.obs || '-'}</TableCell>
+                      <TableCell>
+                        {sol.status.toLowerCase().includes('pendente') && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleDeliver(sol)}
+                            disabled={delivering === sol.id}
+                            className="gap-1"
+                          >
+                            <PackageCheck className="w-4 h-4" />
+                            {delivering === sol.id ? 'Entregando...' : 'Entregar'}
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

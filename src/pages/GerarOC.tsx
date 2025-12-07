@@ -10,14 +10,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { api, OCItem } from '@/services/api';
-import { FileText, Plus, Trash2, ExternalLink } from 'lucide-react';
+import { useInventoryData } from '@/hooks/useInventoryData';
+import { FileText, Plus, Trash2, Download, Search } from 'lucide-react';
 
 const GerarOC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { data: inventoryData } = useInventoryData();
   const [loading, setLoading] = useState(false);
   const [setores, setSetores] = useState<Array<{ id_setor: number; nome_setor: string }>>([]);
-  const [pdfLink, setPdfLink] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   
   const [formData, setFormData] = useState({
     setor: '',
@@ -35,6 +37,13 @@ const GerarOC = () => {
   });
 
   const [itens, setItens] = useState<OCItem[]>([]);
+
+  const filteredInventory = searchTerm.length >= 1
+    ? inventoryData.filter(item =>
+        String(item.codigo).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(item.material).toLowerCase().includes(searchTerm.toLowerCase())
+      ).slice(0, 10)
+    : [];
 
   useEffect(() => {
     const loadSetores = async () => {
@@ -106,8 +115,9 @@ const GerarOC = () => {
           title: 'Sucesso!',
           description: response.msg || 'Ordem de compra gerada com sucesso.',
         });
+        // Download PDF directly if link provided
         if (response.link) {
-          setPdfLink(response.link);
+          window.open(response.link, '_blank');
         }
         setFormData({ setor: '', fornecedor: '', cond_pagto: '', obs: '' });
         setItens([]);
@@ -182,6 +192,44 @@ const GerarOC = () => {
 
             <div className="border-t pt-4">
               <h3 className="font-semibold mb-4">Adicionar Item</h3>
+              
+              {/* Search for existing materials */}
+              <div className="mb-4 space-y-2">
+                <Label>Buscar Material Cadastrado</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por código ou nome..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                {filteredInventory.length > 0 && (
+                  <div className="border rounded-lg max-h-40 overflow-y-auto">
+                    {filteredInventory.map((item) => (
+                      <div
+                        key={String(item.codigo)}
+                        onClick={() => {
+                          setCurrentItem({
+                            codigo: String(item.codigo),
+                            material: String(item.material),
+                            unidade: String(item.unidade || ''),
+                            quantidade: '',
+                            preco: String(item.preco || ''),
+                          });
+                          setSearchTerm('');
+                        }}
+                        className="p-2 hover:bg-muted cursor-pointer border-b last:border-b-0 flex justify-between"
+                      >
+                        <span><span className="font-mono">{item.codigo}</span> - {item.material}</span>
+                        <span className="text-sm text-muted-foreground">{item.unidade}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
                 <Input
                   placeholder="Código"
@@ -251,18 +299,9 @@ const GerarOC = () => {
             )}
 
             <Button onClick={handleSubmit} className="w-full gap-2" disabled={loading}>
-              <FileText className="w-4 h-4" />
-              {loading ? 'Gerando...' : 'Gerar Ordem de Compra'}
+              <Download className="w-4 h-4" />
+              {loading ? 'Gerando...' : 'Gerar e Baixar Ordem de Compra'}
             </Button>
-
-            {pdfLink && (
-              <div className="p-4 bg-primary/10 rounded-lg">
-                <p className="font-semibold mb-2">PDF Gerado!</p>
-                <a href={pdfLink} target="_blank" rel="noopener noreferrer" className="text-primary flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4" /> Abrir PDF
-                </a>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>

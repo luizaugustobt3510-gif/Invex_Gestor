@@ -102,16 +102,22 @@ const CriarSetor = () => {
   const handleDelete = async (idSetor: number) => {
     if (!user?.email) return;
     
+    const confirmDelete = window.confirm('Tem certeza que deseja excluir este setor?');
+    if (!confirmDelete) return;
+    
     setDeletingId(idSetor);
     try {
+      console.log('Excluindo setor:', idSetor);
       const response = await api.excluirSetor(user.email, idSetor);
+      console.log('Resposta excluir setor:', response);
       
       if (response.ok) {
         toast({
           title: 'Sucesso!',
           description: response.msg || 'Setor excluído com sucesso.',
         });
-        fetchSetores();
+        // Remove locally immediately
+        setSetores(prev => prev.filter(s => s.id_setor !== idSetor));
       } else {
         toast({
           title: 'Erro',
@@ -119,7 +125,8 @@ const CriarSetor = () => {
           variant: 'destructive',
         });
       }
-    } catch {
+    } catch (error) {
+      console.error('Erro ao excluir setor:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao conectar com o servidor.',

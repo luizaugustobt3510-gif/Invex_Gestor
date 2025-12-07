@@ -27,10 +27,10 @@ const MovimentarEstoqueNew = () => {
 
   const [itens, setItens] = useState<(MovementItem & { material?: string })[]>([]);
 
-  const filteredItems = searchTerm.length >= 1 
+const filteredItems = searchTerm.length >= 1 
     ? inventoryData.filter(item => 
-        item.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.material.toLowerCase().includes(searchTerm.toLowerCase())
+        String(item.codigo).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(item.material).toLowerCase().includes(searchTerm.toLowerCase())
       )
     : [];
 
