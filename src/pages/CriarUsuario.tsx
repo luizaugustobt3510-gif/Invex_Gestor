@@ -25,32 +25,16 @@ const CriarUsuario = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const email = formData.email.trim();
-    const senha = formData.senha.trim();
-    const nome = formData.nome.trim();
-    const autenticacao = formData.autenticacao;
+    const email = formData.email?.trim() || '';
+    const senha = formData.senha?.trim() || '';
+    const nome = formData.nome?.trim() || '';
+    const autenticacao = formData.autenticacao || '';
 
-    console.log('Validando campos:', { email, senha, nome, autenticacao });
+    console.log('Dados do formulário:', formData);
+    console.log('Campos validados:', { email, senha: senha ? '***' : '', nome, autenticacao });
 
-    if (!email) {
-      toast({
-        title: 'Campo obrigatório',
-        description: 'Informe o e-mail do usuário.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!senha) {
-      toast({
-        title: 'Campo obrigatório',
-        description: 'Informe a senha do usuário.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!nome) {
+    // Validate all fields
+    if (!nome || nome.length === 0) {
       toast({
         title: 'Campo obrigatório',
         description: 'Informe o nome do usuário.',
@@ -59,7 +43,25 @@ const CriarUsuario = () => {
       return;
     }
 
-    if (!autenticacao) {
+    if (!email || email.length === 0) {
+      toast({
+        title: 'Campo obrigatório',
+        description: 'Informe o e-mail do usuário.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!senha || senha.length === 0) {
+      toast({
+        title: 'Campo obrigatório',
+        description: 'Informe a senha do usuário.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!autenticacao || autenticacao.length === 0) {
       toast({
         title: 'Campo obrigatório',
         description: 'Selecione o nível de acesso.',
@@ -71,7 +73,7 @@ const CriarUsuario = () => {
     if (!user?.email) {
       toast({
         title: 'Erro',
-        description: 'Usuário não autenticado.',
+        description: 'Usuário administrador não autenticado.',
         variant: 'destructive',
       });
       return;
@@ -79,10 +81,9 @@ const CriarUsuario = () => {
 
     setLoading(true);
     try {
-      console.log('Enviando para API:', {
+      console.log('Enviando para API criarUsuario:', {
         adminEmail: user.email,
-        email,
-        senha,
+        novoEmail: email,
         nome,
         autenticacao
       });
@@ -95,7 +96,7 @@ const CriarUsuario = () => {
         autenticacao
       );
 
-      console.log('Resposta API:', response);
+      console.log('Resposta da API:', response);
 
       if (response.ok) {
         toast({
