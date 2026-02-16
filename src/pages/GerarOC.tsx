@@ -8,19 +8,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { api, OCItem } from '@/services/api';
+import { supabase } from '@/integrations/supabase/client';
 import { useInventoryData } from '@/hooks/useInventoryData';
 import { FileText, Plus, Trash2, Download, Search } from 'lucide-react';
 
+interface OCItem {
+  codigo: string;
+  material: string;
+  unidade: string;
+  quantidade: string;
+  preco: string;
+}
+
 const GerarOC = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
   const { data: inventoryData } = useInventoryData();
   const [loading, setLoading] = useState(false);
-  const [setores, setSetores] = useState<Array<{ id_setor: number; nome_setor: string }>>([]);
+  const [setores, setSetores] = useState<Array<{ id: string; nome: string }>>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const [formData, setFormData] = useState({
     setor: '',
     fornecedor: '',
@@ -47,18 +53,13 @@ const GerarOC = () => {
 
   useEffect(() => {
     const loadSetores = async () => {
-      if (!user?.email) return;
-      try {
-        const response = await api.listarSetores(user.email);
-        if (response.setores) {
-          setSetores(response.setores);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar setores:', error);
+      const { data, error } = await supabase.from('sectors').select('id, nome');
+      if (!error && data) {
+        setSetores(data);
       }
     };
     loadSetores();
-  }, [user?.email]);
+  }, []);
 
   const addItem = () => {
     if (!currentItem.codigo || !currentItem.material || !currentItem.quantidade || !currentItem.preco) {
@@ -69,7 +70,6 @@ const GerarOC = () => {
       });
       return;
     }
-
     setItens(prev => [...prev, currentItem]);
     setCurrentItem({ codigo: '', material: '', unidade: '', quantidade: '', preco: '' });
   };
@@ -97,34 +97,55 @@ const GerarOC = () => {
       return;
     }
 
-    if (!user?.email) return;
-
     setLoading(true);
     try {
-      const response = await api.gerarOC(
-        user.email,
-        formData.setor,
-        formData.fornecedor,
-        formData.cond_pagto,
-        formData.obs,
-        itens
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) {
+        toast({ title: 'Erro', description: 'Sessão expirada. Faça login novamente.', variant: 'destructive' });
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-oc-pdf`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            setor: formData.setor,
+            fornecedor: formData.fornecedor,
+            cond_pagto: formData.cond_pagto,
+            obs: formData.obs,
+            itens: itens.map(item => ({
+              codigo: item.codigo,
+              material: item.material,
+              unidade: item.unidade,
+              quantidade: Number(item.quantidade),
+              preco: Number(item.preco),
+            })),
+          }),
+        }
       );
 
-      if (response.ok) {
+      const result = await response.json();
+
+      if (result.ok) {
         toast({
           title: 'Sucesso!',
-          description: response.msg || 'Ordem de compra gerada com sucesso.',
+          description: result.msg || 'Ordem de compra gerada com sucesso.',
         });
-        // Download PDF directly if link provided
-        if (response.link) {
-          window.open(response.link, '_blank');
+        if (result.pdf_url) {
+          window.open(result.pdf_url, '_blank');
         }
         setFormData({ setor: '', fornecedor: '', cond_pagto: '', obs: '' });
         setItens([]);
       } else {
         toast({
           title: 'Erro',
-          description: response.msg || 'Erro ao gerar ordem de compra.',
+          description: result.error || result.msg || 'Erro ao gerar ordem de compra.',
           variant: 'destructive',
         });
       }
@@ -159,7 +180,7 @@ const GerarOC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {setores.map((s) => (
-                      <SelectItem key={s.id_setor} value={s.nome_setor}>{s.nome_setor}</SelectItem>
+                      <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -192,8 +213,6 @@ const GerarOC = () => {
 
             <div className="border-t pt-4">
               <h3 className="font-semibold mb-4">Adicionar Item</h3>
-              
-              {/* Search for existing materials */}
               <div className="mb-4 space-y-2">
                 <Label>Buscar Material Cadastrado</Label>
                 <div className="relative">
@@ -229,36 +248,13 @@ const GerarOC = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
-                <Input
-                  placeholder="Código"
-                  value={currentItem.codigo}
-                  onChange={(e) => setCurrentItem(prev => ({ ...prev, codigo: e.target.value }))}
-                />
-                <Input
-                  placeholder="Material"
-                  value={currentItem.material}
-                  onChange={(e) => setCurrentItem(prev => ({ ...prev, material: e.target.value }))}
-                />
-                <Input
-                  placeholder="Unidade"
-                  value={currentItem.unidade}
-                  onChange={(e) => setCurrentItem(prev => ({ ...prev, unidade: e.target.value }))}
-                />
-                <Input
-                  type="number"
-                  placeholder="Qtd"
-                  value={currentItem.quantidade}
-                  onChange={(e) => setCurrentItem(prev => ({ ...prev, quantidade: e.target.value }))}
-                />
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="Preço"
-                  value={currentItem.preco}
-                  onChange={(e) => setCurrentItem(prev => ({ ...prev, preco: e.target.value }))}
-                />
+                <Input placeholder="Código" value={currentItem.codigo} onChange={(e) => setCurrentItem(prev => ({ ...prev, codigo: e.target.value }))} />
+                <Input placeholder="Material" value={currentItem.material} onChange={(e) => setCurrentItem(prev => ({ ...prev, material: e.target.value }))} />
+                <Input placeholder="Unidade" value={currentItem.unidade} onChange={(e) => setCurrentItem(prev => ({ ...prev, unidade: e.target.value }))} />
+                <Input type="number" placeholder="Qtd" value={currentItem.quantidade} onChange={(e) => setCurrentItem(prev => ({ ...prev, quantidade: e.target.value }))} />
+                <Input type="number" step="0.01" placeholder="Preço" value={currentItem.preco} onChange={(e) => setCurrentItem(prev => ({ ...prev, preco: e.target.value }))} />
               </div>
               <Button onClick={addItem} variant="outline" className="gap-2">
                 <Plus className="w-4 h-4" /> Adicionar Item

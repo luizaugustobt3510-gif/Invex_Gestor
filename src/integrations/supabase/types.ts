@@ -241,6 +241,7 @@ export type Database = {
           fornecedor: string
           id: string
           obs: string | null
+          pdf_url: string | null
           setor: string
           status: string
           total: number | null
@@ -254,6 +255,7 @@ export type Database = {
           fornecedor: string
           id?: string
           obs?: string | null
+          pdf_url?: string | null
           setor: string
           status?: string
           total?: number | null
@@ -267,6 +269,7 @@ export type Database = {
           fornecedor?: string
           id?: string
           obs?: string | null
+          pdf_url?: string | null
           setor?: string
           status?: string
           total?: number | null

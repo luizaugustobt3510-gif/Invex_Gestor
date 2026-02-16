@@ -1,1 +1,4 @@
 project_id = "wtziuvmdeqnrervleqll"
+
+[functions.generate-oc-pdf]
+verify_jwt = false
