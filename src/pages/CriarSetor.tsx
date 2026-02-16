@@ -33,14 +33,13 @@ const CriarSetor = () => {
     setLoadingSetores(true);
     try {
       const response = await api.listarSetores(user.email);
-      console.log('Resposta listar setores:', response);
+      
       if (response.setores && Array.isArray(response.setores)) {
         setSetores(response.setores);
       } else if (Array.isArray(response)) {
         setSetores(response);
       }
-    } catch (error) {
-      console.error('Erro ao carregar setores:', error);
+    } catch {
       toast({
         title: 'Erro',
         description: 'Erro ao carregar setores.',
@@ -107,9 +106,7 @@ const CriarSetor = () => {
     
     setDeletingId(idSetor);
     try {
-      console.log('Excluindo setor:', idSetor);
       const response = await api.excluirSetor(user.email, idSetor);
-      console.log('Resposta excluir setor:', response);
       
       if (response.ok) {
         toast({
@@ -125,8 +122,7 @@ const CriarSetor = () => {
           variant: 'destructive',
         });
       }
-    } catch (error) {
-      console.error('Erro ao excluir setor:', error);
+    } catch {
       toast({
         title: 'Erro',
         description: 'Erro ao conectar com o servidor.',

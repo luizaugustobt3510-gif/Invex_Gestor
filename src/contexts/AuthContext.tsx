@@ -53,12 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      console.log('=== LOGIN DEBUG ===');
-      console.log('Email:', emailNormalizado);
-      
       const response = await api.login(emailNormalizado, senhaNormalizada);
-      
-      console.log('Resposta da API:', response);
 
       if (response.ok === true) {
         const userData: User = {
@@ -67,18 +62,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           role: (response.role as UserRole) || 'solicitante',
         };
         
-        console.log('✅ Login bem-sucedido:', userData);
-        
         setUser(userData);
         localStorage.setItem('invex_user', JSON.stringify(userData));
         
         return { success: true, message: `Bem-vindo, ${userData.nome}!` };
       } else {
-        console.log('❌ Login falhou:', response.msg);
         return { success: false, message: response.msg || 'E-mail ou senha incorretos.' };
       }
-    } catch (error) {
-      console.error('❌ Erro no login:', error);
+    } catch {
       return { success: false, message: 'Erro ao realizar login. Verifique sua conexão.' };
     }
   };
