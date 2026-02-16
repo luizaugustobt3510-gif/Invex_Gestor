@@ -87,11 +87,10 @@ export const useInventoryData = () => {
 
   const updateStock = async (codigo: string, quantidade: number) => {
     try {
-      await fetch(GOOGLE_SHEETS_URL, {
+      const response = await fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
-        mode: 'no-cors',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/plain',
         },
         body: JSON.stringify({
           action: 'update',
@@ -100,10 +99,14 @@ export const useInventoryData = () => {
         })
       });
 
+      if (!response.ok) {
+        throw new Error('Erro na requisição');
+      }
+
       toast.success('Estoque atualizado com sucesso!');
       setTimeout(() => fetchData(), 1000);
       return { success: true };
-    } catch (error) {
+    } catch {
       toast.error('Erro ao atualizar estoque');
       return { success: false };
     }
@@ -111,11 +114,10 @@ export const useInventoryData = () => {
 
   const massUpdate = async (user: string, produtos: Array<{ codigo: string; quantidade: string }>) => {
     try {
-      await fetch(GOOGLE_SHEETS_URL, {
+      const response = await fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
-        mode: 'no-cors',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/plain',
         },
         body: JSON.stringify({
           action: 'mass_update',
@@ -127,10 +129,14 @@ export const useInventoryData = () => {
         })
       });
 
+      if (!response.ok) {
+        throw new Error('Erro na requisição');
+      }
+
       toast.success('Atualização em massa concluída!');
       setTimeout(() => fetchData(), 1000);
       return { success: true };
-    } catch (error) {
+    } catch {
       toast.error('Erro ao atualizar estoque em massa');
       return { success: false };
     }
@@ -142,11 +148,10 @@ export const useInventoryData = () => {
     produtos: Array<{ codigo: string; quantidade: string; obs: string }>
   ) => {
     try {
-      await fetch(GOOGLE_SHEETS_URL, {
+      const response = await fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
-        mode: 'no-cors',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/plain',
         },
         body: JSON.stringify({
           action: 'movimentar',
@@ -160,10 +165,14 @@ export const useInventoryData = () => {
         })
       });
 
+      if (!response.ok) {
+        throw new Error('Erro na requisição');
+      }
+
       toast.success(`Movimentação de ${tipo} concluída!`);
       setTimeout(() => fetchData(), 1000);
       return { success: true };
-    } catch (error) {
+    } catch {
       toast.error('Erro ao movimentar estoque');
       return { success: false };
     }

@@ -30,8 +30,6 @@ const CriarUsuario = () => {
     const nome = formData.nome?.trim() || '';
     const autenticacao = formData.autenticacao || '';
 
-    console.log('Dados do formulário:', formData);
-    console.log('Campos validados:', { email, senha: senha ? '***' : '', nome, autenticacao });
 
     // Validate all fields
     if (!nome || nome.length === 0) {
@@ -81,13 +79,6 @@ const CriarUsuario = () => {
 
     setLoading(true);
     try {
-      console.log('Enviando para API criarUsuario:', {
-        adminEmail: user.email,
-        novoEmail: email,
-        nome,
-        autenticacao
-      });
-
       const response = await api.criarUsuario(
         user.email,
         email,
@@ -95,8 +86,6 @@ const CriarUsuario = () => {
         nome,
         autenticacao
       );
-
-      console.log('Resposta da API:', response);
 
       if (response.ok) {
         toast({
@@ -111,8 +100,7 @@ const CriarUsuario = () => {
           variant: 'destructive',
         });
       }
-    } catch (error) {
-      console.error('Erro ao criar usuário:', error);
+    } catch {
       toast({
         title: 'Erro',
         description: 'Erro ao conectar com o servidor.',

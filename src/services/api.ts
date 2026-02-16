@@ -64,7 +64,6 @@ async function apiRequest(data: Record<string, unknown>): Promise<ApiResponse> {
 
     return await response.json();
   } catch (error) {
-    console.error('API Error:', error);
     throw error;
   }
 }
