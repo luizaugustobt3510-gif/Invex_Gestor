@@ -6,45 +6,58 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/services/api';
+import { supabase } from '@/integrations/supabase/client';
 import { Building2, Save, RefreshCw, Trash2 } from 'lucide-react';
 
 interface Setor {
-  id_setor: number;
-  nome_setor: string;
-  descricao: string;
+  id: string;
+  nome: string;
+  descricao: string | null;
 }
 
 const CriarSetor = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [loadingSetores, setLoadingSetores] = useState(true);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
   const [setores, setSetores] = useState<Setor[]>([]);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+
+  const getCompanyId = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data } = await supabase
+      .from('user_roles')
+      .select('company_id')
+      .eq('user_id', user.id)
+      .not('company_id', 'is', null)
+      .limit(1)
+      .single();
+    return data?.company_id || null;
+  };
 
   const fetchSetores = async () => {
-    if (!user?.email) return;
-    
     setLoadingSetores(true);
     try {
-      const response = await api.listarSetores(user.email);
-      
-      if (response.setores && Array.isArray(response.setores)) {
-        setSetores(response.setores);
-      } else if (Array.isArray(response)) {
-        setSetores(response);
-      }
+      const cid = companyId || await getCompanyId();
+      if (!cid) return;
+      if (!companyId) setCompanyId(cid);
+
+      const { data, error } = await supabase
+        .from('sectors')
+        .select('id, nome, descricao')
+        .eq('company_id', cid)
+        .order('nome');
+
+      if (error) throw error;
+      setSetores(data || []);
     } catch {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao carregar setores.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro', description: 'Erro ao carregar setores.', variant: 'destructive' });
     } finally {
       setLoadingSetores(false);
     }
@@ -52,84 +65,81 @@ const CriarSetor = () => {
 
   useEffect(() => {
     fetchSetores();
-  }, [user?.email]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!nome.trim()) {
-      toast({
-        title: 'Campo obrigatório',
-        description: 'Informe o nome do setor.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Campo obrigatório', description: 'Informe o nome do setor.', variant: 'destructive' });
       return;
     }
 
-    if (!user?.email) return;
-
     setLoading(true);
     try {
-      const response = await api.criarSetor(user.email, nome.trim(), descricao.trim());
+      const cid = companyId || await getCompanyId();
+      if (!cid) {
+        toast({ title: 'Erro', description: 'Empresa não encontrada.', variant: 'destructive' });
+        return;
+      }
 
-      if (response.ok) {
-        toast({
-          title: 'Sucesso!',
-          description: response.msg || 'Setor criado com sucesso.',
-        });
+      const { error } = await supabase.from('sectors').insert({
+        company_id: cid,
+        nome: nome.trim(),
+        descricao: descricao.trim() || null,
+      });
+
+      if (error) {
+        toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: 'Sucesso!', description: 'Setor criado com sucesso.' });
         setNome('');
         setDescricao('');
         fetchSetores();
-      } else {
-        toast({
-          title: 'Erro',
-          description: response.msg || 'Erro ao criar setor.',
-          variant: 'destructive',
-        });
       }
     } catch {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao conectar com o servidor.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro', description: 'Erro ao conectar com o servidor.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (idSetor: number) => {
-    if (!user?.email) return;
-    
-    const confirmDelete = window.confirm('Tem certeza que deseja excluir este setor?');
-    if (!confirmDelete) return;
-    
-    setDeletingId(idSetor);
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
     try {
-      const response = await api.excluirSetor(user.email, idSetor);
-      
-      if (response.ok) {
-        toast({
-          title: 'Sucesso!',
-          description: response.msg || 'Setor excluído com sucesso.',
-        });
-        // Remove locally immediately
-        setSetores(prev => prev.filter(s => s.id_setor !== idSetor));
+      // Check if sector is used in purchase orders
+      const setor = setores.find(s => s.id === id);
+      if (setor) {
+        const { count } = await supabase
+          .from('purchase_orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('setor', setor.nome);
+
+        if (count && count > 0) {
+          toast({
+            title: 'Não é possível excluir',
+            description: `Este setor possui ${count} ordem(ns) de compra vinculada(s).`,
+            variant: 'destructive',
+          });
+          setDeletingId(null);
+          setConfirmDeleteId(null);
+          return;
+        }
+      }
+
+      const { error } = await supabase.from('sectors').delete().eq('id', id);
+
+      if (error) {
+        toast({ title: 'Erro', description: error.message, variant: 'destructive' });
       } else {
-        toast({
-          title: 'Erro',
-          description: response.msg || 'Erro ao excluir setor.',
-          variant: 'destructive',
-        });
+        toast({ title: 'Sucesso!', description: 'Setor excluído com sucesso.' });
+        setSetores(prev => prev.filter(s => s.id !== id));
       }
     } catch {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao conectar com o servidor.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro', description: 'Erro ao conectar com o servidor.', variant: 'destructive' });
     } finally {
       setDeletingId(null);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -147,21 +157,11 @@ const CriarSetor = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="nome">Nome do Setor *</Label>
-                <Input
-                  id="nome"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  placeholder="Ex: Almoxarifado Central"
-                />
+                <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Almoxarifado Central" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="descricao">Descrição</Label>
-                <Textarea
-                  id="descricao"
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  placeholder="Descrição do setor (opcional)"
-                />
+                <Textarea id="descricao" value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descrição do setor (opcional)" />
               </div>
               <Button type="submit" className="w-full gap-2" disabled={loading}>
                 <Save className="w-4 h-4" />
@@ -188,7 +188,6 @@ const CriarSetor = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID</TableHead>
                       <TableHead>Nome</TableHead>
                       <TableHead>Descrição</TableHead>
                       <TableHead className="w-[80px]">Ações</TableHead>
@@ -196,16 +195,15 @@ const CriarSetor = () => {
                   </TableHeader>
                   <TableBody>
                     {setores.map((setor) => (
-                      <TableRow key={setor.id_setor}>
-                        <TableCell className="font-mono">{setor.id_setor}</TableCell>
-                        <TableCell className="font-medium">{setor.nome_setor}</TableCell>
+                      <TableRow key={setor.id}>
+                        <TableCell className="font-medium">{setor.nome}</TableCell>
                         <TableCell>{setor.descricao || '-'}</TableCell>
                         <TableCell>
-                          <Button 
-                            variant="destructive" 
+                          <Button
+                            variant="destructive"
                             size="sm"
-                            onClick={() => handleDelete(setor.id_setor)}
-                            disabled={deletingId === setor.id_setor}
+                            onClick={() => setConfirmDeleteId(setor.id)}
+                            disabled={deletingId === setor.id}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -219,6 +217,24 @@ const CriarSetor = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar exclusão</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir o setor "{setores.find(s => s.id === confirmDeleteId)?.nome}"? Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDeleteId(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => confirmDeleteId && handleDelete(confirmDeleteId)} disabled={!!deletingId}>
+              {deletingId ? 'Excluindo...' : 'Excluir'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };
