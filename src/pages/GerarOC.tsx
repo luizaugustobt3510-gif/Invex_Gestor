@@ -24,6 +24,7 @@ const GerarOC = () => {
   const { toast } = useToast();
   const { data: inventoryData } = useInventoryData();
   const [loading, setLoading] = useState(false);
+  const [loadingSetores, setLoadingSetores] = useState(true);
   const [setores, setSetores] = useState<Array<{ id: string; nome: string }>>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -53,9 +54,37 @@ const GerarOC = () => {
 
   useEffect(() => {
     const loadSetores = async () => {
-      const { data, error } = await supabase.from('sectors').select('id, nome');
-      if (!error && data) {
-        setSetores(data);
+      setLoadingSetores(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Get user's company_id
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('company_id')
+          .eq('user_id', user.id)
+          .not('company_id', 'is', null)
+          .limit(1)
+          .single();
+
+        if (!roleData?.company_id) return;
+
+        const { data, error } = await supabase
+          .from('sectors')
+          .select('id, nome')
+          .eq('company_id', roleData.company_id)
+          .order('nome');
+
+        if (error) {
+          toast({ title: 'Erro', description: 'Erro ao carregar setores.', variant: 'destructive' });
+        } else if (data) {
+          setSetores(data);
+        }
+      } catch {
+        toast({ title: 'Erro', description: 'Erro ao carregar setores.', variant: 'destructive' });
+      } finally {
+        setLoadingSetores(false);
       }
     };
     loadSetores();
@@ -106,6 +135,9 @@ const GerarOC = () => {
         return;
       }
 
+      // Find the sector name from the selected id
+      const selectedSetor = setores.find(s => s.id === formData.setor);
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-oc-pdf`,
         {
@@ -115,7 +147,7 @@ const GerarOC = () => {
             'Authorization': `Bearer ${token}`,
           },
           body: JSON.stringify({
-            setor: formData.setor,
+            setor: selectedSetor?.nome || formData.setor,
             fornecedor: formData.fornecedor,
             cond_pagto: formData.cond_pagto,
             obs: formData.obs,
@@ -176,12 +208,16 @@ const GerarOC = () => {
                 <Label>Setor *</Label>
                 <Select value={formData.setor} onValueChange={(v) => setFormData(prev => ({ ...prev, setor: v }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o setor" />
+                    <SelectValue placeholder={loadingSetores ? 'Carregando...' : setores.length === 0 ? 'Nenhum setor cadastrado' : 'Selecione o setor'} />
                   </SelectTrigger>
                   <SelectContent>
-                    {setores.map((s) => (
-                      <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
-                    ))}
+                    {setores.length === 0 ? (
+                      <SelectItem value="_empty" disabled>Nenhum setor cadastrado</SelectItem>
+                    ) : (
+                      setores.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
