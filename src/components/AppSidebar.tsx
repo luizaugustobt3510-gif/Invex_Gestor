@@ -8,6 +8,7 @@ import {
   TrendingUp,
   FileText,
   Building2,
+  Building,
   List,
   Send,
   ClipboardList,
@@ -69,6 +70,7 @@ const menuGroups: MenuGroup[] = [
     allowedRoles: ['superadm', 'admin'],
     items: [
       { path: '/gerar-oc', label: 'Gerar OC', icon: <FileText className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
+      { path: '/gerenciar-oc', label: 'Gerenciar OC', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
     ],
   },
   {
@@ -95,6 +97,7 @@ const menuGroups: MenuGroup[] = [
     allowedRoles: ['superadm'],
     items: [
       { path: '/criar-usuario', label: 'Criar Usuário', icon: <UserPlus className="w-4 h-4" />, allowedRoles: ['superadm'] },
+      { path: '/listar-empresas', label: 'Empresas', icon: <Building className="w-4 h-4" />, allowedRoles: ['superadm'] },
     ],
   },
 ];

@@ -17,6 +17,8 @@ import ListarSetores from "./pages/ListarSetores";
 import SolicitarMaterial from "./pages/SolicitarMaterial";
 import ListarSolicitacoes from "./pages/ListarSolicitacoes";
 import CriarUsuario from "./pages/CriarUsuario";
+import GerenciarOC from "./pages/GerenciarOC";
+import ListarEmpresas from "./pages/ListarEmpresas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +66,12 @@ const App = () => (
               </RoleProtectedRoute>
             } />
             
+            <Route path="/gerenciar-oc" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+                <GerenciarOC />
+              </RoleProtectedRoute>
+            } />
+            
             {/* Setores: apenas superadm e admin */}
             <Route path="/criar-setor" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
@@ -92,6 +100,11 @@ const App = () => (
             <Route path="/criar-usuario" element={
               <RoleProtectedRoute allowedRoles={['superadm']}>
                 <CriarUsuario />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/listar-empresas" element={
+              <RoleProtectedRoute allowedRoles={['superadm']}>
+                <ListarEmpresas />
               </RoleProtectedRoute>
             } />
             
