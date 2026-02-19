@@ -3,26 +3,45 @@ import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/services/api';
+import { supabase } from '@/integrations/supabase/client';
 import { Building2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+interface Setor {
+  id: string;
+  nome: string;
+  descricao: string | null;
+}
+
 const ListarSetores = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [setores, setSetores] = useState<Array<{ id_setor: number; nome_setor: string; descricao: string }>>([]);
+  const [setores, setSetores] = useState<Setor[]>([]);
 
   const fetchSetores = async () => {
-    if (!user?.email) return;
-    
     setLoading(true);
     try {
-      const response = await api.listarSetores(user.email);
-      if (response.setores) {
-        setSetores(response.setores);
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('company_id')
+        .eq('user_id', user.id)
+        .not('company_id', 'is', null)
+        .limit(1)
+        .single();
+
+      if (!roleData?.company_id) return;
+
+      const { data, error } = await supabase
+        .from('sectors')
+        .select('id, nome, descricao')
+        .eq('company_id', roleData.company_id)
+        .order('nome');
+
+      if (error) throw error;
+      setSetores(data || []);
     } catch {
       toast({
         title: 'Erro',
@@ -36,7 +55,7 @@ const ListarSetores = () => {
 
   useEffect(() => {
     fetchSetores();
-  }, [user?.email]);
+  }, []);
 
   return (
     <MainLayout>
@@ -60,16 +79,14 @@ const ListarSetores = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID</TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>Descrição</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {setores.map((setor) => (
-                    <TableRow key={setor.id_setor}>
-                      <TableCell className="font-mono">{setor.id_setor}</TableCell>
-                      <TableCell className="font-medium">{setor.nome_setor}</TableCell>
+                    <TableRow key={setor.id}>
+                      <TableCell className="font-medium">{setor.nome}</TableCell>
                       <TableCell>{setor.descricao || '-'}</TableCell>
                     </TableRow>
                   ))}
