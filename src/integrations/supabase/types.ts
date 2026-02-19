@@ -406,6 +406,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_setup_needed: { Args: never; Returns: boolean }
       get_user_company_id: { Args: { _user_id: string }; Returns: string }
       get_user_role: {
         Args: { _company_id: string; _user_id: string }
