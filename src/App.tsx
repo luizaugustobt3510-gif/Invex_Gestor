@@ -19,6 +19,7 @@ import ListarSolicitacoes from "./pages/ListarSolicitacoes";
 import CriarUsuario from "./pages/CriarUsuario";
 import GerenciarOC from "./pages/GerenciarOC";
 import ListarEmpresas from "./pages/ListarEmpresas";
+import ImportarPlanilha from "./pages/ImportarPlanilha";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -93,6 +94,13 @@ const App = () => (
             <Route path="/listar-solicitacoes" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante']}>
                 <ListarSolicitacoes />
+              </RoleProtectedRoute>
+            } />
+            
+            {/* Importar Planilha */}
+            <Route path="/importar-planilha" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+                <ImportarPlanilha />
               </RoleProtectedRoute>
             } />
             

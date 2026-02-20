@@ -5,160 +5,196 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/services/api';
-import { ClipboardList, RefreshCw, Filter, PackageCheck } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { ClipboardList, RefreshCw, Filter, PackageCheck, XCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Solicitacao {
   id: string;
-  data: string;
-  email_usuario: string;
+  created_at: string;
+  user_id: string;
   setor: string;
   codigo: string;
   material: string;
   quantidade: number;
   status: string;
-  obs: string;
+  obs: string | null;
 }
 
 const ListarSolicitacoes = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [delivering, setDelivering] = useState<string | null>(null);
   const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
   const [dataInicial, setDataInicial] = useState('');
   const [dataFinal, setDataFinal] = useState('');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [rejectDialog, setRejectDialog] = useState<{ id: string; material: string } | null>(null);
+  const [rejectObs, setRejectObs] = useState('');
+  const [confirmDeliver, setConfirmDeliver] = useState<Solicitacao | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Solicitacao | null>(null);
 
   const fetchSolicitacoes = async () => {
-    if (!user?.email) return;
-    
     setLoading(true);
     try {
-      const response = await api.listarSolicitacoes(user.email);
-      if (response.solicitacoes) {
-        setSolicitacoes(response.solicitacoes);
-      } else if (Array.isArray(response)) {
-        setSolicitacoes(response);
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
+
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('company_id, role')
+        .eq('user_id', authUser.id)
+        .limit(1)
+        .single();
+
+      let query = supabase
+        .from('material_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (roleData?.company_id) {
+        query = query.eq('company_id', roleData.company_id);
       }
+
+      // Solicitantes only see their own requests
+      if (roleData?.role === 'solicitante') {
+        query = query.eq('user_id', authUser.id);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      setSolicitacoes(data || []);
     } catch {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao carregar solicitações.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro', description: 'Erro ao carregar solicitações.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchSolicitacoes();
-  }, [user?.email]);
-
-  const parseDate = (dateStr: string): Date | null => {
-    if (!dateStr) return null;
-    
-    // Try different date formats
-    const formats = [
-      /(\d{2})\/(\d{2})\/(\d{4})/, // DD/MM/YYYY
-      /(\d{4})-(\d{2})-(\d{2})/,   // YYYY-MM-DD
-    ];
-    
-    for (const format of formats) {
-      const match = dateStr.match(format);
-      if (match) {
-        if (format === formats[0]) {
-          return new Date(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1]));
-        } else {
-          return new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
-        }
-      }
-    }
-    
-    return new Date(dateStr);
-  };
+  useEffect(() => { fetchSolicitacoes(); }, []);
 
   const filteredSolicitacoes = solicitacoes.filter(sol => {
     if (!dataInicial && !dataFinal) return true;
-    
-    const solDate = parseDate(sol.data);
-    if (!solDate || isNaN(solDate.getTime())) return true;
-    
+    const solDate = new Date(sol.created_at);
     const startDate = dataInicial ? new Date(dataInicial) : null;
-    const endDate = dataFinal ? new Date(dataFinal) : null;
-    
-    if (startDate && endDate) {
-      endDate.setHours(23, 59, 59, 999);
-      return solDate >= startDate && solDate <= endDate;
-    } else if (startDate) {
-      return solDate >= startDate;
-    } else if (endDate) {
-      endDate.setHours(23, 59, 59, 999);
-      return solDate <= endDate;
-    }
-    
+    const endDate = dataFinal ? new Date(dataFinal + 'T23:59:59') : null;
+    if (startDate && endDate) return solDate >= startDate && solDate <= endDate;
+    if (startDate) return solDate >= startDate;
+    if (endDate) return solDate <= endDate;
     return true;
   });
 
   const getStatusBadge = (status: string) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower.includes('pendente')) {
-      return <Badge variant="secondary">{status}</Badge>;
-    }
-    if (statusLower.includes('aprovad')) {
-      return <Badge className="bg-green-500">{status}</Badge>;
-    }
-    if (statusLower.includes('rejeitad') || statusLower.includes('negad')) {
-      return <Badge variant="destructive">{status}</Badge>;
-    }
+    const s = status.toLowerCase();
+    if (s.includes('pendente')) return <Badge variant="secondary">{status}</Badge>;
+    if (s.includes('aprovad') || s.includes('entreg')) return <Badge className="bg-green-500 text-white">{status}</Badge>;
+    if (s.includes('rejeitad') || s.includes('negad') || s.includes('recusad')) return <Badge variant="destructive">{status}</Badge>;
     return <Badge>{status}</Badge>;
   };
 
-  const clearFilters = () => {
-    setDataInicial('');
-    setDataFinal('');
-  };
-
   const handleDeliver = async (sol: Solicitacao) => {
-    if (!user?.email) return;
-    
-    const confirmDeliver = window.confirm(`Confirma a entrega de ${sol.quantidade} unidade(s) de ${sol.material}? Isso dará baixa no estoque.`);
-    if (!confirmDeliver) return;
-    
-    setDelivering(sol.id);
+    setActionLoading(sol.id);
     try {
-      const response = await api.movimentarEstoque(user.email, 'saida', [{
-        codigo: sol.codigo,
-        quantidade: String(sol.quantidade),
-        obs: `Entrega solicitação #${sol.id} - ${sol.setor}`
-      }]);
-      
-      if (response.ok) {
-        toast({
-          title: 'Sucesso!',
-          description: 'Material entregue e baixa realizada no estoque.',
-        });
-        fetchSolicitacoes();
-      } else {
-        toast({
-          title: 'Erro',
-          description: response.msg || 'Erro ao registrar entrega.',
-          variant: 'destructive',
-        });
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('Não autenticado');
+
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('company_id')
+        .eq('user_id', authUser.id)
+        .limit(1)
+        .single();
+
+      const companyId = roleData?.company_id;
+      if (!companyId) throw new Error('Empresa não encontrada');
+
+      // Find material and deduct stock
+      const { data: material } = await supabase
+        .from('materials')
+        .select('id, quantidade')
+        .eq('company_id', companyId)
+        .eq('codigo', sol.codigo)
+        .limit(1)
+        .single();
+
+      if (!material) {
+        toast({ title: 'Erro', description: `Material com código ${sol.codigo} não encontrado no estoque.`, variant: 'destructive' });
+        return;
       }
-    } catch {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao conectar com o servidor.',
-        variant: 'destructive',
+
+      const newQty = Number(material.quantidade) - Number(sol.quantidade);
+      if (newQty < 0) {
+        toast({ title: 'Estoque insuficiente', description: `Estoque atual: ${material.quantidade}. Solicitado: ${sol.quantidade}.`, variant: 'destructive' });
+        return;
+      }
+
+      // Update material stock
+      await supabase.from('materials').update({ quantidade: newQty }).eq('id', material.id);
+
+      // Register stock movement
+      await supabase.from('stock_movements').insert({
+        company_id: companyId,
+        material_id: material.id,
+        quantidade: Number(sol.quantidade),
+        tipo: 'saida',
+        obs: `Entrega solicitação - ${sol.setor}`,
+        user_id: authUser.id,
       });
+
+      // Update request status
+      await supabase.from('material_requests').update({ status: 'Entregue' }).eq('id', sol.id);
+
+      toast({ title: 'Sucesso!', description: 'Material entregue e baixa realizada no estoque.' });
+      fetchSolicitacoes();
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err?.message || 'Erro ao entregar material.', variant: 'destructive' });
     } finally {
-      setDelivering(null);
+      setActionLoading(null);
+      setConfirmDeliver(null);
     }
   };
+
+  const handleReject = async () => {
+    if (!rejectDialog) return;
+    setActionLoading(rejectDialog.id);
+    try {
+      const obs = rejectObs.trim() ? `Recusada: ${rejectObs.trim()}` : 'Recusada';
+      await supabase
+        .from('material_requests')
+        .update({ status: 'Recusada', obs })
+        .eq('id', rejectDialog.id);
+
+      toast({ title: 'Solicitação recusada.' });
+      fetchSolicitacoes();
+    } catch {
+      toast({ title: 'Erro', description: 'Erro ao recusar solicitação.', variant: 'destructive' });
+    } finally {
+      setActionLoading(null);
+      setRejectDialog(null);
+      setRejectObs('');
+    }
+  };
+
+  const handleDelete = async (sol: Solicitacao) => {
+    setActionLoading(sol.id);
+    try {
+      const { error } = await supabase.from('material_requests').delete().eq('id', sol.id);
+      if (error) throw error;
+      toast({ title: 'Solicitação excluída.' });
+      fetchSolicitacoes();
+    } catch {
+      toast({ title: 'Erro', description: 'Erro ao excluir solicitação.', variant: 'destructive' });
+    } finally {
+      setActionLoading(null);
+      setConfirmDelete(null);
+    }
+  };
+
+  const isAdmin = user?.role === 'superadm' || user?.role === 'admin' || user?.role === 'usuario almox';
 
   return (
     <MainLayout>
@@ -177,26 +213,14 @@ const ListarSolicitacoes = () => {
             <Filter className="w-4 h-4 text-muted-foreground" />
             <div className="space-y-1">
               <Label className="text-xs">Data Inicial</Label>
-              <Input
-                type="date"
-                value={dataInicial}
-                onChange={(e) => setDataInicial(e.target.value)}
-                className="w-[160px]"
-              />
+              <Input type="date" value={dataInicial} onChange={(e) => setDataInicial(e.target.value)} className="w-[160px]" />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Data Final</Label>
-              <Input
-                type="date"
-                value={dataFinal}
-                onChange={(e) => setDataFinal(e.target.value)}
-                className="w-[160px]"
-              />
+              <Input type="date" value={dataFinal} onChange={(e) => setDataFinal(e.target.value)} className="w-[160px]" />
             </div>
             {(dataInicial || dataFinal) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
-                Limpar
-              </Button>
+              <Button variant="ghost" size="sm" onClick={() => { setDataInicial(''); setDataFinal(''); }}>Limpar</Button>
             )}
           </div>
 
@@ -209,56 +233,129 @@ const ListarSolicitacoes = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID</TableHead>
                     <TableHead>Data</TableHead>
-                    <TableHead>Usuário</TableHead>
                     <TableHead>Setor</TableHead>
                     <TableHead>Código</TableHead>
                     <TableHead>Material</TableHead>
                     <TableHead>Qtd</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Obs</TableHead>
-                    <TableHead>Ações</TableHead>
+                    {isAdmin && <TableHead className="text-right">Ações</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredSolicitacoes.map((sol, index) => (
-                    <TableRow key={sol.id || index}>
-                      <TableCell className="font-mono">{sol.id}</TableCell>
-                      <TableCell>{sol.data}</TableCell>
-                      <TableCell>{sol.email_usuario}</TableCell>
+                  {filteredSolicitacoes.map((sol) => (
+                    <TableRow key={sol.id}>
+                      <TableCell className="text-sm">{new Date(sol.created_at).toLocaleDateString('pt-BR')}</TableCell>
                       <TableCell>{sol.setor}</TableCell>
-                      <TableCell>{sol.codigo}</TableCell>
+                      <TableCell className="font-mono">{sol.codigo}</TableCell>
                       <TableCell>{sol.material}</TableCell>
                       <TableCell>{sol.quantidade}</TableCell>
                       <TableCell>{getStatusBadge(sol.status)}</TableCell>
-                      <TableCell>{sol.obs || '-'}</TableCell>
-                      <TableCell>
-                        {sol.status.toLowerCase().includes('pendente') && (
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleDeliver(sol)}
-                            disabled={delivering === sol.id}
-                            className="gap-1"
-                          >
-                            <PackageCheck className="w-4 h-4" />
-                            {delivering === sol.id ? 'Entregando...' : 'Entregar'}
-                          </Button>
-                        )}
-                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate">{sol.obs || '-'}</TableCell>
+                      {isAdmin && (
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-1">
+                            {sol.status.toLowerCase() === 'pendente' && (
+                              <>
+                                <Button
+                                  variant="ghost" size="icon" title="Aprovar e entregar"
+                                  onClick={() => setConfirmDeliver(sol)}
+                                  disabled={actionLoading === sol.id}
+                                >
+                                  <PackageCheck className="w-4 h-4 text-primary" />
+                                </Button>
+                                <Button
+                                  variant="ghost" size="icon" title="Recusar"
+                                  onClick={() => setRejectDialog({ id: sol.id, material: sol.material })}
+                                  disabled={actionLoading === sol.id}
+                                >
+                                  <XCircle className="w-4 h-4 text-muted-foreground" />
+                                </Button>
+                              </>
+                            )}
+                            <Button
+                              variant="ghost" size="icon" title="Excluir"
+                              onClick={() => setConfirmDelete(sol)}
+                              disabled={actionLoading === sol.id}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </div>
           )}
-          
           <div className="text-sm text-muted-foreground">
             Exibindo {filteredSolicitacoes.length} de {solicitacoes.length} solicitações
           </div>
         </CardContent>
       </Card>
+
+      {/* Confirm Deliver Dialog */}
+      <Dialog open={!!confirmDeliver} onOpenChange={(open) => !open && setConfirmDeliver(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Aprovar e entregar material</DialogTitle>
+            <DialogDescription>
+              Confirma a entrega de {confirmDeliver?.quantidade} unidade(s) de {confirmDeliver?.material}? 
+              Isso dará baixa no estoque automaticamente.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDeliver(null)}>Cancelar</Button>
+            <Button onClick={() => confirmDeliver && handleDeliver(confirmDeliver)} disabled={!!actionLoading}>
+              {actionLoading ? 'Processando...' : 'Confirmar Entrega'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Dialog */}
+      <Dialog open={!!rejectDialog} onOpenChange={(open) => { if (!open) { setRejectDialog(null); setRejectObs(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Recusar solicitação</DialogTitle>
+            <DialogDescription>
+              Recusar solicitação de {rejectDialog?.material}. Informe o motivo (opcional):
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="Motivo da recusa..."
+            value={rejectObs}
+            onChange={(e) => setRejectObs(e.target.value)}
+            className="min-h-[80px]"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setRejectDialog(null); setRejectObs(''); }}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleReject} disabled={!!actionLoading}>
+              {actionLoading ? 'Processando...' : 'Recusar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Delete Dialog */}
+      <Dialog open={!!confirmDelete} onOpenChange={(open) => !open && setConfirmDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir solicitação</DialogTitle>
+            <DialogDescription>
+              Deseja excluir permanentemente a solicitação de {confirmDelete?.material}?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDelete(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => confirmDelete && handleDelete(confirmDelete)} disabled={!!actionLoading}>
+              {actionLoading ? 'Excluindo...' : 'Excluir'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };
