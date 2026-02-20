@@ -7,6 +7,7 @@ import {
   RefreshCw,
   TrendingUp,
   FileText,
+  FileSpreadsheet,
   Building2,
   Building,
   List,
@@ -62,6 +63,7 @@ const menuGroups: MenuGroup[] = [
       { path: '/cadastrar-material', label: 'Cadastrar Material', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
       { path: '/atualizar-estoque', label: 'Atualizar Estoque', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
       { path: '/movimentar-estoque', label: 'Movimentar Estoque', icon: <TrendingUp className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
+      { path: '/importar-planilha', label: 'Importar Planilha', icon: <FileSpreadsheet className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
     ],
   },
   {
