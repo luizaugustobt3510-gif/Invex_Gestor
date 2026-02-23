@@ -8,15 +8,21 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 import { useInventoryData, InventoryItem } from '@/hooks/useInventoryData';
-import { api, MovementItem } from '@/services/api';
+import { supabase } from '@/integrations/supabase/client';
 import { TrendingUp, TrendingDown, Plus, Trash2, Send, Search, Check } from 'lucide-react';
 
+interface MovItem {
+  codigo: string;
+  materialId: string;
+  material: string;
+  quantidade: string;
+  obs: string;
+}
+
 const MovimentarEstoqueNew = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const { data: inventoryData, loading: inventoryLoading } = useInventoryData();
+  const { data: inventoryData, loading: inventoryLoading, refetch } = useInventoryData();
   const [loading, setLoading] = useState(false);
   const [tipo, setTipo] = useState<'entrada' | 'saida'>('entrada');
   
@@ -24,10 +30,9 @@ const MovimentarEstoqueNew = () => {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [quantidade, setQuantidade] = useState('');
   const [obs, setObs] = useState('');
+  const [itens, setItens] = useState<MovItem[]>([]);
 
-  const [itens, setItens] = useState<(MovementItem & { material?: string })[]>([]);
-
-const filteredItems = searchTerm.length >= 1 
+  const filteredItems = searchTerm.length >= 1 
     ? inventoryData.filter(item => 
         String(item.codigo).toLowerCase().includes(searchTerm.toLowerCase()) ||
         String(item.material).toLowerCase().includes(searchTerm.toLowerCase())
@@ -41,30 +46,14 @@ const filteredItems = searchTerm.length >= 1
 
   const addItem = () => {
     if (!selectedItem || !quantidade) {
-      toast({
-        title: 'Campos obrigatórios',
-        description: 'Selecione um item e informe a quantidade.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Campos obrigatórios', description: 'Selecione um item e informe a quantidade.', variant: 'destructive' });
       return;
     }
-
-    const exists = itens.some(i => i.codigo === selectedItem.codigo);
-    if (exists) {
-      toast({
-        title: 'Item já adicionado',
-        description: 'Este item já está na lista.',
-        variant: 'destructive',
-      });
+    if (itens.some(i => i.codigo === selectedItem.codigo)) {
+      toast({ title: 'Item já adicionado', description: 'Este item já está na lista.', variant: 'destructive' });
       return;
     }
-
-    setItens(prev => [...prev, { 
-      codigo: selectedItem.codigo, 
-      quantidade, 
-      obs,
-      material: selectedItem.material 
-    }]);
+    setItens(prev => [...prev, { codigo: selectedItem.codigo, materialId: selectedItem.id, material: selectedItem.material, quantidade, obs }]);
     setSelectedItem(null);
     setQuantidade('');
     setObs('');
@@ -76,40 +65,55 @@ const filteredItems = searchTerm.length >= 1
 
   const handleSubmit = async () => {
     if (itens.length === 0) {
-      toast({
-        title: 'Adicione itens',
-        description: 'Adicione pelo menos um item para movimentar.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Adicione itens', description: 'Adicione pelo menos um item para movimentar.', variant: 'destructive' });
       return;
     }
 
-    if (!user?.email) return;
-
     setLoading(true);
     try {
-      const movementItems = itens.map(({ codigo, quantidade, obs }) => ({ codigo, quantidade, obs }));
-      const response = await api.movimentarEstoque(user.email, tipo, movementItems);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Não autenticado');
 
-      if (response.ok) {
-        toast({
-          title: 'Sucesso!',
-          description: response.msg || 'Movimentação registrada com sucesso.',
-        });
-        setItens([]);
-      } else {
-        toast({
-          title: 'Erro',
-          description: response.msg || 'Erro ao registrar movimentação.',
-          variant: 'destructive',
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('company_id')
+        .eq('user_id', user.id)
+        .not('company_id', 'is', null)
+        .limit(1)
+        .single();
+
+      if (!roleData?.company_id) throw new Error('Empresa não encontrada');
+
+      for (const item of itens) {
+        const material = inventoryData.find(m => m.codigo === item.codigo);
+        if (!material) continue;
+
+        const qty = Number(item.quantidade);
+        const newQty = tipo === 'entrada' ? material.quantidade + qty : material.quantidade - qty;
+
+        if (newQty < 0) {
+          toast({ title: 'Estoque insuficiente', description: `${material.material}: estoque ${material.quantidade}, saída ${qty}.`, variant: 'destructive' });
+          setLoading(false);
+          return;
+        }
+
+        await supabase.from('materials').update({ quantidade: newQty }).eq('id', material.id);
+
+        await supabase.from('stock_movements').insert({
+          company_id: roleData.company_id,
+          material_id: material.id,
+          quantidade: qty,
+          tipo,
+          obs: item.obs || '',
+          user_id: user.id,
         });
       }
-    } catch {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao conectar com o servidor.',
-        variant: 'destructive',
-      });
+
+      toast({ title: 'Sucesso!', description: `Movimentação de ${tipo} registrada.` });
+      setItens([]);
+      refetch();
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err?.message || 'Erro ao registrar movimentação.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -128,9 +132,7 @@ const filteredItems = searchTerm.length >= 1
           <div className="space-y-2">
             <Label>Tipo de Movimentação *</Label>
             <Select value={tipo} onValueChange={(v) => setTipo(v as 'entrada' | 'saida')}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="entrada">Entrada</SelectItem>
                 <SelectItem value="saida">Saída</SelectItem>
@@ -140,25 +142,15 @@ const filteredItems = searchTerm.length >= 1
 
           <div className="border-t pt-4 space-y-4">
             <h3 className="font-semibold">Selecionar Item</h3>
-            
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por código ou nome..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Buscar por código ou nome..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
             </div>
 
             {filteredItems.length > 0 && !selectedItem && (
               <div className="border rounded-lg max-h-48 overflow-y-auto">
                 {filteredItems.slice(0, 10).map((item) => (
-                  <div
-                    key={item.codigo}
-                    onClick={() => selectItem(item)}
-                    className="p-3 hover:bg-muted cursor-pointer border-b last:border-b-0 flex justify-between items-center"
-                  >
+                  <div key={item.codigo} onClick={() => selectItem(item)} className="p-3 hover:bg-muted cursor-pointer border-b last:border-b-0 flex justify-between items-center">
                     <div>
                       <span className="font-mono text-sm">{item.codigo}</span>
                       <span className="mx-2">-</span>
@@ -179,9 +171,7 @@ const filteredItems = searchTerm.length >= 1
                   <span className="font-medium">{selectedItem.material}</span>
                   <span className="text-sm text-muted-foreground ml-2">(Estoque: {selectedItem.quantidade})</span>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedItem(null)}>
-                  Trocar
-                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedItem(null)}>Trocar</Button>
               </div>
             )}
 
@@ -189,21 +179,11 @@ const filteredItems = searchTerm.length >= 1
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Quantidade *</Label>
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={quantidade}
-                    onChange={(e) => setQuantidade(e.target.value)}
-                  />
+                  <Input type="number" placeholder="0" value={quantidade} onChange={(e) => setQuantidade(e.target.value)} />
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Observação</Label>
-                  <Textarea
-                    placeholder="Observação (opcional)"
-                    value={obs}
-                    onChange={(e) => setObs(e.target.value)}
-                    className="min-h-[40px]"
-                  />
+                  <Textarea placeholder="Observação (opcional)" value={obs} onChange={(e) => setObs(e.target.value)} className="min-h-[40px]" />
                 </div>
               </div>
             )}
@@ -231,7 +211,7 @@ const filteredItems = searchTerm.length >= 1
                   {itens.map((item, index) => (
                     <TableRow key={index}>
                       <TableCell className="font-mono">{item.codigo}</TableCell>
-                      <TableCell>{item.material || '-'}</TableCell>
+                      <TableCell>{item.material}</TableCell>
                       <TableCell>{item.quantidade}</TableCell>
                       <TableCell>{item.obs || '-'}</TableCell>
                       <TableCell>

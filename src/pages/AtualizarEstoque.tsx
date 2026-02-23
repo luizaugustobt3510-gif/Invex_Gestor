@@ -5,15 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 import { useInventoryData } from '@/hooks/useInventoryData';
-import { api } from '@/services/api';
 import { Package, Save, Search, RefreshCw } from 'lucide-react';
 
 const AtualizarEstoque = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const { data: inventoryData, loading: inventoryLoading, refetch } = useInventoryData();
+  const { data: inventoryData, loading: inventoryLoading, refetch, updateStock } = useInventoryData();
   const [saving, setSaving] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [quantities, setQuantities] = useState<Record<string, string>>({});
@@ -33,39 +30,16 @@ const AtualizarEstoque = () => {
   const handleSave = async (codigo: string) => {
     const quantidade = quantities[codigo];
     if (!quantidade || quantidade.trim() === '') {
-      toast({
-        title: 'Campo obrigatório',
-        description: 'Informe a quantidade.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Campo obrigatório', description: 'Informe a quantidade.', variant: 'destructive' });
       return;
     }
 
-    if (!user?.email) return;
-
     setSaving(codigo);
     try {
-      const response = await api.updateStock(user.email, codigo, quantidade);
-
-      if (response.ok) {
-        toast({
-          title: 'Sucesso!',
-          description: response.msg || 'Estoque atualizado.',
-        });
-        refetch();
-      } else {
-        toast({
-          title: 'Erro',
-          description: response.msg || 'Erro ao atualizar.',
-          variant: 'destructive',
-        });
+      const result = await updateStock(codigo, Number(quantidade));
+      if (result.success) {
+        toast({ title: 'Sucesso!', description: 'Estoque atualizado.' });
       }
-    } catch {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao conectar com o servidor.',
-        variant: 'destructive',
-      });
     } finally {
       setSaving(null);
     }
@@ -91,12 +65,7 @@ const AtualizarEstoque = () => {
         <CardContent className="space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por código ou material..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+            <Input placeholder="Buscar por código ou material..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
           </div>
 
           {inventoryLoading ? (
@@ -124,19 +93,10 @@ const AtualizarEstoque = () => {
                       <TableCell>{item.unidade}</TableCell>
                       <TableCell>{item.quantidade}</TableCell>
                       <TableCell>
-                        <Input
-                          type="number"
-                          value={quantities[item.codigo] || ''}
-                          onChange={(e) => handleQuantityChange(item.codigo, e.target.value)}
-                          className="w-full"
-                        />
+                        <Input type="number" value={quantities[item.codigo] || ''} onChange={(e) => handleQuantityChange(item.codigo, e.target.value)} className="w-full" />
                       </TableCell>
                       <TableCell>
-                        <Button 
-                          size="sm" 
-                          onClick={() => handleSave(item.codigo)}
-                          disabled={saving === item.codigo}
-                        >
+                        <Button size="sm" onClick={() => handleSave(item.codigo)} disabled={saving === item.codigo}>
                           <Save className="w-4 h-4" />
                         </Button>
                       </TableCell>

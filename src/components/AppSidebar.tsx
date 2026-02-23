@@ -17,6 +17,9 @@ import {
   UserPlus,
   LogOut,
   ChevronDown,
+  QrCode,
+  History,
+  ScanLine,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -58,11 +61,14 @@ const menuGroups: MenuGroup[] = [
   {
     label: 'Estoque',
     icon: <Package className="w-4 h-4" />,
-    allowedRoles: ['superadm', 'admin'],
+    allowedRoles: ['superadm', 'admin', 'usuario almox'],
     items: [
       { path: '/cadastrar-material', label: 'Cadastrar Material', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
       { path: '/atualizar-estoque', label: 'Atualizar Estoque', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
       { path: '/movimentar-estoque', label: 'Movimentar Estoque', icon: <TrendingUp className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
+      { path: '/qr-scanner', label: 'Escanear QR Code', icon: <ScanLine className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
+      { path: '/gerar-qrcode', label: 'Gerar QR Code', icon: <QrCode className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
+      { path: '/historico-movimentacoes', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
       { path: '/importar-planilha', label: 'Importar Planilha', icon: <FileSpreadsheet className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
     ],
   },
@@ -118,25 +124,18 @@ export function AppSidebar() {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Filter groups based on user permissions
   const visibleGroups = menuGroups.filter(group => hasPermission(group.allowedRoles));
-
-  // Check if user is 'usuario almox' - they should NOT see Dashboard
   const canSeeDashboard = hasPermission(['superadm', 'admin', 'solicitante']);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="p-4">
-        <div 
-          className="flex items-center gap-2 cursor-pointer" 
-          onClick={() => navigate('/')}
-        >
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
           <InvexLogo size="sm" />
         </div>
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        {/* Dashboard - item standalone - hidden for 'usuario almox' */}
         {canSeeDashboard && (
           <>
             <SidebarMenu>
@@ -155,12 +154,10 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
-
             <SidebarSeparator className="my-2" />
           </>
         )}
 
-        {/* Grouped menu items */}
         {visibleGroups.map((group) => {
           const visibleItems = group.items.filter(item => hasPermission(item.allowedRoles));
           if (visibleItems.length === 0) return null;
