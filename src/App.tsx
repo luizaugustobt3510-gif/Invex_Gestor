@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
-import { ProtectedRoute } from "./components/ProtectedRoute";
 import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -20,6 +19,9 @@ import CriarUsuario from "./pages/CriarUsuario";
 import GerenciarOC from "./pages/GerenciarOC";
 import ListarEmpresas from "./pages/ListarEmpresas";
 import ImportarPlanilha from "./pages/ImportarPlanilha";
+import QRScanner from "./pages/QRScanner";
+import GerarQRCode from "./pages/GerarQRCode";
+import HistoricoMovimentacoes from "./pages/HistoricoMovimentacoes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,14 +36,12 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             
-            {/* Dashboard - todos menos usuario almox */}
             <Route path="/" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante']}>
                 <Index />
               </RoleProtectedRoute>
             } />
             
-            {/* Estoque - Cadastrar e Atualizar: apenas superadm e admin */}
             <Route path="/cadastrar-material" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
                 <CadastrarMaterial />
@@ -53,14 +53,30 @@ const App = () => (
               </RoleProtectedRoute>
             } />
             
-            {/* Movimentar Estoque: superadm, admin e usuario almox */}
             <Route path="/movimentar-estoque" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
                 <MovimentarEstoqueNew />
               </RoleProtectedRoute>
             } />
             
-            {/* Ordens de Compra: apenas superadm e admin */}
+            <Route path="/qr-scanner" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
+                <QRScanner />
+              </RoleProtectedRoute>
+            } />
+            
+            <Route path="/gerar-qrcode" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+                <GerarQRCode />
+              </RoleProtectedRoute>
+            } />
+            
+            <Route path="/historico-movimentacoes" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
+                <HistoricoMovimentacoes />
+              </RoleProtectedRoute>
+            } />
+            
             <Route path="/gerar-oc" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
                 <GerarOC />
@@ -73,7 +89,6 @@ const App = () => (
               </RoleProtectedRoute>
             } />
             
-            {/* Setores: apenas superadm e admin */}
             <Route path="/criar-setor" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
                 <CriarSetor />
@@ -85,7 +100,6 @@ const App = () => (
               </RoleProtectedRoute>
             } />
             
-            {/* Solicitações: todos */}
             <Route path="/solicitar-material" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante']}>
                 <SolicitarMaterial />
@@ -97,14 +111,12 @@ const App = () => (
               </RoleProtectedRoute>
             } />
             
-            {/* Importar Planilha */}
             <Route path="/importar-planilha" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
                 <ImportarPlanilha />
               </RoleProtectedRoute>
             } />
             
-            {/* Administração: apenas superadm */}
             <Route path="/criar-usuario" element={
               <RoleProtectedRoute allowedRoles={['superadm']}>
                 <CriarUsuario />

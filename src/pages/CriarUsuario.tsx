@@ -6,12 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/services/api';
+import { supabase } from '@/integrations/supabase/client';
 import { UserPlus, Save } from 'lucide-react';
 
 const CriarUsuario = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   
@@ -25,87 +23,57 @@ const CriarUsuario = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const email = formData.email?.trim() || '';
+    const email = formData.email?.trim().toLowerCase() || '';
     const senha = formData.senha?.trim() || '';
     const nome = formData.nome?.trim() || '';
     const autenticacao = formData.autenticacao || '';
 
-
-    // Validate all fields
-    if (!nome || nome.length === 0) {
-      toast({
-        title: 'Campo obrigatório',
-        description: 'Informe o nome do usuário.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!email || email.length === 0) {
-      toast({
-        title: 'Campo obrigatório',
-        description: 'Informe o e-mail do usuário.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!senha || senha.length === 0) {
-      toast({
-        title: 'Campo obrigatório',
-        description: 'Informe a senha do usuário.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!autenticacao || autenticacao.length === 0) {
-      toast({
-        title: 'Campo obrigatório',
-        description: 'Selecione o nível de acesso.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!user?.email) {
-      toast({
-        title: 'Erro',
-        description: 'Usuário administrador não autenticado.',
-        variant: 'destructive',
-      });
-      return;
-    }
+    if (!nome) { toast({ title: 'Campo obrigatório', description: 'Informe o nome.', variant: 'destructive' }); return; }
+    if (!email) { toast({ title: 'Campo obrigatório', description: 'Informe o e-mail.', variant: 'destructive' }); return; }
+    if (!senha) { toast({ title: 'Campo obrigatório', description: 'Informe a senha.', variant: 'destructive' }); return; }
+    if (!autenticacao) { toast({ title: 'Campo obrigatório', description: 'Selecione o nível de acesso.', variant: 'destructive' }); return; }
 
     setLoading(true);
     try {
-      const response = await api.criarUsuario(
-        user.email,
-        email,
-        senha,
-        nome,
-        autenticacao
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error('Sessão expirada');
+
+      // Map UI role to DB role
+      const roleMap: Record<string, string> = {
+        'superadm': 'super_admin',
+        'admin': 'admin_empresa',
+        'usuario almox': 'usuario_almox',
+        'solicitante': 'solicitante',
+      };
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/setup-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            email,
+            password: senha,
+            nome,
+            role: roleMap[autenticacao] || 'solicitante',
+          }),
+        }
       );
 
-      if (response.ok) {
-        toast({
-          title: 'Sucesso!',
-          description: response.msg || 'Usuário criado com sucesso.',
-        });
+      const result = await response.json();
+
+      if (result.ok || result.success) {
+        toast({ title: 'Sucesso!', description: result.msg || 'Usuário criado com sucesso.' });
         setFormData({ email: '', senha: '', nome: '', autenticacao: '' });
       } else {
-        toast({
-          title: 'Erro',
-          description: response.msg || 'Erro ao criar usuário.',
-          variant: 'destructive',
-        });
+        toast({ title: 'Erro', description: result.error || result.msg || 'Erro ao criar usuário.', variant: 'destructive' });
       }
-    } catch {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao conectar com o servidor.',
-        variant: 'destructive',
-      });
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err?.message || 'Erro ao conectar.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -124,42 +92,20 @@ const CriarUsuario = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="nome">Nome *</Label>
-              <Input
-                id="nome"
-                value={formData.nome}
-                onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
-                placeholder="Nome completo"
-              />
+              <Input id="nome" value={formData.nome} onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))} placeholder="Nome completo" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">E-mail *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="email@exemplo.com"
-              />
+              <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))} placeholder="email@exemplo.com" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="senha">Senha *</Label>
-              <Input
-                id="senha"
-                type="password"
-                value={formData.senha}
-                onChange={(e) => setFormData(prev => ({ ...prev, senha: e.target.value }))}
-                placeholder="Senha de acesso"
-              />
+              <Input id="senha" type="password" value={formData.senha} onChange={(e) => setFormData(prev => ({ ...prev, senha: e.target.value }))} placeholder="Senha de acesso" />
             </div>
             <div className="space-y-2">
               <Label>Nível de Acesso *</Label>
-              <Select 
-                value={formData.autenticacao} 
-                onValueChange={(v) => setFormData(prev => ({ ...prev, autenticacao: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o nível" />
-                </SelectTrigger>
+              <Select value={formData.autenticacao} onValueChange={(v) => setFormData(prev => ({ ...prev, autenticacao: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione o nível" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="superadm">Super Administrador</SelectItem>
                   <SelectItem value="admin">Administrador</SelectItem>

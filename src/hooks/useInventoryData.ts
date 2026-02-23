@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface InventoryItem {
+  id: string;
   codigo: string;
   material: string;
   unidade: string;
@@ -27,12 +29,19 @@ export interface InventorySummary {
   curvaC: number;
 }
 
-interface InventoryResponse {
-  resumo: InventorySummary;
-  produtos: InventoryItem[];
-}
-
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbx0_BygXBmPN7YOnbKv5i0mjrgoVHBLaWEZP8uAdbBbeQyhJ-6qbjRbEFxTl3wQE9Q/exec';
+const classifyCurva = (items: InventoryItem[]): InventoryItem[] => {
+  const sorted = [...items].sort((a, b) => b.valorTotal - a.valorTotal);
+  const totalValue = sorted.reduce((sum, item) => sum + item.valorTotal, 0);
+  let cumulative = 0;
+  return sorted.map(item => {
+    cumulative += item.valorTotal;
+    const pct = totalValue > 0 ? (cumulative / totalValue) * 100 : 0;
+    let curva = 'C';
+    if (pct <= 80) curva = 'A';
+    else if (pct <= 95) curva = 'B';
+    return { ...item, curva };
+  });
+};
 
 export const useInventoryData = () => {
   const [data, setData] = useState<InventoryItem[]>([]);
@@ -53,33 +62,72 @@ export const useInventoryData = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await fetch(GOOGLE_SHEETS_URL);
-      
-      if (!response.ok) {
-        throw new Error('Erro ao buscar dados do Google Sheets');
-      }
-      
-      const text = await response.text();
-      
-      if (text.startsWith('Erro:')) {
-        throw new Error(text);
-      }
-      
-      try {
-        const jsonData: InventoryResponse = JSON.parse(text);
-        setData(jsonData.produtos || []);
-        setSummary(jsonData.resumo || summary);
-      } catch {
-        throw new Error('Resposta inválida do servidor. Verifique a configuração do Google Apps Script.');
-      }
-      
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Não autenticado');
+
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('company_id')
+        .eq('user_id', user.id)
+        .not('company_id', 'is', null)
+        .limit(1)
+        .single();
+
+      if (!roleData?.company_id) throw new Error('Empresa não encontrada');
+
+      const { data: materials, error: matError } = await supabase
+        .from('materials')
+        .select('*')
+        .eq('company_id', roleData.company_id)
+        .order('codigo');
+
+      if (matError) throw matError;
+
+      let items: InventoryItem[] = (materials || []).map(m => {
+        const qty = Number(m.quantidade);
+        const min = Number(m.minimo);
+        const preco = Number(m.preco);
+        let status = 'OK';
+        if (qty === 0) status = 'Zerado';
+        else if (qty < min) status = 'Abaixo do Mínimo';
+
+        return {
+          id: m.id,
+          codigo: m.codigo,
+          material: m.material,
+          unidade: m.unidade,
+          localizacao: m.localizacao || '',
+          validade: m.validade || '',
+          quantidade: qty,
+          minimo: min,
+          maximo: Number(m.maximo),
+          preco,
+          valorTotal: qty * preco,
+          status,
+          curva: 'C',
+        };
+      });
+
+      items = classifyCurva(items);
+
+      const sum: InventorySummary = {
+        total_itens: items.length,
+        total_estoque_valor: items.reduce((s, i) => s + i.valorTotal, 0),
+        total_ok: items.filter(i => i.status === 'OK').length,
+        total_abaixo: items.filter(i => i.status === 'Abaixo do Mínimo').length,
+        total_zerado: items.filter(i => i.status === 'Zerado').length,
+        curvaA: items.filter(i => i.curva === 'A').length,
+        curvaB: items.filter(i => i.curva === 'B').length,
+        curvaC: items.filter(i => i.curva === 'C').length,
+      };
+
+      setData(items);
+      setSummary(sum);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
       setError(errorMessage);
-      toast.error('Erro ao carregar dados do estoque', {
-        description: errorMessage
-      });
+      toast.error('Erro ao carregar dados do estoque', { description: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -87,24 +135,29 @@ export const useInventoryData = () => {
 
   const updateStock = async (codigo: string, quantidade: number) => {
     try {
-      const response = await fetch(GOOGLE_SHEETS_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain',
-        },
-        body: JSON.stringify({
-          action: 'update',
-          codigo: codigo.toString(),
-          quantidade: Number(quantidade)
-        })
-      });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Não autenticado');
 
-      if (!response.ok) {
-        throw new Error('Erro na requisição');
-      }
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('company_id')
+        .eq('user_id', user.id)
+        .not('company_id', 'is', null)
+        .limit(1)
+        .single();
+
+      if (!roleData?.company_id) throw new Error('Empresa não encontrada');
+
+      const { error } = await supabase
+        .from('materials')
+        .update({ quantidade })
+        .eq('company_id', roleData.company_id)
+        .eq('codigo', codigo);
+
+      if (error) throw error;
 
       toast.success('Estoque atualizado com sucesso!');
-      setTimeout(() => fetchData(), 1000);
+      await fetchData();
       return { success: true };
     } catch {
       toast.error('Erro ao atualizar estoque');
@@ -112,89 +165,11 @@ export const useInventoryData = () => {
     }
   };
 
-  const massUpdate = async (user: string, produtos: Array<{ codigo: string; quantidade: string }>) => {
-    try {
-      const response = await fetch(GOOGLE_SHEETS_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain',
-        },
-        body: JSON.stringify({
-          action: 'mass_update',
-          user,
-          produtos: produtos.map(p => ({
-            codigo: p.codigo.toString(),
-            quantidade: p.quantidade
-          }))
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro na requisição');
-      }
-
-      toast.success('Atualização em massa concluída!');
-      setTimeout(() => fetchData(), 1000);
-      return { success: true };
-    } catch {
-      toast.error('Erro ao atualizar estoque em massa');
-      return { success: false };
-    }
-  };
-
-  const movimentarEstoque = async (
-    user: string, 
-    tipo: 'entrada' | 'saida', 
-    produtos: Array<{ codigo: string; quantidade: string; obs: string }>
-  ) => {
-    try {
-      const response = await fetch(GOOGLE_SHEETS_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain',
-        },
-        body: JSON.stringify({
-          action: 'movimentar',
-          user,
-          tipo,
-          produtos: produtos.map(p => ({
-            codigo: p.codigo.toString(),
-            quantidade: p.quantidade,
-            obs: p.obs
-          }))
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro na requisição');
-      }
-
-      toast.success(`Movimentação de ${tipo} concluída!`);
-      setTimeout(() => fetchData(), 1000);
-      return { success: true };
-    } catch {
-      toast.error('Erro ao movimentar estoque');
-      return { success: false };
-    }
-  };
-
   useEffect(() => {
     fetchData();
-    
-    // Atualiza a cada 5 minutos (300000ms)
     const interval = setInterval(fetchData, 300000);
-    
     return () => clearInterval(interval);
   }, []);
 
-  return { 
-    data, 
-    summary, 
-    loading, 
-    error, 
-    refetch: fetchData, 
-    updateStock,
-    massUpdate,
-    movimentarEstoque
-  };
+  return { data, summary, loading, error, refetch: fetchData, updateStock };
 };

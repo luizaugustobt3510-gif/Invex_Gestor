@@ -8,14 +8,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/services/api';
+import { supabase } from '@/integrations/supabase/client';
 import { ClipboardList, Send } from 'lucide-react';
 
 const SolicitarMaterial = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [setores, setSetores] = useState<Array<{ id_setor: number; nome_setor: string }>>([]);
+  const [loadingSetores, setLoadingSetores] = useState(true);
+  const [setores, setSetores] = useState<Array<{ id: string; nome: string }>>([]);
   
   const [formData, setFormData] = useState({
     setor: '',
@@ -27,18 +28,37 @@ const SolicitarMaterial = () => {
 
   useEffect(() => {
     const loadSetores = async () => {
-      if (!user?.email) return;
+      setLoadingSetores(true);
       try {
-        const response = await api.listarSetores(user.email);
-        if (response.setores) {
-          setSetores(response.setores);
-        }
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (!authUser) return;
+
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('company_id')
+          .eq('user_id', authUser.id)
+          .not('company_id', 'is', null)
+          .limit(1)
+          .single();
+
+        if (!roleData?.company_id) return;
+
+        const { data, error } = await supabase
+          .from('sectors')
+          .select('id, nome')
+          .eq('company_id', roleData.company_id)
+          .order('nome');
+
+        if (error) throw error;
+        setSetores(data || []);
       } catch (error) {
         console.error('Erro ao carregar setores:', error);
+      } finally {
+        setLoadingSetores(false);
       }
     };
     loadSetores();
-  }, [user?.email]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,36 +72,44 @@ const SolicitarMaterial = () => {
       return;
     }
 
-    if (!user?.email) return;
-
     setLoading(true);
     try {
-      const response = await api.solicitarMaterial(
-        user.email,
-        formData.setor,
-        formData.codigo,
-        formData.material,
-        formData.quantidade,
-        formData.obs
-      );
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('Não autenticado');
 
-      if (response.ok) {
-        toast({
-          title: 'Sucesso!',
-          description: response.msg || 'Solicitação enviada com sucesso.',
-        });
-        setFormData({ setor: '', codigo: '', material: '', quantidade: '', obs: '' });
-      } else {
-        toast({
-          title: 'Erro',
-          description: response.msg || 'Erro ao enviar solicitação.',
-          variant: 'destructive',
-        });
-      }
-    } catch {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('company_id')
+        .eq('user_id', authUser.id)
+        .not('company_id', 'is', null)
+        .limit(1)
+        .single();
+
+      if (!roleData?.company_id) throw new Error('Empresa não encontrada');
+
+      const selectedSetor = setores.find(s => s.id === formData.setor);
+
+      const { error } = await supabase.from('material_requests').insert({
+        company_id: roleData.company_id,
+        user_id: authUser.id,
+        setor: selectedSetor?.nome || formData.setor,
+        codigo: formData.codigo,
+        material: formData.material,
+        quantidade: Number(formData.quantidade),
+        obs: formData.obs || '',
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Sucesso!',
+        description: 'Solicitação enviada com sucesso.',
+      });
+      setFormData({ setor: '', codigo: '', material: '', quantidade: '', obs: '' });
+    } catch (err: any) {
       toast({
         title: 'Erro',
-        description: 'Erro ao conectar com o servidor.',
+        description: err?.message || 'Erro ao enviar solicitação.',
         variant: 'destructive',
       });
     } finally {
@@ -104,12 +132,16 @@ const SolicitarMaterial = () => {
               <Label>Setor *</Label>
               <Select value={formData.setor} onValueChange={(v) => setFormData(prev => ({ ...prev, setor: v }))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o setor" />
+                  <SelectValue placeholder={loadingSetores ? 'Carregando...' : setores.length === 0 ? 'Nenhum setor cadastrado' : 'Selecione o setor'} />
                 </SelectTrigger>
                 <SelectContent>
-                  {setores.map((s) => (
-                    <SelectItem key={s.id_setor} value={s.nome_setor}>{s.nome_setor}</SelectItem>
-                  ))}
+                  {setores.length === 0 ? (
+                    <SelectItem value="_empty" disabled>Nenhum setor cadastrado</SelectItem>
+                  ) : (
+                    setores.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
