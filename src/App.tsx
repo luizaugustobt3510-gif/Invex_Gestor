@@ -22,6 +22,7 @@ import ImportarPlanilha from "./pages/ImportarPlanilha";
 import QRScanner from "./pages/QRScanner";
 import GerarQRCode from "./pages/GerarQRCode";
 import HistoricoMovimentacoes from "./pages/HistoricoMovimentacoes";
+import Conciliacao from "./pages/Conciliacao";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,6 +75,12 @@ const App = () => (
             <Route path="/historico-movimentacoes" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
                 <HistoricoMovimentacoes />
+              </RoleProtectedRoute>
+            } />
+            
+            <Route path="/conciliacao" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+                <Conciliacao />
               </RoleProtectedRoute>
             } />
             

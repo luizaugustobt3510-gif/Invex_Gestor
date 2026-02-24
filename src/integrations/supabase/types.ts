@@ -38,6 +38,108 @@ export type Database = {
         }
         Relationships: []
       }
+      conciliacao_log: {
+        Row: {
+          company_id: string
+          created_at: string
+          divergencia: number
+          id: string
+          material_id: string
+          motivo: string | null
+          saldo_fisico: number
+          saldo_teorico: number
+          tipo_ajuste: string | null
+          usuario_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          divergencia: number
+          id?: string
+          material_id: string
+          motivo?: string | null
+          saldo_fisico: number
+          saldo_teorico: number
+          tipo_ajuste?: string | null
+          usuario_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          divergencia?: number
+          id?: string
+          material_id?: string
+          motivo?: string | null
+          saldo_fisico?: number
+          saldo_teorico?: number
+          tipo_ajuste?: string | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conciliacao_log_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conciliacao_log_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contagem_fisica: {
+        Row: {
+          company_id: string
+          created_at: string
+          data_contagem: string
+          id: string
+          material_id: string
+          obs: string | null
+          quantidade_contada: number
+          usuario_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          data_contagem?: string
+          id?: string
+          material_id: string
+          obs?: string | null
+          quantidade_contada?: number
+          usuario_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          data_contagem?: string
+          id?: string
+          material_id?: string
+          obs?: string | null
+          quantidade_contada?: number
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contagem_fisica_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contagem_fisica_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       material_requests: {
         Row: {
           codigo: string
@@ -140,6 +242,57 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      movimentacoes_importadas: {
+        Row: {
+          company_id: string
+          created_at: string
+          data: string
+          id: string
+          lote_importacao: string
+          material_id: string
+          origem: string | null
+          quantidade: number
+          tipo: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          data?: string
+          id?: string
+          lote_importacao: string
+          material_id: string
+          origem?: string | null
+          quantidade?: number
+          tipo: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          data?: string
+          id?: string
+          lote_importacao?: string
+          material_id?: string
+          origem?: string | null
+          quantidade?: number
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimentacoes_importadas_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimentacoes_importadas_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
             referencedColumns: ["id"]
           },
         ]
