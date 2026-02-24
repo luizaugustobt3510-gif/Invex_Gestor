@@ -3,16 +3,19 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/s
 import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Download, Menu } from 'lucide-react';
+import { Download, Menu, QrCode } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface MainLayoutProps {
   children: ReactNode;
   onExportReport?: () => void;
   showExport?: boolean;
+  showQRCode?: boolean;
 }
 
-export function MainLayout({ children, onExportReport, showExport = false }: MainLayoutProps) {
+export function MainLayout({ children, onExportReport, showExport = false, showQRCode = false }: MainLayoutProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -30,16 +33,29 @@ export function MainLayout({ children, onExportReport, showExport = false }: Mai
               </span>
             </div>
             
-            {showExport && onExportReport && (
-              <Button 
-                onClick={onExportReport}
-                size="sm"
-                className="gap-2"
-              >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Exportar</span>
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {showQRCode && (
+                <Button 
+                  onClick={() => navigate('/gerar-qrcode')}
+                  size="sm"
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <QrCode className="w-4 h-4" />
+                  <span className="hidden sm:inline">Gerar QR Code</span>
+                </Button>
+              )}
+              {showExport && onExportReport && (
+                <Button 
+                  onClick={onExportReport}
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">Exportar</span>
+                </Button>
+              )}
+            </div>
           </header>
 
           {/* Main content */}

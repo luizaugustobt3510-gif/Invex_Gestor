@@ -107,7 +107,7 @@ const Index = () => {
   };
 
   return (
-    <MainLayout onExportReport={handleExportReport} showExport={true}>
+    <MainLayout onExportReport={handleExportReport} showExport={true} showQRCode={true}>
       {loading ? (
         <div className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -128,11 +128,11 @@ const Index = () => {
       ) : (
         <>
           {/* Quick Action - QR Scanner */}
-          <div className="mb-6">
+          <div className="mb-4 md:mb-6">
             <Button
               onClick={() => navigate('/qr-scanner')}
               size="lg"
-              className="gap-3 text-base font-semibold shadow-md"
+              className="gap-3 text-sm md:text-base font-semibold shadow-md w-full sm:w-auto"
             >
               <ScanLine className="w-5 h-5" />
               Escanear QR Code
@@ -140,7 +140,7 @@ const Index = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8">
             <div className="cursor-pointer" onClick={() => handleStatusCardClick("OK")}>
               <StatsCard
                 title="Produtos OK"
@@ -166,21 +166,23 @@ const Index = () => {
               />
             </div>
             <StatsCard
-              title="Valor Total em Estoque"
+              title="Valor Total"
               value={`R$ ${summary.total_estoque_valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               icon={DollarSign}
               variant="success"
             />
-            <StatsCard
-              title="Total de Itens"
-              value={summary.total_itens}
-              icon={BarChart3}
-              variant="default"
-            />
+            <div className="col-span-2 md:col-span-1">
+              <StatsCard
+                title="Total de Itens"
+                value={summary.total_itens}
+                icon={BarChart3}
+                variant="default"
+              />
+            </div>
           </div>
 
           {/* Curva ABC Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
             <div className="cursor-pointer" onClick={() => handleCurvaFilterClick("A")}>
               <StatsCard
                 title="Curva A"
@@ -235,32 +237,31 @@ const Index = () => {
           )}
 
           {/* Charts Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
             <StatusDistributionChart items={inventoryData} />
             <CurvaABCChart items={inventoryData} />
           </div>
 
-          <div className="mb-8">
+          <div className="mb-6 md:mb-8">
             <ProductValueChart items={inventoryData} />
           </div>
 
           {/* Inventory Table */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <h2 className="text-2xl font-bold text-foreground">Tabela Detalhada</h2>
-              <div className="flex items-center gap-2">
-                <div className="relative">
+          <div className="space-y-3 md:space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <h2 className="text-xl md:text-2xl font-bold text-foreground">Tabela Detalhada</h2>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-initial">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar por nome ou código..."
+                    placeholder="Buscar..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 w-64"
+                    className="pl-10 w-full sm:w-64"
                   />
                 </div>
                 <Button onClick={refetch} variant="outline" size="sm">
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Atualizar
+                  <RefreshCw className="w-4 h-4" />
                 </Button>
               </div>
             </div>
