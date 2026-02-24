@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { Package, TrendingDown, AlertTriangle, DollarSign, RefreshCw, BarChart3, Search, TrendingUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Package, TrendingDown, AlertTriangle, DollarSign, RefreshCw, BarChart3, Search, TrendingUp, ScanLine } from "lucide-react";
 import { StatsCard } from "@/components/StatsCard";
 import { InventoryTable } from "@/components/InventoryTable";
 import { useInventoryData, InventoryItem } from "@/hooks/useInventoryData";
@@ -15,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
+  const navigate = useNavigate();
   const { data: inventoryData, summary, loading, error, refetch, updateStock } = useInventoryData();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -125,6 +127,18 @@ const Index = () => {
         </div>
       ) : (
         <>
+          {/* Quick Action - QR Scanner */}
+          <div className="mb-6">
+            <Button
+              onClick={() => navigate('/qr-scanner')}
+              size="lg"
+              className="gap-3 text-base font-semibold shadow-md"
+            >
+              <ScanLine className="w-5 h-5" />
+              Escanear QR Code
+            </Button>
+          </div>
+
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
             <div className="cursor-pointer" onClick={() => handleStatusCardClick("OK")}>

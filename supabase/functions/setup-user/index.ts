@@ -20,9 +20,9 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { email, password, nome, company_name, company_cnpj } = body;
 
-    if (!email || !password || !nome || !company_name || !company_cnpj) {
+    if (!email || !password || !nome) {
       return new Response(
-        JSON.stringify({ error: "Dados incompletos. Informe email, password, nome, company_name e company_cnpj." }),
+        JSON.stringify({ error: "Dados incompletos. Informe email, password e nome." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -104,7 +104,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Initial setup: create company + super_admin
+    // Initial setup: create company + super_admin - requires company_name and company_cnpj
+    if (!company_name || !company_cnpj) {
+      return new Response(
+        JSON.stringify({ error: "Dados incompletos para setup inicial. Informe company_name e company_cnpj." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { data: company, error: companyError } = await supabase
       .from("companies")
       .insert({ name: company_name, cnpj: company_cnpj })
