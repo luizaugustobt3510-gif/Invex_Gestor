@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,12 +46,16 @@ interface BatchItem {
 }
 
 const Conciliacao = () => {
+  const [searchParams] = useSearchParams();
   const [materials, setMaterials] = useState<Material[]>([]);
   const [reconciliation, setReconciliation] = useState<ReconciliationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('todos');
+  const [statusFilter, setStatusFilter] = useState<string>(() => {
+    const filtro = searchParams.get('filtro');
+    return filtro && ['ok', 'sobra', 'falta', 'sem_dado'].includes(filtro) ? filtro : 'todos';
+  });
 
   // Import state
   const [importDialogOpen, setImportDialogOpen] = useState(false);
