@@ -10,7 +10,7 @@ import Login from "./pages/Login";
 import CadastrarMaterial from "./pages/CadastrarMaterial";
 import GerarOC from "./pages/GerarOC";
 import AtualizarEstoque from "./pages/AtualizarEstoque";
-import MovimentarEstoqueNew from "./pages/MovimentarEstoqueNew";
+
 import CriarSetor from "./pages/CriarSetor";
 import ListarSetores from "./pages/ListarSetores";
 import SolicitarMaterial from "./pages/SolicitarMaterial";
@@ -54,11 +54,8 @@ const App = () => (
               </RoleProtectedRoute>
             } />
             
-            <Route path="/movimentar-estoque" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
-                <MovimentarEstoqueNew />
-              </RoleProtectedRoute>
-            } />
+            
+
             
             <Route path="/qr-scanner" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>

@@ -3,7 +3,7 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/s
 import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Download, Menu, QrCode } from 'lucide-react';
+import { Download, Menu, QrCode, ScanLine } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface MainLayoutProps {
@@ -11,9 +11,10 @@ interface MainLayoutProps {
   onExportReport?: () => void;
   showExport?: boolean;
   showQRCode?: boolean;
+  showScanQR?: boolean;
 }
 
-export function MainLayout({ children, onExportReport, showExport = false, showQRCode = false }: MainLayoutProps) {
+export function MainLayout({ children, onExportReport, showExport = false, showQRCode = false, showScanQR = false }: MainLayoutProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -34,6 +35,17 @@ export function MainLayout({ children, onExportReport, showExport = false, showQ
             </div>
             
             <div className="flex items-center gap-2">
+              {showScanQR && (
+                <Button 
+                  onClick={() => navigate('/qr-scanner')}
+                  size="sm"
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <ScanLine className="w-4 h-4" />
+                  <span className="hidden sm:inline">Escanear</span>
+                </Button>
+              )}
               {showQRCode && (
                 <Button 
                   onClick={() => navigate('/gerar-qrcode')}
@@ -42,7 +54,7 @@ export function MainLayout({ children, onExportReport, showExport = false, showQ
                   className="gap-2"
                 >
                   <QrCode className="w-4 h-4" />
-                  <span className="hidden sm:inline">Gerar QR Code</span>
+                  <span className="hidden sm:inline">Gerar QR</span>
                 </Button>
               )}
               {showExport && onExportReport && (
