@@ -69,7 +69,6 @@ const menuGroups: MenuGroup[] = [
       { path: '/qr-scanner', label: 'Escanear QR Code', icon: <ScanLine className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
       { path: '/gerar-qrcode', label: 'Gerar QR Code', icon: <QrCode className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
       { path: '/historico-movimentacoes', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
-      { path: '/conciliacao', label: 'Conciliação', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
       { path: '/importar-planilha', label: 'Importar Planilha', icon: <FileSpreadsheet className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
     ],
   },
@@ -89,6 +88,14 @@ const menuGroups: MenuGroup[] = [
     items: [
       { path: '/criar-setor', label: 'Criar Setor', icon: <Building2 className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
       { path: '/listar-setores', label: 'Setores Cadastrados', icon: <List className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
+    ],
+  },
+  {
+    label: 'Conciliação',
+    icon: <ClipboardList className="w-4 h-4" />,
+    allowedRoles: ['superadm', 'admin'],
+    items: [
+      { path: '/conciliacao', label: 'Conciliação', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
     ],
   },
   {
