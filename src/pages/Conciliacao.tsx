@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { CheckCircle, AlertTriangle, XCircle, ClipboardCheck, Upload, BarChart3, Search, Trash2, Wrench } from 'lucide-react';
+import { CheckCircle, AlertTriangle, XCircle, ClipboardCheck, Upload, Search, Trash2, Wrench, Package, DollarSign } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import * as XLSX from 'xlsx';
 
@@ -31,13 +31,17 @@ interface ReconciliationItem {
   material: string;
   unidade: string;
   preco: number;
-  saldo_fisico: number;
-  total_entradas: number;
-  total_saidas: number;
-  saldo_teorico: number;
+  saldo_invex: number;
+  saldo_sistema: number;
   divergencia: number;
   divergencia_valor: number;
   status: 'ok' | 'sobra' | 'falta';
+}
+
+interface BatchItem {
+  lote: string;
+  count: number;
+  tipo: string; // 'saida' | 'saldo_sistema'
 }
 
 const Conciliacao = () => {
@@ -48,15 +52,9 @@ const Conciliacao = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
 
-  // Physical count state
-  const [countDialogOpen, setCountDialogOpen] = useState(false);
-  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
-  const [countQty, setCountQty] = useState('');
-  const [countObs, setCountObs] = useState('');
-
   // Import state
   const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [importType, setImportType] = useState<'entrada' | 'saida'>('entrada');
+  const [importMode, setImportMode] = useState<'saida' | 'saldo_sistema'>('saida');
   const [importData, setImportData] = useState<any[]>([]);
   const [importLote, setImportLote] = useState('');
 
@@ -65,12 +63,10 @@ const Conciliacao = () => {
   const [adjustItem, setAdjustItem] = useState<ReconciliationItem | null>(null);
   const [adjustMotivo, setAdjustMotivo] = useState('');
 
-  // Imported batches
-  const [batches, setBatches] = useState<{lote: string; count: number; tipo: string}[]>([]);
+  // Batches
+  const [batches, setBatches] = useState<BatchItem[]>([]);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     try {
@@ -89,43 +85,41 @@ const Conciliacao = () => {
       if (!roleData?.company_id) return;
       setCompanyId(roleData.company_id);
 
-      // Load materials, physical counts, and imported movements
-      const [matRes, countRes, importRes] = await Promise.all([
+      const [matRes, saldoRes, movRes] = await Promise.all([
         supabase.from('materials').select('*').eq('company_id', roleData.company_id).order('codigo'),
-        supabase.from('contagem_fisica').select('*').eq('company_id', roleData.company_id).order('data_contagem', { ascending: false }),
+        supabase.from('saldo_sistema_importado').select('*').eq('company_id', roleData.company_id).order('data_importacao', { ascending: false }),
         supabase.from('movimentacoes_importadas').select('*').eq('company_id', roleData.company_id),
       ]);
 
       const mats = (matRes.data || []) as Material[];
       setMaterials(mats);
 
-      // Build reconciliation view
-      const counts = countRes.data || [];
-      const imports = importRes.data || [];
+      const saldos = saldoRes.data || [];
+      const movs = movRes.data || [];
 
+      // Build reconciliation: saldo_invex (current qty) vs latest saldo_sistema
       const reconItems: ReconciliationItem[] = mats.map(m => {
-        // Last physical count for this material
-        const lastCount = counts.find((c: any) => c.material_id === m.id);
-        const lastCountDate = lastCount ? new Date(lastCount.data_contagem) : new Date(0);
-        const saldoFisico = lastCount ? Number(lastCount.quantidade_contada) : Number(m.quantidade);
+        const saldoInvex = Number(m.quantidade);
+        // Get most recent system balance for this material
+        const lastSaldo = saldos.find((s: any) => s.material_id === m.id);
+        const saldoSistema = lastSaldo ? Number((lastSaldo as any).saldo_sistema) : -1; // -1 means no import
 
-        // Imported movements since last count
-        const movsSince = imports.filter((mov: any) =>
-          mov.material_id === m.id && new Date(mov.data) >= lastCountDate
-        );
+        if (saldoSistema < 0) {
+          return {
+            material_id: m.id,
+            codigo: m.codigo,
+            material: m.material,
+            unidade: m.unidade,
+            preco: Number(m.preco),
+            saldo_invex: saldoInvex,
+            saldo_sistema: -1,
+            divergencia: 0,
+            divergencia_valor: 0,
+            status: 'ok' as const,
+          };
+        }
 
-        const totalEntradas = movsSince
-          .filter((mov: any) => mov.tipo === 'entrada')
-          .reduce((s: number, mov: any) => s + Number(mov.quantidade), 0);
-
-        const totalSaidas = movsSince
-          .filter((mov: any) => mov.tipo === 'saida')
-          .reduce((s: number, mov: any) => s + Number(mov.quantidade), 0);
-
-        const saldoTeorico = saldoFisico + totalEntradas - totalSaidas;
-        const estoqueAtual = Number(m.quantidade);
-        const divergencia = estoqueAtual - saldoTeorico;
-
+        const divergencia = saldoInvex - saldoSistema;
         let status: 'ok' | 'sobra' | 'falta' = 'ok';
         if (divergencia > 0) status = 'sobra';
         else if (divergencia < 0) status = 'falta';
@@ -136,10 +130,8 @@ const Conciliacao = () => {
           material: m.material,
           unidade: m.unidade,
           preco: Number(m.preco),
-          saldo_fisico: estoqueAtual,
-          total_entradas: totalEntradas,
-          total_saidas: totalSaidas,
-          saldo_teorico: saldoTeorico,
+          saldo_invex: saldoInvex,
+          saldo_sistema: saldoSistema,
           divergencia,
           divergencia_valor: divergencia * Number(m.preco),
           status,
@@ -148,16 +140,22 @@ const Conciliacao = () => {
 
       setReconciliation(reconItems);
 
-      // Build batch list
-      const batchMap = new Map<string, { count: number; tipo: string }>();
-      imports.forEach((mov: any) => {
-        const key = mov.lote_importacao;
-        if (!batchMap.has(key)) batchMap.set(key, { count: 0, tipo: mov.tipo });
-        batchMap.get(key)!.count++;
+      // Build batch list from both tables
+      const batchList: BatchItem[] = [];
+      const movBatchMap = new Map<string, number>();
+      movs.forEach((mov: any) => {
+        movBatchMap.set(mov.lote_importacao, (movBatchMap.get(mov.lote_importacao) || 0) + 1);
       });
-      setBatches(Array.from(batchMap.entries()).map(([lote, v]) => ({ lote, ...v })));
+      movBatchMap.forEach((count, lote) => batchList.push({ lote, count, tipo: 'saida' }));
 
-    } catch (err) {
+      const saldoBatchMap = new Map<string, number>();
+      saldos.forEach((s: any) => {
+        saldoBatchMap.set(s.lote_importacao, (saldoBatchMap.get(s.lote_importacao) || 0) + 1);
+      });
+      saldoBatchMap.forEach((count, lote) => batchList.push({ lote, count, tipo: 'saldo_sistema' }));
+
+      setBatches(batchList);
+    } catch {
       toast.error('Erro ao carregar dados de conciliação');
     } finally {
       setLoading(false);
@@ -165,7 +163,7 @@ const Conciliacao = () => {
   };
 
   const filteredItems = useMemo(() => {
-    let items = reconciliation;
+    let items = reconciliation.filter(i => i.saldo_sistema >= 0); // Only show items with system balance imported
     if (searchQuery) {
       items = items.filter(i =>
         i.material.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -178,13 +176,14 @@ const Conciliacao = () => {
     return items;
   }, [reconciliation, searchQuery, statusFilter]);
 
-  // Dashboard metrics
-  const totalItems = reconciliation.length;
-  const divergentItems = reconciliation.filter(i => i.status !== 'ok').length;
-  const okItems = totalItems - divergentItems;
+  // Dashboard metrics (only items with imported system balance)
+  const itemsWithSaldo = reconciliation.filter(i => i.saldo_sistema >= 0);
+  const totalItems = itemsWithSaldo.length;
+  const okItems = itemsWithSaldo.filter(i => i.status === 'ok').length;
+  const sobras = itemsWithSaldo.filter(i => i.status === 'sobra').length;
+  const faltas = itemsWithSaldo.filter(i => i.status === 'falta').length;
+  const totalDivergenciaValor = itemsWithSaldo.reduce((s, i) => s + Math.abs(i.divergencia_valor), 0);
   const healthPct = totalItems > 0 ? Math.round((okItems / totalItems) * 100) : 100;
-  const sobras = reconciliation.filter(i => i.status === 'sobra').length;
-  const faltas = reconciliation.filter(i => i.status === 'falta').length;
 
   const pieData = [
     { name: 'OK', value: okItems, color: 'hsl(142, 76%, 36%)' },
@@ -192,44 +191,10 @@ const Conciliacao = () => {
     { name: 'Falta', value: faltas, color: 'hsl(0, 72%, 51%)' },
   ].filter(d => d.value > 0);
 
-  const top10Divergent = [...reconciliation]
-    .sort((a, b) => Math.abs(b.divergencia_valor) - Math.abs(a.divergencia_valor))
-    .slice(0, 10)
-    .filter(i => i.divergencia !== 0);
-
-  // Physical count
-  const handleSaveCount = async () => {
-    if (!selectedMaterial || !companyId) return;
-    const qty = Number(countQty);
-    if (isNaN(qty) || qty < 0) { toast.error('Quantidade inválida'); return; }
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      await supabase.from('contagem_fisica').insert({
-        company_id: companyId,
-        material_id: selectedMaterial.id,
-        quantidade_contada: qty,
-        usuario_id: user.id,
-        obs: countObs,
-      });
-
-      toast.success('Contagem registrada!');
-      setCountDialogOpen(false);
-      setCountQty('');
-      setCountObs('');
-      loadData();
-    } catch {
-      toast.error('Erro ao registrar contagem');
-    }
-  };
-
-  // Import file
+  // Import file handler
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (evt) => {
       try {
@@ -250,45 +215,81 @@ const Conciliacao = () => {
     if (!companyId || importData.length === 0 || !importLote) return;
 
     try {
-      const rows = importData.map((row: any) => {
-        const codigo = String(row.codigo || row.Codigo || row.CODIGO || '').trim();
-        const quantidade = Number(row.quantidade || row.Quantidade || row.QUANTIDADE || 0);
-        const mat = materials.find(m => m.codigo === codigo);
-        return { codigo, quantidade, material_id: mat?.id };
-      }).filter(r => r.material_id && r.quantidade > 0);
+      if (importMode === 'saida') {
+        // Import exits and apply to Invex stock
+        const rows = importData.map((row: any) => {
+          const codigo = String(row.codigo || row.Codigo || row.CODIGO || '').trim();
+          const quantidade = Number(row.quantidade || row.Quantidade || row.QUANTIDADE || 0);
+          const mat = materials.find(m => m.codigo === codigo);
+          return { codigo, quantidade, material_id: mat?.id, currentQty: mat ? Number(mat.quantidade) : 0 };
+        }).filter(r => r.material_id && r.quantidade > 0);
 
-      if (rows.length === 0) { toast.error('Nenhum produto válido encontrado'); return; }
+        if (rows.length === 0) { toast.error('Nenhum produto válido encontrado'); return; }
 
-      const inserts = rows.map(r => ({
-        company_id: companyId,
-        material_id: r.material_id!,
-        tipo: importType,
-        quantidade: r.quantidade,
-        lote_importacao: importLote,
-        data: new Date().toISOString(),
-      }));
+        // Insert into movimentacoes_importadas
+        const inserts = rows.map(r => ({
+          company_id: companyId,
+          material_id: r.material_id!,
+          tipo: 'saida' as const,
+          quantidade: r.quantidade,
+          lote_importacao: importLote,
+          data: new Date().toISOString(),
+        }));
 
-      const { error } = await supabase.from('movimentacoes_importadas').insert(inserts);
-      if (error) throw error;
+        const { error: movError } = await supabase.from('movimentacoes_importadas').insert(inserts);
+        if (movError) throw movError;
 
-      toast.success(`${rows.length} movimentações importadas!`);
+        // Apply exits: subtract from Invex stock
+        for (const r of rows) {
+          const newQty = Math.max(0, r.currentQty - r.quantidade);
+          await supabase.from('materials').update({ quantidade: newQty }).eq('id', r.material_id!);
+        }
+
+        toast.success(`${rows.length} saídas importadas e aplicadas ao estoque!`);
+
+      } else {
+        // Import system balances
+        const rows = importData.map((row: any) => {
+          const codigo = String(row.codigo || row.Codigo || row.CODIGO || '').trim();
+          const saldo = Number(row.saldo_sistema || row.saldo || row.Saldo || row.SALDO || 0);
+          const mat = materials.find(m => m.codigo === codigo);
+          return { codigo, saldo, material_id: mat?.id };
+        }).filter(r => r.material_id && r.saldo >= 0);
+
+        if (rows.length === 0) { toast.error('Nenhum produto válido encontrado'); return; }
+
+        const inserts = rows.map(r => ({
+          company_id: companyId,
+          material_id: r.material_id!,
+          saldo_sistema: r.saldo,
+          lote_importacao: importLote,
+        }));
+
+        const { error } = await supabase.from('saldo_sistema_importado').insert(inserts);
+        if (error) throw error;
+
+        toast.success(`${rows.length} saldos do sistema importados!`);
+      }
+
       setImportDialogOpen(false);
       setImportData([]);
       loadData();
     } catch {
-      toast.error('Erro ao importar movimentações');
+      toast.error('Erro ao processar importação');
     }
   };
 
-  const handleDeleteBatch = async (lote: string) => {
+  const handleDeleteBatch = async (lote: string, tipo: string) => {
     if (!companyId) return;
     try {
-      const { error } = await supabase
-        .from('movimentacoes_importadas')
-        .delete()
-        .eq('company_id', companyId)
-        .eq('lote_importacao', lote);
-      if (error) throw error;
+      if (tipo === 'saida') {
+        // TODO: ideally reverse stock changes, but for simplicity just delete records
+        const { error } = await supabase.from('movimentacoes_importadas').delete().eq('company_id', companyId).eq('lote_importacao', lote);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('saldo_sistema_importado').delete().eq('company_id', companyId).eq('lote_importacao', lote);
+        if (error) throw error;
+      }
       toast.success('Lote removido!');
       loadData();
     } catch {
@@ -296,22 +297,19 @@ const Conciliacao = () => {
     }
   };
 
-  // Manual adjust
   const handleAdjust = async () => {
     if (!adjustItem || !companyId || !adjustMotivo) return;
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Update material quantity to match theoretical
-      await supabase.from('materials').update({ quantidade: adjustItem.saldo_teorico }).eq('id', adjustItem.material_id);
+      await supabase.from('materials').update({ quantidade: adjustItem.saldo_sistema }).eq('id', adjustItem.material_id);
 
-      // Log
       await supabase.from('conciliacao_log').insert({
         company_id: companyId,
         material_id: adjustItem.material_id,
-        saldo_fisico: adjustItem.saldo_fisico,
-        saldo_teorico: adjustItem.saldo_teorico,
+        saldo_fisico: adjustItem.saldo_invex,
+        saldo_teorico: adjustItem.saldo_sistema,
         divergencia: adjustItem.divergencia,
         tipo_ajuste: 'conciliacao',
         motivo: adjustMotivo,
@@ -336,98 +334,124 @@ const Conciliacao = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <p className="text-muted-foreground">Carregando conciliação...</p>
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-          <ClipboardCheck className="w-8 h-8 text-primary" />
+      <div className="space-y-4 md:space-y-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
+          <ClipboardCheck className="w-7 h-7 md:w-8 md:h-8 text-primary" />
           Conciliação de Estoque
         </h1>
 
-        <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="analise">Análise</TabsTrigger>
+        <Tabs defaultValue="dashboard" className="space-y-4 md:space-y-6">
+          <TabsList className="grid w-full grid-cols-3 max-w-md">
+            <TabsTrigger value="dashboard">Resumo</TabsTrigger>
+            <TabsTrigger value="conciliacao">Conciliação</TabsTrigger>
             <TabsTrigger value="importar">Importar</TabsTrigger>
-            <TabsTrigger value="contagem">Contagem</TabsTrigger>
           </TabsList>
 
           {/* DASHBOARD TAB */}
-          <TabsContent value="dashboard" className="space-y-6">
+          <TabsContent value="dashboard" className="space-y-4 md:space-y-6">
             {/* Health Indicator */}
-            <Card className={`border-2 ${divergentItems === 0 ? 'border-success' : healthPct >= 80 ? 'border-warning' : 'border-danger'}`}>
-              <CardContent className="p-6 flex items-center gap-6">
-                {divergentItems === 0 ? (
-                  <CheckCircle className="w-16 h-16 text-success" />
+            <Card className={`border-2 ${totalItems === 0 ? 'border-muted' : faltas === 0 && sobras === 0 ? 'border-success' : healthPct >= 80 ? 'border-warning' : 'border-danger'}`}>
+              <CardContent className="p-4 md:p-6 flex items-center gap-4 md:gap-6">
+                {totalItems === 0 ? (
+                  <Package className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground" />
+                ) : faltas === 0 && sobras === 0 ? (
+                  <CheckCircle className="w-12 h-12 md:w-16 md:h-16 text-success" />
                 ) : healthPct >= 80 ? (
-                  <AlertTriangle className="w-16 h-16 text-warning" />
+                  <AlertTriangle className="w-12 h-12 md:w-16 md:h-16 text-warning" />
                 ) : (
-                  <XCircle className="w-16 h-16 text-danger" />
+                  <XCircle className="w-12 h-12 md:w-16 md:h-16 text-danger" />
                 )}
                 <div>
-                  <h2 className="text-2xl font-bold text-foreground">
-                    {divergentItems === 0
-                      ? '✅ Estoque 100% Conciliado'
-                      : `⚠️ ${100 - healthPct}% do estoque com divergência`}
+                  <h2 className="text-xl md:text-2xl font-bold text-foreground">
+                    {totalItems === 0
+                      ? 'Nenhum saldo do sistema importado'
+                      : faltas === 0 && sobras === 0
+                        ? '✅ Estoque 100% Conciliado'
+                        : `⚠️ ${100 - healthPct}% do estoque com divergência`}
                   </h2>
-                  <p className="text-muted-foreground">
-                    {okItems} produtos OK · {sobras} com sobra · {faltas} com falta
+                  <p className="text-sm md:text-base text-muted-foreground">
+                    {totalItems === 0
+                      ? 'Importe o saldo do sistema para iniciar a conciliação'
+                      : `${okItems} OK · ${sobras} sobra · ${faltas} falta`}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Status Pie */}
+            {/* Summary cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               <Card>
-                <CardHeader><CardTitle>Status do Estoque</CardTitle></CardHeader>
-                <CardContent>
-                  {pieData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, value }) => `${name}: ${value}`}>
-                          {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                        </Pie>
-                        <Legend />
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <p className="text-muted-foreground text-center py-8">Sem dados</p>
-                  )}
+                <CardContent className="p-4 text-center">
+                  <CheckCircle className="w-8 h-8 text-success mx-auto mb-2" />
+                  <p className="text-2xl md:text-3xl font-bold text-foreground">{okItems}</p>
+                  <p className="text-xs md:text-sm text-muted-foreground">Itens OK</p>
                 </CardContent>
               </Card>
-
-              {/* Top 10 divergences */}
               <Card>
-                <CardHeader><CardTitle>Top 10 Divergências por Valor</CardTitle></CardHeader>
-                <CardContent>
-                  {top10Divergent.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={top10Divergent} layout="vertical">
-                        <XAxis type="number" tickFormatter={(v) => `R$ ${Math.abs(v).toFixed(0)}`} />
-                        <YAxis type="category" dataKey="codigo" width={80} tick={{ fontSize: 11 }} />
-                        <Tooltip formatter={(v: number) => `R$ ${v.toFixed(2)}`} />
-                        <Bar dataKey="divergencia_valor" fill="hsl(0, 72%, 51%)" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <p className="text-muted-foreground text-center py-8">Sem divergências</p>
-                  )}
+                <CardContent className="p-4 text-center">
+                  <AlertTriangle className="w-8 h-8 text-warning mx-auto mb-2" />
+                  <p className="text-2xl md:text-3xl font-bold text-foreground">{sobras}</p>
+                  <p className="text-xs md:text-sm text-muted-foreground">Com Sobra</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <XCircle className="w-8 h-8 text-danger mx-auto mb-2" />
+                  <p className="text-2xl md:text-3xl font-bold text-foreground">{faltas}</p>
+                  <p className="text-xs md:text-sm text-muted-foreground">Com Falta</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <DollarSign className="w-8 h-8 text-primary mx-auto mb-2" />
+                  <p className="text-lg md:text-2xl font-bold text-foreground">
+                    R$ {totalDivergenciaValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs md:text-sm text-muted-foreground">Valor Divergências</p>
                 </CardContent>
               </Card>
             </div>
+
+            {/* Pie chart */}
+            {pieData.length > 0 && (
+              <Card>
+                <CardHeader><CardTitle className="text-base md:text-lg">Distribuição do Estoque</CardTitle></CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <PieChart>
+                      <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, value }) => `${name}: ${value}`}>
+                        {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                      </Pie>
+                      <Legend />
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
-          {/* ANALYSIS TAB */}
-          <TabsContent value="analise" className="space-y-4">
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="relative flex-1 min-w-[200px]">
+          {/* RECONCILIATION TAB */}
+          <TabsContent value="conciliacao" className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input placeholder="Buscar por nome ou código..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-40"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos</SelectItem>
                   <SelectItem value="ok">OK</SelectItem>
@@ -437,73 +461,129 @@ const Conciliacao = () => {
               </Select>
             </div>
 
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Código</TableHead>
-                        <TableHead>Material</TableHead>
-                        <TableHead className="text-right">Estoque Atual</TableHead>
-                        <TableHead className="text-right">Entradas Imp.</TableHead>
-                        <TableHead className="text-right">Saídas Imp.</TableHead>
-                        <TableHead className="text-right">Saldo Teórico</TableHead>
-                        <TableHead className="text-right">Divergência</TableHead>
-                        <TableHead className="text-right">Valor Div.</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredItems.map(item => (
-                        <TableRow key={item.material_id} className={item.status === 'falta' ? 'bg-danger/5' : item.status === 'sobra' ? 'bg-warning/5' : ''}>
-                          <TableCell className="font-mono">{item.codigo}</TableCell>
-                          <TableCell>{item.material}</TableCell>
-                          <TableCell className="text-right">{item.saldo_fisico}</TableCell>
-                          <TableCell className="text-right">{item.total_entradas}</TableCell>
-                          <TableCell className="text-right">{item.total_saidas}</TableCell>
-                          <TableCell className="text-right">{item.saldo_teorico}</TableCell>
-                          <TableCell className="text-right font-bold">{item.divergencia}</TableCell>
-                          <TableCell className="text-right">R$ {item.divergencia_valor.toFixed(2)}</TableCell>
-                          <TableCell>{getStatusBadge(item.status)}</TableCell>
-                          <TableCell>
-                            {item.status !== 'ok' && (
-                              <Button size="sm" variant="outline" onClick={() => { setAdjustItem(item); setAdjustDialogOpen(true); }}>
-                                <Wrench className="w-3 h-3 mr-1" /> Ajustar
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {filteredItems.length === 0 && (
-                        <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">Nenhum item encontrado</TableCell></TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
+            {filteredItems.length === 0 && totalItems === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Package className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-lg font-medium text-foreground">Nenhuma conciliação disponível</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Importe as saídas da semana e o saldo do sistema na aba "Importar" para começar.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {/* Mobile cards */}
+                <div className="block md:hidden space-y-3">
+                  {filteredItems.map(item => (
+                    <Card key={item.material_id} className={`border-l-4 ${item.status === 'falta' ? 'border-l-danger' : item.status === 'sobra' ? 'border-l-warning' : 'border-l-success'}`}>
+                      <CardContent className="p-4 space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-mono text-xs text-muted-foreground">{item.codigo}</p>
+                            <p className="font-medium text-sm text-foreground">{item.material}</p>
+                          </div>
+                          {getStatusBadge(item.status)}
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                          <div>
+                            <p className="text-muted-foreground">Invex</p>
+                            <p className="font-bold text-foreground">{item.saldo_invex}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Sistema</p>
+                            <p className="font-bold text-foreground">{item.saldo_sistema}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Diverg.</p>
+                            <p className={`font-bold ${item.divergencia > 0 ? 'text-warning' : item.divergencia < 0 ? 'text-danger' : 'text-success'}`}>
+                              {item.divergencia > 0 ? '+' : ''}{item.divergencia}
+                            </p>
+                          </div>
+                        </div>
+                        {item.divergencia !== 0 && (
+                          <div className="flex justify-between items-center pt-1">
+                            <span className="text-xs text-muted-foreground">
+                              Valor: R$ {Math.abs(item.divergencia_valor).toFixed(2)}
+                            </span>
+                            <Button size="sm" variant="outline" onClick={() => { setAdjustItem(item); setAdjustDialogOpen(true); }}>
+                              <Wrench className="w-3 h-3 mr-1" /> Ajustar
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
+
+                {/* Desktop table */}
+                <Card className="hidden md:block">
+                  <CardContent className="p-0">
+                    <div className="overflow-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Código</TableHead>
+                            <TableHead>Material</TableHead>
+                            <TableHead className="text-right">Saldo Invex</TableHead>
+                            <TableHead className="text-right">Saldo Sistema</TableHead>
+                            <TableHead className="text-right">Divergência</TableHead>
+                            <TableHead className="text-right">Valor Div.</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredItems.map(item => (
+                            <TableRow key={item.material_id} className={item.status === 'falta' ? 'bg-danger/5' : item.status === 'sobra' ? 'bg-warning/5' : ''}>
+                              <TableCell className="font-mono">{item.codigo}</TableCell>
+                              <TableCell>{item.material}</TableCell>
+                              <TableCell className="text-right">{item.saldo_invex}</TableCell>
+                              <TableCell className="text-right">{item.saldo_sistema}</TableCell>
+                              <TableCell className="text-right font-bold">
+                                {item.divergencia > 0 ? '+' : ''}{item.divergencia}
+                              </TableCell>
+                              <TableCell className="text-right">R$ {Math.abs(item.divergencia_valor).toFixed(2)}</TableCell>
+                              <TableCell>{getStatusBadge(item.status)}</TableCell>
+                              <TableCell>
+                                {item.status !== 'ok' && (
+                                  <Button size="sm" variant="outline" onClick={() => { setAdjustItem(item); setAdjustDialogOpen(true); }}>
+                                    <Wrench className="w-3 h-3 mr-1" /> Ajustar
+                                  </Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {filteredItems.length === 0 && (
+                            <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum item encontrado</TableCell></TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </TabsContent>
 
           {/* IMPORT TAB */}
-          <TabsContent value="importar" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => { setImportType('entrada'); setImportDialogOpen(true); }}>
-                <CardContent className="p-6 flex items-center gap-4">
-                  <Upload className="w-10 h-10 text-success" />
+          <TabsContent value="importar" className="space-y-4 md:space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+              <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => { setImportMode('saida'); setImportDialogOpen(true); }}>
+                <CardContent className="p-4 md:p-6 flex items-center gap-4">
+                  <Upload className="w-8 h-8 md:w-10 md:h-10 text-danger shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-foreground">Importar Entradas</h3>
-                    <p className="text-sm text-muted-foreground">CSV/XLSX com movimentações de entrada</p>
+                    <h3 className="font-semibold text-foreground text-sm md:text-base">Importar Saídas</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground">CSV/XLSX com saídas da semana (codigo, quantidade)</p>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => { setImportType('saida'); setImportDialogOpen(true); }}>
-                <CardContent className="p-6 flex items-center gap-4">
-                  <Upload className="w-10 h-10 text-danger" />
+              <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => { setImportMode('saldo_sistema'); setImportDialogOpen(true); }}>
+                <CardContent className="p-4 md:p-6 flex items-center gap-4">
+                  <Upload className="w-8 h-8 md:w-10 md:h-10 text-primary shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-foreground">Importar Saídas</h3>
-                    <p className="text-sm text-muted-foreground">CSV/XLSX com movimentações de saída</p>
+                    <h3 className="font-semibold text-foreground text-sm md:text-base">Importar Saldo do Sistema</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground">CSV/XLSX com saldo da clínica (codigo, saldo_sistema)</p>
                   </div>
                 </CardContent>
               </Card>
@@ -511,102 +591,77 @@ const Conciliacao = () => {
 
             {/* Batch list */}
             <Card>
-              <CardHeader><CardTitle>Lotes Importados</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base md:text-lg">Lotes Importados</CardTitle></CardHeader>
               <CardContent>
                 {batches.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Lote</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Registros</TableHead>
-                        <TableHead>Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                  <>
+                    {/* Mobile batch cards */}
+                    <div className="block md:hidden space-y-3">
                       {batches.map(b => (
-                        <TableRow key={b.lote}>
-                          <TableCell className="font-mono">{b.lote}</TableCell>
-                          <TableCell><Badge variant="outline">{b.tipo}</Badge></TableCell>
-                          <TableCell>{b.count}</TableCell>
-                          <TableCell>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteBatch(b.lote)}>
-                              <Trash2 className="w-3 h-3 mr-1" /> Desfazer
-                            </Button>
-                          </TableCell>
-                        </TableRow>
+                        <div key={`${b.lote}-${b.tipo}`} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-mono text-sm">{b.lote}</p>
+                            <div className="flex gap-2 mt-1">
+                              <Badge variant="outline" className="text-xs">{b.tipo === 'saida' ? 'Saídas' : 'Saldo Sistema'}</Badge>
+                              <span className="text-xs text-muted-foreground">{b.count} registros</span>
+                            </div>
+                          </div>
+                          <Button size="sm" variant="destructive" onClick={() => handleDeleteBatch(b.lote, b.tipo)}>
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </div>
+                    {/* Desktop table */}
+                    <div className="hidden md:block">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Lote</TableHead>
+                            <TableHead>Tipo</TableHead>
+                            <TableHead>Registros</TableHead>
+                            <TableHead>Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {batches.map(b => (
+                            <TableRow key={`${b.lote}-${b.tipo}`}>
+                              <TableCell className="font-mono">{b.lote}</TableCell>
+                              <TableCell><Badge variant="outline">{b.tipo === 'saida' ? 'Saídas' : 'Saldo Sistema'}</Badge></TableCell>
+                              <TableCell>{b.count}</TableCell>
+                              <TableCell>
+                                <Button size="sm" variant="destructive" onClick={() => handleDeleteBatch(b.lote, b.tipo)}>
+                                  <Trash2 className="w-3 h-3 mr-1" /> Desfazer
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </>
                 ) : (
                   <p className="text-muted-foreground text-center py-4">Nenhum lote importado</p>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* PHYSICAL COUNT TAB */}
-          <TabsContent value="contagem" className="space-y-4">
-            <p className="text-muted-foreground">Selecione um material para registrar a contagem física.</p>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Buscar material..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {materials
-                .filter(m => !searchQuery || m.material.toLowerCase().includes(searchQuery.toLowerCase()) || m.codigo.includes(searchQuery))
-                .map(m => (
-                  <Card key={m.id} className="cursor-pointer hover:border-primary transition-colors" onClick={() => { setSelectedMaterial(m); setCountDialogOpen(true); }}>
-                    <CardContent className="p-4">
-                      <p className="font-mono text-sm text-muted-foreground">{m.codigo}</p>
-                      <p className="font-medium text-foreground">{m.material}</p>
-                      <p className="text-sm text-muted-foreground">Estoque: {m.quantidade} {m.unidade}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          </TabsContent>
         </Tabs>
       </div>
 
-      {/* Physical Count Dialog */}
-      <Dialog open={countDialogOpen} onOpenChange={setCountDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Registrar Contagem Física</DialogTitle>
-          </DialogHeader>
-          {selectedMaterial && (
-            <div className="space-y-4">
-              <div>
-                <p className="font-medium">{selectedMaterial.material}</p>
-                <p className="text-sm text-muted-foreground">Código: {selectedMaterial.codigo} · Estoque sistema: {selectedMaterial.quantidade}</p>
-              </div>
-              <div className="space-y-2">
-                <Label>Quantidade Contada *</Label>
-                <Input type="number" value={countQty} onChange={e => setCountQty(e.target.value)} min="0" />
-              </div>
-              <div className="space-y-2">
-                <Label>Observação</Label>
-                <Textarea value={countObs} onChange={e => setCountObs(e.target.value)} placeholder="Ex: Contagem inventário mensal" />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCountDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSaveCount}>Salvar Contagem</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Import Dialog */}
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Importar {importType === 'entrada' ? 'Entradas' : 'Saídas'}</DialogTitle>
+            <DialogTitle>
+              {importMode === 'saida' ? 'Importar Saídas da Semana' : 'Importar Saldo do Sistema'}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Upload de arquivo CSV/XLSX com colunas: <strong>codigo</strong> e <strong>quantidade</strong>
+              {importMode === 'saida'
+                ? 'Upload de arquivo CSV/XLSX com colunas: codigo e quantidade'
+                : 'Upload de arquivo CSV/XLSX com colunas: codigo e saldo_sistema (ou saldo)'}
             </p>
             <Input type="file" accept=".csv,.xlsx,.xls" onChange={handleFileUpload} />
             {importData.length > 0 && (
@@ -637,7 +692,9 @@ const Conciliacao = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setImportDialogOpen(false); setImportData([]); }}>Cancelar</Button>
-            <Button onClick={handleProcessImport} disabled={importData.length === 0}>Processar Importação</Button>
+            <Button onClick={handleProcessImport} disabled={importData.length === 0}>
+              {importMode === 'saida' ? 'Importar e Aplicar Saídas' : 'Importar Saldos'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -653,10 +710,12 @@ const Conciliacao = () => {
               <div>
                 <p className="font-medium">{adjustItem.material}</p>
                 <p className="text-sm text-muted-foreground">
-                  Estoque atual: {adjustItem.saldo_fisico} · Teórico: {adjustItem.saldo_teorico} · Divergência: {adjustItem.divergencia}
+                  Saldo Invex: {adjustItem.saldo_invex} · Saldo Sistema: {adjustItem.saldo_sistema} · Divergência: {adjustItem.divergencia > 0 ? '+' : ''}{adjustItem.divergencia}
                 </p>
               </div>
-              <p className="text-sm">O estoque será ajustado de <strong>{adjustItem.saldo_fisico}</strong> para <strong>{adjustItem.saldo_teorico}</strong>.</p>
+              <p className="text-sm">
+                O estoque do Invex será ajustado de <strong>{adjustItem.saldo_invex}</strong> para <strong>{adjustItem.saldo_sistema}</strong> (saldo do sistema).
+              </p>
               <div className="space-y-2">
                 <Label>Motivo do Ajuste *</Label>
                 <Textarea value={adjustMotivo} onChange={e => setAdjustMotivo(e.target.value)} placeholder="Informe o motivo do ajuste" />

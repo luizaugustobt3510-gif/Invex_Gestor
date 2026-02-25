@@ -439,6 +439,51 @@ export type Database = {
           },
         ]
       }
+      saldo_sistema_importado: {
+        Row: {
+          company_id: string
+          created_at: string
+          data_importacao: string
+          id: string
+          lote_importacao: string
+          material_id: string
+          saldo_sistema: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          data_importacao?: string
+          id?: string
+          lote_importacao: string
+          material_id: string
+          saldo_sistema?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          data_importacao?: string
+          id?: string
+          lote_importacao?: string
+          material_id?: string
+          saldo_sistema?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saldo_sistema_importado_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saldo_sistema_importado_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sectors: {
         Row: {
           company_id: string
