@@ -95,7 +95,7 @@ const menuGroups: MenuGroup[] = [
     icon: <ClipboardList className="w-4 h-4" />,
     allowedRoles: ['superadm', 'admin'],
     items: [
-      { path: '/conciliacao', label: 'Conciliação', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
+      { path: '/conciliacao', label: 'Conciliar', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
     ],
   },
   {

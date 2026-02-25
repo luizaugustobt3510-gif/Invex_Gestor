@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
-import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck } from "lucide-react";
 import { useInventoryData, InventoryItem } from "@/hooks/useInventoryData";
 import { MainLayout } from "@/components/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -8,11 +9,67 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
+  const navigate = useNavigate();
   const { data: inventoryData, summary, loading, error, refetch } = useInventoryData();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+
+  // Conciliation summary
+  const [concSummary, setConcSummary] = useState({ ok: 0, sobra: 0, falta: 0, semDado: 0, valorDiv: 0 });
+
+  useEffect(() => {
+    const fetchConciliation = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('company_id')
+          .eq('user_id', user.id)
+          .not('company_id', 'is', null)
+          .limit(1)
+          .single();
+        if (!roleData?.company_id) return;
+
+        const { data: mats } = await supabase
+          .from('materials')
+          .select('id, quantidade, preco')
+          .eq('company_id', roleData.company_id);
+
+        const { data: saldos } = await supabase
+          .from('saldo_sistema_importado')
+          .select('material_id, saldo_sistema, created_at')
+          .eq('company_id', roleData.company_id)
+          .order('created_at', { ascending: false });
+
+        if (!mats) return;
+
+        // Get latest saldo per material
+        const latestSaldo = new Map<string, number>();
+        (saldos || []).forEach(s => {
+          if (!latestSaldo.has(s.material_id)) {
+            latestSaldo.set(s.material_id, Number(s.saldo_sistema));
+          }
+        });
+
+        let ok = 0, sobra = 0, falta = 0, semDado = 0, valorDiv = 0;
+        mats.forEach(m => {
+          const saldoInvex = Number(m.quantidade);
+          if (!latestSaldo.has(m.id)) { semDado++; return; }
+          const saldoSis = latestSaldo.get(m.id)!;
+          const div = saldoInvex - saldoSis;
+          if (div === 0) ok++;
+          else if (div > 0) { sobra++; valorDiv += Math.abs(div) * Number(m.preco); }
+          else { falta++; valorDiv += Math.abs(div) * Number(m.preco); }
+        });
+        setConcSummary({ ok, sobra, falta, semDado, valorDiv });
+      } catch { /* silent */ }
+    };
+    fetchConciliation();
+  }, [inventoryData]);
 
   const filteredData = useMemo(() => {
     let filtered = inventoryData;
@@ -146,6 +203,69 @@ const Index = () => {
                 </div>
                 <p className="text-xl md:text-2xl font-bold text-foreground">
                   R$ {summary.total_estoque_valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Conciliation Alerts */}
+          {(concSummary.sobra > 0 || concSummary.falta > 0) && (
+            <Card className={`border-2 ${concSummary.falta > 0 ? 'border-destructive/40 bg-destructive/5' : 'border-warning/40 bg-warning/5'}`}>
+              <CardContent className="p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className={`p-3 rounded-full ${concSummary.falta > 0 ? 'bg-destructive/20' : 'bg-warning/20'}`}>
+                  <ClipboardCheck className={`w-6 h-6 ${concSummary.falta > 0 ? 'text-destructive' : 'text-warning'}`} />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-lg font-bold text-foreground">
+                    Conciliação: {concSummary.falta > 0 ? `🔴 ${concSummary.falta} com falta` : ''}{concSummary.falta > 0 && concSummary.sobra > 0 ? ' e ' : ''}{concSummary.sobra > 0 ? `🟡 ${concSummary.sobra} com sobra` : ''}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Valor total das divergências: R$ {concSummary.valorDiv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => navigate('/conciliacao')}>
+                  Ver Conciliação
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/conciliacao?filtro=ok')}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Conc. OK</span>
+                  <div className="p-2 rounded-lg bg-emerald-500/10"><CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /></div>
+                </div>
+                <p className="text-2xl md:text-3xl font-bold text-foreground">{concSummary.ok}</p>
+              </CardContent>
+            </Card>
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/conciliacao?filtro=sobra')}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Sobra</span>
+                  <div className="p-2 rounded-lg bg-warning/10"><ArrowUpCircle className="w-4 h-4 text-warning" /></div>
+                </div>
+                <p className="text-2xl md:text-3xl font-bold text-foreground">{concSummary.sobra}</p>
+              </CardContent>
+            </Card>
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/conciliacao?filtro=falta')}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Falta</span>
+                  <div className="p-2 rounded-lg bg-destructive/10"><ArrowDownCircle className="w-4 h-4 text-destructive" /></div>
+                </div>
+                <p className="text-2xl md:text-3xl font-bold text-foreground">{concSummary.falta}</p>
+              </CardContent>
+            </Card>
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/conciliacao')}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Valor Diverg.</span>
+                  <div className="p-2 rounded-lg bg-primary/10"><DollarSign className="w-4 h-4 text-primary" /></div>
+                </div>
+                <p className="text-xl md:text-2xl font-bold text-foreground">
+                  R$ {concSummary.valorDiv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </CardContent>
             </Card>
