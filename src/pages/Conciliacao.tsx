@@ -35,7 +35,7 @@ interface ReconciliationItem {
   saldo_sistema: number;
   divergencia: number;
   divergencia_valor: number;
-  status: 'ok' | 'sobra' | 'falta';
+  status: 'ok' | 'sobra' | 'falta' | 'sem_dado';
 }
 
 interface BatchItem {
@@ -115,7 +115,7 @@ const Conciliacao = () => {
             saldo_sistema: -1,
             divergencia: 0,
             divergencia_valor: 0,
-            status: 'ok' as const,
+            status: 'sem_dado' as const,
           };
         }
 
@@ -163,7 +163,7 @@ const Conciliacao = () => {
   };
 
   const filteredItems = useMemo(() => {
-    let items = reconciliation.filter(i => i.saldo_sistema >= 0); // Only show items with system balance imported
+    let items = [...reconciliation];
     if (searchQuery) {
       items = items.filter(i =>
         i.material.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -176,8 +176,9 @@ const Conciliacao = () => {
     return items;
   }, [reconciliation, searchQuery, statusFilter]);
 
-  // Dashboard metrics (only items with imported system balance)
-  const itemsWithSaldo = reconciliation.filter(i => i.saldo_sistema >= 0);
+  // Dashboard metrics
+  const itemsWithSaldo = reconciliation.filter(i => i.status !== 'sem_dado');
+  const semDado = reconciliation.filter(i => i.status === 'sem_dado').length;
   const totalItems = itemsWithSaldo.length;
   const okItems = itemsWithSaldo.filter(i => i.status === 'ok').length;
   const sobras = itemsWithSaldo.filter(i => i.status === 'sobra').length;
@@ -254,9 +255,9 @@ const Conciliacao = () => {
           const saldo = Number(row.saldo_sistema || row.saldo || row.Saldo || row.SALDO || 0);
           const mat = materials.find(m => m.codigo === codigo);
           return { codigo, saldo, material_id: mat?.id };
-        }).filter(r => r.material_id && r.saldo >= 0);
+        }).filter(r => r.material_id != null);
 
-        if (rows.length === 0) { toast.error('Nenhum produto válido encontrado'); return; }
+        if (rows.length === 0) { toast.error('Nenhum produto cadastrado no Invex encontrado na planilha'); return; }
 
         const inserts = rows.map(r => ({
           company_id: companyId,
@@ -330,6 +331,7 @@ const Conciliacao = () => {
       case 'ok': return <Badge className="bg-success text-success-foreground">OK</Badge>;
       case 'sobra': return <Badge className="bg-warning text-warning-foreground">Sobra</Badge>;
       case 'falta': return <Badge className="bg-danger text-danger-foreground">Falta</Badge>;
+      case 'sem_dado': return <Badge variant="outline" className="text-muted-foreground">Sem dado</Badge>;
       default: return null;
     }
   };
@@ -384,7 +386,7 @@ const Conciliacao = () => {
                   <p className="text-sm md:text-base text-muted-foreground">
                     {totalItems === 0
                       ? 'Importe o saldo do sistema para iniciar a conciliação'
-                      : `${okItems} OK · ${sobras} sobra · ${faltas} falta`}
+                      : `${okItems} OK · ${sobras} sobra · ${faltas} falta${semDado > 0 ? ` · ${semDado} sem dado` : ''}`}
                   </p>
                 </div>
               </CardContent>
@@ -456,7 +458,8 @@ const Conciliacao = () => {
                   <SelectItem value="todos">Todos</SelectItem>
                   <SelectItem value="ok">OK</SelectItem>
                   <SelectItem value="sobra">Sobra</SelectItem>
-                  <SelectItem value="falta">Falta</SelectItem>
+                   <SelectItem value="falta">Falta</SelectItem>
+                   <SelectItem value="sem_dado">Sem dado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -476,7 +479,7 @@ const Conciliacao = () => {
                 {/* Mobile cards */}
                 <div className="block md:hidden space-y-3">
                   {filteredItems.map(item => (
-                    <Card key={item.material_id} className={`border-l-4 ${item.status === 'falta' ? 'border-l-danger' : item.status === 'sobra' ? 'border-l-warning' : 'border-l-success'}`}>
+                    <Card key={item.material_id} className={`border-l-4 ${item.status === 'falta' ? 'border-l-danger' : item.status === 'sobra' ? 'border-l-warning' : item.status === 'sem_dado' ? 'border-l-muted' : 'border-l-success'}`}>
                       <CardContent className="p-4 space-y-2">
                         <div className="flex justify-between items-start">
                           <div>
@@ -492,7 +495,7 @@ const Conciliacao = () => {
                           </div>
                           <div>
                             <p className="text-muted-foreground">Sistema</p>
-                            <p className="font-bold text-foreground">{item.saldo_sistema}</p>
+                            <p className="font-bold text-foreground">{item.status === 'sem_dado' ? '—' : item.saldo_sistema}</p>
                           </div>
                           <div>
                             <p className="text-muted-foreground">Diverg.</p>
@@ -501,7 +504,7 @@ const Conciliacao = () => {
                             </p>
                           </div>
                         </div>
-                        {item.divergencia !== 0 && (
+                        {item.divergencia !== 0 && item.status !== 'sem_dado' && (
                           <div className="flex justify-between items-center pt-1">
                             <span className="text-xs text-muted-foreground">
                               Valor: R$ {Math.abs(item.divergencia_valor).toFixed(2)}
@@ -535,18 +538,18 @@ const Conciliacao = () => {
                         </TableHeader>
                         <TableBody>
                           {filteredItems.map(item => (
-                            <TableRow key={item.material_id} className={item.status === 'falta' ? 'bg-danger/5' : item.status === 'sobra' ? 'bg-warning/5' : ''}>
+                            <TableRow key={item.material_id} className={item.status === 'falta' ? 'bg-danger/5' : item.status === 'sobra' ? 'bg-warning/5' : item.status === 'sem_dado' ? 'bg-muted/30' : ''}>
                               <TableCell className="font-mono">{item.codigo}</TableCell>
                               <TableCell>{item.material}</TableCell>
                               <TableCell className="text-right">{item.saldo_invex}</TableCell>
-                              <TableCell className="text-right">{item.saldo_sistema}</TableCell>
+                              <TableCell className="text-right">{item.status === 'sem_dado' ? '—' : item.saldo_sistema}</TableCell>
                               <TableCell className="text-right font-bold">
-                                {item.divergencia > 0 ? '+' : ''}{item.divergencia}
+                                {item.status === 'sem_dado' ? '—' : `${item.divergencia > 0 ? '+' : ''}${item.divergencia}`}
                               </TableCell>
-                              <TableCell className="text-right">R$ {Math.abs(item.divergencia_valor).toFixed(2)}</TableCell>
+                              <TableCell className="text-right">{item.status === 'sem_dado' ? '—' : `R$ ${Math.abs(item.divergencia_valor).toFixed(2)}`}</TableCell>
                               <TableCell>{getStatusBadge(item.status)}</TableCell>
                               <TableCell>
-                                {item.status !== 'ok' && (
+                                {item.status !== 'ok' && item.status !== 'sem_dado' && (
                                   <Button size="sm" variant="outline" onClick={() => { setAdjustItem(item); setAdjustDialogOpen(true); }}>
                                     <Wrench className="w-3 h-3 mr-1" /> Ajustar
                                   </Button>
