@@ -68,9 +68,7 @@ const Login = () => {
         <Card className="w-full max-w-md shadow-elevated">
           <CardHeader className="space-y-4 text-center">
             <div className="flex justify-center">
-              <div className="p-4 bg-primary/10 rounded-2xl">
-                <InvexLogo size="lg" />
-              </div>
+              <InvexLogo size="lg" />
             </div>
             <div>
               <CardTitle className="text-2xl font-bold text-foreground">Sistema não configurado</CardTitle>
@@ -88,11 +86,9 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 p-4">
       <Card className="w-full max-w-md shadow-elevated">
         <CardHeader className="space-y-4 text-center">
-          <div className="flex justify-center">
-            <div className="p-4 bg-primary/10 rounded-2xl">
+            <div className="flex justify-center">
               <InvexLogo size="lg" />
             </div>
-          </div>
           <div>
             <CardTitle className="text-2xl font-bold text-foreground">Bem-vindo ao Invex</CardTitle>
             <CardDescription className="text-base mt-2">Sistema de Controle de Estoque</CardDescription>
