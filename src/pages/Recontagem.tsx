@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Search, ArrowUpCircle, ArrowDownCircle, CheckCircle, ClipboardCheck, Save } from 'lucide-react';
+import { Search, ArrowUpCircle, ArrowDownCircle, CheckCircle, ClipboardCheck, Save, Camera, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Html5Qrcode } from 'html5-qrcode';
 
 interface RecountItem {
   material_id: string;
@@ -34,11 +35,29 @@ const Recontagem = () => {
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
+  // QR Scanner
+  const [scanning, setScanning] = useState(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerDivId = 'recount-qr-reader';
+  const highlightRef = useRef<string | null>(null);
+
   // Confirm dialog
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmItem, setConfirmItem] = useState<RecountItem | null>(null);
   const [confirmObs, setConfirmObs] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const stopScanner = useCallback(async () => {
+    if (scannerRef.current) {
+      try { await scannerRef.current.stop(); } catch { /* ignore */ }
+      scannerRef.current = null;
+    }
+    setScanning(false);
+  }, []);
+
+  useEffect(() => {
+    return () => { stopScanner(); };
+  }, [stopScanner]);
 
   useEffect(() => { loadData(); }, []);
 
@@ -124,6 +143,45 @@ const Recontagem = () => {
     }
     return filtered;
   }, [items, statusFilter, searchQuery]);
+
+  const startScanner = async () => {
+    setScanning(true);
+    await new Promise(r => setTimeout(r, 300));
+    try {
+      const scanner = new Html5Qrcode(scannerDivId);
+      scannerRef.current = scanner;
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        async (decodedText) => {
+          await stopScanner();
+          handleQrResult(decodedText.trim());
+        },
+        () => {}
+      );
+    } catch {
+      setScanning(false);
+      toast.error('Câmera indisponível. Verifique a permissão.');
+    }
+  };
+
+  const handleQrResult = (code: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const found = items.find(i =>
+      uuidRegex.test(code) ? i.material_id === code : i.codigo === code
+    );
+    if (found) {
+      setSearchQuery(found.codigo);
+      highlightRef.current = found.material_id;
+      toast.success(`Item encontrado: ${found.material}`);
+      setTimeout(() => {
+        const el = document.getElementById(`recount-${found.material_id}`);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    } else {
+      toast.error(`Item "${code}" não encontrado na lista de divergências`);
+    }
+  };
 
   const handleContagemChange = (materialId: string, value: string) => {
     const num = value === '' ? null : Number(value);
@@ -246,15 +304,36 @@ const Recontagem = () => {
           </Card>
         </div>
 
+        {/* QR Scanner */}
+        {scanning && (
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div id={scannerDivId} className="w-full max-w-sm mx-auto rounded-lg overflow-hidden" />
+              <p className="text-sm text-center text-muted-foreground animate-pulse">Lendo código…</p>
+              <Button variant="outline" className="w-full" onClick={stopScanner}>
+                <X className="w-4 h-4 mr-1" /> Cancelar
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por código ou material..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por código ou material..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          {!scanning && (
+            <Button onClick={startScanner} variant="outline" className="gap-2 shrink-0">
+              <Camera className="w-4 h-4" />
+              <span className="hidden sm:inline">Escanear</span>
+            </Button>
+          )}
         </div>
 
         {/* Table */}
@@ -275,7 +354,7 @@ const Recontagem = () => {
             {/* Mobile cards */}
             <div className="block md:hidden space-y-3">
               {filteredItems.map(item => (
-                <Card key={item.material_id} className="border">
+                <Card key={item.material_id} id={`recount-${item.material_id}`} className={`border ${highlightRef.current === item.material_id ? 'ring-2 ring-primary' : ''}`}>
                   <CardContent className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
@@ -343,7 +422,7 @@ const Recontagem = () => {
                     </TableHeader>
                     <TableBody>
                       {filteredItems.map(item => (
-                        <TableRow key={item.material_id}>
+                        <TableRow key={item.material_id} id={`recount-${item.material_id}`} className={highlightRef.current === item.material_id ? 'bg-primary/10' : ''}>
                           <TableCell className="font-mono text-xs">{item.codigo}</TableCell>
                           <TableCell className="font-medium text-sm max-w-[200px] truncate">{item.material}</TableCell>
                           <TableCell className="text-center">{item.saldo_invex}</TableCell>
