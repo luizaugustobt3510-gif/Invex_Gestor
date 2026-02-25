@@ -223,9 +223,6 @@ const Index = () => {
                     Valor total das divergências: R$ {concSummary.valorDiv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => navigate('/conciliacao')}>
-                  Ver Conciliação
-                </Button>
               </CardContent>
             </Card>
           )}
