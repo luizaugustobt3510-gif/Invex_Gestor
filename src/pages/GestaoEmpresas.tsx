@@ -1,0 +1,222 @@
+import { useState, useEffect } from 'react';
+import { MainLayout } from '@/components/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { Building, Edit, RefreshCw, Plus, Users, ShieldCheck, ShieldOff } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+
+interface Company {
+  id: string;
+  name: string;
+  cnpj: string | null;
+  status: string;
+  created_at: string;
+  user_count?: number;
+}
+
+const GestaoEmpresas = () => {
+  const { toast } = useToast();
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editCompany, setEditCompany] = useState<Company | null>(null);
+  const [newDialog, setNewDialog] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newCnpj, setNewCnpj] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const fetchCompanies = async () => {
+    setLoading(true);
+    const { data: companiesData } = await supabase.from('companies').select('*').order('name');
+    const { data: roles } = await supabase.from('user_roles').select('company_id');
+
+    const countMap: Record<string, number> = {};
+    (roles || []).forEach(r => {
+      if (r.company_id) countMap[r.company_id] = (countMap[r.company_id] || 0) + 1;
+    });
+
+    setCompanies((companiesData || []).map(c => ({
+      ...c,
+      status: (c as any).status || 'ativa',
+      user_count: countMap[c.id] || 0,
+    })));
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchCompanies(); }, []);
+
+  const handleCreate = async () => {
+    if (!newName.trim()) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('companies').insert({ name: newName.trim(), cnpj: newCnpj.trim() || null });
+      if (error) throw error;
+      toast({ title: 'Empresa criada!' });
+      setNewDialog(false);
+      setNewName('');
+      setNewCnpj('');
+      fetchCompanies();
+    } catch {
+      toast({ title: 'Erro', description: 'Erro ao criar empresa.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!editCompany) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('companies')
+        .update({ name: editCompany.name, cnpj: editCompany.cnpj, status: editCompany.status })
+        .eq('id', editCompany.id);
+      if (error) throw error;
+      toast({ title: 'Empresa atualizada!' });
+      setEditCompany(null);
+      fetchCompanies();
+    } catch {
+      toast({ title: 'Erro', description: 'Erro ao atualizar empresa.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleStatus = async (company: Company) => {
+    const newStatus = company.status === 'ativa' ? 'inativa' : 'ativa';
+    try {
+      await supabase.from('companies').update({ status: newStatus }).eq('id', company.id);
+      toast({ title: `Empresa ${newStatus === 'ativa' ? 'ativada' : 'desativada'}` });
+      fetchCompanies();
+    } catch {
+      toast({ title: 'Erro', variant: 'destructive' });
+    }
+  };
+
+  return (
+    <MainLayout>
+      <Card className="max-w-5xl mx-auto">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Building className="w-5 h-5" />
+            Gestão de Empresas
+          </CardTitle>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => setNewDialog(true)} className="gap-1">
+              <Plus className="w-4 h-4" /> Nova Empresa
+            </Button>
+            <Button variant="outline" size="sm" onClick={fetchCompanies} disabled={loading}>
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground">Carregando...</div>
+          ) : (
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>CNPJ</TableHead>
+                    <TableHead className="text-center">Usuários</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead>Criada em</TableHead>
+                    <TableHead className="text-center">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {companies.map(c => (
+                    <TableRow key={c.id}>
+                      <TableCell className="font-medium">{c.name}</TableCell>
+                      <TableCell className="font-mono text-sm">{c.cnpj || '-'}</TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                          {c.user_count}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant={c.status === 'ativa' ? 'default' : 'destructive'}>
+                          {c.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{new Date(c.created_at).toLocaleDateString('pt-BR')}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => setEditCompany({ ...c })}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => toggleStatus(c)}>
+                            {c.status === 'ativa' ? (
+                              <ShieldOff className="w-4 h-4 text-destructive" />
+                            ) : (
+                              <ShieldCheck className="w-4 h-4 text-primary" />
+                            )}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* New Company Dialog */}
+      <Dialog open={newDialog} onOpenChange={setNewDialog}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Nova Empresa</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nome *</Label>
+              <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Nome da empresa" />
+            </div>
+            <div className="space-y-2">
+              <Label>CNPJ (opcional)</Label>
+              <Input value={newCnpj} onChange={e => setNewCnpj(e.target.value)} placeholder="00.000.000/0000-00" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNewDialog(false)}>Cancelar</Button>
+            <Button onClick={handleCreate} disabled={saving || !newName.trim()}>
+              {saving ? 'Criando...' : 'Criar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Company Dialog */}
+      <Dialog open={!!editCompany} onOpenChange={open => { if (!open) setEditCompany(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Empresa</DialogTitle></DialogHeader>
+          {editCompany && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Nome</Label>
+                <Input value={editCompany.name} onChange={e => setEditCompany({ ...editCompany, name: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>CNPJ</Label>
+                <Input value={editCompany.cnpj || ''} onChange={e => setEditCompany({ ...editCompany, cnpj: e.target.value || null })} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditCompany(null)}>Cancelar</Button>
+            <Button onClick={handleUpdate} disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </MainLayout>
+  );
+};
+
+export default GestaoEmpresas;
