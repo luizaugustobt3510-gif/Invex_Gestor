@@ -166,6 +166,28 @@ const Index = () => {
             </CardContent>
           </Card>
 
+          {/* Conciliation Alerts - clickable */}
+          {(concSummary.sobra > 0 || concSummary.falta > 0) && (
+            <Card
+              className={`border-2 cursor-pointer hover:shadow-md transition-all ${concSummary.falta > 0 ? 'border-destructive/40 bg-destructive/5' : 'border-warning/40 bg-warning/5'}`}
+              onClick={() => navigate('/conciliacao?filtro=falta')}
+            >
+              <CardContent className="p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className={`p-3 rounded-full ${concSummary.falta > 0 ? 'bg-destructive/20' : 'bg-warning/20'}`}>
+                  <ClipboardCheck className={`w-6 h-6 ${concSummary.falta > 0 ? 'text-destructive' : 'text-warning'}`} />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-lg font-bold text-foreground">
+                    Conciliação: {concSummary.falta > 0 ? `🔴 ${concSummary.falta} com falta` : ''}{concSummary.falta > 0 && concSummary.sobra > 0 ? ' e ' : ''}{concSummary.sobra > 0 ? `🟡 ${concSummary.sobra} com sobra` : ''}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Valor total das divergências: R$ {concSummary.valorDiv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Stats Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter(statusFilter === "OK" ? null : "OK")}>
@@ -207,25 +229,6 @@ const Index = () => {
               </CardContent>
             </Card>
           </div>
-
-          {/* Conciliation Alerts */}
-          {(concSummary.sobra > 0 || concSummary.falta > 0) && (
-            <Card className={`border-2 ${concSummary.falta > 0 ? 'border-destructive/40 bg-destructive/5' : 'border-warning/40 bg-warning/5'}`}>
-              <CardContent className="p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <div className={`p-3 rounded-full ${concSummary.falta > 0 ? 'bg-destructive/20' : 'bg-warning/20'}`}>
-                  <ClipboardCheck className={`w-6 h-6 ${concSummary.falta > 0 ? 'text-destructive' : 'text-warning'}`} />
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-lg font-bold text-foreground">
-                    Conciliação: {concSummary.falta > 0 ? `🔴 ${concSummary.falta} com falta` : ''}{concSummary.falta > 0 && concSummary.sobra > 0 ? ' e ' : ''}{concSummary.sobra > 0 ? `🟡 ${concSummary.sobra} com sobra` : ''}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Valor total das divergências: R$ {concSummary.valorDiv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/conciliacao?filtro=ok')}>
