@@ -23,6 +23,7 @@ import QRScanner from "./pages/QRScanner";
 import GerarQRCode from "./pages/GerarQRCode";
 import HistoricoMovimentacoes from "./pages/HistoricoMovimentacoes";
 import Conciliacao from "./pages/Conciliacao";
+import Recontagem from "./pages/Recontagem";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -78,6 +79,12 @@ const App = () => (
             <Route path="/conciliacao" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
                 <Conciliacao />
+              </RoleProtectedRoute>
+            } />
+            
+            <Route path="/recontagem" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+                <Recontagem />
               </RoleProtectedRoute>
             } />
             
