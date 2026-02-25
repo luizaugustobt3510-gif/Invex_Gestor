@@ -21,6 +21,12 @@ import {
   History,
   ScanLine,
   ClipboardCheck,
+  Puzzle,
+  CreditCard,
+  Settings,
+  ScrollText,
+  Download,
+  Shield,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -112,10 +118,22 @@ const menuGroups: MenuGroup[] = [
   {
     label: 'Administração',
     icon: <UserPlus className="w-4 h-4" />,
+    allowedRoles: ['superadm', 'admin'],
+    items: [
+      { path: '/criar-usuario', label: 'Criar Usuário', icon: <UserPlus className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
+      { path: '/instalar-app', label: 'Instalar App', icon: <Download className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
+    ],
+  },
+  {
+    label: 'Sistema (SuperAdmin)',
+    icon: <Shield className="w-4 h-4" />,
     allowedRoles: ['superadm'],
     items: [
-      { path: '/criar-usuario', label: 'Criar Usuário', icon: <UserPlus className="w-4 h-4" />, allowedRoles: ['superadm'] },
-      { path: '/listar-empresas', label: 'Empresas', icon: <Building className="w-4 h-4" />, allowedRoles: ['superadm'] },
+      { path: '/gestao-empresas', label: 'Empresas', icon: <Building className="w-4 h-4" />, allowedRoles: ['superadm'] },
+      { path: '/gestao-modulos', label: 'Módulos', icon: <Puzzle className="w-4 h-4" />, allowedRoles: ['superadm'] },
+      { path: '/gestao-planos', label: 'Planos e Limites', icon: <CreditCard className="w-4 h-4" />, allowedRoles: ['superadm'] },
+      { path: '/config-sistema', label: 'Configurações', icon: <Settings className="w-4 h-4" />, allowedRoles: ['superadm'] },
+      { path: '/logs-auditoria', label: 'Logs / Auditoria', icon: <ScrollText className="w-4 h-4" />, allowedRoles: ['superadm'] },
     ],
   },
 ];

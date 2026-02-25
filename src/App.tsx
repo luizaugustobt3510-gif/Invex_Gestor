@@ -24,6 +24,12 @@ import GerarQRCode from "./pages/GerarQRCode";
 import HistoricoMovimentacoes from "./pages/HistoricoMovimentacoes";
 import Conciliacao from "./pages/Conciliacao";
 import Recontagem from "./pages/Recontagem";
+import InstalarApp from "./pages/InstalarApp";
+import GestaoEmpresas from "./pages/GestaoEmpresas";
+import GestaoModulos from "./pages/GestaoModulos";
+import GestaoPlanos from "./pages/GestaoPlanos";
+import ConfigSistema from "./pages/ConfigSistema";
+import LogsAuditoria from "./pages/LogsAuditoria";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -136,6 +142,38 @@ const App = () => (
             <Route path="/listar-empresas" element={
               <RoleProtectedRoute allowedRoles={['superadm']}>
                 <ListarEmpresas />
+              </RoleProtectedRoute>
+            } />
+
+            <Route path="/instalar-app" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+                <InstalarApp />
+              </RoleProtectedRoute>
+            } />
+
+            <Route path="/gestao-empresas" element={
+              <RoleProtectedRoute allowedRoles={['superadm']}>
+                <GestaoEmpresas />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/gestao-modulos" element={
+              <RoleProtectedRoute allowedRoles={['superadm']}>
+                <GestaoModulos />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/gestao-planos" element={
+              <RoleProtectedRoute allowedRoles={['superadm']}>
+                <GestaoPlanos />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/config-sistema" element={
+              <RoleProtectedRoute allowedRoles={['superadm']}>
+                <ConfigSistema />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/logs-auditoria" element={
+              <RoleProtectedRoute allowedRoles={['superadm']}>
+                <LogsAuditoria />
               </RoleProtectedRoute>
             } />
             
