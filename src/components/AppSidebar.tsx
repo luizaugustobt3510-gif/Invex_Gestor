@@ -27,6 +27,8 @@ import {
   ScrollText,
   Download,
   Shield,
+  User,
+  AlertTriangle,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -72,7 +74,7 @@ const menuGroups: MenuGroup[] = [
     items: [
       { path: '/cadastrar-material', label: 'Cadastrar Material', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
       { path: '/atualizar-estoque', label: 'Atualizar Estoque', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
-      
+      { path: '/itens-criticos', label: 'Itens Críticos', icon: <AlertTriangle className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
       { path: '/qr-scanner', label: 'Escanear QR Code', icon: <ScanLine className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
       { path: '/gerar-qrcode', label: 'Gerar QR Code', icon: <QrCode className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
       { path: '/historico-movimentacoes', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
@@ -242,6 +244,20 @@ export function AppSidebar() {
           </div>
         )}
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => navigate('/meu-perfil')}
+              isActive={isActive('/meu-perfil')}
+              tooltip="Meu Perfil"
+              className={cn(
+                "w-full justify-start gap-3 transition-colors",
+                isActive('/meu-perfil') && "bg-primary/10 text-primary"
+              )}
+            >
+              <User className="w-4 h-4" />
+              <span>Meu Perfil</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={handleLogout}

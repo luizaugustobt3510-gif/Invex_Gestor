@@ -115,7 +115,40 @@ const Login = () => {
             <Button type="submit" className="w-full h-11 text-base font-semibold" disabled={loading}>
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
+
+            <button
+              type="button"
+              className="w-full text-sm text-primary hover:underline mt-1"
+              onClick={async () => {
+                if (!email.trim()) {
+                  toast.error('Informe seu email para recuperar a senha.');
+                  return;
+                }
+                try {
+                  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                  });
+                  if (error) throw error;
+                  toast.success('Se o email estiver cadastrado, você receberá um link de recuperação.');
+                } catch {
+                  toast.success('Se o email estiver cadastrado, você receberá um link de recuperação.');
+                }
+              }}
+            >
+              Esqueci minha senha
+            </button>
           </form>
+
+          <div className="mt-4 pt-4 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => navigate('/demo')}
+            >
+              Testar / Conhecer o Invex
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
