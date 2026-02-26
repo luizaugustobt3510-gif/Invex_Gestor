@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck } from "lucide-react";
+import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit } from "lucide-react";
 import { useInventoryData, InventoryItem } from "@/hooks/useInventoryData";
+import { useAuth } from "@/contexts/AuthContext";
 import { MainLayout } from "@/components/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,12 +11,17 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { EditMaterialDialog } from "@/components/EditMaterialDialog";
 
 const Index = () => {
   const navigate = useNavigate();
   const { data: inventoryData, summary, loading, error, refetch } = useInventoryData();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [editItem, setEditItem] = useState<InventoryItem | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const { hasPermission } = useAuth();
+  const isAdmin = hasPermission(['superadm', 'admin']);
 
   // Conciliation summary
   const [concSummary, setConcSummary] = useState({ ok: 0, sobra: 0, falta: 0, semDado: 0, valorDiv: 0 });
@@ -326,9 +332,16 @@ const Index = () => {
                         <p className="text-2xl font-bold text-foreground">{item.quantidade}</p>
                         <p className="text-xs text-muted-foreground">{item.unidade}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground text-right">
-                        R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </p>
+                      <div className="flex items-end gap-2">
+                        {isAdmin && (
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditItem(item); setEditOpen(true); }}>
+                            <Edit className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
+                        <p className="text-xs text-muted-foreground text-right">
+                          R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -343,6 +356,13 @@ const Index = () => {
           )}
         </div>
       )}
+
+      <EditMaterialDialog
+        item={editItem}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSaved={refetch}
+      />
     </MainLayout>
   );
 };

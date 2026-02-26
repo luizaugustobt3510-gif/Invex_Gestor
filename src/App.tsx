@@ -31,6 +31,10 @@ import GestaoPlanos from "./pages/GestaoPlanos";
 import ConfigSistema from "./pages/ConfigSistema";
 import LogsAuditoria from "./pages/LogsAuditoria";
 import NotFound from "./pages/NotFound";
+import MeuPerfil from "./pages/MeuPerfil";
+import ResetPassword from "./pages/ResetPassword";
+import DemoMode from "./pages/DemoMode";
+import ItensCriticos from "./pages/ItensCriticos";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +47,8 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/demo" element={<DemoMode />} />
             
             <Route path="/" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante']}>
@@ -174,6 +180,18 @@ const App = () => (
             <Route path="/logs-auditoria" element={
               <RoleProtectedRoute allowedRoles={['superadm']}>
                 <LogsAuditoria />
+              </RoleProtectedRoute>
+            } />
+
+            <Route path="/meu-perfil" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante']}>
+                <MeuPerfil />
+              </RoleProtectedRoute>
+            } />
+
+            <Route path="/itens-criticos" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
+                <ItensCriticos />
               </RoleProtectedRoute>
             } />
             
