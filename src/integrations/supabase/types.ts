@@ -249,6 +249,161 @@ export type Database = {
           },
         ]
       }
+      employee_certificates: {
+        Row: {
+          arquivo_url: string | null
+          company_id: string
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          dias: number
+          employee_id: string
+          id: string
+          motivo: string | null
+        }
+        Insert: {
+          arquivo_url?: string | null
+          company_id: string
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          dias: number
+          employee_id: string
+          id?: string
+          motivo?: string | null
+        }
+        Update: {
+          arquivo_url?: string | null
+          company_id?: string
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          dias?: number
+          employee_id?: string
+          id?: string
+          motivo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_certificates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_certificates_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_vacations: {
+        Row: {
+          company_id: string
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          dias: number
+          employee_id: string
+          id: string
+          obs: string | null
+          periodo_aquisitivo_fim: string
+          periodo_aquisitivo_inicio: string
+          status: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          dias?: number
+          employee_id: string
+          id?: string
+          obs?: string | null
+          periodo_aquisitivo_fim: string
+          periodo_aquisitivo_inicio: string
+          status?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          dias?: number
+          employee_id?: string
+          id?: string
+          obs?: string | null
+          periodo_aquisitivo_fim?: string
+          periodo_aquisitivo_inicio?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_vacations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_vacations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          cargo: string
+          company_id: string
+          cpf: string
+          created_at: string
+          data_admissao: string
+          id: string
+          nome: string
+          salario: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cargo: string
+          company_id: string
+          cpf: string
+          created_at?: string
+          data_admissao: string
+          id?: string
+          nome: string
+          salario?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cargo?: string
+          company_id?: string
+          cpf?: string
+          created_at?: string
+          data_admissao?: string
+          id?: string
+          nome?: string
+          salario?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       material_requests: {
         Row: {
           codigo: string
