@@ -198,6 +198,28 @@ const App = () => (
                 <ItensCriticos />
               </RoleProtectedRoute>
             } />
+
+            {/* Módulo RH */}
+            <Route path="/rh" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <DashboardRH />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/colaboradores" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <Colaboradores />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/ferias" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <Ferias />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/atestados" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <Atestados />
+              </RoleProtectedRoute>
+            } />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
