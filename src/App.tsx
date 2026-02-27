@@ -62,7 +62,7 @@ const App = () => (
               </RoleProtectedRoute>
             } />
             <Route path="/atualizar-estoque" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'logistica']}>
                 <AtualizarEstoque />
               </RoleProtectedRoute>
             } />
