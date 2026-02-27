@@ -29,6 +29,9 @@ import {
   Shield,
   User,
   AlertTriangle,
+  Users,
+  Calendar,
+  HeartPulse,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
