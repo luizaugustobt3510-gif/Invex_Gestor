@@ -45,6 +45,10 @@ const CriarUsuario = () => {
         'admin': 'admin_empresa',
         'usuario almox': 'usuario_almox',
         'solicitante': 'solicitante',
+        'logistica': 'logistica',
+        'rh': 'rh',
+        'financeiro': 'financeiro',
+        'visualizador': 'visualizador',
       };
 
       const response = await fetch(
@@ -110,7 +114,11 @@ const CriarUsuario = () => {
                   <SelectItem value="superadm">Super Administrador</SelectItem>
                   <SelectItem value="admin">Administrador</SelectItem>
                   <SelectItem value="usuario almox">Usuário Almoxarifado</SelectItem>
+                  <SelectItem value="logistica">Logística</SelectItem>
+                  <SelectItem value="rh">RH</SelectItem>
+                  <SelectItem value="financeiro">Financeiro</SelectItem>
                   <SelectItem value="solicitante">Solicitante</SelectItem>
+                  <SelectItem value="visualizador">Visualizador</SelectItem>
                 </SelectContent>
               </Select>
             </div>

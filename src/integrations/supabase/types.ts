@@ -766,6 +766,10 @@ export type Database = {
         | "admin_empresa"
         | "usuario_almox"
         | "solicitante"
+        | "logistica"
+        | "rh"
+        | "financeiro"
+        | "visualizador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -898,6 +902,10 @@ export const Constants = {
         "admin_empresa",
         "usuario_almox",
         "solicitante",
+        "logistica",
+        "rh",
+        "financeiro",
+        "visualizador",
       ],
     },
   },

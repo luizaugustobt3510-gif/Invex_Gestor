@@ -51,7 +51,7 @@ const App = () => (
             <Route path="/demo" element={<DemoMode />} />
             
             <Route path="/" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador']}>
                 <Index />
               </RoleProtectedRoute>
             } />
@@ -62,7 +62,7 @@ const App = () => (
               </RoleProtectedRoute>
             } />
             <Route path="/atualizar-estoque" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'logistica']}>
                 <AtualizarEstoque />
               </RoleProtectedRoute>
             } />
@@ -71,7 +71,7 @@ const App = () => (
 
             
             <Route path="/qr-scanner" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'logistica']}>
                 <QRScanner />
               </RoleProtectedRoute>
             } />
@@ -83,7 +83,7 @@ const App = () => (
             } />
             
             <Route path="/historico-movimentacoes" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'logistica']}>
                 <HistoricoMovimentacoes />
               </RoleProtectedRoute>
             } />
@@ -124,12 +124,12 @@ const App = () => (
             } />
             
             <Route path="/solicitar-material" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica']}>
                 <SolicitarMaterial />
               </RoleProtectedRoute>
             } />
             <Route path="/listar-solicitacoes" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica']}>
                 <ListarSolicitacoes />
               </RoleProtectedRoute>
             } />
@@ -184,13 +184,13 @@ const App = () => (
             } />
 
             <Route path="/meu-perfil" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador']}>
                 <MeuPerfil />
               </RoleProtectedRoute>
             } />
 
             <Route path="/itens-criticos" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'logistica']}>
                 <ItensCriticos />
               </RoleProtectedRoute>
             } />
