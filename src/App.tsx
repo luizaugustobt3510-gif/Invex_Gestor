@@ -190,7 +190,7 @@ const App = () => (
             } />
 
             <Route path="/itens-criticos" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'logistica']}>
                 <ItensCriticos />
               </RoleProtectedRoute>
             } />

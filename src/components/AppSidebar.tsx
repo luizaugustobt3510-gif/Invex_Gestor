@@ -155,7 +155,7 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path;
 
   const visibleGroups = menuGroups.filter(group => hasPermission(group.allowedRoles));
-  const canSeeDashboard = hasPermission(['superadm', 'admin', 'solicitante']);
+  const canSeeDashboard = hasPermission(['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador']);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
