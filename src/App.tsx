@@ -35,6 +35,10 @@ import MeuPerfil from "./pages/MeuPerfil";
 import ResetPassword from "./pages/ResetPassword";
 import DemoMode from "./pages/DemoMode";
 import ItensCriticos from "./pages/ItensCriticos";
+import DashboardRH from "./pages/rh/DashboardRH";
+import Colaboradores from "./pages/rh/Colaboradores";
+import Ferias from "./pages/rh/Ferias";
+import Atestados from "./pages/rh/Atestados";
 
 const queryClient = new QueryClient();
 
