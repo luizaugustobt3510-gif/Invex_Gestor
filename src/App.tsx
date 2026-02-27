@@ -83,7 +83,7 @@ const App = () => (
             } />
             
             <Route path="/historico-movimentacoes" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'logistica']}>
                 <HistoricoMovimentacoes />
               </RoleProtectedRoute>
             } />
