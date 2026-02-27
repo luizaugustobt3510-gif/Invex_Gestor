@@ -51,7 +51,7 @@ const App = () => (
             <Route path="/demo" element={<DemoMode />} />
             
             <Route path="/" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador']}>
                 <Index />
               </RoleProtectedRoute>
             } />
