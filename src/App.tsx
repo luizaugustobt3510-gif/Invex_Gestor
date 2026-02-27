@@ -35,6 +35,10 @@ import MeuPerfil from "./pages/MeuPerfil";
 import ResetPassword from "./pages/ResetPassword";
 import DemoMode from "./pages/DemoMode";
 import ItensCriticos from "./pages/ItensCriticos";
+import DashboardRH from "./pages/rh/DashboardRH";
+import Colaboradores from "./pages/rh/Colaboradores";
+import Ferias from "./pages/rh/Ferias";
+import Atestados from "./pages/rh/Atestados";
 
 const queryClient = new QueryClient();
 
@@ -192,6 +196,28 @@ const App = () => (
             <Route path="/itens-criticos" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'logistica']}>
                 <ItensCriticos />
+              </RoleProtectedRoute>
+            } />
+
+            {/* Módulo RH */}
+            <Route path="/rh" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <DashboardRH />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/colaboradores" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <Colaboradores />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/ferias" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <Ferias />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/atestados" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <Atestados />
               </RoleProtectedRoute>
             } />
             

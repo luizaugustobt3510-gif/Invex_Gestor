@@ -29,6 +29,9 @@ import {
   Shield,
   User,
   AlertTriangle,
+  Users,
+  Calendar,
+  HeartPulse,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -115,6 +118,17 @@ const menuGroups: MenuGroup[] = [
     items: [
       { path: '/solicitar-material', label: 'Solicitar Material', icon: <Send className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica'] },
       { path: '/listar-solicitacoes', label: 'Solicitações', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica'] },
+    ],
+  },
+  {
+    label: 'Gestão de Pessoas',
+    icon: <Users className="w-4 h-4" />,
+    allowedRoles: ['superadm', 'admin', 'rh'],
+    items: [
+      { path: '/rh', label: 'Dashboard RH', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
+      { path: '/rh/colaboradores', label: 'Colaboradores', icon: <Users className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
+      { path: '/rh/ferias', label: 'Férias', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
+      { path: '/rh/atestados', label: 'Atestados', icon: <FileText className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
     ],
   },
   {
