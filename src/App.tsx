@@ -124,12 +124,12 @@ const App = () => (
             } />
             
             <Route path="/solicitar-material" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica']}>
                 <SolicitarMaterial />
               </RoleProtectedRoute>
             } />
             <Route path="/listar-solicitacoes" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica']}>
                 <ListarSolicitacoes />
               </RoleProtectedRoute>
             } />
