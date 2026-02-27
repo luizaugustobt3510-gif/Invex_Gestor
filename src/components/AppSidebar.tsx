@@ -70,14 +70,14 @@ const menuGroups: MenuGroup[] = [
   {
     label: 'Estoque',
     icon: <Package className="w-4 h-4" />,
-    allowedRoles: ['superadm', 'admin', 'usuario almox'],
+    allowedRoles: ['superadm', 'admin', 'usuario almox', 'logistica'],
     items: [
       { path: '/cadastrar-material', label: 'Cadastrar Material', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
-      { path: '/atualizar-estoque', label: 'Atualizar Estoque', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
-      { path: '/itens-criticos', label: 'Itens Críticos', icon: <AlertTriangle className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
-      { path: '/qr-scanner', label: 'Escanear QR Code', icon: <ScanLine className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
+      { path: '/atualizar-estoque', label: 'Atualizar Estoque', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'logistica'] },
+      { path: '/itens-criticos', label: 'Itens Críticos', icon: <AlertTriangle className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'logistica'] },
+      { path: '/qr-scanner', label: 'Escanear QR Code', icon: <ScanLine className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'logistica'] },
       { path: '/gerar-qrcode', label: 'Gerar QR Code', icon: <QrCode className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
-      { path: '/historico-movimentacoes', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox'] },
+      { path: '/historico-movimentacoes', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'logistica'] },
       { path: '/importar-planilha', label: 'Importar Planilha', icon: <FileSpreadsheet className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
       { path: '/recontagem', label: 'Recontagem', icon: <ClipboardCheck className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
     ],
@@ -111,10 +111,10 @@ const menuGroups: MenuGroup[] = [
   {
     label: 'Solicitações',
     icon: <Inbox className="w-4 h-4" />,
-    allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante'],
+    allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica'],
     items: [
-      { path: '/solicitar-material', label: 'Solicitar Material', icon: <Send className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante'] },
-      { path: '/listar-solicitacoes', label: 'Solicitações', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante'] },
+      { path: '/solicitar-material', label: 'Solicitar Material', icon: <Send className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica'] },
+      { path: '/listar-solicitacoes', label: 'Solicitações', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica'] },
     ],
   },
   {
