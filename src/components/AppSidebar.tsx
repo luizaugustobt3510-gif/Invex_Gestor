@@ -121,6 +121,17 @@ const menuGroups: MenuGroup[] = [
     ],
   },
   {
+    label: 'Gestão de Pessoas',
+    icon: <Users className="w-4 h-4" />,
+    allowedRoles: ['superadm', 'admin', 'rh'],
+    items: [
+      { path: '/rh', label: 'Dashboard RH', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
+      { path: '/rh/colaboradores', label: 'Colaboradores', icon: <Users className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
+      { path: '/rh/ferias', label: 'Férias', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
+      { path: '/rh/atestados', label: 'Atestados', icon: <FileText className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
+    ],
+  },
+  {
     label: 'Administração',
     icon: <UserPlus className="w-4 h-4" />,
     allowedRoles: ['superadm', 'admin'],
