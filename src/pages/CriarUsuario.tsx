@@ -45,6 +45,10 @@ const CriarUsuario = () => {
         'admin': 'admin_empresa',
         'usuario almox': 'usuario_almox',
         'solicitante': 'solicitante',
+        'logistica': 'logistica',
+        'rh': 'rh',
+        'financeiro': 'financeiro',
+        'visualizador': 'visualizador',
       };
 
       const response = await fetch(
