@@ -71,7 +71,7 @@ const App = () => (
 
             
             <Route path="/qr-scanner" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'logistica']}>
                 <QRScanner />
               </RoleProtectedRoute>
             } />
