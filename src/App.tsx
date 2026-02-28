@@ -39,6 +39,10 @@ import DashboardRH from "./pages/rh/DashboardRH";
 import Colaboradores from "./pages/rh/Colaboradores";
 import Ferias from "./pages/rh/Ferias";
 import Atestados from "./pages/rh/Atestados";
+import Treinamentos from "./pages/rh/Treinamentos";
+import BancoDeHoras from "./pages/rh/BancoDeHoras";
+import Avaliacoes from "./pages/rh/Avaliacoes";
+import Indicadores from "./pages/rh/Indicadores";
 
 const queryClient = new QueryClient();
 
