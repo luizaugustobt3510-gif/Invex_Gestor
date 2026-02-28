@@ -39,6 +39,10 @@ import DashboardRH from "./pages/rh/DashboardRH";
 import Colaboradores from "./pages/rh/Colaboradores";
 import Ferias from "./pages/rh/Ferias";
 import Atestados from "./pages/rh/Atestados";
+import Treinamentos from "./pages/rh/Treinamentos";
+import BancoDeHoras from "./pages/rh/BancoDeHoras";
+import Avaliacoes from "./pages/rh/Avaliacoes";
+import Indicadores from "./pages/rh/Indicadores";
 
 const queryClient = new QueryClient();
 
@@ -218,6 +222,26 @@ const App = () => (
             <Route path="/rh/atestados" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
                 <Atestados />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/treinamentos" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <Treinamentos />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/banco-de-horas" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <BancoDeHoras />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/avaliacoes" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <Avaliacoes />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/indicadores" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <Indicadores />
               </RoleProtectedRoute>
             } />
             

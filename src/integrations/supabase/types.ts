@@ -300,6 +300,61 @@ export type Database = {
           },
         ]
       }
+      employee_trainings: {
+        Row: {
+          company_id: string
+          created_at: string
+          data_realizacao: string
+          data_validade: string | null
+          employee_id: string
+          id: string
+          status: string
+          training_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          data_realizacao: string
+          data_validade?: string | null
+          employee_id: string
+          id?: string
+          status?: string
+          training_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          data_realizacao?: string
+          data_validade?: string | null
+          employee_id?: string
+          id?: string
+          status?: string
+          training_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_trainings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_trainings_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_trainings_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: false
+            referencedRelation: "trainings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_vacations: {
         Row: {
           company_id: string
@@ -557,6 +612,51 @@ export type Database = {
             columns: ["material_id"]
             isOneToOne: false
             referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_evaluations: {
+        Row: {
+          avaliador_id: string
+          company_id: string
+          created_at: string
+          employee_id: string
+          id: string
+          nota: number
+          observacoes: string | null
+        }
+        Insert: {
+          avaliador_id: string
+          company_id: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          nota: number
+          observacoes?: string | null
+        }
+        Update: {
+          avaliador_id?: string
+          company_id?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          nota?: number
+          observacoes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_evaluations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_evaluations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
@@ -854,6 +954,104 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      time_records: {
+        Row: {
+          company_id: string
+          created_at: string
+          data: string
+          employee_id: string
+          entrada: string | null
+          horas_extras: number | null
+          horas_trabalhadas: number | null
+          id: string
+          obs: string | null
+          saida: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          data: string
+          employee_id: string
+          entrada?: string | null
+          horas_extras?: number | null
+          horas_trabalhadas?: number | null
+          id?: string
+          obs?: string | null
+          saida?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          data?: string
+          employee_id?: string
+          entrada?: string | null
+          horas_extras?: number | null
+          horas_trabalhadas?: number | null
+          id?: string
+          obs?: string | null
+          saida?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_records_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainings: {
+        Row: {
+          company_id: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          obrigatorio: boolean
+          periodicidade_meses: number | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          obrigatorio?: boolean
+          periodicidade_meses?: number | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          obrigatorio?: boolean
+          periodicidade_meses?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
