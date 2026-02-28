@@ -125,10 +125,14 @@ const menuGroups: MenuGroup[] = [
     icon: <Users className="w-4 h-4" />,
     allowedRoles: ['superadm', 'admin', 'rh'],
     items: [
-      { path: '/rh', label: 'Dashboard RH', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
+      { path: '/rh', label: 'Início RH', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
       { path: '/rh/colaboradores', label: 'Colaboradores', icon: <Users className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
       { path: '/rh/ferias', label: 'Férias', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
       { path: '/rh/atestados', label: 'Atestados', icon: <FileText className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
+      { path: '/rh/treinamentos', label: 'Treinamentos', icon: <Package className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
+      { path: '/rh/banco-de-horas', label: 'Banco de Horas', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
+      { path: '/rh/avaliacoes', label: 'Avaliações', icon: <ClipboardCheck className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
+      { path: '/rh/indicadores', label: 'Indicadores', icon: <TrendingUp className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
     ],
   },
   {

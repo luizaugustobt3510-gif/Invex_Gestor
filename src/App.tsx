@@ -224,6 +224,26 @@ const App = () => (
                 <Atestados />
               </RoleProtectedRoute>
             } />
+            <Route path="/rh/treinamentos" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <Treinamentos />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/banco-de-horas" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <BancoDeHoras />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/avaliacoes" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <Avaliacoes />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/indicadores" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+                <Indicadores />
+              </RoleProtectedRoute>
+            } />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
