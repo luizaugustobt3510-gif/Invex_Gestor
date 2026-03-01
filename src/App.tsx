@@ -203,44 +203,44 @@ const App = () => (
               </RoleProtectedRoute>
             } />
 
-            {/* Módulo RH */}
+            {/* Módulo RH — visualizador tem acesso somente leitura */}
             <Route path="/rh" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
                 <DashboardRH />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/colaboradores" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
                 <Colaboradores />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/ferias" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
                 <Ferias />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/atestados" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
                 <Atestados />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/treinamentos" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
                 <Treinamentos />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/banco-de-horas" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
                 <BancoDeHoras />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/avaliacoes" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
                 <Avaliacoes />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/indicadores" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
                 <Indicadores />
               </RoleProtectedRoute>
             } />
