@@ -18,6 +18,13 @@ export function MainLayout({ children, onExportReport, showExport = false, showQ
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Determine if current user is in RH module context
+  const isRHProfile = user?.role === 'rh' || user?.role === 'visualizador';
+
+  // Hide logistics buttons for RH/visualizador profiles
+  const canShowScanQR = showScanQR && !isRHProfile;
+  const canShowQRCode = showQRCode && !isRHProfile;
+
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background">
@@ -35,7 +42,7 @@ export function MainLayout({ children, onExportReport, showExport = false, showQ
             </div>
             
             <div className="flex items-center gap-2">
-              {showScanQR && (
+              {canShowScanQR && (
                 <Button 
                   onClick={() => navigate('/qr-scanner')}
                   size="sm"
@@ -46,7 +53,7 @@ export function MainLayout({ children, onExportReport, showExport = false, showQ
                   <span className="hidden sm:inline">Escanear</span>
                 </Button>
               )}
-              {showQRCode && (
+              {canShowQRCode && (
                 <Button 
                   onClick={() => navigate('/gerar-qrcode')}
                   size="sm"
