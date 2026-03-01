@@ -32,6 +32,10 @@ import {
   Users,
   Calendar,
   HeartPulse,
+  GraduationCap,
+  Clock,
+  Star,
+  BarChart3,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -69,7 +73,8 @@ interface MenuGroup {
   allowedRoles: UserRole[];
 }
 
-const menuGroups: MenuGroup[] = [
+// Logistics module groups
+const logisticsGroups: MenuGroup[] = [
   {
     label: 'Estoque',
     icon: <Package className="w-4 h-4" />,
@@ -120,21 +125,22 @@ const menuGroups: MenuGroup[] = [
       { path: '/listar-solicitacoes', label: 'Solicitações', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica'] },
     ],
   },
-  {
-    label: 'Gestão de Pessoas',
-    icon: <Users className="w-4 h-4" />,
-    allowedRoles: ['superadm', 'admin', 'rh'],
-    items: [
-      { path: '/rh', label: 'Início RH', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
-      { path: '/rh/colaboradores', label: 'Colaboradores', icon: <Users className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
-      { path: '/rh/ferias', label: 'Férias', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
-      { path: '/rh/atestados', label: 'Atestados', icon: <FileText className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
-      { path: '/rh/treinamentos', label: 'Treinamentos', icon: <Package className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
-      { path: '/rh/banco-de-horas', label: 'Banco de Horas', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
-      { path: '/rh/avaliacoes', label: 'Avaliações', icon: <ClipboardCheck className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
-      { path: '/rh/indicadores', label: 'Indicadores', icon: <TrendingUp className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh'] },
-    ],
-  },
+];
+
+// RH module groups — shown as flat menu items for RH users
+const rhMenuItems: MenuItem[] = [
+  { path: '/rh', label: 'Início RH', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
+  { path: '/rh/colaboradores', label: 'Colaboradores', icon: <Users className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
+  { path: '/rh/ferias', label: 'Férias', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
+  { path: '/rh/atestados', label: 'Atestados', icon: <FileText className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
+  { path: '/rh/treinamentos', label: 'Treinamentos', icon: <GraduationCap className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
+  { path: '/rh/banco-de-horas', label: 'Banco de Horas', icon: <Clock className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
+  { path: '/rh/avaliacoes', label: 'Avaliações', icon: <Star className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
+  { path: '/rh/indicadores', label: 'Indicadores', icon: <BarChart3 className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
+];
+
+// Admin groups
+const adminGroups: MenuGroup[] = [
   {
     label: 'Administração',
     icon: <UserPlus className="w-4 h-4" />,
@@ -172,8 +178,82 @@ export function AppSidebar() {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const visibleGroups = menuGroups.filter(group => hasPermission(group.allowedRoles));
-  const canSeeDashboard = hasPermission(['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador']);
+  // Determine which module the user belongs to
+  const isRHOnly = user?.role === 'rh' || user?.role === 'visualizador';
+  const isLogisticsUser = ['logistica', 'usuario almox', 'solicitante'].includes(user?.role || '');
+  const isAdminOrSuper = ['superadm', 'admin'].includes(user?.role || '');
+
+  // Build visible groups based on role isolation
+  const visibleGroups: MenuGroup[] = [];
+
+  // Logistics groups: only for logistics users, admin, superadm — NEVER for RH/visualizador
+  if (!isRHOnly) {
+    logisticsGroups.forEach(group => {
+      if (hasPermission(group.allowedRoles)) {
+        visibleGroups.push(group);
+      }
+    });
+  }
+
+  // Admin groups
+  adminGroups.forEach(group => {
+    if (hasPermission(group.allowedRoles)) {
+      visibleGroups.push(group);
+    }
+  });
+
+  // RH menu items: for RH, visualizador, admin, superadm
+  const showRHMenu = hasPermission(['superadm', 'admin', 'rh', 'visualizador']);
+  const visibleRHItems = showRHMenu ? rhMenuItems.filter(item => hasPermission(item.allowedRoles)) : [];
+
+  // Dashboard link: only for non-RH users
+  const showLogisticsDashboard = !isRHOnly && hasPermission(['superadm', 'admin', 'solicitante', 'logistica', 'usuario almox', 'financeiro']);
+
+  const renderGroup = (group: MenuGroup) => {
+    const visibleItems = group.items.filter(item => hasPermission(item.allowedRoles));
+    if (visibleItems.length === 0) return null;
+    const isGroupActive = visibleItems.some(item => isActive(item.path));
+
+    return (
+      <Collapsible key={group.label} defaultOpen={isGroupActive} className="group/collapsible">
+        <SidebarGroup>
+          <CollapsibleTrigger asChild>
+            <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent rounded-md transition-colors px-2 py-1.5 flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <div className="flex items-center gap-2">
+                {group.icon}
+                <span>{group.label}</span>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+            </SidebarGroupLabel>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {visibleItems.map((item) => (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton
+                      onClick={() => navigate(item.path)}
+                      isActive={isActive(item.path)}
+                      tooltip={item.label}
+                      className={cn(
+                        "w-full justify-start gap-3 pl-6 text-sm transition-colors",
+                        isActive(item.path) 
+                          ? "bg-primary/10 text-primary font-medium" 
+                          : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+                      )}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </CollapsibleContent>
+        </SidebarGroup>
+      </Collapsible>
+    );
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -184,7 +264,8 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        {canSeeDashboard && (
+        {/* Dashboard link — only for logistics/admin users */}
+        {showLogisticsDashboard && (
           <>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -206,52 +287,90 @@ export function AppSidebar() {
           </>
         )}
 
-        {visibleGroups.map((group) => {
-          const visibleItems = group.items.filter(item => hasPermission(item.allowedRoles));
-          if (visibleItems.length === 0) return null;
+        {/* Logistics groups */}
+        {visibleGroups.filter(g => logisticsGroups.includes(g) || !adminGroups.includes(g)).map(renderGroup)}
 
-          const isGroupActive = visibleItems.some(item => isActive(item.path));
-
-          return (
-            <Collapsible key={group.label} defaultOpen={isGroupActive} className="group/collapsible">
+        {/* RH Menu — flat items for RH/visualizador, collapsible for admin/superadm */}
+        {visibleRHItems.length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            {isRHOnly ? (
+              // Flat menu for RH-only users
               <SidebarGroup>
-                <CollapsibleTrigger asChild>
-                  <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent rounded-md transition-colors px-2 py-1.5 flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    <div className="flex items-center gap-2">
-                      {group.icon}
-                      <span>{group.label}</span>
-                    </div>
-                    <ChevronDown className="w-3.5 h-3.5 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                  </SidebarGroupLabel>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <SidebarGroupContent>
-                    <SidebarMenu>
-                      {visibleItems.map((item) => (
-                        <SidebarMenuItem key={item.path}>
-                          <SidebarMenuButton
-                            onClick={() => navigate(item.path)}
-                            isActive={isActive(item.path)}
-                            tooltip={item.label}
-                            className={cn(
-                              "w-full justify-start gap-3 pl-6 text-sm transition-colors",
-                              isActive(item.path) 
-                                ? "bg-primary/10 text-primary font-medium" 
-                                : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
-                            )}
-                          >
-                            {item.icon}
-                            <span>{item.label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </CollapsibleContent>
+                <SidebarGroupLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    <span>Gestão de Pessoas</span>
+                  </div>
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {visibleRHItems.map((item) => (
+                      <SidebarMenuItem key={item.path}>
+                        <SidebarMenuButton
+                          onClick={() => navigate(item.path)}
+                          isActive={isActive(item.path)}
+                          tooltip={item.label}
+                          className={cn(
+                            "w-full justify-start gap-3 pl-6 text-sm transition-colors",
+                            isActive(item.path) 
+                              ? "bg-primary/10 text-primary font-medium" 
+                              : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+                          )}
+                        >
+                          {item.icon}
+                          <span>{item.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
               </SidebarGroup>
-            </Collapsible>
-          );
-        })}
+            ) : (
+              // Collapsible for admin/superadm
+              <Collapsible defaultOpen={location.pathname.startsWith('/rh')} className="group/collapsible">
+                <SidebarGroup>
+                  <CollapsibleTrigger asChild>
+                    <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent rounded-md transition-colors px-2 py-1.5 flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        <span>Gestão de Pessoas</span>
+                      </div>
+                      <ChevronDown className="w-3.5 h-3.5 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                    </SidebarGroupLabel>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarGroupContent>
+                      <SidebarMenu>
+                        {visibleRHItems.map((item) => (
+                          <SidebarMenuItem key={item.path}>
+                            <SidebarMenuButton
+                              onClick={() => navigate(item.path)}
+                              isActive={isActive(item.path)}
+                              tooltip={item.label}
+                              className={cn(
+                                "w-full justify-start gap-3 pl-6 text-sm transition-colors",
+                                isActive(item.path) 
+                                  ? "bg-primary/10 text-primary font-medium" 
+                                  : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+                              )}
+                            >
+                              {item.icon}
+                              <span>{item.label}</span>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </CollapsibleContent>
+                </SidebarGroup>
+              </Collapsible>
+            )}
+          </>
+        )}
+
+        {/* Admin groups */}
+        {adminGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-sidebar-border">
