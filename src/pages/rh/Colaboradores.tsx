@@ -63,12 +63,13 @@ const Colaboradores = () => {
     setDialogOpen(true);
   };
 
-  const handleEdit = (emp: Employee) => {
+  const handleEdit = (emp: any) => {
     setEditingId(emp.id);
     setForm({
       nome: emp.nome,
       cpf: emp.cpf,
       cargo: emp.cargo,
+      departamento: emp.departamento || '',
       data_admissao: emp.data_admissao,
       salario: String(emp.salario),
       status: emp.status,
