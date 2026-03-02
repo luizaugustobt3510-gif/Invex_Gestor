@@ -24,7 +24,7 @@ interface Employee {
   status: string;
 }
 
-const emptyForm = { nome: '', cpf: '', cargo: '', data_admissao: '', salario: '', status: 'ativo' };
+const emptyForm = { nome: '', cpf: '', cargo: '', departamento: '', data_admissao: '', salario: '', status: 'ativo' };
 
 const Colaboradores = () => {
   const { toast } = useToast();
