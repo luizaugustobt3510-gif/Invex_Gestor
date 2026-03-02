@@ -24,7 +24,7 @@ interface Employee {
   status: string;
 }
 
-const emptyForm = { nome: '', cpf: '', cargo: '', data_admissao: '', salario: '', status: 'ativo' };
+const emptyForm = { nome: '', cpf: '', cargo: '', departamento: '', data_admissao: '', salario: '', status: 'ativo' };
 
 const Colaboradores = () => {
   const { toast } = useToast();
@@ -63,12 +63,13 @@ const Colaboradores = () => {
     setDialogOpen(true);
   };
 
-  const handleEdit = (emp: Employee) => {
+  const handleEdit = (emp: any) => {
     setEditingId(emp.id);
     setForm({
       nome: emp.nome,
       cpf: emp.cpf,
       cargo: emp.cargo,
+      departamento: emp.departamento || '',
       data_admissao: emp.data_admissao,
       salario: String(emp.salario),
       status: emp.status,
@@ -92,7 +93,7 @@ const Colaboradores = () => {
     if (editingId) {
       const { error } = await supabase
         .from('employees')
-        .update({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), data_admissao: form.data_admissao, salario, status: form.status })
+        .update({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, salario, status: form.status })
         .eq('id', editingId);
       if (error) {
         toast({ title: 'Erro', description: error.message, variant: 'destructive' });
@@ -111,7 +112,7 @@ const Colaboradores = () => {
 
       const { error } = await supabase
         .from('employees')
-        .insert({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), data_admissao: form.data_admissao, salario, status: form.status, company_id: companyId });
+        .insert({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, salario, status: form.status, company_id: companyId });
       if (error) {
         toast({ title: 'Erro', description: error.message, variant: 'destructive' });
       } else {
@@ -206,6 +207,10 @@ const Colaboradores = () => {
               <div className="space-y-2">
                 <Label>Cargo *</Label>
                 <Input value={form.cargo} onChange={e => setForm(p => ({ ...p, cargo: e.target.value }))} placeholder="Cargo" />
+              </div>
+              <div className="space-y-2">
+                <Label>Departamento / Setor</Label>
+                <Input value={form.departamento} onChange={e => setForm(p => ({ ...p, departamento: e.target.value }))} placeholder="Ex: Logística, Administrativo, Financeiro..." />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

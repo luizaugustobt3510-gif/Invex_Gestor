@@ -249,6 +249,60 @@ export type Database = {
           },
         ]
       }
+      employee_asos: {
+        Row: {
+          arquivo_url: string | null
+          company_id: string
+          created_at: string
+          data_realizacao: string
+          data_vencimento: string | null
+          employee_id: string
+          id: string
+          observacoes: string | null
+          status: string
+          tipo: string
+        }
+        Insert: {
+          arquivo_url?: string | null
+          company_id: string
+          created_at?: string
+          data_realizacao: string
+          data_vencimento?: string | null
+          employee_id: string
+          id?: string
+          observacoes?: string | null
+          status?: string
+          tipo?: string
+        }
+        Update: {
+          arquivo_url?: string | null
+          company_id?: string
+          created_at?: string
+          data_realizacao?: string
+          data_vencimento?: string | null
+          employee_id?: string
+          id?: string
+          observacoes?: string | null
+          status?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_asos_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_asos_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_certificates: {
         Row: {
           arquivo_url: string | null
@@ -419,6 +473,7 @@ export type Database = {
           cpf: string
           created_at: string
           data_admissao: string
+          departamento: string | null
           id: string
           nome: string
           salario: number
@@ -431,6 +486,7 @@ export type Database = {
           cpf: string
           created_at?: string
           data_admissao: string
+          departamento?: string | null
           id?: string
           nome: string
           salario?: number
@@ -443,6 +499,7 @@ export type Database = {
           cpf?: string
           created_at?: string
           data_admissao?: string
+          departamento?: string | null
           id?: string
           nome?: string
           salario?: number
