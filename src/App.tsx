@@ -245,6 +245,11 @@ const App = () => (
                 <Indicadores />
               </RoleProtectedRoute>
             } />
+            <Route path="/rh/aso" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
+                <ASOControl />
+              </RoleProtectedRoute>
+            } />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

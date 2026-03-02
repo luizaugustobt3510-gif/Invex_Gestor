@@ -208,6 +208,10 @@ const Colaboradores = () => {
                 <Label>Cargo *</Label>
                 <Input value={form.cargo} onChange={e => setForm(p => ({ ...p, cargo: e.target.value }))} placeholder="Cargo" />
               </div>
+              <div className="space-y-2">
+                <Label>Departamento / Setor</Label>
+                <Input value={form.departamento} onChange={e => setForm(p => ({ ...p, departamento: e.target.value }))} placeholder="Ex: Logística, Administrativo, Financeiro..." />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Data Admissão *</Label>
