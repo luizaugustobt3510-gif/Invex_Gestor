@@ -43,6 +43,7 @@ import Treinamentos from "./pages/rh/Treinamentos";
 import BancoDeHoras from "./pages/rh/BancoDeHoras";
 import Avaliacoes from "./pages/rh/Avaliacoes";
 import Indicadores from "./pages/rh/Indicadores";
+import ASOControl from "./pages/rh/ASOControl";
 
 const queryClient = new QueryClient();
 
