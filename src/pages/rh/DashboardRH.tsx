@@ -481,6 +481,13 @@ const DashboardRH = () => {
           )}
         </div>
       </div>
+
+      <DesligamentoDialog
+        open={desligOpen}
+        onOpenChange={setDesligOpen}
+        employee={desligEmployee}
+        onSuccess={loadData}
+      />
     </MainLayout>
   );
 };
