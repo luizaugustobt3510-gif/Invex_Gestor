@@ -256,6 +256,13 @@ const App = () => (
                 <ASOControl />
               </RoleProtectedRoute>
             } />
+
+            {/* Conferência de Temperatura — Logística */}
+            <Route path="/conferencia-temperatura" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'logistica']}>
+                <ConferenciaTemperatura />
+              </RoleProtectedRoute>
+            } />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
