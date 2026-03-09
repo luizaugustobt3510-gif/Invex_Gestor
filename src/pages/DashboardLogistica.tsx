@@ -72,6 +72,18 @@ const DashboardLogistica = () => {
           else { falta++; valorDiv += Math.abs(div) * Number(m.preco); }
         });
         setConcSummary({ ok, sobra, falta, semDado, valorDiv });
+
+        // Fetch today's temperature records
+        const hoje = new Date().toISOString().split('T')[0];
+        const { data: tempRecs } = await supabase
+          .from('temperature_records')
+          .select('local')
+          .eq('data', hoje);
+        const ts: Record<string, boolean> = {};
+        ['almoxarifado', 'armario_medicamentos'].forEach(l => {
+          ts[l] = (tempRecs || []).some((r: any) => r.local === l);
+        });
+        setTempStatus(ts);
       } catch { /* silent */ }
     };
     fetchConciliation();
