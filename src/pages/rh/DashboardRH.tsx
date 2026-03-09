@@ -427,7 +427,9 @@ const DashboardRH = () => {
                               <DropdownMenuItem onClick={() => navigate('/rh/avaliacoes')}>Avaliar desempenho</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => navigate('/rh/banco-de-horas')}>Ajustar banco de horas</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => navigate('/rh/aso')}>Visualizar ASO</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate('/rh/colaboradores')}>Registrar desligamento</DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onClick={() => { setDesligEmployee({ id: emp.id, nome: emp.nome }); setDesligOpen(true); }}>
+                                <UserMinus className="w-4 h-4 mr-2" /> Registrar desligamento
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
