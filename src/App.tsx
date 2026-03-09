@@ -44,7 +44,8 @@ import BancoDeHoras from "./pages/rh/BancoDeHoras";
 import Avaliacoes from "./pages/rh/Avaliacoes";
 import Indicadores from "./pages/rh/Indicadores";
 import ASOControl from "./pages/rh/ASOControl";
-
+import GestaoUsuarios from "./pages/GestaoUsuarios";
+import ConferenciaTemperatura from "./pages/logistica/ConferenciaTemperatura";
 const queryClient = new QueryClient();
 
 const App = () => (
