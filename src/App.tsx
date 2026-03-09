@@ -172,6 +172,11 @@ const App = () => (
                 <GestaoEmpresas />
               </RoleProtectedRoute>
             } />
+            <Route path="/gestao-usuarios" element={
+              <RoleProtectedRoute allowedRoles={['superadm']}>
+                <GestaoUsuarios />
+              </RoleProtectedRoute>
+            } />
             <Route path="/gestao-modulos" element={
               <RoleProtectedRoute allowedRoles={['superadm']}>
                 <GestaoModulos />
