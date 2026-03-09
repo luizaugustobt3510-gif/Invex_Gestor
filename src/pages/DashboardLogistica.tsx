@@ -206,6 +206,26 @@ const DashboardLogistica = () => {
             </Card>
           )}
 
+          {/* Temperature Check Status */}
+          <Card className="border-2 border-border cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/conferencia-temperatura')}>
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-full bg-primary/10">
+                <Thermometer className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-sm font-bold text-foreground mb-1">Conferências do dia</h2>
+                <div className="flex flex-wrap gap-3 text-sm">
+                  <span className={tempStatus['almoxarifado'] ? 'text-emerald-600' : 'text-destructive'}>
+                    {tempStatus['almoxarifado'] ? '✔' : '❌'} Almoxarifado
+                  </span>
+                  <span className={tempStatus['armario_medicamentos'] ? 'text-emerald-600' : 'text-destructive'}>
+                    {tempStatus['armario_medicamentos'] ? '✔' : '❌'} Armário Medicamentos
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Stats Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter(statusFilter === "OK" ? null : "OK")}>
