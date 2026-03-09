@@ -126,6 +126,14 @@ const logisticsGroups: MenuGroup[] = [
       { path: '/listar-solicitacoes', label: 'Solicitações', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica'] },
     ],
   },
+  {
+    label: 'Conferência',
+    icon: <Thermometer className="w-4 h-4" />,
+    allowedRoles: ['superadm', 'admin', 'logistica', 'usuario almox'],
+    items: [
+      { path: '/conferencia-temperatura', label: 'Controle Temperatura', icon: <Thermometer className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'logistica', 'usuario almox'] },
+    ],
+  },
 ];
 
 // RH module groups — shown as flat menu items for RH users
