@@ -37,20 +37,6 @@ import {
   Star,
   BarChart3,
   Thermometer,
-  CreditCard,
-  Settings,
-  ScrollText,
-  Download,
-  Shield,
-  User,
-  AlertTriangle,
-  Users,
-  Calendar,
-  HeartPulse,
-  GraduationCap,
-  Clock,
-  Star,
-  BarChart3,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
