@@ -25,6 +25,7 @@ const DashboardLogistica = () => {
 
   // Conciliation summary
   const [concSummary, setConcSummary] = useState({ ok: 0, sobra: 0, falta: 0, semDado: 0, valorDiv: 0 });
+  const [tempStatus, setTempStatus] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const fetchConciliation = async () => {
