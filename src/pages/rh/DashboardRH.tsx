@@ -43,6 +43,8 @@ const DashboardRH = () => {
   const [trainingAlerts, setTrainingAlerts] = useState<Set<string>>(new Set());
   const [asoAlerts, setAsoAlerts] = useState<Map<string, string>>(new Map()); // empId -> 'vencido' | 'proximo'
   const [hoursAlerts, setHoursAlerts] = useState<Map<string, number>>(new Map());
+  const [desligOpen, setDesligOpen] = useState(false);
+  const [desligEmployee, setDesligEmployee] = useState<{ id: string; nome: string } | null>(null);
 
   useEffect(() => { loadData(); }, []);
 
