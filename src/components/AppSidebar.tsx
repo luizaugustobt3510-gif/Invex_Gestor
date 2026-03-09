@@ -36,6 +36,7 @@ import {
   Clock,
   Star,
   BarChart3,
+  Thermometer,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -125,6 +126,14 @@ const logisticsGroups: MenuGroup[] = [
       { path: '/listar-solicitacoes', label: 'Solicitações', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica'] },
     ],
   },
+  {
+    label: 'Conferência',
+    icon: <Thermometer className="w-4 h-4" />,
+    allowedRoles: ['superadm', 'admin', 'logistica', 'usuario almox'],
+    items: [
+      { path: '/conferencia-temperatura', label: 'Controle Temperatura', icon: <Thermometer className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'logistica', 'usuario almox'] },
+    ],
+  },
 ];
 
 // RH module groups — shown as flat menu items for RH users
@@ -157,6 +166,7 @@ const adminGroups: MenuGroup[] = [
     allowedRoles: ['superadm'],
     items: [
       { path: '/gestao-empresas', label: 'Empresas', icon: <Building className="w-4 h-4" />, allowedRoles: ['superadm'] },
+      { path: '/gestao-usuarios', label: 'Usuários', icon: <Users className="w-4 h-4" />, allowedRoles: ['superadm'] },
       { path: '/gestao-modulos', label: 'Módulos', icon: <Puzzle className="w-4 h-4" />, allowedRoles: ['superadm'] },
       { path: '/gestao-planos', label: 'Planos e Limites', icon: <CreditCard className="w-4 h-4" />, allowedRoles: ['superadm'] },
       { path: '/config-sistema', label: 'Configurações', icon: <Settings className="w-4 h-4" />, allowedRoles: ['superadm'] },

@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Users, Calendar, AlertTriangle, TrendingDown, Clock, Search, MoreVertical, DollarSign, GraduationCap, Star, HeartPulse, Filter } from 'lucide-react';
+import { Users, Calendar, AlertTriangle, TrendingDown, Clock, Search, MoreVertical, DollarSign, GraduationCap, Star, HeartPulse, Filter, UserMinus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { DesligamentoDialog } from './DesligamentoDialog';
 import * as XLSX from 'xlsx';
 
 const notaEmoji: Record<number, string> = { 1: '😞', 2: '😐', 3: '🙂', 4: '😃' };
@@ -42,6 +43,8 @@ const DashboardRH = () => {
   const [trainingAlerts, setTrainingAlerts] = useState<Set<string>>(new Set());
   const [asoAlerts, setAsoAlerts] = useState<Map<string, string>>(new Map()); // empId -> 'vencido' | 'proximo'
   const [hoursAlerts, setHoursAlerts] = useState<Map<string, number>>(new Map());
+  const [desligOpen, setDesligOpen] = useState(false);
+  const [desligEmployee, setDesligEmployee] = useState<{ id: string; nome: string } | null>(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -424,7 +427,9 @@ const DashboardRH = () => {
                               <DropdownMenuItem onClick={() => navigate('/rh/avaliacoes')}>Avaliar desempenho</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => navigate('/rh/banco-de-horas')}>Ajustar banco de horas</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => navigate('/rh/aso')}>Visualizar ASO</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate('/rh/colaboradores')}>Registrar desligamento</DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onClick={() => { setDesligEmployee({ id: emp.id, nome: emp.nome }); setDesligOpen(true); }}>
+                                <UserMinus className="w-4 h-4 mr-2" /> Registrar desligamento
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
@@ -476,6 +481,13 @@ const DashboardRH = () => {
           )}
         </div>
       </div>
+
+      <DesligamentoDialog
+        open={desligOpen}
+        onOpenChange={setDesligOpen}
+        employee={desligEmployee}
+        onSuccess={loadData}
+      />
     </MainLayout>
   );
 };

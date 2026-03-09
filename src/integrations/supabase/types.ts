@@ -1012,6 +1012,65 @@ export type Database = {
         }
         Relationships: []
       }
+      temperature_records: {
+        Row: {
+          company_id: string
+          created_at: string
+          data: string
+          hora: string
+          id: string
+          local: string
+          responsavel_id: string
+          responsavel_nome: string
+          temperatura_atual: number
+          temperatura_max: number
+          temperatura_min: number
+          umidade_atual: number
+          umidade_max: number
+          umidade_min: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          data?: string
+          hora?: string
+          id?: string
+          local: string
+          responsavel_id: string
+          responsavel_nome: string
+          temperatura_atual: number
+          temperatura_max: number
+          temperatura_min: number
+          umidade_atual: number
+          umidade_max: number
+          umidade_min: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          data?: string
+          hora?: string
+          id?: string
+          local?: string
+          responsavel_id?: string
+          responsavel_nome?: string
+          temperatura_atual?: number
+          temperatura_max?: number
+          temperatura_min?: number
+          umidade_atual?: number
+          umidade_max?: number
+          umidade_min?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "temperature_records_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       time_records: {
         Row: {
           company_id: string

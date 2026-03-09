@@ -44,7 +44,8 @@ import BancoDeHoras from "./pages/rh/BancoDeHoras";
 import Avaliacoes from "./pages/rh/Avaliacoes";
 import Indicadores from "./pages/rh/Indicadores";
 import ASOControl from "./pages/rh/ASOControl";
-
+import GestaoUsuarios from "./pages/GestaoUsuarios";
+import ConferenciaTemperatura from "./pages/logistica/ConferenciaTemperatura";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -171,6 +172,11 @@ const App = () => (
                 <GestaoEmpresas />
               </RoleProtectedRoute>
             } />
+            <Route path="/gestao-usuarios" element={
+              <RoleProtectedRoute allowedRoles={['superadm']}>
+                <GestaoUsuarios />
+              </RoleProtectedRoute>
+            } />
             <Route path="/gestao-modulos" element={
               <RoleProtectedRoute allowedRoles={['superadm']}>
                 <GestaoModulos />
@@ -248,6 +254,13 @@ const App = () => (
             <Route path="/rh/aso" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
                 <ASOControl />
+              </RoleProtectedRoute>
+            } />
+
+            {/* Conferência de Temperatura — Logística */}
+            <Route path="/conferencia-temperatura" element={
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'logistica']}>
+                <ConferenciaTemperatura />
               </RoleProtectedRoute>
             } />
             
