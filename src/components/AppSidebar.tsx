@@ -214,8 +214,8 @@ export function AppSidebar() {
     }
   });
 
-  // RH menu items: for RH, visualizador, admin, superadm
-  const showRHMenu = hasPermission(['superadm', 'admin', 'rh', 'visualizador']);
+  // RH menu items: for RH, visualizador, admin — NOT for superadm (superadm sees only platform management)
+  const showRHMenu = !isSuperAdmin && hasPermission(['superadm', 'admin', 'rh', 'visualizador']);
   const visibleRHItems = showRHMenu ? rhMenuItems.filter(item => hasPermission(item.allowedRoles)) : [];
 
   // Dashboard link: only for non-RH users
