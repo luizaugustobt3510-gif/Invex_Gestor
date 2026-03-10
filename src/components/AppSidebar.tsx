@@ -276,22 +276,22 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        {/* Dashboard link — only for logistics/admin users */}
-        {showLogisticsDashboard && (
+        {/* Dashboard link — for logistics/admin or superadm */}
+        {(showLogisticsDashboard || isSuperAdmin) && (
           <>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => navigate('/')}
                   isActive={isActive('/')}
-                  tooltip="Dashboard"
+                  tooltip={isSuperAdmin ? "Painel SuperAdmin" : "Dashboard"}
                   className={cn(
                     "w-full justify-start gap-3 font-medium transition-colors",
                     isActive('/') && "bg-primary/10 text-primary"
                   )}
                 >
-                  <LayoutDashboard className="w-4 h-4" />
-                  <span>Dashboard</span>
+                  {isSuperAdmin ? <Shield className="w-4 h-4" /> : <LayoutDashboard className="w-4 h-4" />}
+                  <span>{isSuperAdmin ? 'Painel SuperAdmin' : 'Dashboard'}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
