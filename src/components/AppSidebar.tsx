@@ -191,6 +191,7 @@ export function AppSidebar() {
 
   // Determine which module the user belongs to
   const isRHOnly = user?.role === 'rh' || user?.role === 'visualizador';
+  const isSuperAdmin = user?.role === 'superadm';
   const isLogisticsUser = ['logistica', 'usuario almox', 'solicitante'].includes(user?.role || '');
   const isAdminOrSuper = ['superadm', 'admin'].includes(user?.role || '');
 
