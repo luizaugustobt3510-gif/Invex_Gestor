@@ -198,8 +198,8 @@ export function AppSidebar() {
   // Build visible groups based on role isolation
   const visibleGroups: MenuGroup[] = [];
 
-  // Logistics groups: only for logistics users, admin, superadm — NEVER for RH/visualizador
-  if (!isRHOnly) {
+  // Logistics groups: only for logistics users, admin — NEVER for RH/visualizador/superadm
+  if (!isRHOnly && !isSuperAdmin) {
     logisticsGroups.forEach(group => {
       if (hasPermission(group.allowedRoles)) {
         visibleGroups.push(group);
