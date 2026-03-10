@@ -1,17 +1,20 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import DashboardLogistica from "./DashboardLogistica";
+import DashboardSuperAdmin from "./DashboardSuperAdmin";
 
 const Index = () => {
   const { user } = useAuth();
 
   if (!user) return <Navigate to="/login" replace />;
 
-  // Role-based routing: RH goes to /rh, visualizador goes to /rh (read-only)
-  if (user.role === 'rh') return <Navigate to="/rh" replace />;
-  if (user.role === 'visualizador') return <Navigate to="/rh" replace />;
+  // SuperAdmin → painel de gestão da plataforma (sem dashboards operacionais)
+  if (user.role === 'superadm') return <DashboardSuperAdmin />;
 
-  // Logística, admin, superadm, etc → Logistics dashboard
+  // RH / Visualizador → Dashboard RH
+  if (user.role === 'rh' || user.role === 'visualizador') return <Navigate to="/rh" replace />;
+
+  // Logística, admin, etc → Logistics dashboard
   return <DashboardLogistica />;
 };
 

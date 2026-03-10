@@ -191,14 +191,15 @@ export function AppSidebar() {
 
   // Determine which module the user belongs to
   const isRHOnly = user?.role === 'rh' || user?.role === 'visualizador';
+  const isSuperAdmin = user?.role === 'superadm';
   const isLogisticsUser = ['logistica', 'usuario almox', 'solicitante'].includes(user?.role || '');
   const isAdminOrSuper = ['superadm', 'admin'].includes(user?.role || '');
 
   // Build visible groups based on role isolation
   const visibleGroups: MenuGroup[] = [];
 
-  // Logistics groups: only for logistics users, admin, superadm — NEVER for RH/visualizador
-  if (!isRHOnly) {
+  // Logistics groups: only for logistics users, admin — NEVER for RH/visualizador/superadm
+  if (!isRHOnly && !isSuperAdmin) {
     logisticsGroups.forEach(group => {
       if (hasPermission(group.allowedRoles)) {
         visibleGroups.push(group);
@@ -213,12 +214,12 @@ export function AppSidebar() {
     }
   });
 
-  // RH menu items: for RH, visualizador, admin, superadm
-  const showRHMenu = hasPermission(['superadm', 'admin', 'rh', 'visualizador']);
+  // RH menu items: for RH, visualizador, admin — NOT for superadm (superadm sees only platform management)
+  const showRHMenu = !isSuperAdmin && hasPermission(['superadm', 'admin', 'rh', 'visualizador']);
   const visibleRHItems = showRHMenu ? rhMenuItems.filter(item => hasPermission(item.allowedRoles)) : [];
 
-  // Dashboard link: only for non-RH users
-  const showLogisticsDashboard = !isRHOnly && hasPermission(['superadm', 'admin', 'solicitante', 'logistica', 'usuario almox', 'financeiro']);
+  // Dashboard link: only for non-RH, non-superadm users
+  const showLogisticsDashboard = !isRHOnly && !isSuperAdmin && hasPermission(['superadm', 'admin', 'solicitante', 'logistica', 'usuario almox', 'financeiro']);
 
   const renderGroup = (group: MenuGroup) => {
     const visibleItems = group.items.filter(item => hasPermission(item.allowedRoles));
@@ -275,22 +276,22 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        {/* Dashboard link — only for logistics/admin users */}
-        {showLogisticsDashboard && (
+        {/* Dashboard link — for logistics/admin or superadm */}
+        {(showLogisticsDashboard || isSuperAdmin) && (
           <>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => navigate('/')}
                   isActive={isActive('/')}
-                  tooltip="Dashboard"
+                  tooltip={isSuperAdmin ? "Painel SuperAdmin" : "Dashboard"}
                   className={cn(
                     "w-full justify-start gap-3 font-medium transition-colors",
                     isActive('/') && "bg-primary/10 text-primary"
                   )}
                 >
-                  <LayoutDashboard className="w-4 h-4" />
-                  <span>Dashboard</span>
+                  {isSuperAdmin ? <Shield className="w-4 h-4" /> : <LayoutDashboard className="w-4 h-4" />}
+                  <span>{isSuperAdmin ? 'Painel SuperAdmin' : 'Dashboard'}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

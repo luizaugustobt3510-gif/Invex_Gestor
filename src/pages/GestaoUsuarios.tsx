@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/MainLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Search, MoreVertical, UserPlus, Save, Shield } from 'lucide-react';
+import { Users, Search, MoreVertical, UserPlus, Save, Shield, Building, Puzzle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -23,6 +24,11 @@ interface UserRow {
   created_at: string;
 }
 
+interface Company {
+  id: string;
+  name: string;
+}
+
 const roleLabels: Record<string, string> = {
   super_admin: 'SuperAdmin',
   admin_empresa: 'Admin Empresa',
@@ -34,30 +40,46 @@ const roleLabels: Record<string, string> = {
   visualizador: 'Convidado',
 };
 
+const ALL_MODULES = [
+  { key: 'estoque', label: 'Estoque' },
+  { key: 'rh_module', label: 'RH' },
+  { key: 'financeiro_module', label: 'Financeiro' },
+  { key: 'relatorios', label: 'Relatórios' },
+  { key: 'ordens_compra', label: 'Compras' },
+];
+
 const GestaoUsuarios = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [editUser, setEditUser] = useState<UserRow | null>(null);
   const [editRole, setEditRole] = useState('');
+  const [editCompanyId, setEditCompanyId] = useState('');
   const [editOpen, setEditOpen] = useState(false);
+  const [modulesOpen, setModulesOpen] = useState(false);
+  const [modulesUser, setModulesUser] = useState<UserRow | null>(null);
+  const [userModules, setUserModules] = useState<Record<string, boolean>>({});
   const [createOpen, setCreateOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
-  const [formData, setFormData] = useState({ email: '', senha: '', nome: '', role: '' });
+  const [formData, setFormData] = useState({ email: '', senha: '', nome: '', role: '', company_id: '' });
 
-  useEffect(() => { loadUsers(); }, []);
+  useEffect(() => { loadData(); }, []);
 
-  const loadUsers = async () => {
+  const loadData = async () => {
     try {
-      const { data: roles } = await supabase.from('user_roles').select('user_id, role, company_id, created_at');
-      const { data: profiles } = await supabase.from('profiles').select('user_id, nome, email, company_id');
-      const { data: companies } = await supabase.from('companies').select('id, name');
+      const [rolesRes, profilesRes, companiesRes] = await Promise.all([
+        supabase.from('user_roles').select('user_id, role, company_id, created_at'),
+        supabase.from('profiles').select('user_id, nome, email, company_id'),
+        supabase.from('companies').select('id, name').order('name'),
+      ]);
 
-      const compMap = new Map((companies || []).map(c => [c.id, c.name]));
-      const profMap = new Map((profiles || []).map(p => [p.user_id, p]));
+      setCompanies(companiesRes.data || []);
+      const compMap = new Map((companiesRes.data || []).map(c => [c.id, c.name]));
+      const profMap = new Map((profilesRes.data || []).map(p => [p.user_id, p]));
 
-      const merged: UserRow[] = (roles || []).map(r => {
+      const merged: UserRow[] = (rolesRes.data || []).map(r => {
         const prof = profMap.get(r.user_id);
         return {
           user_id: r.user_id,
@@ -78,30 +100,38 @@ const GestaoUsuarios = () => {
     }
   };
 
-  const handleEditRole = async () => {
+  const handleEditSave = async () => {
     if (!editUser || !editRole) return;
     try {
+      const updates: any = { role: editRole };
+      if (editCompanyId) updates.company_id = editCompanyId;
+
       const { error } = await supabase
         .from('user_roles')
-        .update({ role: editRole as any })
+        .update(updates)
         .eq('user_id', editUser.user_id);
       if (error) throw error;
+
+      // Update profile company_id too
+      if (editCompanyId) {
+        await supabase.from('profiles').update({ company_id: editCompanyId }).eq('user_id', editUser.user_id);
+      }
 
       // Audit log
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase.from('audit_log').insert({
           user_id: user.id,
-          action: 'update_role',
+          action: 'update_user',
           entity_type: 'user',
           entity_id: editUser.user_id,
-          details: { old_role: editUser.role, new_role: editRole, target_email: editUser.email },
+          details: { old_role: editUser.role, new_role: editRole, company_id: editCompanyId, target_email: editUser.email },
         });
       }
 
-      toast({ title: 'Perfil atualizado com sucesso!' });
+      toast({ title: 'Usuário atualizado com sucesso!' });
       setEditOpen(false);
-      loadUsers();
+      loadData();
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' });
     }
@@ -110,7 +140,6 @@ const GestaoUsuarios = () => {
   const handleDeleteUser = async (u: UserRow) => {
     if (!confirm(`Tem certeza que deseja deletar o usuário ${u.nome}?`)) return;
     try {
-      // Delete role, profile will cascade or remain
       await supabase.from('user_roles').delete().eq('user_id', u.user_id);
       await supabase.from('profiles').delete().eq('user_id', u.user_id);
 
@@ -126,17 +155,55 @@ const GestaoUsuarios = () => {
       }
 
       toast({ title: 'Usuário removido.' });
-      loadUsers();
+      loadData();
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' });
     }
   };
 
+  const openModulesDialog = async (u: UserRow) => {
+    setModulesUser(u);
+    // Load company modules for user's company
+    if (u.company_id) {
+      const { data } = await supabase
+        .from('company_modules')
+        .select('module_key, is_active')
+        .eq('company_id', u.company_id);
+      const state: Record<string, boolean> = {};
+      ALL_MODULES.forEach(m => { state[m.key] = true; });
+      (data || []).forEach(d => { state[d.module_key] = d.is_active; });
+      setUserModules(state);
+    } else {
+      const state: Record<string, boolean> = {};
+      ALL_MODULES.forEach(m => { state[m.key] = true; });
+      setUserModules(state);
+    }
+    setModulesOpen(true);
+  };
+
+  const toggleModule = async (moduleKey: string, active: boolean) => {
+    if (!modulesUser?.company_id) return;
+    setUserModules(prev => ({ ...prev, [moduleKey]: active }));
+    try {
+      const { error } = await supabase
+        .from('company_modules')
+        .upsert(
+          { company_id: modulesUser.company_id, module_key: moduleKey, is_active: active },
+          { onConflict: 'company_id,module_key' }
+        );
+      if (error) throw error;
+      toast({ title: active ? 'Módulo ativado' : 'Módulo desativado' });
+    } catch {
+      setUserModules(prev => ({ ...prev, [moduleKey]: !active }));
+      toast({ title: 'Erro ao atualizar módulo', variant: 'destructive' });
+    }
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { email, senha, nome, role } = formData;
+    const { email, senha, nome, role, company_id } = formData;
     if (!email || !senha || !nome || !role) {
-      toast({ title: 'Preencha todos os campos.', variant: 'destructive' });
+      toast({ title: 'Preencha todos os campos obrigatórios.', variant: 'destructive' });
       return;
     }
 
@@ -151,16 +218,22 @@ const GestaoUsuarios = () => {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ email: email.trim().toLowerCase(), password: senha.trim(), nome: nome.trim(), role }),
+          body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            password: senha.trim(),
+            nome: nome.trim(),
+            role,
+            company_id: company_id || undefined,
+          }),
         }
       );
       const result = await response.json();
 
       if (result.ok || result.success) {
         toast({ title: 'Usuário criado com sucesso!' });
-        setFormData({ email: '', senha: '', nome: '', role: '' });
+        setFormData({ email: '', senha: '', nome: '', role: '', company_id: '' });
         setCreateOpen(false);
-        loadUsers();
+        loadData();
       } else {
         toast({ title: 'Erro', description: result.error || result.msg, variant: 'destructive' });
       }
@@ -201,6 +274,17 @@ const GestaoUsuarios = () => {
                 <div className="space-y-2">
                   <Label>Senha *</Label>
                   <Input type="password" value={formData.senha} onChange={e => setFormData(p => ({ ...p, senha: e.target.value }))} placeholder="Senha" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Empresa</Label>
+                  <Select value={formData.company_id} onValueChange={v => setFormData(p => ({ ...p, company_id: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Vincular a uma empresa" /></SelectTrigger>
+                    <SelectContent>
+                      {companies.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Perfil *</Label>
@@ -253,7 +337,12 @@ const GestaoUsuarios = () => {
                       <TableRow key={u.user_id}>
                         <TableCell className="font-medium">{u.nome}</TableCell>
                         <TableCell className="text-muted-foreground text-sm">{u.email}</TableCell>
-                        <TableCell className="text-sm">{u.company_name || '—'}</TableCell>
+                        <TableCell className="text-sm">
+                          <div className="flex items-center gap-1">
+                            <Building className="w-3.5 h-3.5 text-muted-foreground" />
+                            {u.company_name || '—'}
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
                             {roleLabels[u.role] || u.role}
@@ -273,9 +362,13 @@ const GestaoUsuarios = () => {
                               <DropdownMenuItem onClick={() => {
                                 setEditUser(u);
                                 setEditRole(u.role);
+                                setEditCompanyId(u.company_id || '');
                                 setEditOpen(true);
                               }}>
-                                Alterar perfil
+                                Editar perfil / empresa
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openModulesDialog(u)}>
+                                <Puzzle className="w-4 h-4 mr-2" /> Módulos de acesso
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-destructive"
@@ -302,14 +395,25 @@ const GestaoUsuarios = () => {
           </CardContent>
         </Card>
 
-        {/* Edit Role Dialog */}
+        {/* Edit User Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent>
-            <DialogHeader><DialogTitle>Alterar Perfil — {editUser?.nome}</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Editar Usuário — {editUser?.nome}</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">{editUser?.email}</p>
               <div className="space-y-2">
-                <Label>Novo Perfil</Label>
+                <Label>Empresa</Label>
+                <Select value={editCompanyId} onValueChange={setEditCompanyId}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar empresa" /></SelectTrigger>
+                  <SelectContent>
+                    {companies.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Perfil</Label>
                 <Select value={editRole} onValueChange={setEditRole}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -319,7 +423,34 @@ const GestaoUsuarios = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleEditRole} className="w-full">Salvar Alteração</Button>
+              <Button onClick={handleEditSave} className="w-full">Salvar Alterações</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modules Dialog */}
+        <Dialog open={modulesOpen} onOpenChange={setModulesOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Puzzle className="w-5 h-5" /> Módulos — {modulesUser?.nome}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground mb-4">
+                {modulesUser?.company_id
+                  ? 'Ative ou desative módulos para a empresa deste usuário.'
+                  : 'Usuário sem empresa vinculada. Vincule primeiro.'}
+              </p>
+              {modulesUser?.company_id && ALL_MODULES.map(mod => (
+                <div key={mod.key} className="flex items-center justify-between rounded-lg border p-3">
+                  <span className="text-sm font-medium">{mod.label}</span>
+                  <Switch
+                    checked={userModules[mod.key] ?? true}
+                    onCheckedChange={(checked) => toggleModule(mod.key, checked)}
+                  />
+                </div>
+              ))}
             </div>
           </DialogContent>
         </Dialog>

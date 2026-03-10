@@ -90,8 +90,7 @@ const Login = () => {
               <InvexLogo size="lg" />
             </div>
           <div>
-            <CardTitle className="text-2xl font-bold text-foreground">Bem-vindo ao Invex</CardTitle>
-            <CardDescription className="text-base mt-2">Sistema de Gestão Inteligente</CardDescription>
+            <CardDescription className="text-base mt-2">Faça login para continuar</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
