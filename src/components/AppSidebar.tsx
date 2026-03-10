@@ -218,8 +218,8 @@ export function AppSidebar() {
   const showRHMenu = !isSuperAdmin && hasPermission(['superadm', 'admin', 'rh', 'visualizador']);
   const visibleRHItems = showRHMenu ? rhMenuItems.filter(item => hasPermission(item.allowedRoles)) : [];
 
-  // Dashboard link: only for non-RH users
-  const showLogisticsDashboard = !isRHOnly && hasPermission(['superadm', 'admin', 'solicitante', 'logistica', 'usuario almox', 'financeiro']);
+  // Dashboard link: only for non-RH, non-superadm users
+  const showLogisticsDashboard = !isRHOnly && !isSuperAdmin && hasPermission(['superadm', 'admin', 'solicitante', 'logistica', 'usuario almox', 'financeiro']);
 
   const renderGroup = (group: MenuGroup) => {
     const visibleItems = group.items.filter(item => hasPermission(item.allowedRoles));
