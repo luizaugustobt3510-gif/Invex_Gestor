@@ -19,6 +19,7 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
   const [minimo, setMinimo] = useState('');
   const [maximo, setMaximo] = useState('');
   const [quantidade, setQuantidade] = useState('');
+  const [unidade, setUnidade] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
       setMinimo(String(item.minimo));
       setMaximo(String(item.maximo));
       setQuantidade(String(item.quantidade));
+      setUnidade(item.unidade || 'UNIDADE');
     }
   }, [item]);
 
@@ -52,8 +54,21 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
           minimo: numMin,
           maximo: numMax,
           quantidade: numQtd,
+          unidade: unidade.trim() || 'UNIDADE',
         })
         .eq('id', item.id);
+
+      // Audit log
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('audit_log').insert({
+          user_id: user.id,
+          action: 'update_material',
+          entity_type: 'material',
+          entity_id: item.id,
+          details: { codigo: item.codigo, changes: { material: material.trim(), minimo: numMin, maximo: numMax, quantidade: numQtd, unidade: unidade.trim() } },
+        });
+      }
 
       if (error) throw error;
 
@@ -78,6 +93,10 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
             <div className="space-y-2">
               <Label>Nome do Material</Label>
               <Input value={material} onChange={(e) => setMaterial(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Unidade</Label>
+              <Input value={unidade} onChange={(e) => setUnidade(e.target.value)} placeholder="UNIDADE" />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-2">

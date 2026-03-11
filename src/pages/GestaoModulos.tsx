@@ -9,17 +9,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Puzzle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const ALL_MODULES = [
-  { key: 'estoque', label: 'Estoque' },
-  { key: 'conciliacao', label: 'Conciliação' },
-  { key: 'importacao_materiais', label: 'Importação de Materiais' },
-  { key: 'importacao_saidas', label: 'Importação de Saídas' },
-  { key: 'importacao_saldo', label: 'Importação de Saldo do Sistema' },
-  { key: 'relatorios', label: 'Relatórios' },
-  { key: 'dashboard_avancado', label: 'Dashboard Avançado' },
-  { key: 'ordens_compra', label: 'Ordens de Compra' },
-  { key: 'solicitacoes', label: 'Solicitações' },
-  { key: 'recontagem', label: 'Recontagem' },
+const COMPANY_MODULES = [
+  { key: 'logistica', label: 'Logística', description: 'Estoque, conferência, ordens de compra, importações' },
+  { key: 'rh_module', label: 'RH', description: 'Gestão de pessoas, férias, ASO, treinamentos' },
+  { key: 'financeiro_module', label: 'Financeiro', description: 'Controle financeiro e orçamentário' },
+  { key: 'compras', label: 'Compras', description: 'Ordens de compra e solicitações' },
+  { key: 'relatorios', label: 'Relatórios', description: 'Relatórios gerenciais e exportações' },
 ];
 
 interface Company {
@@ -57,7 +52,7 @@ const GestaoModulos = () => {
         .eq('company_id', selectedCompany);
 
       const state: ModuleState = {};
-      ALL_MODULES.forEach(m => { state[m.key] = true; }); // default all active
+      COMPANY_MODULES.forEach(m => { state[m.key] = true; }); // default all active
       (data || []).forEach(d => { state[d.module_key] = d.is_active; });
       setModules(state);
       setLoading(false);
@@ -110,9 +105,12 @@ const GestaoModulos = () => {
 
             {selectedCompany && !loading && (
               <div className="space-y-3">
-                {ALL_MODULES.map(mod => (
-                  <div key={mod.key} className="flex items-center justify-between rounded-lg border p-3">
-                    <span className="text-sm font-medium">{mod.label}</span>
+                {COMPANY_MODULES.map(mod => (
+                  <div key={mod.key} className="flex items-center justify-between rounded-lg border p-4">
+                    <div>
+                      <span className="text-sm font-medium">{mod.label}</span>
+                      <p className="text-xs text-muted-foreground">{mod.description}</p>
+                    </div>
                     <Switch
                       checked={modules[mod.key] ?? true}
                       onCheckedChange={(checked) => toggleModule(mod.key, checked)}

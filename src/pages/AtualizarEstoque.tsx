@@ -4,9 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useInventoryData } from '@/hooks/useInventoryData';
-import { Package, Save, Search, RefreshCw } from 'lucide-react';
+import { useInventoryData, InventoryItem } from '@/hooks/useInventoryData';
+import { EditMaterialDialog } from '@/components/EditMaterialDialog';
+import { Package, Save, Search, RefreshCw, Edit, Trash2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const AtualizarEstoque = () => {
   const { toast } = useToast();
@@ -14,6 +17,9 @@ const AtualizarEstoque = () => {
   const [saving, setSaving] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [quantities, setQuantities] = useState<Record<string, string>>({});
+  const [editItem, setEditItem] = useState<InventoryItem | null>(null);
+  const [deleteItem, setDeleteItem] = useState<InventoryItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const initialQuantities: Record<string, string> = {};
@@ -33,7 +39,6 @@ const AtualizarEstoque = () => {
       toast({ title: 'Campo obrigatório', description: 'Informe a quantidade.', variant: 'destructive' });
       return;
     }
-
     setSaving(codigo);
     try {
       const result = await updateStock(codigo, Number(quantidade));
@@ -45,7 +50,36 @@ const AtualizarEstoque = () => {
     }
   };
 
-  const filteredItems = inventoryData.filter(item => 
+  const handleDelete = async () => {
+    if (!deleteItem) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from('materials').delete().eq('id', deleteItem.id);
+      if (error) throw error;
+
+      // Audit log
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('audit_log').insert({
+          user_id: user.id,
+          action: 'delete_material',
+          entity_type: 'material',
+          entity_id: deleteItem.id,
+          details: { codigo: deleteItem.codigo, material: deleteItem.material },
+        });
+      }
+
+      toast({ title: 'Material excluído com sucesso!' });
+      setDeleteItem(null);
+      refetch();
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err?.message || 'Erro ao excluir material.', variant: 'destructive' });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const filteredItems = inventoryData.filter(item =>
     String(item.codigo).toLowerCase().includes(searchTerm.toLowerCase()) ||
     String(item.material).toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -80,25 +114,37 @@ const AtualizarEstoque = () => {
                     <TableHead>Código</TableHead>
                     <TableHead>Material</TableHead>
                     <TableHead>Unidade</TableHead>
-                    <TableHead>Qtd Atual</TableHead>
+                    <TableHead className="text-right">Qtd Atual</TableHead>
+                    <TableHead className="text-right">Mínimo</TableHead>
+                    <TableHead className="text-right">Máximo</TableHead>
                     <TableHead className="w-[120px]">Nova Qtd</TableHead>
-                    <TableHead className="w-[80px]"></TableHead>
+                    <TableHead className="text-center">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredItems.map((item) => (
                     <TableRow key={item.codigo}>
                       <TableCell className="font-mono">{item.codigo}</TableCell>
-                      <TableCell className="font-medium">{item.material}</TableCell>
+                      <TableCell className="font-medium max-w-xs truncate">{item.material}</TableCell>
                       <TableCell>{item.unidade}</TableCell>
-                      <TableCell>{item.quantidade}</TableCell>
+                      <TableCell className="text-right">{item.quantidade}</TableCell>
+                      <TableCell className="text-right">{item.minimo}</TableCell>
+                      <TableCell className="text-right">{item.maximo}</TableCell>
                       <TableCell>
                         <Input type="number" value={quantities[item.codigo] || ''} onChange={(e) => handleQuantityChange(item.codigo, e.target.value)} className="w-full" />
                       </TableCell>
                       <TableCell>
-                        <Button size="sm" onClick={() => handleSave(item.codigo)} disabled={saving === item.codigo}>
-                          <Save className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button size="sm" onClick={() => handleSave(item.codigo)} disabled={saving === item.codigo} title="Salvar quantidade">
+                            <Save className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => setEditItem(item)} title="Editar material">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => setDeleteItem(item)} title="Excluir material" className="text-destructive hover:text-destructive">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -108,6 +154,33 @@ const AtualizarEstoque = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Material Dialog */}
+      <EditMaterialDialog
+        item={editItem}
+        open={!!editItem}
+        onOpenChange={(open) => { if (!open) setEditItem(null); }}
+        onSaved={refetch}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteItem} onOpenChange={(open) => { if (!open) setDeleteItem(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir Material</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir o material <strong>{deleteItem?.material}</strong> (Código: {deleteItem?.codigo})?
+              Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteItem(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+              {deleting ? 'Excluindo...' : 'Excluir'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };
