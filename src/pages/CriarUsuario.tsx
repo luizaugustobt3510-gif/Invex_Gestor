@@ -7,10 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { UserPlus, Save } from 'lucide-react';
 
 const CriarUsuario = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'superadm';
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -31,7 +34,7 @@ const CriarUsuario = () => {
     if (!nome) { toast({ title: 'Campo obrigatório', description: 'Informe o nome.', variant: 'destructive' }); return; }
     if (!email) { toast({ title: 'Campo obrigatório', description: 'Informe o e-mail.', variant: 'destructive' }); return; }
     if (!senha) { toast({ title: 'Campo obrigatório', description: 'Informe a senha.', variant: 'destructive' }); return; }
-    if (!autenticacao) { toast({ title: 'Campo obrigatório', description: 'Selecione o nível de acesso.', variant: 'destructive' }); return; }
+    if (!autenticacao) { toast({ title: 'Campo obrigatório', description: 'Selecione o perfil.', variant: 'destructive' }); return; }
 
     setLoading(true);
     try {
@@ -41,14 +44,15 @@ const CriarUsuario = () => {
 
       // Map UI role to DB role
       const roleMap: Record<string, string> = {
-        'superadm': 'super_admin',
         'admin': 'admin_empresa',
+        'logistica': 'logistica',
         'usuario almox': 'usuario_almox',
         'solicitante': 'solicitante',
-        'logistica': 'logistica',
+        'visualizador': 'visualizador',
         'rh': 'rh',
         'financeiro': 'financeiro',
-        'visualizador': 'visualizador',
+        // SuperAdmin only
+        'superadm': 'super_admin',
       };
 
       const response = await fetch(
@@ -107,18 +111,20 @@ const CriarUsuario = () => {
               <Input id="senha" type="password" value={formData.senha} onChange={(e) => setFormData(prev => ({ ...prev, senha: e.target.value }))} placeholder="Senha de acesso" />
             </div>
             <div className="space-y-2">
-              <Label>Nível de Acesso *</Label>
+              <Label>Perfil do Usuário *</Label>
               <Select value={formData.autenticacao} onValueChange={(v) => setFormData(prev => ({ ...prev, autenticacao: v }))}>
-                <SelectTrigger><SelectValue placeholder="Selecione o nível" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Selecione o perfil" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="superadm">Super Administrador</SelectItem>
+                  {isSuperAdmin && (
+                    <SelectItem value="superadm">Super Administrador</SelectItem>
+                  )}
                   <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="usuario almox">Usuário Almoxarifado</SelectItem>
                   <SelectItem value="logistica">Logística</SelectItem>
+                  <SelectItem value="usuario almox">Almoxarifado</SelectItem>
                   <SelectItem value="rh">RH</SelectItem>
                   <SelectItem value="financeiro">Financeiro</SelectItem>
                   <SelectItem value="solicitante">Solicitante</SelectItem>
-                  <SelectItem value="visualizador">Visualizador</SelectItem>
+                  <SelectItem value="visualizador">Convidado (somente leitura)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
