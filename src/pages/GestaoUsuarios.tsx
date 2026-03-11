@@ -40,12 +40,40 @@ const roleLabels: Record<string, string> = {
   visualizador: 'Convidado',
 };
 
+const USER_PERMISSIONS_BY_ROLE: Record<string, { key: string; label: string }[]> = {
+  logistica: [
+    { key: 'estoque', label: 'Estoque (Dashboard)' },
+    { key: 'conferencia', label: 'Conferência de Temperatura' },
+    { key: 'recontagem', label: 'Recontagem' },
+    { key: 'ordens_compra', label: 'Ordens de Compra' },
+    { key: 'importacao_materiais', label: 'Importação de Materiais' },
+    { key: 'importacao_saldo', label: 'Importação de Saldo' },
+    { key: 'conciliacao', label: 'Conciliação' },
+    { key: 'solicitacoes', label: 'Solicitações' },
+  ],
+  rh: [
+    { key: 'colaboradores', label: 'Colaboradores' },
+    { key: 'ferias', label: 'Férias' },
+    { key: 'atestados', label: 'Atestados' },
+    { key: 'treinamentos', label: 'Treinamentos' },
+    { key: 'aso', label: 'ASO' },
+    { key: 'avaliacoes', label: 'Avaliações' },
+    { key: 'banco_horas', label: 'Banco de Horas' },
+    { key: 'indicadores', label: 'Indicadores' },
+  ],
+  financeiro: [
+    { key: 'dashboard_financeiro', label: 'Dashboard Financeiro' },
+    { key: 'relatorios_financeiros', label: 'Relatórios Financeiros' },
+  ],
+};
+
+// For company-level module dialog (kept for backward compat)
 const ALL_MODULES = [
-  { key: 'estoque', label: 'Estoque' },
+  { key: 'logistica', label: 'Logística' },
   { key: 'rh_module', label: 'RH' },
   { key: 'financeiro_module', label: 'Financeiro' },
+  { key: 'compras', label: 'Compras' },
   { key: 'relatorios', label: 'Relatórios' },
-  { key: 'ordens_compra', label: 'Compras' },
 ];
 
 const GestaoUsuarios = () => {
