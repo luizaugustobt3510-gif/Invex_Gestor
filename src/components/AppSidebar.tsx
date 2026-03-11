@@ -74,79 +74,79 @@ interface MenuGroup {
   allowedRoles: UserRole[];
 }
 
-// Logistics module groups
+// Logistics module groups with granular permissions per spec
 const logisticsGroups: MenuGroup[] = [
   {
     label: 'Estoque',
     icon: <Package className="w-4 h-4" />,
-    allowedRoles: ['superadm', 'admin', 'usuario almox', 'logistica'],
+    allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'],
     items: [
-      { path: '/cadastrar-material', label: 'Cadastrar Material', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
-      { path: '/atualizar-estoque', label: 'Atualizar Estoque', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'logistica'] },
-      { path: '/itens-criticos', label: 'Itens Críticos', icon: <AlertTriangle className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'logistica'] },
-      { path: '/qr-scanner', label: 'Escanear QR Code', icon: <ScanLine className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'logistica'] },
-      { path: '/gerar-qrcode', label: 'Gerar QR Code', icon: <QrCode className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
-      { path: '/historico-movimentacoes', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'logistica'] },
-      { path: '/importar-planilha', label: 'Importar Planilha', icon: <FileSpreadsheet className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
-      { path: '/recontagem', label: 'Recontagem', icon: <ClipboardCheck className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
+      { path: '/cadastrar-material', label: 'Cadastrar Material', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      { path: '/atualizar-estoque', label: 'Atualizar Estoque', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      { path: '/itens-criticos', label: 'Itens Críticos', icon: <AlertTriangle className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'] },
+      { path: '/qr-scanner', label: 'Escanear QR Code', icon: <ScanLine className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'] },
+      { path: '/gerar-qrcode', label: 'Gerar QR Code', icon: <QrCode className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'] },
+      { path: '/historico-movimentacoes', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'] },
+      { path: '/importar-planilha', label: 'Importar Planilha', icon: <FileSpreadsheet className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'] },
+      { path: '/recontagem', label: 'Recontagem', icon: <ClipboardCheck className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'] },
     ],
   },
   {
     label: 'Ordens',
     icon: <FileText className="w-4 h-4" />,
-    allowedRoles: ['superadm', 'admin'],
+    allowedRoles: ['admin', 'logistica'],
     items: [
-      { path: '/gerar-oc', label: 'Gerar OC', icon: <FileText className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
-      { path: '/gerenciar-oc', label: 'Gerenciar OC', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
+      { path: '/gerar-oc', label: 'Gerar OC', icon: <FileText className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      { path: '/gerenciar-oc', label: 'Gerenciar OC', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
     ],
   },
   {
     label: 'Setores',
     icon: <Building2 className="w-4 h-4" />,
-    allowedRoles: ['superadm', 'admin'],
+    allowedRoles: ['admin', 'logistica'],
     items: [
-      { path: '/criar-setor', label: 'Criar Setor', icon: <Building2 className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
-      { path: '/listar-setores', label: 'Setores Cadastrados', icon: <List className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
+      { path: '/criar-setor', label: 'Criar Setor', icon: <Building2 className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      { path: '/listar-setores', label: 'Setores Cadastrados', icon: <List className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
     ],
   },
   {
     label: 'Conciliação',
     icon: <ClipboardList className="w-4 h-4" />,
-    allowedRoles: ['superadm', 'admin'],
+    allowedRoles: ['admin', 'logistica'],
     items: [
-      { path: '/conciliacao', label: 'Conciliar', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
+      { path: '/conciliacao', label: 'Conciliar', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
     ],
   },
   {
     label: 'Solicitações',
     icon: <Inbox className="w-4 h-4" />,
-    allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica'],
+    allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'],
     items: [
-      { path: '/solicitar-material', label: 'Solicitar Material', icon: <Send className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica'] },
-      { path: '/listar-solicitacoes', label: 'Solicitações', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica'] },
+      { path: '/solicitar-material', label: 'Solicitar Material', icon: <Send className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'] },
+      { path: '/listar-solicitacoes', label: 'Solicitações', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'] },
     ],
   },
   {
     label: 'Conferência',
     icon: <Thermometer className="w-4 h-4" />,
-    allowedRoles: ['superadm', 'admin', 'logistica', 'usuario almox'],
+    allowedRoles: ['admin', 'logistica', 'usuario almox'],
     items: [
-      { path: '/conferencia-temperatura', label: 'Controle Temperatura', icon: <Thermometer className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'logistica', 'usuario almox'] },
+      { path: '/conferencia-temperatura', label: 'Controle Temperatura', icon: <Thermometer className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'] },
     ],
   },
 ];
 
-// RH module groups — shown as flat menu items for RH users
+// RH module groups
 const rhMenuItems: MenuItem[] = [
-  { path: '/rh', label: 'Início RH', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
-  { path: '/rh/colaboradores', label: 'Colaboradores', icon: <Users className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
-  { path: '/rh/ferias', label: 'Férias', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
-  { path: '/rh/atestados', label: 'Atestados', icon: <FileText className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
-  { path: '/rh/aso', label: 'ASO', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
-  { path: '/rh/treinamentos', label: 'Treinamentos', icon: <GraduationCap className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
-  { path: '/rh/banco-de-horas', label: 'Banco de Horas', icon: <Clock className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
-  { path: '/rh/avaliacoes', label: 'Avaliações', icon: <Star className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
-  { path: '/rh/indicadores', label: 'Indicadores', icon: <BarChart3 className="w-4 h-4" />, allowedRoles: ['superadm', 'admin', 'rh', 'visualizador'] },
+  { path: '/rh', label: 'Início RH', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
+  { path: '/rh/colaboradores', label: 'Colaboradores', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
+  { path: '/rh/ferias', label: 'Férias', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
+  { path: '/rh/atestados', label: 'Atestados', icon: <FileText className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
+  { path: '/rh/aso', label: 'ASO', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
+  { path: '/rh/treinamentos', label: 'Treinamentos', icon: <GraduationCap className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
+  { path: '/rh/banco-de-horas', label: 'Banco de Horas', icon: <Clock className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
+  { path: '/rh/avaliacoes', label: 'Avaliações', icon: <Star className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
+  { path: '/rh/indicadores', label: 'Indicadores', icon: <BarChart3 className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
 ];
 
 // Admin groups
@@ -154,10 +154,10 @@ const adminGroups: MenuGroup[] = [
   {
     label: 'Administração',
     icon: <UserPlus className="w-4 h-4" />,
-    allowedRoles: ['superadm', 'admin'],
+    allowedRoles: ['admin'],
     items: [
-      { path: '/criar-usuario', label: 'Criar Usuário', icon: <UserPlus className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
-      { path: '/instalar-app', label: 'Instalar App', icon: <Download className="w-4 h-4" />, allowedRoles: ['superadm', 'admin'] },
+      { path: '/criar-usuario', label: 'Criar Usuário', icon: <UserPlus className="w-4 h-4" />, allowedRoles: ['admin'] },
+      { path: '/instalar-app', label: 'Instalar App', icon: <Download className="w-4 h-4" />, allowedRoles: ['admin'] },
     ],
   },
   {
@@ -189,16 +189,14 @@ export function AppSidebar() {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Determine which module the user belongs to
   const isRHOnly = user?.role === 'rh' || user?.role === 'visualizador';
   const isSuperAdmin = user?.role === 'superadm';
-  const isLogisticsUser = ['logistica', 'usuario almox', 'solicitante'].includes(user?.role || '');
-  const isAdminOrSuper = ['superadm', 'admin'].includes(user?.role || '');
+  const isSolicitante = user?.role === 'solicitante';
 
   // Build visible groups based on role isolation
   const visibleGroups: MenuGroup[] = [];
 
-  // Logistics groups: only for logistics users, admin — NEVER for RH/visualizador/superadm
+  // Logistics groups: NOT for RH/visualizador/superadm
   if (!isRHOnly && !isSuperAdmin) {
     logisticsGroups.forEach(group => {
       if (hasPermission(group.allowedRoles)) {
@@ -214,12 +212,14 @@ export function AppSidebar() {
     }
   });
 
-  // RH menu items: for RH, visualizador, admin — NOT for superadm (superadm sees only platform management)
-  const showRHMenu = !isSuperAdmin && hasPermission(['superadm', 'admin', 'rh', 'visualizador']);
+  // RH menu: for RH, visualizador, admin — NOT for superadm
+  const showRHMenu = !isSuperAdmin && hasPermission(['admin', 'rh', 'visualizador']);
   const visibleRHItems = showRHMenu ? rhMenuItems.filter(item => hasPermission(item.allowedRoles)) : [];
 
-  // Dashboard link: only for non-RH, non-superadm users
-  const showLogisticsDashboard = !isRHOnly && !isSuperAdmin && hasPermission(['superadm', 'admin', 'solicitante', 'logistica', 'usuario almox', 'financeiro']);
+  // Dashboard link: for logistics users and admin
+  const showLogisticsDashboard = !isRHOnly && !isSuperAdmin && hasPermission(['admin', 'logistica', 'usuario almox']);
+  // Solicitante sees only solicitações, no dashboard
+  const showSolicitanteDashboard = isSolicitante;
 
   const renderGroup = (group: MenuGroup) => {
     const visibleItems = group.items.filter(item => hasPermission(item.allowedRoles));
@@ -276,7 +276,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        {/* Dashboard link — for logistics/admin or superadm */}
+        {/* Dashboard link */}
         {(showLogisticsDashboard || isSuperAdmin) && (
           <>
             <SidebarMenu>
@@ -300,14 +300,13 @@ export function AppSidebar() {
         )}
 
         {/* Logistics groups */}
-        {visibleGroups.filter(g => logisticsGroups.includes(g) || !adminGroups.includes(g)).map(renderGroup)}
+        {visibleGroups.filter(g => logisticsGroups.includes(g)).map(renderGroup)}
 
-        {/* RH Menu — flat items for RH/visualizador, collapsible for admin/superadm */}
+        {/* RH Menu */}
         {visibleRHItems.length > 0 && (
           <>
             <SidebarSeparator className="my-2" />
             {isRHOnly ? (
-              // Flat menu for RH-only users
               <SidebarGroup>
                 <SidebarGroupLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   <div className="flex items-center gap-2">
@@ -339,7 +338,6 @@ export function AppSidebar() {
                 </SidebarGroupContent>
               </SidebarGroup>
             ) : (
-              // Collapsible for admin/superadm
               <Collapsible defaultOpen={location.pathname.startsWith('/rh')} className="group/collapsible">
                 <SidebarGroup>
                   <CollapsibleTrigger asChild>

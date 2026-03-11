@@ -60,113 +60,117 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/demo" element={<DemoMode />} />
             
+            {/* Home — all authenticated roles */}
             <Route path="/" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox']}>
                 <Index />
               </RoleProtectedRoute>
             } />
             
+            {/* === LOGÍSTICA: Admin + Logística full access === */}
             <Route path="/cadastrar-material" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica']}>
                 <CadastrarMaterial />
               </RoleProtectedRoute>
             } />
             <Route path="/atualizar-estoque" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'logistica']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica']}>
                 <AtualizarEstoque />
               </RoleProtectedRoute>
             } />
-            
-            
-
-            
-            <Route path="/qr-scanner" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'logistica']}>
-                <QRScanner />
-              </RoleProtectedRoute>
-            } />
-            
-            <Route path="/gerar-qrcode" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
-                <GerarQRCode />
-              </RoleProtectedRoute>
-            } />
-            
-            <Route path="/historico-movimentacoes" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'logistica']}>
-                <HistoricoMovimentacoes />
-              </RoleProtectedRoute>
-            } />
-            
-            <Route path="/conciliacao" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
-                <Conciliacao />
-              </RoleProtectedRoute>
-            } />
-            
-            <Route path="/recontagem" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
-                <Recontagem />
-              </RoleProtectedRoute>
-            } />
-            
             <Route path="/gerar-oc" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica']}>
                 <GerarOC />
               </RoleProtectedRoute>
             } />
-            
             <Route path="/gerenciar-oc" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica']}>
                 <GerenciarOC />
               </RoleProtectedRoute>
             } />
-            
             <Route path="/criar-setor" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica']}>
                 <CriarSetor />
               </RoleProtectedRoute>
             } />
             <Route path="/listar-setores" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica']}>
                 <ListarSetores />
               </RoleProtectedRoute>
             } />
-            
+            <Route path="/conciliacao" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica']}>
+                <Conciliacao />
+              </RoleProtectedRoute>
+            } />
+
+            {/* === LOGÍSTICA + ALMOXARIFADO === */}
+            <Route path="/qr-scanner" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}>
+                <QRScanner />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/gerar-qrcode" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}>
+                <GerarQRCode />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/historico-movimentacoes" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}>
+                <HistoricoMovimentacoes />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/importar-planilha" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}>
+                <ImportarPlanilha />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/recontagem" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}>
+                <Recontagem />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/itens-criticos" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}>
+                <ItensCriticos />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/conferencia-temperatura" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}>
+                <ConferenciaTemperatura />
+              </RoleProtectedRoute>
+            } />
+
+            {/* === SOLICITAÇÕES: Admin + Logística + Almoxarifado + Solicitante === */}
             <Route path="/solicitar-material" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox', 'solicitante']}>
                 <SolicitarMaterial />
               </RoleProtectedRoute>
             } />
             <Route path="/listar-solicitacoes" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox', 'solicitante']}>
                 <ListarSolicitacoes />
               </RoleProtectedRoute>
             } />
             
-            <Route path="/importar-planilha" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
-                <ImportarPlanilha />
-              </RoleProtectedRoute>
-            } />
-            
+            {/* === ADMIN: Gestão de usuários dentro da empresa === */}
             <Route path="/criar-usuario" element={
-              <RoleProtectedRoute allowedRoles={['superadm']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
                 <CriarUsuario />
               </RoleProtectedRoute>
             } />
+            <Route path="/instalar-app" element={
+              <RoleProtectedRoute allowedRoles={['admin']}>
+                <InstalarApp />
+              </RoleProtectedRoute>
+            } />
+
+            {/* === SUPERADMIN: Gestão da plataforma === */}
             <Route path="/listar-empresas" element={
               <RoleProtectedRoute allowedRoles={['superadm']}>
                 <ListarEmpresas />
               </RoleProtectedRoute>
             } />
-
-            <Route path="/instalar-app" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin']}>
-                <InstalarApp />
-              </RoleProtectedRoute>
-            } />
-
             <Route path="/gestao-empresas" element={
               <RoleProtectedRoute allowedRoles={['superadm']}>
                 <GestaoEmpresas />
@@ -198,69 +202,57 @@ const App = () => (
               </RoleProtectedRoute>
             } />
 
+            {/* === PERFIL: todos === */}
             <Route path="/meu-perfil" element={
               <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador']}>
                 <MeuPerfil />
               </RoleProtectedRoute>
             } />
 
-            <Route path="/itens-criticos" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'logistica']}>
-                <ItensCriticos />
-              </RoleProtectedRoute>
-            } />
-
-            {/* Módulo RH — visualizador tem acesso somente leitura */}
+            {/* === RH: Admin + RH + Convidado (read-only) === */}
             <Route path="/rh" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
                 <DashboardRH />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/colaboradores" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
                 <Colaboradores />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/ferias" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
                 <Ferias />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/atestados" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
                 <Atestados />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/treinamentos" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
                 <Treinamentos />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/banco-de-horas" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
                 <BancoDeHoras />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/avaliacoes" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
                 <Avaliacoes />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/indicadores" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
                 <Indicadores />
               </RoleProtectedRoute>
             } />
             <Route path="/rh/aso" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'rh', 'visualizador']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
                 <ASOControl />
-              </RoleProtectedRoute>
-            } />
-
-            {/* Conferência de Temperatura — Logística */}
-            <Route path="/conferencia-temperatura" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'logistica']}>
-                <ConferenciaTemperatura />
               </RoleProtectedRoute>
             } />
             

@@ -8,13 +8,16 @@ const Index = () => {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  // SuperAdmin → painel de gestão da plataforma (sem dashboards operacionais)
+  // SuperAdmin → platform management only
   if (user.role === 'superadm') return <DashboardSuperAdmin />;
 
-  // RH / Visualizador → Dashboard RH
+  // RH / Convidado (visualizador) → RH dashboard
   if (user.role === 'rh' || user.role === 'visualizador') return <Navigate to="/rh" replace />;
 
-  // Logística, admin, etc → Logistics dashboard
+  // Solicitante → go to solicitations directly
+  if (user.role === 'solicitante') return <Navigate to="/solicitar-material" replace />;
+
+  // Admin, Logística, Almoxarifado → Logistics dashboard
   return <DashboardLogistica />;
 };
 
