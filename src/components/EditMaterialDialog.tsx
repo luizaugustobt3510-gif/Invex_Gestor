@@ -54,8 +54,21 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
           minimo: numMin,
           maximo: numMax,
           quantidade: numQtd,
+          unidade: unidade.trim() || 'UNIDADE',
         })
         .eq('id', item.id);
+
+      // Audit log
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('audit_log').insert({
+          user_id: user.id,
+          action: 'update_material',
+          entity_type: 'material',
+          entity_id: item.id,
+          details: { codigo: item.codigo, changes: { material: material.trim(), minimo: numMin, maximo: numMax, quantidade: numQtd, unidade: unidade.trim() } },
+        });
+      }
 
       if (error) throw error;
 
