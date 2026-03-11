@@ -19,6 +19,7 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
   const [minimo, setMinimo] = useState('');
   const [maximo, setMaximo] = useState('');
   const [quantidade, setQuantidade] = useState('');
+  const [unidade, setUnidade] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
       setMinimo(String(item.minimo));
       setMaximo(String(item.maximo));
       setQuantidade(String(item.quantidade));
+      setUnidade(item.unidade || 'UNIDADE');
     }
   }, [item]);
 
