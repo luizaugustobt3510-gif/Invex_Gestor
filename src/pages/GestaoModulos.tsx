@@ -105,9 +105,12 @@ const GestaoModulos = () => {
 
             {selectedCompany && !loading && (
               <div className="space-y-3">
-                {ALL_MODULES.map(mod => (
-                  <div key={mod.key} className="flex items-center justify-between rounded-lg border p-3">
-                    <span className="text-sm font-medium">{mod.label}</span>
+                {COMPANY_MODULES.map(mod => (
+                  <div key={mod.key} className="flex items-center justify-between rounded-lg border p-4">
+                    <div>
+                      <span className="text-sm font-medium">{mod.label}</span>
+                      <p className="text-xs text-muted-foreground">{mod.description}</p>
+                    </div>
                     <Switch
                       checked={modules[mod.key] ?? true}
                       onCheckedChange={(checked) => toggleModule(mod.key, checked)}

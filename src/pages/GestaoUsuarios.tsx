@@ -456,29 +456,45 @@ const GestaoUsuarios = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Modules Dialog */}
+        {/* User Permissions Dialog */}
         <Dialog open={modulesOpen} onOpenChange={setModulesOpen}>
-          <DialogContent>
+          <DialogContent className="max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Puzzle className="w-5 h-5" /> Módulos — {modulesUser?.nome}
+                <Puzzle className="w-5 h-5" /> Permissões — {modulesUser?.nome}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-1">
-              <p className="text-sm text-muted-foreground mb-4">
-                {modulesUser?.company_id
-                  ? 'Ative ou desative módulos para a empresa deste usuário.'
-                  : 'Usuário sem empresa vinculada. Vincule primeiro.'}
-              </p>
-              {modulesUser?.company_id && ALL_MODULES.map(mod => (
-                <div key={mod.key} className="flex items-center justify-between rounded-lg border p-3">
-                  <span className="text-sm font-medium">{mod.label}</span>
-                  <Switch
-                    checked={userModules[mod.key] ?? true}
-                    onCheckedChange={(checked) => toggleModule(mod.key, checked)}
-                  />
-                </div>
-              ))}
+              {!modulesUser?.company_id ? (
+                <p className="text-sm text-muted-foreground">Usuário sem empresa vinculada. Vincule primeiro.</p>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Perfil: <Badge variant="outline">{roleLabels[modulesUser.role] || modulesUser.role}</Badge>
+                    — Ative ou desative funções específicas para este usuário.
+                  </p>
+                  {(() => {
+                    const roleKey = modulesUser.role === 'usuario_almox' ? 'logistica' : modulesUser.role;
+                    const perms = USER_PERMISSIONS_BY_ROLE[roleKey];
+                    if (!perms || perms.length === 0) {
+                      return (
+                        <p className="text-sm text-muted-foreground py-4 text-center">
+                          Este perfil não possui permissões granulares configuráveis.
+                        </p>
+                      );
+                    }
+                    return perms.map(mod => (
+                      <div key={mod.key} className="flex items-center justify-between rounded-lg border p-3">
+                        <span className="text-sm font-medium">{mod.label}</span>
+                        <Switch
+                          checked={userModules[mod.key] ?? true}
+                          onCheckedChange={(checked) => toggleModule(mod.key, checked)}
+                        />
+                      </div>
+                    ));
+                  })()}
+                </>
+              )}
             </div>
           </DialogContent>
         </Dialog>

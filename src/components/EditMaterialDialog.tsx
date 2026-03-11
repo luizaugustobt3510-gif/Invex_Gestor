@@ -94,6 +94,10 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
               <Label>Nome do Material</Label>
               <Input value={material} onChange={(e) => setMaterial(e.target.value)} />
             </div>
+            <div className="space-y-2">
+              <Label>Unidade</Label>
+              <Input value={unidade} onChange={(e) => setUnidade(e.target.value)} placeholder="UNIDADE" />
+            </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-2">
                 <Label>Mínimo</Label>
