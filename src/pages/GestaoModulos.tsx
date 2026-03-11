@@ -52,7 +52,7 @@ const GestaoModulos = () => {
         .eq('company_id', selectedCompany);
 
       const state: ModuleState = {};
-      ALL_MODULES.forEach(m => { state[m.key] = true; }); // default all active
+      COMPANY_MODULES.forEach(m => { state[m.key] = true; }); // default all active
       (data || []).forEach(d => { state[d.module_key] = d.is_active; });
       setModules(state);
       setLoading(false);
