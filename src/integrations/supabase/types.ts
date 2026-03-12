@@ -249,6 +249,80 @@ export type Database = {
           },
         ]
       }
+      development_plans: {
+        Row: {
+          company_id: string
+          created_at: string
+          descricao: string | null
+          employee_id: string
+          evaluation_id: string | null
+          id: string
+          prazo: string | null
+          status: string
+          tipo: string
+          titulo: string
+          training_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          descricao?: string | null
+          employee_id: string
+          evaluation_id?: string | null
+          id?: string
+          prazo?: string | null
+          status?: string
+          tipo?: string
+          titulo?: string
+          training_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          descricao?: string | null
+          employee_id?: string
+          evaluation_id?: string | null
+          id?: string
+          prazo?: string | null
+          status?: string
+          tipo?: string
+          titulo?: string
+          training_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "development_plans_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "development_plans_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "development_plans_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "performance_evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "development_plans_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: false
+            referencedRelation: "trainings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_asos: {
         Row: {
           arquivo_url: string | null
@@ -347,6 +421,54 @@ export type Database = {
           },
           {
             foreignKeyName: "employee_certificates_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_occurrences: {
+        Row: {
+          company_id: string
+          created_at: string
+          data: string
+          descricao: string
+          employee_id: string
+          id: string
+          responsavel_nome: string
+          tipo: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          data?: string
+          descricao?: string
+          employee_id: string
+          id?: string
+          responsavel_nome?: string
+          tipo?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          data?: string
+          descricao?: string
+          employee_id?: string
+          id?: string
+          responsavel_nome?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_occurrences_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_occurrences_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
@@ -473,6 +595,7 @@ export type Database = {
           cpf: string
           created_at: string
           data_admissao: string
+          data_nascimento: string | null
           departamento: string | null
           id: string
           nome: string
@@ -486,6 +609,7 @@ export type Database = {
           cpf: string
           created_at?: string
           data_admissao: string
+          data_nascimento?: string | null
           departamento?: string | null
           id?: string
           nome: string
@@ -499,6 +623,7 @@ export type Database = {
           cpf?: string
           created_at?: string
           data_admissao?: string
+          data_nascimento?: string | null
           departamento?: string | null
           id?: string
           nome?: string
