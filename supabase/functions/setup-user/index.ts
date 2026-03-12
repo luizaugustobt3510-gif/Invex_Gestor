@@ -18,6 +18,138 @@ Deno.serve(async (req) => {
     );
 
     const body = await req.json();
+    const { action } = body;
+
+    // ==================== DELETE USER ACTION ====================
+    if (action === "delete_user") {
+      const { user_id } = body;
+      if (!user_id) {
+        return new Response(
+          JSON.stringify({ error: "user_id é obrigatório." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Require auth
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(
+          JSON.stringify({ error: "Não autorizado." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user: callerUser }, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !callerUser) {
+        return new Response(
+          JSON.stringify({ error: "Token inválido." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check caller is super_admin or admin_empresa
+      const { data: callerRole } = await supabase
+        .from("user_roles")
+        .select("role, company_id")
+        .eq("user_id", callerUser.id)
+        .single();
+
+      if (!callerRole || (callerRole.role !== "super_admin" && callerRole.role !== "admin_empresa")) {
+        return new Response(
+          JSON.stringify({ error: "Sem permissão para deletar usuários." }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Prevent self-deletion
+      if (user_id === callerUser.id) {
+        return new Response(
+          JSON.stringify({ error: "Não é possível deletar a si mesmo." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Delete from user_roles and profiles first
+      await supabase.from("user_roles").delete().eq("user_id", user_id);
+      await supabase.from("profiles").delete().eq("user_id", user_id);
+
+      // Delete from auth
+      const { error: deleteError } = await supabase.auth.admin.deleteUser(user_id);
+      if (deleteError) {
+        return new Response(
+          JSON.stringify({ error: "Erro ao deletar usuário do auth: " + deleteError.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ ok: true, msg: "Usuário deletado completamente." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ==================== BULK DELETE ACTION ====================
+    if (action === "bulk_delete_except") {
+      const { keep_email } = body;
+      if (!keep_email) {
+        return new Response(
+          JSON.stringify({ error: "keep_email é obrigatório." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Require auth
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(
+          JSON.stringify({ error: "Não autorizado." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user: callerUser }, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !callerUser) {
+        return new Response(
+          JSON.stringify({ error: "Token inválido." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Only super_admin can bulk delete
+      const { data: callerRole } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", callerUser.id)
+        .single();
+
+      if (!callerRole || callerRole.role !== "super_admin") {
+        return new Response(
+          JSON.stringify({ error: "Apenas super_admin pode executar esta ação." }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // List all auth users
+      const { data: { users: allUsers } } = await supabase.auth.admin.listUsers();
+      const toDelete = (allUsers || []).filter(u => u.email?.toLowerCase() !== keep_email.toLowerCase());
+
+      let deleted = 0;
+      for (const u of toDelete) {
+        await supabase.from("user_roles").delete().eq("user_id", u.id);
+        await supabase.from("profiles").delete().eq("user_id", u.id);
+        await supabase.auth.admin.deleteUser(u.id);
+        deleted++;
+      }
+
+      return new Response(
+        JSON.stringify({ ok: true, msg: `${deleted} usuário(s) deletado(s). Mantido: ${keep_email}` }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ==================== CREATE USER ACTION (default) ====================
     const { email, password, nome, company_name, company_cnpj } = body;
 
     if (!email || !password || !nome) {
@@ -33,7 +165,6 @@ Deno.serve(async (req) => {
       .select("id", { count: "exact", head: true });
 
     if (count && count > 0) {
-      // If companies exist, require auth - only super_admin can create users
       const authHeader = req.headers.get("Authorization");
       if (!authHeader?.startsWith("Bearer ")) {
         return new Response(
@@ -52,7 +183,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Check if caller is super_admin or admin_empresa
       const { data: callerRole } = await supabase
         .from("user_roles")
         .select("role, company_id")
@@ -66,7 +196,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Use caller's company_id
       const companyId = callerRole.company_id;
       const role = body.role || "solicitante";
 
@@ -81,7 +210,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Create auth user
       const { data: authData, error: createError } = await supabase.auth.admin.createUser({
         email,
         password,
@@ -96,13 +224,11 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Update profile with company_id
       await supabase
         .from("profiles")
         .update({ company_id: companyId })
         .eq("user_id", authData.user.id);
 
-      // Create role
       await supabase.from("user_roles").insert({
         user_id: authData.user.id,
         role,
@@ -115,7 +241,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Initial setup: create company + super_admin - requires company_name and company_cnpj
+    // Initial setup
     if (!company_name || !company_cnpj) {
       return new Response(
         JSON.stringify({ error: "Dados incompletos para setup inicial. Informe company_name e company_cnpj." }),
@@ -136,7 +262,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if user already exists (initial setup)
     const { data: { users: existingSetupUsers } } = await supabase.auth.admin.listUsers();
     const setupUserExists = existingSetupUsers?.find(u => u.email?.toLowerCase() === email.toLowerCase());
     
@@ -148,7 +273,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create auth user
     const { data: authData, error: createError } = await supabase.auth.admin.createUser({
       email,
       password,
@@ -157,7 +281,6 @@ Deno.serve(async (req) => {
     });
 
     if (createError) {
-      // Rollback company
       await supabase.from("companies").delete().eq("id", company.id);
       return new Response(
         JSON.stringify({ error: createError.message }),
@@ -165,13 +288,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Update profile with company_id
     await supabase
       .from("profiles")
       .update({ company_id: company.id })
       .eq("user_id", authData.user.id);
 
-    // Create super_admin role
     await supabase.from("user_roles").insert({
       user_id: authData.user.id,
       role: "super_admin",

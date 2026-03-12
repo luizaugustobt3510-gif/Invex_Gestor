@@ -166,24 +166,39 @@ const GestaoUsuarios = () => {
   };
 
   const handleDeleteUser = async (u: UserRow) => {
-    if (!confirm(`Tem certeza que deseja deletar o usuário ${u.nome}?`)) return;
+    if (!confirm(`Tem certeza que deseja deletar o usuário ${u.nome}? Isso removerá completamente o cadastro e o e-mail de autenticação.`)) return;
     try {
-      await supabase.from('user_roles').delete().eq('user_id', u.user_id);
-      await supabase.from('profiles').delete().eq('user_id', u.user_id);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error('Sessão expirada');
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from('audit_log').insert({
-          user_id: user.id,
-          action: 'delete_user',
-          entity_type: 'user',
-          entity_id: u.user_id,
-          details: { email: u.email, nome: u.nome },
-        });
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/setup-user`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ action: 'delete_user', user_id: u.user_id }),
+        }
+      );
+      const result = await response.json();
+
+      if (result.ok) {
+        // Audit log
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('audit_log').insert({
+            user_id: user.id,
+            action: 'delete_user',
+            entity_type: 'user',
+            entity_id: u.user_id,
+            details: { email: u.email, nome: u.nome },
+          });
+        }
+        toast({ title: 'Usuário deletado completamente.' });
+        loadData();
+      } else {
+        toast({ title: 'Erro', description: result.error || 'Erro ao deletar.', variant: 'destructive' });
       }
-
-      toast({ title: 'Usuário removido.' });
-      loadData();
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' });
     }
