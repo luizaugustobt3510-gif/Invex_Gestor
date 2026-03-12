@@ -24,7 +24,7 @@ interface Employee {
   status: string;
 }
 
-const emptyForm = { nome: '', cpf: '', cargo: '', departamento: '', data_admissao: '', salario: '', status: 'ativo' };
+const emptyForm = { nome: '', cpf: '', cargo: '', departamento: '', data_admissao: '', data_nascimento: '', salario: '', status: 'ativo' };
 
 const Colaboradores = () => {
   const { toast } = useToast();
@@ -71,6 +71,7 @@ const Colaboradores = () => {
       cargo: emp.cargo,
       departamento: emp.departamento || '',
       data_admissao: emp.data_admissao,
+      data_nascimento: emp.data_nascimento || '',
       salario: String(emp.salario),
       status: emp.status,
     });
@@ -93,7 +94,7 @@ const Colaboradores = () => {
     if (editingId) {
       const { error } = await supabase
         .from('employees')
-        .update({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, salario, status: form.status })
+        .update({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, data_nascimento: form.data_nascimento || null, salario, status: form.status })
         .eq('id', editingId);
       if (error) {
         toast({ title: 'Erro', description: error.message, variant: 'destructive' });
@@ -112,7 +113,7 @@ const Colaboradores = () => {
 
       const { error } = await supabase
         .from('employees')
-        .insert({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, salario, status: form.status, company_id: companyId });
+        .insert({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, data_nascimento: form.data_nascimento || null, salario, status: form.status, company_id: companyId });
       if (error) {
         toast({ title: 'Erro', description: error.message, variant: 'destructive' });
       } else {
@@ -218,9 +219,13 @@ const Colaboradores = () => {
                   <Input type="date" value={form.data_admissao} onChange={e => setForm(p => ({ ...p, data_admissao: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Salário (R$)</Label>
-                  <Input type="number" min="0" step="0.01" value={form.salario} onChange={e => setForm(p => ({ ...p, salario: e.target.value }))} placeholder="0.00" />
+                  <Label>Data Nascimento</Label>
+                  <Input type="date" value={form.data_nascimento} onChange={e => setForm(p => ({ ...p, data_nascimento: e.target.value }))} />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Salário (R$)</Label>
+                <Input type="number" min="0" step="0.01" value={form.salario} onChange={e => setForm(p => ({ ...p, salario: e.target.value }))} placeholder="0.00" />
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>

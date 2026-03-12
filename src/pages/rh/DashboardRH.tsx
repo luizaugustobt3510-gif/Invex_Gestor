@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Users, Calendar, AlertTriangle, TrendingDown, Clock, Search, MoreVertical, DollarSign, GraduationCap, Star, HeartPulse, Filter, UserMinus } from 'lucide-react';
+import { Users, Calendar, AlertTriangle, TrendingDown, Clock, Search, MoreVertical, DollarSign, GraduationCap, Star, HeartPulse, Filter, UserMinus, Cake } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -341,6 +341,47 @@ const DashboardRH = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Birthday Card */}
+        {(() => {
+          const now = new Date();
+          const currentMonth = now.getMonth();
+          const aniversariantes = employees.filter(e => {
+            if (!e.data_nascimento || e.status !== 'ativo') return false;
+            const bd = new Date(e.data_nascimento + 'T00:00:00');
+            return bd.getMonth() === currentMonth;
+          }).sort((a, b) => {
+            const da = new Date(a.data_nascimento + 'T00:00:00').getDate();
+            const db = new Date(b.data_nascimento + 'T00:00:00').getDate();
+            return da - db;
+          });
+          if (aniversariantes.length === 0) return null;
+          return (
+            <Card className="border-pink-500/30 bg-pink-500/5">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-pink-700 font-medium mb-3">
+                  <Cake className="w-5 h-5" /> 🎂 Aniversariantes do Mês ({aniversariantes.length})
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {aniversariantes.map(emp => {
+                    const bd = new Date(emp.data_nascimento + 'T00:00:00');
+                    return (
+                      <div key={emp.id} className="flex items-center gap-2 bg-background rounded-lg px-3 py-2 border border-border/50">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-pink-500/10 flex items-center justify-center text-sm font-bold text-pink-600">
+                          {bd.getDate()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{emp.nome}</p>
+                          <p className="text-[10px] text-muted-foreground">{emp.cargo}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Sector Stats */}
         {sectorStats.length > 0 && (

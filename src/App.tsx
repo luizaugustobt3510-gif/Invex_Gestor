@@ -44,6 +44,9 @@ import BancoDeHoras from "./pages/rh/BancoDeHoras";
 import Avaliacoes from "./pages/rh/Avaliacoes";
 import Indicadores from "./pages/rh/Indicadores";
 import ASOControl from "./pages/rh/ASOControl";
+import Ocorrencias from "./pages/rh/Ocorrencias";
+import Desenvolvimento from "./pages/rh/Desenvolvimento";
+import PainelDiario from "./pages/rh/PainelDiario";
 import GestaoUsuarios from "./pages/GestaoUsuarios";
 import ConferenciaTemperatura from "./pages/logistica/ConferenciaTemperatura";
 const queryClient = new QueryClient();
@@ -253,6 +256,21 @@ const App = () => (
             <Route path="/rh/aso" element={
               <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
                 <ASOControl />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/ocorrencias" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
+                <Ocorrencias />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/desenvolvimento" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
+                <Desenvolvimento />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/painel-diario" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
+                <PainelDiario />
               </RoleProtectedRoute>
             } />
             
