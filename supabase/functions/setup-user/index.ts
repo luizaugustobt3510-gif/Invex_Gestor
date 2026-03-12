@@ -70,6 +70,17 @@ Deno.serve(async (req) => {
       const companyId = callerRole.company_id;
       const role = body.role || "solicitante";
 
+      // Check if user already exists
+      const { data: { users: existingUsers } } = await supabase.auth.admin.listUsers();
+      const userExists = existingUsers?.find(u => u.email?.toLowerCase() === email.toLowerCase());
+      
+      if (userExists) {
+        return new Response(
+          JSON.stringify({ error: "Um usuário com este e-mail já está cadastrado." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       // Create auth user
       const { data: authData, error: createError } = await supabase.auth.admin.createUser({
         email,
