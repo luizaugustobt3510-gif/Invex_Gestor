@@ -136,6 +136,18 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Check if user already exists (initial setup)
+    const { data: { users: existingSetupUsers } } = await supabase.auth.admin.listUsers();
+    const setupUserExists = existingSetupUsers?.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    
+    if (setupUserExists) {
+      await supabase.from("companies").delete().eq("id", company.id);
+      return new Response(
+        JSON.stringify({ error: "Um usuário com este e-mail já está cadastrado." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Create auth user
     const { data: authData, error: createError } = await supabase.auth.admin.createUser({
       email,
