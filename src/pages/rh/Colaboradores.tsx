@@ -219,9 +219,13 @@ const Colaboradores = () => {
                   <Input type="date" value={form.data_admissao} onChange={e => setForm(p => ({ ...p, data_admissao: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Salário (R$)</Label>
-                  <Input type="number" min="0" step="0.01" value={form.salario} onChange={e => setForm(p => ({ ...p, salario: e.target.value }))} placeholder="0.00" />
+                  <Label>Data Nascimento</Label>
+                  <Input type="date" value={form.data_nascimento} onChange={e => setForm(p => ({ ...p, data_nascimento: e.target.value }))} />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Salário (R$)</Label>
+                <Input type="number" min="0" step="0.01" value={form.salario} onChange={e => setForm(p => ({ ...p, salario: e.target.value }))} placeholder="0.00" />
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
