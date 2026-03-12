@@ -251,7 +251,7 @@ const DashboardRH = () => {
   return (
     <MainLayout onExportReport={!isViewer ? handleExportRH : undefined} showExport={!isViewer}>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Início RH — Gestão de Pessoas</h1>
+        <h1 className="text-2xl font-bold text-foreground">Gestão de Pessoas</h1>
 
         {/* Clickable Alerts */}
         {alerts.length > 0 && (
