@@ -70,6 +70,17 @@ Deno.serve(async (req) => {
       const companyId = callerRole.company_id;
       const role = body.role || "solicitante";
 
+      // Check if user already exists
+      const { data: { users: existingUsers } } = await supabase.auth.admin.listUsers();
+      const userExists = existingUsers?.find(u => u.email?.toLowerCase() === email.toLowerCase());
+      
+      if (userExists) {
+        return new Response(
+          JSON.stringify({ error: "Um usuário com este e-mail já está cadastrado." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       // Create auth user
       const { data: authData, error: createError } = await supabase.auth.admin.createUser({
         email,
@@ -122,6 +133,18 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Erro ao criar empresa: " + (companyError?.message || "desconhecido") }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check if user already exists (initial setup)
+    const { data: { users: existingSetupUsers } } = await supabase.auth.admin.listUsers();
+    const setupUserExists = existingSetupUsers?.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    
+    if (setupUserExists) {
+      await supabase.from("companies").delete().eq("id", company.id);
+      return new Response(
+        JSON.stringify({ error: "Um usuário com este e-mail já está cadastrado." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
