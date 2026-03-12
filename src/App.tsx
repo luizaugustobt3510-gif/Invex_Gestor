@@ -258,6 +258,21 @@ const App = () => (
                 <ASOControl />
               </RoleProtectedRoute>
             } />
+            <Route path="/rh/ocorrencias" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
+                <Ocorrencias />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/desenvolvimento" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
+                <Desenvolvimento />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/painel-diario" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
+                <PainelDiario />
+              </RoleProtectedRoute>
+            } />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
