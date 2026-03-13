@@ -188,6 +188,60 @@ const Indicadores = () => {
           </Card>
         </div>
 
+        {/* Row 2: Financial + New indicators */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Folha Mensal</span>
+                <div className="p-2 rounded-lg bg-emerald-500/10"><DollarSign className="w-4 h-4 text-emerald-600" /></div>
+              </div>
+              <p className="text-xl font-bold">{custoFolha.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+              <p className="text-xs text-muted-foreground">Custo médio: {custoMedio.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Tempo Médio</span>
+                <div className="p-2 rounded-lg bg-primary/10"><Timer className="w-4 h-4 text-primary" /></div>
+              </div>
+              <p className="text-2xl font-bold">{tempoMedioPermanencia} <span className="text-sm font-normal">meses</span></p>
+              <p className="text-xs text-muted-foreground">permanência</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Retenção</span>
+                <div className="p-2 rounded-lg bg-emerald-500/10"><Users className="w-4 h-4 text-emerald-600" /></div>
+              </div>
+              <p className="text-2xl font-bold">{taxaRetencao}%</p>
+              <p className="text-xs text-muted-foreground">taxa de retenção</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Idade Média</span>
+                <div className="p-2 rounded-lg bg-blue-500/10"><Users className="w-4 h-4 text-blue-600" /></div>
+              </div>
+              <p className="text-2xl font-bold">{mediaIdade} <span className="text-sm font-normal">anos</span></p>
+              <p className="text-xs text-muted-foreground">da equipe</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Desligamentos</span>
+                <div className="p-2 rounded-lg bg-destructive/10"><TrendingDown className="w-4 h-4 text-destructive" /></div>
+              </div>
+              <p className="text-2xl font-bold text-destructive">{desligamentosPeriodo}</p>
+              <p className="text-xs text-muted-foreground">no período</p>
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="grid lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader><CardTitle className="text-base">Fórmulas Utilizadas</CardTitle></CardHeader>
