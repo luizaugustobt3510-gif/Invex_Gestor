@@ -39,6 +39,7 @@ const Indicadores = () => {
       setAllCerts(certRes.data || []);
       setAllTimeRecords(timeRes.data || []);
       setAllVacations(vacRes.data || []);
+      setAllTerminations(termRes.data || []);
     } catch (err) {
       console.error('Erro indicadores:', err);
     } finally {
