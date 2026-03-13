@@ -378,7 +378,118 @@ const DashboardRH = () => {
           </Card>
         </div>
 
+        {/* New Indicator Cards Row 2 */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Tempo Médio</span>
+                <div className="p-2 rounded-lg bg-primary/10"><Timer className="w-4 h-4 text-primary" /></div>
+              </div>
+              <p className="text-2xl font-bold">{stats.tempoMedioPermanencia} <span className="text-sm font-normal">meses</span></p>
+              <p className="text-xs text-muted-foreground">permanência média</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Retenção</span>
+                <div className="p-2 rounded-lg bg-emerald-500/10"><Users className="w-4 h-4 text-emerald-600" /></div>
+              </div>
+              <p className="text-2xl font-bold">{stats.taxaRetencao}%</p>
+              <p className="text-xs text-muted-foreground">taxa de retenção</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Idade Média</span>
+                <div className="p-2 rounded-lg bg-blue-500/10"><Users className="w-4 h-4 text-blue-600" /></div>
+              </div>
+              <p className="text-2xl font-bold">{stats.mediaIdade} <span className="text-sm font-normal">anos</span></p>
+              <p className="text-xs text-muted-foreground">da equipe</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Admissões</span>
+                <div className="p-2 rounded-lg bg-emerald-500/10"><Users className="w-4 h-4 text-emerald-600" /></div>
+              </div>
+              <p className="text-2xl font-bold text-emerald-600">+{stats.admissoesPeriodo}</p>
+              <p className="text-xs text-muted-foreground">no período</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Desligamentos</span>
+                <div className="p-2 rounded-lg bg-destructive/10"><UserMinus className="w-4 h-4 text-destructive" /></div>
+              </div>
+              <p className="text-2xl font-bold text-destructive">{stats.desligamentosPeriodo}</p>
+              <p className="text-xs text-muted-foreground">no período</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Custo por setor */}
+        {(() => {
+          const ativosEmps = employees.filter(e => e.status === 'ativo');
+          const custoPorSetor: Record<string, number> = {};
+          ativosEmps.forEach(e => {
+            const dept = e.departamento || 'Sem setor';
+            custoPorSetor[dept] = (custoPorSetor[dept] || 0) + Number(e.salario || 0);
+          });
+          const setores = Object.entries(custoPorSetor).sort((a, b) => b[1] - a[1]);
+          if (setores.length === 0) return null;
+          const custoMedio = ativosEmps.length > 0 ? stats.custoFolha / ativosEmps.length : 0;
+          return (
+            <div className="grid lg:grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 font-medium mb-3 text-foreground">
+                    <DollarSign className="w-4 h-4" /> Custo por Setor
+                  </div>
+                  <div className="space-y-2">
+                    {setores.map(([dept, custo]) => (
+                      <div key={dept} className="flex items-center justify-between py-1.5 px-2 border-b border-border/50 last:border-0">
+                        <span className="text-sm">{dept}</span>
+                        <span className="text-sm font-bold">{custo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 font-medium mb-3 text-foreground">
+                    <BarChart3 className="w-4 h-4" /> Resumo Financeiro
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between"><span className="text-sm text-muted-foreground">Folha mensal total</span><span className="font-bold">{stats.custoFolha.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></div>
+                    <div className="flex justify-between"><span className="text-sm text-muted-foreground">Custo médio / colaborador</span><span className="font-bold">{custoMedio.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></div>
+                    {allTerminations.length > 0 && (
+                      <div className="flex justify-between"><span className="text-sm text-muted-foreground">Impacto turnover (est.)</span><span className="font-bold text-destructive">{(allTerminations.length * custoMedio * 1.5).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })()}
+
+        {/* Insights */}
+        <InsightsRH
+          employees={employees}
+          terminations={allTerminations}
+          certificates={allCertificates}
+          trainings={allTrainings}
+          asos={allAsos}
+          vacations={allVacations}
+        />
+
         {/* Birthday Card */}
+
         {(() => {
           const now = new Date();
           const currentMonth = now.getMonth();
