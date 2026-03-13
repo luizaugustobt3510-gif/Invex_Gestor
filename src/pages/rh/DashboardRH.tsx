@@ -62,26 +62,56 @@ const DashboardRH = () => {
       const em30dias = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
       const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
-      const [empRes, vacRes, certRes, timeRes, evalRes, trainRes, asoRes] = await Promise.all([
+      const [empRes, vacRes, certRes, timeRes, evalRes, trainRes, asoRes, termRes] = await Promise.all([
         supabase.from('employees').select('*').order('nome'),
         supabase.from('employee_vacations').select('*, employees(nome)').gte('data_inicio', hoje).lte('data_inicio', em30dias),
-        supabase.from('employee_certificates').select('dias, data_inicio').gte('data_inicio', inicioMes),
+        supabase.from('employee_certificates').select('dias, data_inicio, employee_id').gte('data_inicio', inicioMes),
         supabase.from('time_records').select('employee_id, horas_extras').gte('data', inicioMes),
         supabase.from('performance_evaluations').select('employee_id, nota, created_at').order('created_at', { ascending: false }),
         supabase.from('employee_trainings').select('employee_id, data_validade, trainings(nome, obrigatorio)').not('data_validade', 'is', null),
         supabase.from('employee_asos').select('employee_id, data_vencimento, tipo').not('data_vencimento', 'is', null),
+        supabase.from('employee_terminations').select('*, employees(nome, cargo, departamento)').order('data_desligamento', { ascending: false }),
       ]);
 
       const emps = empRes.data || [];
+      const terms = termRes.data || [];
+      const certs = certRes.data || [];
+      const trains = trainRes.data || [];
+      const asosData = asoRes.data || [];
+      const vacsData = vacRes.data || [];
+
+      setAllTerminations(terms);
+      setAllCertificates(certs);
+      setAllTrainings(trains);
+      setAllAsos(asosData);
+      setAllVacations(vacsData);
+
       const totalColaboradores = emps.length;
-      const ativos = emps.filter(e => e.status === 'ativo').length;
-      const diasAtestado = (certRes.data || []).reduce((s: number, c: any) => s + (c.dias || 0), 0);
+      const ativosEmps = emps.filter(e => e.status === 'ativo');
+      const ativos = ativosEmps.length;
+      const diasAtestado = certs.reduce((s: number, c: any) => s + (c.dias || 0), 0);
       const absenteismo = ativos > 0 ? Math.round((diasAtestado / (ativos * 22)) * 1000) / 10 : 0;
-      const inativos = emps.filter(e => e.status === 'inativo').length;
+      const inativos = emps.filter(e => e.status === 'inativo' || e.status === 'desligado').length;
       const admMes = emps.filter(e => e.data_admissao >= inicioMes).length;
-      const turnover = totalColaboradores > 0 ? Math.round(((admMes + inativos) / totalColaboradores) * 1000) / 10 : 0;
+      const desligMes = terms.filter(t => t.data_desligamento >= inicioMes).length;
+      const turnover = totalColaboradores > 0 ? Math.round(((admMes + desligMes) / totalColaboradores) * 1000) / 10 : 0;
       const bancoHorasTotal = (timeRes.data || []).reduce((s: number, t: any) => s + (t.horas_extras || 0), 0);
-      const custoFolha = emps.filter(e => e.status === 'ativo').reduce((s: number, e: any) => s + Number(e.salario || 0), 0);
+      const custoFolha = ativosEmps.reduce((s: number, e: any) => s + Number(e.salario || 0), 0);
+
+      // New indicators
+      const now = new Date();
+      const tempoMedioPermanencia = ativosEmps.length > 0 ? Math.round(ativosEmps.reduce((s, e) => {
+        const adm = new Date(e.data_admissao);
+        return s + ((now.getTime() - adm.getTime()) / (86400000 * 30));
+      }, 0) / ativosEmps.length) : 0;
+
+      const taxaRetencao = totalColaboradores > 0 ? Math.round(((totalColaboradores - terms.length) / totalColaboradores) * 1000) / 10 : 100;
+
+      const empsComIdade = ativosEmps.filter(e => e.data_nascimento);
+      const mediaIdade = empsComIdade.length > 0 ? Math.round(empsComIdade.reduce((s, e) => {
+        const nasc = new Date(e.data_nascimento);
+        return s + ((now.getTime() - nasc.getTime()) / (86400000 * 365.25));
+      }, 0) / empsComIdade.length) : 0;
 
       // Departments
       const depts = [...new Set(emps.map((e: any) => e.departamento || '').filter(Boolean))].sort();
@@ -94,23 +124,21 @@ const DashboardRH = () => {
       });
       setLastEvaluations(evalMap);
 
-      // Vacation alerts - automatic period calculation
+      // Vacation alerts
       const vacAlerts = new Set<string>();
       emps.forEach((emp: any) => {
         if (emp.status !== 'ativo') return;
         const admDate = new Date(emp.data_admissao);
-        const now = new Date();
         const monthsSinceAdm = (now.getFullYear() - admDate.getFullYear()) * 12 + (now.getMonth() - admDate.getMonth());
-        // Alert when approaching 12-month acquisition period or exceeding concessive period (23 months)
-        if (monthsSinceAdm >= 10 && monthsSinceAdm < 12) vacAlerts.add(emp.id); // approaching
-        if (monthsSinceAdm >= 23) vacAlerts.add(emp.id); // labor risk!
+        if (monthsSinceAdm >= 10 && monthsSinceAdm < 12) vacAlerts.add(emp.id);
+        if (monthsSinceAdm >= 23) vacAlerts.add(emp.id);
       });
-      (vacRes.data || []).forEach((v: any) => { if (v.employee_id) vacAlerts.add(v.employee_id); });
+      vacsData.forEach((v: any) => { if (v.employee_id) vacAlerts.add(v.employee_id); });
       setVacationAlerts(vacAlerts);
 
       // Training alerts
       const trainAlerts = new Set<string>();
-      (trainRes.data || []).forEach((et: any) => {
+      trains.forEach((et: any) => {
         if (!et.data_validade) return;
         const diff = (new Date(et.data_validade).getTime() - Date.now()) / 86400000;
         if (diff <= 30) trainAlerts.add(et.employee_id);
@@ -119,7 +147,7 @@ const DashboardRH = () => {
 
       // ASO alerts
       const asoMap = new Map<string, string>();
-      (asoRes.data || []).forEach((aso: any) => {
+      asosData.forEach((aso: any) => {
         if (!aso.data_vencimento) return;
         const diff = (new Date(aso.data_vencimento).getTime() - Date.now()) / 86400000;
         if (diff < 0) asoMap.set(aso.employee_id, 'vencido');
@@ -154,7 +182,6 @@ const DashboardRH = () => {
       emps.forEach((emp: any) => {
         if (emp.status !== 'ativo') return;
         const admDate = new Date(emp.data_admissao);
-        const now = new Date();
         const monthsSinceAdm = (now.getFullYear() - admDate.getFullYear()) * 12 + (now.getMonth() - admDate.getMonth());
         if (monthsSinceAdm >= 23) {
           newAlerts.push({ type: 'risco_trabalhista', message: `⚠️ ${emp.nome}: período concessivo de férias vencendo — risco trabalhista!`, severity: 'error', route: '/rh/ferias' });
@@ -165,8 +192,9 @@ const DashboardRH = () => {
       setEmployees(emps);
       setStats({
         totalColaboradores, ativos, absenteismo, turnover,
-        feriasProximas: vacRes.data?.length || 0, atestadosMes: certRes.data?.length || 0,
+        feriasProximas: vacsData.length || 0, atestadosMes: certs.length || 0,
         bancoHorasTotal: Math.round(bancoHorasTotal * 10) / 10, custoFolha,
+        tempoMedioPermanencia, taxaRetencao, mediaIdade, admissoesPeriodo: admMes, desligamentosPeriodo: desligMes,
       });
     } catch (err) {
       console.error('Erro dashboard RH:', err);
