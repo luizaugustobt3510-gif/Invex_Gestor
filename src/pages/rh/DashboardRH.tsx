@@ -38,16 +38,23 @@ const DashboardRH = () => {
   const [stats, setStats] = useState({
     totalColaboradores: 0, ativos: 0, absenteismo: 0, turnover: 0,
     feriasProximas: 0, atestadosMes: 0, bancoHorasTotal: 0, custoFolha: 0,
+    tempoMedioPermanencia: 0, taxaRetencao: 0, mediaIdade: 0, admissoesPeriodo: 0, desligamentosPeriodo: 0,
   });
   const [lastEvaluations, setLastEvaluations] = useState<Map<string, number>>(new Map());
   const [vacationAlerts, setVacationAlerts] = useState<Set<string>>(new Set());
   const [trainingAlerts, setTrainingAlerts] = useState<Set<string>>(new Set());
-  const [asoAlerts, setAsoAlerts] = useState<Map<string, string>>(new Map()); // empId -> 'vencido' | 'proximo'
+  const [asoAlerts, setAsoAlerts] = useState<Map<string, string>>(new Map());
   const [hoursAlerts, setHoursAlerts] = useState<Map<string, number>>(new Map());
   const [desligOpen, setDesligOpen] = useState(false);
   const [desligEmployee, setDesligEmployee] = useState<{ id: string; nome: string } | null>(null);
+  const [allTerminations, setAllTerminations] = useState<any[]>([]);
+  const [allCertificates, setAllCertificates] = useState<any[]>([]);
+  const [allTrainings, setAllTrainings] = useState<any[]>([]);
+  const [allAsos, setAllAsos] = useState<any[]>([]);
+  const [allVacations, setAllVacations] = useState<any[]>([]);
 
   useEffect(() => { loadData(); }, []);
+
 
   const loadData = async () => {
     try {
