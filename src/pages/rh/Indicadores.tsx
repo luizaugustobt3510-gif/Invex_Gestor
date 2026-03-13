@@ -13,6 +13,7 @@ const Indicadores = () => {
   const [allCerts, setAllCerts] = useState<any[]>([]);
   const [allTimeRecords, setAllTimeRecords] = useState<any[]>([]);
   const [allVacations, setAllVacations] = useState<any[]>([]);
+  const [allTerminations, setAllTerminations] = useState<any[]>([]);
 
   useEffect(() => { loadIndicadores(); }, []);
 
