@@ -71,6 +71,31 @@ const Indicadores = () => {
 
   const feriasProximas = allVacations.filter(v => empIds.has(v.employee_id)).length;
 
+  // Financial indicators
+  const ativosEmps = filteredEmps.filter(e => e.status === 'ativo');
+  const custoFolha = ativosEmps.reduce((s, e) => s + Number(e.salario || 0), 0);
+  const custoMedio = ativosEmps.length > 0 ? custoFolha / ativosEmps.length : 0;
+
+  // New indicators
+  const now2 = new Date();
+  const tempoMedioPermanencia = ativosEmps.length > 0 ? Math.round(ativosEmps.reduce((s, e) => {
+    const adm = new Date(e.data_admissao);
+    return s + ((now2.getTime() - adm.getTime()) / (86400000 * 30));
+  }, 0) / ativosEmps.length) : 0;
+
+  const filteredTerminations = allTerminations.filter(t => {
+    const dept = t.employees?.departamento || '';
+    return sectorFilter === 'todos' || dept === sectorFilter;
+  });
+  const desligamentosPeriodo = filteredTerminations.length;
+  const taxaRetencao = totalColaboradores > 0 ? Math.round(((totalColaboradores - desligamentosPeriodo) / totalColaboradores) * 1000) / 10 : 100;
+
+  const empsComIdade = ativosEmps.filter(e => e.data_nascimento);
+  const mediaIdade = empsComIdade.length > 0 ? Math.round(empsComIdade.reduce((s, e) => {
+    const nasc = new Date(e.data_nascimento);
+    return s + ((now2.getTime() - nasc.getTime()) / (86400000 * 365.25));
+  }, 0) / empsComIdade.length) : 0;
+
   if (loading) {
     return (
       <MainLayout>
