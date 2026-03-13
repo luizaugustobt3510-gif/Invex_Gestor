@@ -3,7 +3,7 @@ import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
-import { BarChart3, TrendingDown, TrendingUp, Clock, Users, Filter, Calendar } from 'lucide-react';
+import { BarChart3, TrendingDown, TrendingUp, Clock, Users, Filter, Calendar, DollarSign, Timer } from 'lucide-react';
 
 const Indicadores = () => {
   const [loading, setLoading] = useState(true);
