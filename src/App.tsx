@@ -276,6 +276,21 @@ const App = () => (
                 <PainelDiario />
               </RoleProtectedRoute>
             } />
+            <Route path="/rh/desligamentos" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'rh']}>
+                <Desligamentos />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/graficos" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}>
+                <GraficosRH />
+              </RoleProtectedRoute>
+            } />
+            <Route path="/rh/importar-funcionarios" element={
+              <RoleProtectedRoute allowedRoles={['admin', 'rh']}>
+                <ImportarFuncionarios />
+              </RoleProtectedRoute>
+            } />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
