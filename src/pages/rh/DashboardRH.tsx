@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Users, Calendar, AlertTriangle, TrendingDown, Clock, Search, MoreVertical, DollarSign, GraduationCap, Star, HeartPulse, Filter, UserMinus, Cake } from 'lucide-react';
+import { Users, Calendar, AlertTriangle, TrendingDown, Clock, Search, MoreVertical, DollarSign, GraduationCap, Star, HeartPulse, Filter, UserMinus, Cake, Timer, BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { DesligamentoDialog } from './DesligamentoDialog';
+import { InsightsRH } from './InsightsRH';
 import * as XLSX from 'xlsx';
 
 const notaEmoji: Record<number, string> = { 1: '😞', 2: '😐', 3: '🙂', 4: '😃' };
@@ -37,16 +38,23 @@ const DashboardRH = () => {
   const [stats, setStats] = useState({
     totalColaboradores: 0, ativos: 0, absenteismo: 0, turnover: 0,
     feriasProximas: 0, atestadosMes: 0, bancoHorasTotal: 0, custoFolha: 0,
+    tempoMedioPermanencia: 0, taxaRetencao: 0, mediaIdade: 0, admissoesPeriodo: 0, desligamentosPeriodo: 0,
   });
   const [lastEvaluations, setLastEvaluations] = useState<Map<string, number>>(new Map());
   const [vacationAlerts, setVacationAlerts] = useState<Set<string>>(new Set());
   const [trainingAlerts, setTrainingAlerts] = useState<Set<string>>(new Set());
-  const [asoAlerts, setAsoAlerts] = useState<Map<string, string>>(new Map()); // empId -> 'vencido' | 'proximo'
+  const [asoAlerts, setAsoAlerts] = useState<Map<string, string>>(new Map());
   const [hoursAlerts, setHoursAlerts] = useState<Map<string, number>>(new Map());
   const [desligOpen, setDesligOpen] = useState(false);
   const [desligEmployee, setDesligEmployee] = useState<{ id: string; nome: string } | null>(null);
+  const [allTerminations, setAllTerminations] = useState<any[]>([]);
+  const [allCertificates, setAllCertificates] = useState<any[]>([]);
+  const [allTrainings, setAllTrainings] = useState<any[]>([]);
+  const [allAsos, setAllAsos] = useState<any[]>([]);
+  const [allVacations, setAllVacations] = useState<any[]>([]);
 
   useEffect(() => { loadData(); }, []);
+
 
   const loadData = async () => {
     try {
@@ -54,26 +62,56 @@ const DashboardRH = () => {
       const em30dias = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
       const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
-      const [empRes, vacRes, certRes, timeRes, evalRes, trainRes, asoRes] = await Promise.all([
+      const [empRes, vacRes, certRes, timeRes, evalRes, trainRes, asoRes, termRes] = await Promise.all([
         supabase.from('employees').select('*').order('nome'),
         supabase.from('employee_vacations').select('*, employees(nome)').gte('data_inicio', hoje).lte('data_inicio', em30dias),
-        supabase.from('employee_certificates').select('dias, data_inicio').gte('data_inicio', inicioMes),
+        supabase.from('employee_certificates').select('dias, data_inicio, employee_id').gte('data_inicio', inicioMes),
         supabase.from('time_records').select('employee_id, horas_extras').gte('data', inicioMes),
         supabase.from('performance_evaluations').select('employee_id, nota, created_at').order('created_at', { ascending: false }),
         supabase.from('employee_trainings').select('employee_id, data_validade, trainings(nome, obrigatorio)').not('data_validade', 'is', null),
         supabase.from('employee_asos').select('employee_id, data_vencimento, tipo').not('data_vencimento', 'is', null),
+        supabase.from('employee_terminations').select('*, employees(nome, cargo, departamento)').order('data_desligamento', { ascending: false }),
       ]);
 
       const emps = empRes.data || [];
+      const terms = termRes.data || [];
+      const certs = certRes.data || [];
+      const trains = trainRes.data || [];
+      const asosData = asoRes.data || [];
+      const vacsData = vacRes.data || [];
+
+      setAllTerminations(terms);
+      setAllCertificates(certs);
+      setAllTrainings(trains);
+      setAllAsos(asosData);
+      setAllVacations(vacsData);
+
       const totalColaboradores = emps.length;
-      const ativos = emps.filter(e => e.status === 'ativo').length;
-      const diasAtestado = (certRes.data || []).reduce((s: number, c: any) => s + (c.dias || 0), 0);
+      const ativosEmps = emps.filter(e => e.status === 'ativo');
+      const ativos = ativosEmps.length;
+      const diasAtestado = certs.reduce((s: number, c: any) => s + (c.dias || 0), 0);
       const absenteismo = ativos > 0 ? Math.round((diasAtestado / (ativos * 22)) * 1000) / 10 : 0;
-      const inativos = emps.filter(e => e.status === 'inativo').length;
+      const inativos = emps.filter(e => e.status === 'inativo' || e.status === 'desligado').length;
       const admMes = emps.filter(e => e.data_admissao >= inicioMes).length;
-      const turnover = totalColaboradores > 0 ? Math.round(((admMes + inativos) / totalColaboradores) * 1000) / 10 : 0;
+      const desligMes = terms.filter(t => t.data_desligamento >= inicioMes).length;
+      const turnover = totalColaboradores > 0 ? Math.round(((admMes + desligMes) / totalColaboradores) * 1000) / 10 : 0;
       const bancoHorasTotal = (timeRes.data || []).reduce((s: number, t: any) => s + (t.horas_extras || 0), 0);
-      const custoFolha = emps.filter(e => e.status === 'ativo').reduce((s: number, e: any) => s + Number(e.salario || 0), 0);
+      const custoFolha = ativosEmps.reduce((s: number, e: any) => s + Number(e.salario || 0), 0);
+
+      // New indicators
+      const now = new Date();
+      const tempoMedioPermanencia = ativosEmps.length > 0 ? Math.round(ativosEmps.reduce((s, e) => {
+        const adm = new Date(e.data_admissao);
+        return s + ((now.getTime() - adm.getTime()) / (86400000 * 30));
+      }, 0) / ativosEmps.length) : 0;
+
+      const taxaRetencao = totalColaboradores > 0 ? Math.round(((totalColaboradores - terms.length) / totalColaboradores) * 1000) / 10 : 100;
+
+      const empsComIdade = ativosEmps.filter(e => e.data_nascimento);
+      const mediaIdade = empsComIdade.length > 0 ? Math.round(empsComIdade.reduce((s, e) => {
+        const nasc = new Date(e.data_nascimento);
+        return s + ((now.getTime() - nasc.getTime()) / (86400000 * 365.25));
+      }, 0) / empsComIdade.length) : 0;
 
       // Departments
       const depts = [...new Set(emps.map((e: any) => e.departamento || '').filter(Boolean))].sort();
@@ -86,23 +124,21 @@ const DashboardRH = () => {
       });
       setLastEvaluations(evalMap);
 
-      // Vacation alerts - automatic period calculation
+      // Vacation alerts
       const vacAlerts = new Set<string>();
       emps.forEach((emp: any) => {
         if (emp.status !== 'ativo') return;
         const admDate = new Date(emp.data_admissao);
-        const now = new Date();
         const monthsSinceAdm = (now.getFullYear() - admDate.getFullYear()) * 12 + (now.getMonth() - admDate.getMonth());
-        // Alert when approaching 12-month acquisition period or exceeding concessive period (23 months)
-        if (monthsSinceAdm >= 10 && monthsSinceAdm < 12) vacAlerts.add(emp.id); // approaching
-        if (monthsSinceAdm >= 23) vacAlerts.add(emp.id); // labor risk!
+        if (monthsSinceAdm >= 10 && monthsSinceAdm < 12) vacAlerts.add(emp.id);
+        if (monthsSinceAdm >= 23) vacAlerts.add(emp.id);
       });
-      (vacRes.data || []).forEach((v: any) => { if (v.employee_id) vacAlerts.add(v.employee_id); });
+      vacsData.forEach((v: any) => { if (v.employee_id) vacAlerts.add(v.employee_id); });
       setVacationAlerts(vacAlerts);
 
       // Training alerts
       const trainAlerts = new Set<string>();
-      (trainRes.data || []).forEach((et: any) => {
+      trains.forEach((et: any) => {
         if (!et.data_validade) return;
         const diff = (new Date(et.data_validade).getTime() - Date.now()) / 86400000;
         if (diff <= 30) trainAlerts.add(et.employee_id);
@@ -111,7 +147,7 @@ const DashboardRH = () => {
 
       // ASO alerts
       const asoMap = new Map<string, string>();
-      (asoRes.data || []).forEach((aso: any) => {
+      asosData.forEach((aso: any) => {
         if (!aso.data_vencimento) return;
         const diff = (new Date(aso.data_vencimento).getTime() - Date.now()) / 86400000;
         if (diff < 0) asoMap.set(aso.employee_id, 'vencido');
@@ -146,7 +182,6 @@ const DashboardRH = () => {
       emps.forEach((emp: any) => {
         if (emp.status !== 'ativo') return;
         const admDate = new Date(emp.data_admissao);
-        const now = new Date();
         const monthsSinceAdm = (now.getFullYear() - admDate.getFullYear()) * 12 + (now.getMonth() - admDate.getMonth());
         if (monthsSinceAdm >= 23) {
           newAlerts.push({ type: 'risco_trabalhista', message: `⚠️ ${emp.nome}: período concessivo de férias vencendo — risco trabalhista!`, severity: 'error', route: '/rh/ferias' });
@@ -157,8 +192,9 @@ const DashboardRH = () => {
       setEmployees(emps);
       setStats({
         totalColaboradores, ativos, absenteismo, turnover,
-        feriasProximas: vacRes.data?.length || 0, atestadosMes: certRes.data?.length || 0,
+        feriasProximas: vacsData.length || 0, atestadosMes: certs.length || 0,
         bancoHorasTotal: Math.round(bancoHorasTotal * 10) / 10, custoFolha,
+        tempoMedioPermanencia, taxaRetencao, mediaIdade, admissoesPeriodo: admMes, desligamentosPeriodo: desligMes,
       });
     } catch (err) {
       console.error('Erro dashboard RH:', err);
@@ -342,7 +378,118 @@ const DashboardRH = () => {
           </Card>
         </div>
 
+        {/* New Indicator Cards Row 2 */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Tempo Médio</span>
+                <div className="p-2 rounded-lg bg-primary/10"><Timer className="w-4 h-4 text-primary" /></div>
+              </div>
+              <p className="text-2xl font-bold">{stats.tempoMedioPermanencia} <span className="text-sm font-normal">meses</span></p>
+              <p className="text-xs text-muted-foreground">permanência média</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Retenção</span>
+                <div className="p-2 rounded-lg bg-emerald-500/10"><Users className="w-4 h-4 text-emerald-600" /></div>
+              </div>
+              <p className="text-2xl font-bold">{stats.taxaRetencao}%</p>
+              <p className="text-xs text-muted-foreground">taxa de retenção</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Idade Média</span>
+                <div className="p-2 rounded-lg bg-blue-500/10"><Users className="w-4 h-4 text-blue-600" /></div>
+              </div>
+              <p className="text-2xl font-bold">{stats.mediaIdade} <span className="text-sm font-normal">anos</span></p>
+              <p className="text-xs text-muted-foreground">da equipe</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Admissões</span>
+                <div className="p-2 rounded-lg bg-emerald-500/10"><Users className="w-4 h-4 text-emerald-600" /></div>
+              </div>
+              <p className="text-2xl font-bold text-emerald-600">+{stats.admissoesPeriodo}</p>
+              <p className="text-xs text-muted-foreground">no período</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Desligamentos</span>
+                <div className="p-2 rounded-lg bg-destructive/10"><UserMinus className="w-4 h-4 text-destructive" /></div>
+              </div>
+              <p className="text-2xl font-bold text-destructive">{stats.desligamentosPeriodo}</p>
+              <p className="text-xs text-muted-foreground">no período</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Custo por setor */}
+        {(() => {
+          const ativosEmps = employees.filter(e => e.status === 'ativo');
+          const custoPorSetor: Record<string, number> = {};
+          ativosEmps.forEach(e => {
+            const dept = e.departamento || 'Sem setor';
+            custoPorSetor[dept] = (custoPorSetor[dept] || 0) + Number(e.salario || 0);
+          });
+          const setores = Object.entries(custoPorSetor).sort((a, b) => b[1] - a[1]);
+          if (setores.length === 0) return null;
+          const custoMedio = ativosEmps.length > 0 ? stats.custoFolha / ativosEmps.length : 0;
+          return (
+            <div className="grid lg:grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 font-medium mb-3 text-foreground">
+                    <DollarSign className="w-4 h-4" /> Custo por Setor
+                  </div>
+                  <div className="space-y-2">
+                    {setores.map(([dept, custo]) => (
+                      <div key={dept} className="flex items-center justify-between py-1.5 px-2 border-b border-border/50 last:border-0">
+                        <span className="text-sm">{dept}</span>
+                        <span className="text-sm font-bold">{custo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 font-medium mb-3 text-foreground">
+                    <BarChart3 className="w-4 h-4" /> Resumo Financeiro
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between"><span className="text-sm text-muted-foreground">Folha mensal total</span><span className="font-bold">{stats.custoFolha.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></div>
+                    <div className="flex justify-between"><span className="text-sm text-muted-foreground">Custo médio / colaborador</span><span className="font-bold">{custoMedio.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></div>
+                    {allTerminations.length > 0 && (
+                      <div className="flex justify-between"><span className="text-sm text-muted-foreground">Impacto turnover (est.)</span><span className="font-bold text-destructive">{(allTerminations.length * custoMedio * 1.5).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })()}
+
+        {/* Insights */}
+        <InsightsRH
+          employees={employees}
+          terminations={allTerminations}
+          certificates={allCertificates}
+          trainings={allTrainings}
+          asos={allAsos}
+          vacations={allVacations}
+        />
+
         {/* Birthday Card */}
+
         {(() => {
           const now = new Date();
           const currentMonth = now.getMonth();

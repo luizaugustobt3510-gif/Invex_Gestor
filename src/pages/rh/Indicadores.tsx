@@ -3,7 +3,7 @@ import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
-import { BarChart3, TrendingDown, TrendingUp, Clock, Users, Filter, Calendar } from 'lucide-react';
+import { BarChart3, TrendingDown, TrendingUp, Clock, Users, Filter, Calendar, DollarSign, Timer } from 'lucide-react';
 
 const Indicadores = () => {
   const [loading, setLoading] = useState(true);
@@ -13,6 +13,7 @@ const Indicadores = () => {
   const [allCerts, setAllCerts] = useState<any[]>([]);
   const [allTimeRecords, setAllTimeRecords] = useState<any[]>([]);
   const [allVacations, setAllVacations] = useState<any[]>([]);
+  const [allTerminations, setAllTerminations] = useState<any[]>([]);
 
   useEffect(() => { loadIndicadores(); }, []);
 
@@ -23,11 +24,12 @@ const Indicadores = () => {
       const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().split('T')[0];
       const em30dias = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
 
-      const [empRes, certRes, timeRes, vacRes] = await Promise.all([
-        supabase.from('employees').select('id, status, data_admissao, departamento'),
+      const [empRes, certRes, timeRes, vacRes, termRes] = await Promise.all([
+        supabase.from('employees').select('id, status, data_admissao, departamento, salario, data_nascimento'),
         supabase.from('employee_certificates').select('dias, data_inicio, employee_id').gte('data_inicio', inicioMes).lte('data_inicio', fimMes),
         supabase.from('time_records').select('horas_extras, employee_id').gte('data', inicioMes).lte('data', fimMes),
         supabase.from('employee_vacations').select('employee_id, data_inicio').gte('data_inicio', new Date().toISOString().split('T')[0]).lte('data_inicio', em30dias),
+        supabase.from('employee_terminations').select('*, employees(departamento)'),
       ]);
 
       const employees = empRes.data || [];
@@ -37,6 +39,7 @@ const Indicadores = () => {
       setAllCerts(certRes.data || []);
       setAllTimeRecords(timeRes.data || []);
       setAllVacations(vacRes.data || []);
+      setAllTerminations(termRes.data || []);
     } catch (err) {
       console.error('Erro indicadores:', err);
     } finally {
@@ -67,6 +70,31 @@ const Indicadores = () => {
   const bancoHorasTotal = Math.round(filteredTime.reduce((sum, t) => sum + (t.horas_extras || 0), 0) * 10) / 10;
 
   const feriasProximas = allVacations.filter(v => empIds.has(v.employee_id)).length;
+
+  // Financial indicators
+  const ativosEmps = filteredEmps.filter(e => e.status === 'ativo');
+  const custoFolha = ativosEmps.reduce((s, e) => s + Number(e.salario || 0), 0);
+  const custoMedio = ativosEmps.length > 0 ? custoFolha / ativosEmps.length : 0;
+
+  // New indicators
+  const now2 = new Date();
+  const tempoMedioPermanencia = ativosEmps.length > 0 ? Math.round(ativosEmps.reduce((s, e) => {
+    const adm = new Date(e.data_admissao);
+    return s + ((now2.getTime() - adm.getTime()) / (86400000 * 30));
+  }, 0) / ativosEmps.length) : 0;
+
+  const filteredTerminations = allTerminations.filter(t => {
+    const dept = t.employees?.departamento || '';
+    return sectorFilter === 'todos' || dept === sectorFilter;
+  });
+  const desligamentosPeriodo = filteredTerminations.length;
+  const taxaRetencao = totalColaboradores > 0 ? Math.round(((totalColaboradores - desligamentosPeriodo) / totalColaboradores) * 1000) / 10 : 100;
+
+  const empsComIdade = ativosEmps.filter(e => e.data_nascimento);
+  const mediaIdade = empsComIdade.length > 0 ? Math.round(empsComIdade.reduce((s, e) => {
+    const nasc = new Date(e.data_nascimento);
+    return s + ((now2.getTime() - nasc.getTime()) / (86400000 * 365.25));
+  }, 0) / empsComIdade.length) : 0;
 
   if (loading) {
     return (
@@ -156,6 +184,60 @@ const Indicadores = () => {
               </div>
               <p className="text-2xl font-bold">{feriasProximas}</p>
               <p className="text-xs text-muted-foreground">em 30 dias</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Row 2: Financial + New indicators */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Folha Mensal</span>
+                <div className="p-2 rounded-lg bg-emerald-500/10"><DollarSign className="w-4 h-4 text-emerald-600" /></div>
+              </div>
+              <p className="text-xl font-bold">{custoFolha.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+              <p className="text-xs text-muted-foreground">Custo médio: {custoMedio.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Tempo Médio</span>
+                <div className="p-2 rounded-lg bg-primary/10"><Timer className="w-4 h-4 text-primary" /></div>
+              </div>
+              <p className="text-2xl font-bold">{tempoMedioPermanencia} <span className="text-sm font-normal">meses</span></p>
+              <p className="text-xs text-muted-foreground">permanência</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Retenção</span>
+                <div className="p-2 rounded-lg bg-emerald-500/10"><Users className="w-4 h-4 text-emerald-600" /></div>
+              </div>
+              <p className="text-2xl font-bold">{taxaRetencao}%</p>
+              <p className="text-xs text-muted-foreground">taxa de retenção</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Idade Média</span>
+                <div className="p-2 rounded-lg bg-blue-500/10"><Users className="w-4 h-4 text-blue-600" /></div>
+              </div>
+              <p className="text-2xl font-bold">{mediaIdade} <span className="text-sm font-normal">anos</span></p>
+              <p className="text-xs text-muted-foreground">da equipe</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase">Desligamentos</span>
+                <div className="p-2 rounded-lg bg-destructive/10"><TrendingDown className="w-4 h-4 text-destructive" /></div>
+              </div>
+              <p className="text-2xl font-bold text-destructive">{desligamentosPeriodo}</p>
+              <p className="text-xs text-muted-foreground">no período</p>
             </CardContent>
           </Card>
         </div>

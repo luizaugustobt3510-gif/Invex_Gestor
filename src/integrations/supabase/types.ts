@@ -476,6 +476,54 @@ export type Database = {
           },
         ]
       }
+      employee_terminations: {
+        Row: {
+          company_id: string
+          created_at: string
+          data_desligamento: string
+          employee_id: string
+          id: string
+          motivo: string
+          observacoes: string | null
+          responsavel_nome: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          data_desligamento: string
+          employee_id: string
+          id?: string
+          motivo: string
+          observacoes?: string | null
+          responsavel_nome?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          data_desligamento?: string
+          employee_id?: string
+          id?: string
+          motivo?: string
+          observacoes?: string | null
+          responsavel_nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_terminations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_terminations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_trainings: {
         Row: {
           company_id: string
@@ -1189,6 +1237,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "temperature_records_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      termination_reasons: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          id: string
+          is_default: boolean
+          motivo: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          motivo: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          motivo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "termination_reasons_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
