@@ -24,11 +24,12 @@ const Indicadores = () => {
       const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().split('T')[0];
       const em30dias = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
 
-      const [empRes, certRes, timeRes, vacRes] = await Promise.all([
-        supabase.from('employees').select('id, status, data_admissao, departamento'),
+      const [empRes, certRes, timeRes, vacRes, termRes] = await Promise.all([
+        supabase.from('employees').select('id, status, data_admissao, departamento, salario, data_nascimento'),
         supabase.from('employee_certificates').select('dias, data_inicio, employee_id').gte('data_inicio', inicioMes).lte('data_inicio', fimMes),
         supabase.from('time_records').select('horas_extras, employee_id').gte('data', inicioMes).lte('data', fimMes),
         supabase.from('employee_vacations').select('employee_id, data_inicio').gte('data_inicio', new Date().toISOString().split('T')[0]).lte('data_inicio', em30dias),
+        supabase.from('employee_terminations').select('*, employees(departamento)'),
       ]);
 
       const employees = empRes.data || [];
