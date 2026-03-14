@@ -37,6 +37,8 @@ import {
   Star,
   BarChart3,
   Thermometer,
+  Target,
+  UserMinus,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -140,7 +142,7 @@ const logisticsGroups: MenuGroup[] = [
 const rhMenuItems: MenuItem[] = [
   { path: '/rh', label: 'Gestão de Pessoas', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
   { path: '/rh/colaboradores', label: 'Colaboradores', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
-  { path: '/rh/desligamentos', label: 'Desligamentos', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'rh'] },
+  { path: '/rh/desligamentos', label: 'Desligamentos', icon: <UserMinus className="w-4 h-4" />, allowedRoles: ['admin', 'rh'] },
   { path: '/rh/ferias', label: 'Férias', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
   { path: '/rh/atestados', label: 'Atestados', icon: <FileText className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
   { path: '/rh/aso', label: 'ASO', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
@@ -148,11 +150,10 @@ const rhMenuItems: MenuItem[] = [
   { path: '/rh/banco-de-horas', label: 'Banco de Horas', icon: <Clock className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
   { path: '/rh/avaliacoes', label: 'Avaliações', icon: <Star className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
   { path: '/rh/ocorrencias', label: 'Ocorrências', icon: <AlertTriangle className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
-  { path: '/rh/desenvolvimento', label: 'Desenvolvimento', icon: <GraduationCap className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
+  { path: '/rh/desenvolvimento', label: 'Desenvolvimento', icon: <Target className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
   { path: '/rh/importar-funcionarios', label: 'Importar Funcionários', icon: <FileText className="w-4 h-4" />, allowedRoles: ['admin', 'rh'] },
-  { path: '/rh/graficos', label: 'Gráficos RH', icon: <BarChart3 className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
+  { path: '/rh/analises', label: 'Análises e Indicadores', icon: <BarChart3 className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
   { path: '/rh/painel-diario', label: 'Painel Diário', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
-  { path: '/rh/indicadores', label: 'Indicadores', icon: <BarChart3 className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
 ];
 
 // Admin groups
@@ -415,7 +416,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               onClick={handleLogout}
               tooltip="Sair"
-              className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
+              className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
             >
               <LogOut className="w-4 h-4" />
               <span>Sair</span>

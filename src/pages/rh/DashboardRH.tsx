@@ -55,7 +55,6 @@ const DashboardRH = () => {
 
   useEffect(() => { loadData(); }, []);
 
-
   const loadData = async () => {
     try {
       const hoje = new Date().toISOString().split('T')[0];
@@ -91,14 +90,12 @@ const DashboardRH = () => {
       const ativos = ativosEmps.length;
       const diasAtestado = certs.reduce((s: number, c: any) => s + (c.dias || 0), 0);
       const absenteismo = ativos > 0 ? Math.round((diasAtestado / (ativos * 22)) * 1000) / 10 : 0;
-      const inativos = emps.filter(e => e.status === 'inativo' || e.status === 'desligado').length;
       const admMes = emps.filter(e => e.data_admissao >= inicioMes).length;
       const desligMes = terms.filter(t => t.data_desligamento >= inicioMes).length;
       const turnover = totalColaboradores > 0 ? Math.round(((admMes + desligMes) / totalColaboradores) * 1000) / 10 : 0;
       const bancoHorasTotal = (timeRes.data || []).reduce((s: number, t: any) => s + (t.horas_extras || 0), 0);
       const custoFolha = ativosEmps.reduce((s: number, e: any) => s + Number(e.salario || 0), 0);
 
-      // New indicators
       const now = new Date();
       const tempoMedioPermanencia = ativosEmps.length > 0 ? Math.round(ativosEmps.reduce((s, e) => {
         const adm = new Date(e.data_admissao);
@@ -113,56 +110,72 @@ const DashboardRH = () => {
         return s + ((now.getTime() - nasc.getTime()) / (86400000 * 365.25));
       }, 0) / empsComIdade.length) : 0;
 
-      // Departments
       const depts = [...new Set(emps.map((e: any) => e.departamento || '').filter(Boolean))].sort();
       setDepartments(depts);
 
-      // Last evaluations per employee
       const evalMap = new Map<string, number>();
       (evalRes.data || []).forEach((ev: any) => {
         if (!evalMap.has(ev.employee_id)) evalMap.set(ev.employee_id, ev.nota);
       });
       setLastEvaluations(evalMap);
 
-      // Vacation alerts
+      // Vacation alerts — check if employee has scheduled vacation already
       const vacAlerts = new Set<string>();
+      const employeesWithVacation = new Set(vacsData.map((v: any) => v.employee_id));
       emps.forEach((emp: any) => {
         if (emp.status !== 'ativo') return;
         const admDate = new Date(emp.data_admissao);
         const monthsSinceAdm = (now.getFullYear() - admDate.getFullYear()) * 12 + (now.getMonth() - admDate.getMonth());
-        if (monthsSinceAdm >= 10 && monthsSinceAdm < 12) vacAlerts.add(emp.id);
-        if (monthsSinceAdm >= 23) vacAlerts.add(emp.id);
+        // Only alert if no vacation is scheduled
+        if (monthsSinceAdm >= 23 && !employeesWithVacation.has(emp.id)) {
+          vacAlerts.add(emp.id);
+        } else if (monthsSinceAdm >= 10 && monthsSinceAdm < 12 && !employeesWithVacation.has(emp.id)) {
+          vacAlerts.add(emp.id);
+        }
       });
-      vacsData.forEach((v: any) => { if (v.employee_id) vacAlerts.add(v.employee_id); });
+      // Add employees with upcoming vacation (informational, not alert)
       setVacationAlerts(vacAlerts);
 
-      // Training alerts
+      // Training alerts — only if truly expired (data_validade < hoje)
       const trainAlerts = new Set<string>();
+      const latestTrainByEmployee = new Map<string, string>();
       trains.forEach((et: any) => {
         if (!et.data_validade) return;
-        const diff = (new Date(et.data_validade).getTime() - Date.now()) / 86400000;
-        if (diff <= 30) trainAlerts.add(et.employee_id);
+        const current = latestTrainByEmployee.get(et.employee_id);
+        if (!current || et.data_validade > current) {
+          latestTrainByEmployee.set(et.employee_id, et.data_validade);
+        }
+      });
+      latestTrainByEmployee.forEach((validade, empId) => {
+        const diff = (new Date(validade).getTime() - Date.now()) / 86400000;
+        if (diff <= 30) trainAlerts.add(empId);
       });
       setTrainingAlerts(trainAlerts);
 
-      // ASO alerts
-      const asoMap = new Map<string, string>();
+      // ASO alerts — check latest ASO per employee
+      const latestAsoByEmployee = new Map<string, string>();
       asosData.forEach((aso: any) => {
         if (!aso.data_vencimento) return;
-        const diff = (new Date(aso.data_vencimento).getTime() - Date.now()) / 86400000;
-        if (diff < 0) asoMap.set(aso.employee_id, 'vencido');
-        else if (diff <= 30 && !asoMap.has(aso.employee_id)) asoMap.set(aso.employee_id, 'proximo');
+        const current = latestAsoByEmployee.get(aso.employee_id);
+        if (!current || aso.data_vencimento > current) {
+          latestAsoByEmployee.set(aso.employee_id, aso.data_vencimento);
+        }
+      });
+      const asoMap = new Map<string, string>();
+      latestAsoByEmployee.forEach((vencimento, empId) => {
+        const diff = (new Date(vencimento).getTime() - Date.now()) / 86400000;
+        if (diff < 0) asoMap.set(empId, 'vencido');
+        else if (diff <= 30) asoMap.set(empId, 'proximo');
       });
       setAsoAlerts(asoMap);
 
-      // Hours per employee
       const horasPorEmp = new Map<string, number>();
       (timeRes.data || []).forEach((t: any) => {
         horasPorEmp.set(t.employee_id, (horasPorEmp.get(t.employee_id) || 0) + (t.horas_extras || 0));
       });
       setHoursAlerts(horasPorEmp);
 
-      // Generate clickable alerts
+      // Generate clickable alerts — only for unresolved issues
       const newAlerts: AlertItem[] = [];
       const vacCount = vacAlerts.size;
       if (vacCount > 0) newAlerts.push({ type: 'ferias', message: `${vacCount} colaborador(es) com férias próximas ou período aquisitivo`, severity: 'warning', route: '/rh/ferias', count: vacCount });
@@ -175,15 +188,15 @@ const DashboardRH = () => {
       let hoursExceedCount = 0;
       horasPorEmp.forEach((total) => { if (total > 40) hoursExceedCount++; });
       if (hoursExceedCount > 0) newAlerts.push({ type: 'banco_horas', message: `${hoursExceedCount} colaborador(es) com banco de horas excedente`, severity: 'warning', route: '/rh/banco-de-horas' });
-      if (absenteismo > 5) newAlerts.push({ type: 'absenteismo', message: `Absenteísmo elevado: ${absenteismo}%`, severity: 'error', route: '/rh/indicadores' });
-      if (turnover > 10) newAlerts.push({ type: 'turnover', message: `Turnover acima da média: ${turnover}%`, severity: 'warning', route: '/rh/indicadores' });
+      if (absenteismo > 5) newAlerts.push({ type: 'absenteismo', message: `Absenteísmo elevado: ${absenteismo}%`, severity: 'error', route: '/rh/analises' });
+      if (turnover > 10) newAlerts.push({ type: 'turnover', message: `Turnover acima da média: ${turnover}%`, severity: 'warning', route: '/rh/analises' });
 
-      // Labor risk alerts
+      // Labor risk — only if no vacation scheduled
       emps.forEach((emp: any) => {
         if (emp.status !== 'ativo') return;
         const admDate = new Date(emp.data_admissao);
         const monthsSinceAdm = (now.getFullYear() - admDate.getFullYear()) * 12 + (now.getMonth() - admDate.getMonth());
-        if (monthsSinceAdm >= 23) {
+        if (monthsSinceAdm >= 23 && !employeesWithVacation.has(emp.id)) {
           newAlerts.push({ type: 'risco_trabalhista', message: `⚠️ ${emp.nome}: período concessivo de férias vencendo — risco trabalhista!`, severity: 'error', route: '/rh/ferias' });
         }
       });
@@ -197,7 +210,7 @@ const DashboardRH = () => {
         tempoMedioPermanencia, taxaRetencao, mediaIdade, admissoesPeriodo: admMes, desligamentosPeriodo: desligMes,
       });
     } catch (err) {
-      console.error('Erro dashboard RH:', err);
+      console.error('Erro dashboard:', err);
     } finally {
       setLoading(false);
     }
@@ -234,19 +247,17 @@ const DashboardRH = () => {
       addSheet('Treinamentos', (trainR.data || []).map((t: any) => ({ Colaborador: t.employees?.nome, Treinamento: t.trainings?.nome, Realização: t.data_realizacao, Validade: t.data_validade, Status: t.status })));
       addSheet('Avaliações', (evalR.data || []).map((e: any) => ({ Colaborador: e.employees?.nome, Nota: e.nota, Observações: e.observacoes, Data: e.created_at?.split('T')[0] })));
 
-      XLSX.writeFile(wb, `Backup_RH_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
-      toast({ title: 'Backup RH exportado com sucesso!' });
+      XLSX.writeFile(wb, `Backup_GP_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+      toast({ title: 'Backup exportado com sucesso!' });
     } catch {
       toast({ title: 'Erro ao exportar', variant: 'destructive' });
     }
   };
 
-  // Determine card color based on pendencies
   const getCardStatus = (empId: string, empStatus: string) => {
     if (empStatus !== 'ativo') return 'neutral';
     const hasAsoVencido = asoAlerts.get(empId) === 'vencido';
     const hasTrainVencido = trainingAlerts.has(empId);
-    // Check if training is actually expired (not just near)
     if (hasAsoVencido || hasTrainVencido) return 'red';
     const hasAsoProximo = asoAlerts.get(empId) === 'proximo';
     const hasVacAlert = vacationAlerts.has(empId);
@@ -268,7 +279,6 @@ const DashboardRH = () => {
     return matchSearch && matchSector;
   });
 
-  // Sector stats
   const sectorStats = departments.length > 0 ? departments.map(dept => {
     const deptEmps = employees.filter(e => e.departamento === dept);
     return { dept, count: deptEmps.length, ativos: deptEmps.filter(e => e.status === 'ativo').length };
@@ -287,12 +297,12 @@ const DashboardRH = () => {
   return (
     <MainLayout onExportReport={!isViewer ? handleExportRH : undefined} showExport={!isViewer}>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Gestão de Pessoas</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Gestão de Pessoas</h1>
 
         {/* Clickable Alerts */}
         {alerts.length > 0 && (
           <Card className="border-amber-500/50 bg-amber-500/5">
-            <CardContent className="p-4 space-y-1">
+            <CardContent className="p-3 sm:p-4 space-y-1">
               <div className="flex items-center gap-2 text-amber-700 font-medium mb-2">
                 <AlertTriangle className="w-4 h-4" /> {alerts.length} Alerta(s)
               </div>
@@ -300,7 +310,7 @@ const DashboardRH = () => {
                 <button
                   key={i}
                   onClick={() => navigate(a.route)}
-                  className={`text-sm w-full text-left px-2 py-1 rounded hover:bg-amber-500/10 transition-colors cursor-pointer ${a.severity === 'error' ? 'text-destructive' : 'text-amber-700'}`}
+                  className={`text-xs sm:text-sm w-full text-left px-2 py-1 rounded hover:bg-amber-500/10 transition-colors cursor-pointer ${a.severity === 'error' ? 'text-destructive' : 'text-amber-700'}`}
                 >
                   • {a.message} →
                 </button>
@@ -311,125 +321,48 @@ const DashboardRH = () => {
         )}
 
         {/* Indicator Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase">Colaboradores</span>
-                <div className="p-2 rounded-lg bg-primary/10"><Users className="w-4 h-4 text-primary" /></div>
-              </div>
-              <p className="text-2xl font-bold">{stats.ativos}</p>
-              <p className="text-xs text-muted-foreground">de {stats.totalColaboradores} total</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase">Absenteísmo</span>
-                <div className="p-2 rounded-lg bg-amber-500/10"><TrendingDown className="w-4 h-4 text-amber-600" /></div>
-              </div>
-              <p className="text-2xl font-bold">{stats.absenteismo}%</p>
-              <p className="text-xs text-muted-foreground">{stats.atestadosMes} atestados</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase">Turnover</span>
-                <div className="p-2 rounded-lg bg-destructive/10"><TrendingDown className="w-4 h-4 text-destructive" /></div>
-              </div>
-              <p className="text-2xl font-bold">{stats.turnover}%</p>
-              <p className="text-xs text-muted-foreground">no mês</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase">Férias Próx.</span>
-                <div className="p-2 rounded-lg bg-blue-500/10"><Calendar className="w-4 h-4 text-blue-600" /></div>
-              </div>
-              <p className="text-2xl font-bold">{stats.feriasProximas}</p>
-              <p className="text-xs text-muted-foreground">em 30 dias</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase">Banco Horas</span>
-                <div className="p-2 rounded-lg bg-primary/10"><Clock className="w-4 h-4 text-primary" /></div>
-              </div>
-              <p className={`text-2xl font-bold ${stats.bancoHorasTotal >= 0 ? 'text-emerald-600' : 'text-destructive'}`}>
-                {stats.bancoHorasTotal >= 0 ? '+' : ''}{stats.bancoHorasTotal}h
-              </p>
-              <p className="text-xs text-muted-foreground">acumulado</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase">Folha Mensal</span>
-                <div className="p-2 rounded-lg bg-emerald-500/10"><DollarSign className="w-4 h-4 text-emerald-600" /></div>
-              </div>
-              <p className="text-xl font-bold">
-                R$ {stats.custoFolha.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-              <p className="text-xs text-muted-foreground">ativos</p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          {[
+            { label: 'Colaboradores', value: stats.ativos, sub: `de ${stats.totalColaboradores} total`, icon: <Users className="w-4 h-4 text-primary" />, bg: 'bg-primary/10' },
+            { label: 'Absenteísmo', value: `${stats.absenteismo}%`, sub: `${stats.atestadosMes} atestados`, icon: <TrendingDown className="w-4 h-4 text-amber-600" />, bg: 'bg-amber-500/10' },
+            { label: 'Turnover', value: `${stats.turnover}%`, sub: 'no mês', icon: <TrendingDown className="w-4 h-4 text-destructive" />, bg: 'bg-destructive/10' },
+            { label: 'Férias Próx.', value: stats.feriasProximas, sub: 'em 30 dias', icon: <Calendar className="w-4 h-4 text-blue-600" />, bg: 'bg-blue-500/10' },
+            { label: 'Banco Horas', value: `${stats.bancoHorasTotal >= 0 ? '+' : ''}${stats.bancoHorasTotal}h`, sub: 'acumulado', icon: <Clock className="w-4 h-4 text-primary" />, bg: 'bg-primary/10', extraClass: stats.bancoHorasTotal >= 0 ? 'text-emerald-600' : 'text-destructive' },
+            { label: 'Folha Mensal', value: `R$ ${stats.custoFolha.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`, sub: 'ativos', icon: <DollarSign className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10' },
+          ].map(item => (
+            <Card key={item.label}>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase">{item.label}</span>
+                  <div className={`p-1.5 sm:p-2 rounded-lg ${item.bg}`}>{item.icon}</div>
+                </div>
+                <p className={`text-lg sm:text-2xl font-bold ${'extraClass' in item ? item.extraClass : ''}`}>{item.value}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">{item.sub}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* New Indicator Cards Row 2 */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase">Tempo Médio</span>
-                <div className="p-2 rounded-lg bg-primary/10"><Timer className="w-4 h-4 text-primary" /></div>
-              </div>
-              <p className="text-2xl font-bold">{stats.tempoMedioPermanencia} <span className="text-sm font-normal">meses</span></p>
-              <p className="text-xs text-muted-foreground">permanência média</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase">Retenção</span>
-                <div className="p-2 rounded-lg bg-emerald-500/10"><Users className="w-4 h-4 text-emerald-600" /></div>
-              </div>
-              <p className="text-2xl font-bold">{stats.taxaRetencao}%</p>
-              <p className="text-xs text-muted-foreground">taxa de retenção</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase">Idade Média</span>
-                <div className="p-2 rounded-lg bg-blue-500/10"><Users className="w-4 h-4 text-blue-600" /></div>
-              </div>
-              <p className="text-2xl font-bold">{stats.mediaIdade} <span className="text-sm font-normal">anos</span></p>
-              <p className="text-xs text-muted-foreground">da equipe</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase">Admissões</span>
-                <div className="p-2 rounded-lg bg-emerald-500/10"><Users className="w-4 h-4 text-emerald-600" /></div>
-              </div>
-              <p className="text-2xl font-bold text-emerald-600">+{stats.admissoesPeriodo}</p>
-              <p className="text-xs text-muted-foreground">no período</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase">Desligamentos</span>
-                <div className="p-2 rounded-lg bg-destructive/10"><UserMinus className="w-4 h-4 text-destructive" /></div>
-              </div>
-              <p className="text-2xl font-bold text-destructive">{stats.desligamentosPeriodo}</p>
-              <p className="text-xs text-muted-foreground">no período</p>
-            </CardContent>
-          </Card>
+        {/* Row 2 indicators */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          {[
+            { label: 'Tempo Médio', value: `${stats.tempoMedioPermanencia} meses`, sub: 'permanência', icon: <Timer className="w-4 h-4 text-primary" />, bg: 'bg-primary/10' },
+            { label: 'Retenção', value: `${stats.taxaRetencao}%`, sub: 'taxa de retenção', icon: <Users className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10' },
+            { label: 'Idade Média', value: `${stats.mediaIdade} anos`, sub: 'da equipe', icon: <Users className="w-4 h-4 text-blue-600" />, bg: 'bg-blue-500/10' },
+            { label: 'Admissões', value: `+${stats.admissoesPeriodo}`, sub: 'no período', icon: <Users className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10' },
+            { label: 'Desligamentos', value: stats.desligamentosPeriodo, sub: 'no período', icon: <UserMinus className="w-4 h-4 text-destructive" />, bg: 'bg-destructive/10' },
+          ].map(item => (
+            <Card key={item.label}>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase">{item.label}</span>
+                  <div className={`p-1.5 sm:p-2 rounded-lg ${item.bg}`}>{item.icon}</div>
+                </div>
+                <p className="text-lg sm:text-2xl font-bold">{item.value}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">{item.sub}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Custo por setor */}
@@ -453,8 +386,8 @@ const DashboardRH = () => {
                   <div className="space-y-2">
                     {setores.map(([dept, custo]) => (
                       <div key={dept} className="flex items-center justify-between py-1.5 px-2 border-b border-border/50 last:border-0">
-                        <span className="text-sm">{dept}</span>
-                        <span className="text-sm font-bold">{custo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                        <span className="text-sm truncate mr-2">{dept}</span>
+                        <span className="text-sm font-bold shrink-0">{custo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                       </div>
                     ))}
                   </div>
@@ -489,7 +422,6 @@ const DashboardRH = () => {
         />
 
         {/* Birthday Card */}
-
         {(() => {
           const now = new Date();
           const currentMonth = now.getMonth();
@@ -505,11 +437,11 @@ const DashboardRH = () => {
           if (aniversariantes.length === 0) return null;
           return (
             <Card className="border-pink-500/30 bg-pink-500/5">
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center gap-2 text-pink-700 font-medium mb-3">
                   <Cake className="w-5 h-5" /> 🎂 Aniversariantes do Mês ({aniversariantes.length})
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                   {aniversariantes.map(emp => {
                     const bd = new Date(emp.data_nascimento + 'T00:00:00');
                     return (
@@ -546,12 +478,12 @@ const DashboardRH = () => {
 
         {/* Employee Cards */}
         <div>
-          <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
             <h2 className="text-lg font-bold text-foreground">Colaboradores ({filtered.length})</h2>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {departments.length > 0 && (
                 <Select value={sectorFilter} onValueChange={setSectorFilter}>
-                  <SelectTrigger className="w-40 h-8 text-sm">
+                  <SelectTrigger className="w-36 h-8 text-sm">
                     <Filter className="w-3 h-3 mr-1" />
                     <SelectValue placeholder="Setor" />
                   </SelectTrigger>
@@ -561,7 +493,7 @@ const DashboardRH = () => {
                   </SelectContent>
                 </Select>
               )}
-              <div className="relative w-52">
+              <div className="relative w-44 sm:w-52">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10 h-8 text-sm" />
               </div>
@@ -569,7 +501,7 @@ const DashboardRH = () => {
           </div>
 
           {/* Legend */}
-          <div className="flex items-center gap-4 mb-3 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-emerald-500" /> Sem pendências</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-amber-500" /> Prestes a vencer</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-destructive" /> Vencido / Atenção</span>
@@ -590,22 +522,22 @@ const DashboardRH = () => {
 
                 return (
                   <Card key={emp.id} className={`transition-all hover:shadow-md ${cardBorderColor[cardStatus]}`}>
-                    <CardContent className="p-4 space-y-3">
+                    <CardContent className="p-3 sm:p-4 space-y-3">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                          <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs sm:text-sm font-bold text-primary">
                             {emp.nome.charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-foreground">{emp.nome}</p>
-                            <p className="text-xs text-muted-foreground">{emp.cargo}</p>
-                            {emp.departamento && <p className="text-[10px] text-muted-foreground">{emp.departamento}</p>}
+                            <p className="text-xs sm:text-sm font-semibold text-foreground truncate">{emp.nome}</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{emp.cargo}</p>
+                            {emp.departamento && <p className="text-[10px] text-muted-foreground truncate">{emp.departamento}</p>}
                           </div>
                         </div>
                         {!isViewer && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreVertical className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 shrink-0"><MoreVertical className="w-4 h-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => navigate('/rh/colaboradores')}>Editar colaborador</DropdownMenuItem>
@@ -624,12 +556,13 @@ const DashboardRH = () => {
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <Badge variant="outline" className={`text-xs ${
+                        <Badge variant="outline" className={`text-[10px] sm:text-xs ${
                           emp.status === 'ativo' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' :
                           emp.status === 'ferias' ? 'bg-blue-500/15 text-blue-700 border-blue-500/30' :
+                          emp.status === 'desligado' ? 'bg-destructive/15 text-destructive border-destructive/30' :
                           'bg-muted text-muted-foreground border-border'
                         }`}>
-                          {emp.status === 'ativo' ? 'Ativo' : emp.status === 'ferias' ? 'Férias' : emp.status === 'afastado' ? 'Afastado' : 'Inativo'}
+                          {emp.status === 'ativo' ? 'Ativo' : emp.status === 'ferias' ? 'Férias' : emp.status === 'afastado' ? 'Afastado' : emp.status === 'desligado' ? 'Desligado' : 'Inativo'}
                         </Badge>
                         {lastEval && (
                           <span className="text-lg" title={`Última avaliação: ${lastEval}/4`}>{notaEmoji[lastEval]}</span>
