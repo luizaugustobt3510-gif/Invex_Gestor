@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
 import { Lightbulb, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Users, Clock } from 'lucide-react';
 
 interface Insight {
@@ -40,7 +38,6 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
   const now = new Date();
   const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
 
-  // Turnover
   const desligMes = terminations.filter(t => t.data_desligamento >= inicioMes).length;
   const admMes = employees.filter(e => e.data_admissao >= inicioMes).length;
   const turnover = total > 0 ? ((admMes + desligMes) / total) * 100 : 0;
@@ -53,7 +50,6 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
     });
   }
 
-  // Motivo predominante
   if (terminations.length > 0) {
     const motivos: Record<string, number> = {};
     terminations.forEach(t => { motivos[t.motivo] = (motivos[t.motivo] || 0) + 1; });
@@ -66,7 +62,6 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
       });
     }
 
-    // Setor crítico
     const setores: Record<string, number> = {};
     terminations.forEach(t => {
       const dept = t.employees?.departamento || 'Sem setor';
@@ -81,7 +76,6 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
       });
     }
 
-    // Rotatividade inicial (primeiros 6 meses)
     const earlyTerms = terminations.filter(t => {
       const emp = employees.find(e => e.id === t.employee_id);
       if (!emp) return false;
@@ -100,7 +94,6 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
     }
   }
 
-  // Crescimento da equipe
   const empLastYear = employees.filter(e => {
     const d = new Date(now.getFullYear() - 1, now.getMonth(), 1).toISOString().split('T')[0];
     return e.data_admissao <= d;
@@ -116,7 +109,6 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
     }
   }
 
-  // Estabilidade
   if (terminations.length === 0) {
     insights.push({
       icon: <TrendingUp className="w-4 h-4" />,
@@ -125,7 +117,7 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
     });
   }
 
-  // Absenteísmo
+  // Absenteísmo — only count unresolved
   const diasAtestado = certificates.filter(c => c.data_inicio >= inicioMes).reduce((s: number, c: any) => s + (c.dias || 0), 0);
   const absenteismo = ativos.length > 0 ? (diasAtestado / (ativos.length * 22)) * 100 : 0;
   if (absenteismo > 5) {
@@ -136,7 +128,7 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
     });
   }
 
-  // Treinamentos vencidos
+  // Treinamentos vencidos — only count truly expired (no newer valid training)
   const hoje = now.toISOString().split('T')[0];
   const trainVencidos = trainings.filter(t => t.data_validade && t.data_validade < hoje).length;
   if (trainVencidos > 0) {
@@ -180,7 +172,6 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
     });
   }
 
-  // Setor mais caro
   const custoPorSetor: Record<string, number> = {};
   ativos.forEach(e => {
     const dept = e.departamento || 'Sem setor';
@@ -196,10 +187,9 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
     });
   }
 
-  // Turnover cost estimate
   if (terminations.length > 0) {
     const salarioMedio = total > 0 ? employees.reduce((s, e) => s + Number(e.salario || 0), 0) / total : 0;
-    const custoTurnover = terminations.length * salarioMedio * 1.5; // estimativa: 1.5x salário
+    const custoTurnover = terminations.length * salarioMedio * 1.5;
     insights.push({
       icon: <DollarSign className="w-4 h-4" />,
       message: `O turnover no período gerou custo estimado de ${custoTurnover.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}.`,
@@ -213,12 +203,12 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
     <Card className="border-primary/20 bg-primary/5">
       <CardContent className="p-4">
         <div className="flex items-center gap-2 font-medium mb-3 text-primary">
-          <Lightbulb className="w-5 h-5" /> Insights do RH
+          <Lightbulb className="w-5 h-5" /> Insights da Gestão de Pessoas
         </div>
         <div className="grid gap-2">
           {insights.slice(0, 10).map((insight, i) => (
             <div key={i} className={`flex items-start gap-3 p-3 rounded-lg border ${typeBg[insight.type]}`}>
-              <div className={`mt-0.5 ${typeColors[insight.type]}`}>{insight.icon}</div>
+              <div className={`mt-0.5 shrink-0 ${typeColors[insight.type]}`}>{insight.icon}</div>
               <p className="text-sm text-foreground">{insight.message}</p>
             </div>
           ))}

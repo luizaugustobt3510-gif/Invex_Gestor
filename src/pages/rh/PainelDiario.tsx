@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { supabase } from '@/integrations/supabase/client';
 import { CalendarDays, Cake, GraduationCap, HeartPulse, Umbrella } from 'lucide-react';
+import { ptBR } from 'date-fns/locale';
 
 interface CalendarEvent {
   date: Date;
@@ -45,23 +46,19 @@ const PainelDiario = () => {
 
       const evts: CalendarEvent[] = [];
 
-      // Vacations
       (vacRes.data || []).forEach((v: any) => {
         evts.push({ date: new Date(v.data_inicio + 'T00:00:00'), label: `Férias: ${v.employees?.nome} (início)`, type: 'ferias' });
         evts.push({ date: new Date(v.data_fim + 'T00:00:00'), label: `Férias: ${v.employees?.nome} (fim)`, type: 'ferias' });
       });
 
-      // Training expirations
       (trainRes.data || []).forEach((t: any) => {
         evts.push({ date: new Date(t.data_validade + 'T00:00:00'), label: `Venc. Treinamento: ${t.employees?.nome} — ${t.trainings?.nome}`, type: 'treinamento' });
       });
 
-      // ASO expirations
       (asoRes.data || []).forEach((a: any) => {
         evts.push({ date: new Date(a.data_vencimento + 'T00:00:00'), label: `Venc. ASO: ${a.employees?.nome}`, type: 'aso' });
       });
 
-      // Birthdays — project into current year
       const year = new Date().getFullYear();
       (empRes.data || []).forEach((e: any) => {
         const bd = new Date(e.data_nascimento + 'T00:00:00');
@@ -80,16 +77,17 @@ const PainelDiario = () => {
 
   const selectedEvents = events.filter(e => isSameDay(e.date, selectedDate));
 
-  // Dates that have events (for highlighting)
   const eventDates = events.map(e => e.date);
   const modifiers = { hasEvent: eventDates };
   const modifiersStyles = { hasEvent: { fontWeight: 'bold' as const, textDecoration: 'underline' as const } };
 
-  // Today's events
   const todayEvents = events.filter(e => isSameDay(e.date, new Date()));
 
-  // This month events
   const thisMonthEvents = events.filter(e => e.date.getMonth() === month.getMonth() && e.date.getFullYear() === month.getFullYear());
+
+  const formatDatePtBR = (date: Date, opts: Intl.DateTimeFormatOptions) => {
+    return date.toLocaleDateString('pt-BR', opts);
+  };
 
   if (loading) {
     return (
@@ -104,19 +102,18 @@ const PainelDiario = () => {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2"><CalendarDays className="w-6 h-6" /> Painel Diário do RH</h1>
+        <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2"><CalendarDays className="w-5 h-5 sm:w-6 sm:h-6" /> Painel Diário — Gestão de Pessoas</h1>
 
-        {/* Today summary */}
         {todayEvents.length > 0 && (
           <Card className="border-primary/30 bg-primary/5">
-            <CardHeader className="pb-2"><CardTitle className="text-base">📌 Hoje — {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</CardTitle></CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-base">📌 Hoje — {formatDatePtBR(new Date(), { weekday: 'long', day: 'numeric', month: 'long' })}</CardTitle></CardHeader>
             <CardContent className="space-y-1">
               {todayEvents.map((e, i) => {
                 const Icon = eventIcons[e.type];
                 return (
                   <div key={i} className="flex items-center gap-2 text-sm">
-                    <Icon className="w-4 h-4" />
-                    <span>{e.label}</span>
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="break-words">{e.label}</span>
                   </div>
                 );
               })}
@@ -125,7 +122,6 @@ const PainelDiario = () => {
         )}
 
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Calendar */}
           <Card>
             <CardContent className="p-4 flex justify-center">
               <Calendar
@@ -136,15 +132,15 @@ const PainelDiario = () => {
                 onMonthChange={setMonth}
                 modifiers={modifiers}
                 modifiersStyles={modifiersStyles}
+                locale={ptBR}
               />
             </CardContent>
           </Card>
 
-          {/* Events for selected date */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">
-                {selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                {formatDatePtBR(selectedDate, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -154,10 +150,10 @@ const PainelDiario = () => {
                 const Icon = eventIcons[e.type];
                 return (
                   <div key={i} className="flex items-center gap-2">
-                    <Badge variant="outline" className={`gap-1 ${eventColors[e.type]}`}>
+                    <Badge variant="outline" className={`gap-1 shrink-0 ${eventColors[e.type]}`}>
                       <Icon className="w-3 h-3" /> {e.type === 'ferias' ? 'Férias' : e.type === 'treinamento' ? 'Treinamento' : e.type === 'aso' ? 'ASO' : 'Aniversário'}
                     </Badge>
-                    <span className="text-sm">{e.label}</span>
+                    <span className="text-sm break-words">{e.label}</span>
                   </div>
                 );
               })}
@@ -165,7 +161,6 @@ const PainelDiario = () => {
           </Card>
         </div>
 
-        {/* Month overview */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Eventos do Mês ({thisMonthEvents.length})</CardTitle>
@@ -179,9 +174,9 @@ const PainelDiario = () => {
                   const Icon = eventIcons[e.type];
                   return (
                     <div key={i} className="flex items-center gap-2 text-sm py-1 border-b border-border/50 last:border-0">
-                      <span className="text-xs text-muted-foreground w-10">{e.date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
+                      <span className="text-xs text-muted-foreground w-10 shrink-0">{e.date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
                       <Icon className="w-3 h-3 shrink-0" />
-                      <span className="truncate">{e.label}</span>
+                      <span className="break-words">{e.label}</span>
                     </div>
                   );
                 })}
