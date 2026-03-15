@@ -7,22 +7,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Users, Calendar, AlertTriangle, TrendingDown, Clock, Search, MoreVertical, DollarSign, GraduationCap, Star, HeartPulse, Filter, UserMinus, Cake, Timer, BarChart3 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Users, Calendar, AlertTriangle, TrendingDown, Clock, Search, MoreVertical, DollarSign, GraduationCap, Star, HeartPulse, Filter, UserMinus, Cake, Timer, BarChart3, ChevronDown, ChevronUp, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { DesligamentoDialog } from './DesligamentoDialog';
 import { InsightsRH } from './InsightsRH';
+import { AlertActionSheet, type AlertEmployee } from '@/components/rh/AlertActionSheet';
 import * as XLSX from 'xlsx';
 
 const notaEmoji: Record<number, string> = { 1: '😞', 2: '😐', 3: '🙂', 4: '😃' };
 
 interface AlertItem {
-  type: string;
+  type: 'ferias' | 'treinamento' | 'aso' | 'banco_horas' | 'absenteismo' | 'turnover' | 'risco_trabalhista';
   message: string;
-  severity: 'warning' | 'error';
+  severity: 'critical' | 'warning' | 'info';
   route: string;
   count?: number;
+  actionable: boolean;
+  employeeIds?: string[];
 }
 
 const DashboardRH = () => {
@@ -34,6 +38,7 @@ const DashboardRH = () => {
   const [sectorFilter, setSectorFilter] = useState('todos');
   const [employees, setEmployees] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [alertsExpanded, setAlertsExpanded] = useState(false);
   const [departments, setDepartments] = useState<string[]>([]);
   const [stats, setStats] = useState({
     totalColaboradores: 0, ativos: 0, absenteismo: 0, turnover: 0,
@@ -52,6 +57,12 @@ const DashboardRH = () => {
   const [allTrainings, setAllTrainings] = useState<any[]>([]);
   const [allAsos, setAllAsos] = useState<any[]>([]);
   const [allVacations, setAllVacations] = useState<any[]>([]);
+  const [catalogTrainings, setCatalogTrainings] = useState<any[]>([]);
+
+  // Action sheet state
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetType, setSheetType] = useState<'ferias' | 'treinamento' | 'aso' | null>(null);
+  const [sheetEmployees, setSheetEmployees] = useState<AlertEmployee[]>([]);
 
   useEffect(() => { loadData(); }, []);
 
@@ -61,7 +72,7 @@ const DashboardRH = () => {
       const em30dias = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
       const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
-      const [empRes, vacRes, certRes, timeRes, evalRes, trainRes, asoRes, termRes] = await Promise.all([
+      const [empRes, vacRes, certRes, timeRes, evalRes, trainRes, asoRes, termRes, catalogRes, allVacRes] = await Promise.all([
         supabase.from('employees').select('*').order('nome'),
         supabase.from('employee_vacations').select('*, employees(nome)').gte('data_inicio', hoje).lte('data_inicio', em30dias),
         supabase.from('employee_certificates').select('dias, data_inicio, employee_id').gte('data_inicio', inicioMes),
@@ -70,6 +81,8 @@ const DashboardRH = () => {
         supabase.from('employee_trainings').select('employee_id, data_validade, trainings(nome, obrigatorio)').not('data_validade', 'is', null),
         supabase.from('employee_asos').select('employee_id, data_vencimento, tipo').not('data_vencimento', 'is', null),
         supabase.from('employee_terminations').select('*, employees(nome, cargo, departamento)').order('data_desligamento', { ascending: false }),
+        supabase.from('trainings').select('*').order('nome'),
+        supabase.from('employee_vacations').select('employee_id, status, data_inicio, data_fim'),
       ]);
 
       const emps = empRes.data || [];
@@ -78,12 +91,29 @@ const DashboardRH = () => {
       const trains = trainRes.data || [];
       const asosData = asoRes.data || [];
       const vacsData = vacRes.data || [];
+      const allVacsData = allVacRes.data || [];
 
       setAllTerminations(terms);
       setAllCertificates(certs);
       setAllTrainings(trains);
       setAllAsos(asosData);
       setAllVacations(vacsData);
+      setCatalogTrainings(catalogRes.data || []);
+
+      // Auto-update vacation statuses
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+      for (const vac of allVacsData) {
+        let newStatus: string | null = null;
+        if (vac.status === 'agendada' && vac.data_inicio <= todayStr && vac.data_fim >= todayStr) {
+          newStatus = 'em_andamento';
+        } else if ((vac.status === 'agendada' || vac.status === 'em_andamento') && vac.data_fim < todayStr) {
+          newStatus = 'concluida';
+        }
+        if (newStatus) {
+          await supabase.from('employee_vacations').update({ status: newStatus }).eq('employee_id', vac.employee_id).eq('data_inicio', vac.data_inicio);
+        }
+      }
 
       const totalColaboradores = emps.length;
       const ativosEmps = emps.filter(e => e.status === 'ativo');
@@ -96,7 +126,6 @@ const DashboardRH = () => {
       const bancoHorasTotal = (timeRes.data || []).reduce((s: number, t: any) => s + (t.horas_extras || 0), 0);
       const custoFolha = ativosEmps.reduce((s: number, e: any) => s + Number(e.salario || 0), 0);
 
-      const now = new Date();
       const tempoMedioPermanencia = ativosEmps.length > 0 ? Math.round(ativosEmps.reduce((s, e) => {
         const adm = new Date(e.data_admissao);
         return s + ((now.getTime() - adm.getTime()) / (86400000 * 30));
@@ -119,24 +148,24 @@ const DashboardRH = () => {
       });
       setLastEvaluations(evalMap);
 
-      // Vacation alerts — check if employee has scheduled vacation already
+      // Check employees with active/scheduled vacation (non-cancelled)
+      const employeesWithVacation = new Set(
+        allVacsData.filter((v: any) => v.status !== 'cancelada').map((v: any) => v.employee_id)
+      );
+
+      // Vacation alerts
       const vacAlerts = new Set<string>();
-      const employeesWithVacation = new Set(vacsData.map((v: any) => v.employee_id));
       emps.forEach((emp: any) => {
         if (emp.status !== 'ativo') return;
         const admDate = new Date(emp.data_admissao);
         const monthsSinceAdm = (now.getFullYear() - admDate.getFullYear()) * 12 + (now.getMonth() - admDate.getMonth());
-        // Only alert if no vacation is scheduled
-        if (monthsSinceAdm >= 23 && !employeesWithVacation.has(emp.id)) {
-          vacAlerts.add(emp.id);
-        } else if (monthsSinceAdm >= 10 && monthsSinceAdm < 12 && !employeesWithVacation.has(emp.id)) {
+        if (monthsSinceAdm >= 10 && !employeesWithVacation.has(emp.id)) {
           vacAlerts.add(emp.id);
         }
       });
-      // Add employees with upcoming vacation (informational, not alert)
       setVacationAlerts(vacAlerts);
 
-      // Training alerts — only if truly expired (data_validade < hoje)
+      // Training alerts — only if latest training for that employee is expired or expiring
       const trainAlerts = new Set<string>();
       const latestTrainByEmployee = new Map<string, string>();
       trains.forEach((et: any) => {
@@ -152,7 +181,7 @@ const DashboardRH = () => {
       });
       setTrainingAlerts(trainAlerts);
 
-      // ASO alerts — check latest ASO per employee
+      // ASO alerts
       const latestAsoByEmployee = new Map<string, string>();
       asosData.forEach((aso: any) => {
         if (!aso.data_vencimento) return;
@@ -175,31 +204,65 @@ const DashboardRH = () => {
       });
       setHoursAlerts(horasPorEmp);
 
-      // Generate clickable alerts — only for unresolved issues
+      // Build actionable alerts sorted by priority
       const newAlerts: AlertItem[] = [];
-      const vacCount = vacAlerts.size;
-      if (vacCount > 0) newAlerts.push({ type: 'ferias', message: `${vacCount} colaborador(es) com férias próximas ou período aquisitivo`, severity: 'warning', route: '/rh/ferias', count: vacCount });
-      const trainCount = trainAlerts.size;
-      if (trainCount > 0) newAlerts.push({ type: 'treinamento', message: `${trainCount} treinamento(s) vencido(s) ou próximo(s) de vencer`, severity: 'error', route: '/rh/treinamentos', count: trainCount });
-      const asoVencidos = [...asoMap.values()].filter(v => v === 'vencido').length;
-      const asoProximos = [...asoMap.values()].filter(v => v === 'proximo').length;
-      if (asoVencidos > 0) newAlerts.push({ type: 'aso', message: `${asoVencidos} ASO(s) vencido(s)`, severity: 'error', route: '/rh/aso' });
-      if (asoProximos > 0) newAlerts.push({ type: 'aso', message: `${asoProximos} ASO(s) próximo(s) do vencimento`, severity: 'warning', route: '/rh/aso' });
+
+      // Critical: labor risk
+      const riscoIds = [...vacAlerts].filter(id => {
+        const emp = emps.find((e: any) => e.id === id);
+        if (!emp) return false;
+        const admDate = new Date(emp.data_admissao);
+        const months = (now.getFullYear() - admDate.getFullYear()) * 12 + (now.getMonth() - admDate.getMonth());
+        return months >= 23;
+      });
+      if (riscoIds.length > 0) {
+        newAlerts.push({ type: 'risco_trabalhista', message: `⚠️ ${riscoIds.length} colaborador(es) com risco trabalhista de férias`, severity: 'critical', route: '/rh/ferias', count: riscoIds.length, actionable: true, employeeIds: riscoIds });
+      }
+
+      // Critical: ASO vencido
+      const asoVencidoIds = [...asoMap.entries()].filter(([, v]) => v === 'vencido').map(([k]) => k);
+      if (asoVencidoIds.length > 0) {
+        newAlerts.push({ type: 'aso', message: `${asoVencidoIds.length} ASO(s) vencido(s)`, severity: 'critical', route: '/rh/aso', count: asoVencidoIds.length, actionable: true, employeeIds: asoVencidoIds });
+      }
+
+      // Critical: Training expired
+      const trainExpiredIds = [...trainAlerts].filter(id => {
+        const val = latestTrainByEmployee.get(id);
+        return val && new Date(val).getTime() < Date.now();
+      });
+      if (trainExpiredIds.length > 0) {
+        newAlerts.push({ type: 'treinamento', message: `${trainExpiredIds.length} treinamento(s) vencido(s)`, severity: 'critical', route: '/rh/treinamentos', count: trainExpiredIds.length, actionable: true, employeeIds: trainExpiredIds });
+      }
+
+      // Warning: ASO próximo
+      const asoProximoIds = [...asoMap.entries()].filter(([, v]) => v === 'proximo').map(([k]) => k);
+      if (asoProximoIds.length > 0) {
+        newAlerts.push({ type: 'aso', message: `${asoProximoIds.length} ASO(s) próximo(s) do vencimento`, severity: 'warning', route: '/rh/aso', count: asoProximoIds.length, actionable: true, employeeIds: asoProximoIds });
+      }
+
+      // Warning: Training expiring soon
+      const trainSoonIds = [...trainAlerts].filter(id => {
+        const val = latestTrainByEmployee.get(id);
+        if (!val) return false;
+        const diff = (new Date(val).getTime() - Date.now()) / 86400000;
+        return diff >= 0 && diff <= 30;
+      });
+      if (trainSoonIds.length > 0) {
+        newAlerts.push({ type: 'treinamento', message: `${trainSoonIds.length} treinamento(s) próximo(s) de vencer`, severity: 'warning', route: '/rh/treinamentos', count: trainSoonIds.length, actionable: true, employeeIds: trainSoonIds });
+      }
+
+      // Warning: Férias pending (non-risk)
+      const feriasPendingIds = [...vacAlerts].filter(id => !riscoIds.includes(id));
+      if (feriasPendingIds.length > 0) {
+        newAlerts.push({ type: 'ferias', message: `${feriasPendingIds.length} colaborador(es) com férias pendentes`, severity: 'warning', route: '/rh/ferias', count: feriasPendingIds.length, actionable: true, employeeIds: feriasPendingIds });
+      }
+
+      // Info alerts
       let hoursExceedCount = 0;
       horasPorEmp.forEach((total) => { if (total > 40) hoursExceedCount++; });
-      if (hoursExceedCount > 0) newAlerts.push({ type: 'banco_horas', message: `${hoursExceedCount} colaborador(es) com banco de horas excedente`, severity: 'warning', route: '/rh/banco-de-horas' });
-      if (absenteismo > 5) newAlerts.push({ type: 'absenteismo', message: `Absenteísmo elevado: ${absenteismo}%`, severity: 'error', route: '/rh/analises' });
-      if (turnover > 10) newAlerts.push({ type: 'turnover', message: `Turnover acima da média: ${turnover}%`, severity: 'warning', route: '/rh/analises' });
-
-      // Labor risk — only if no vacation scheduled
-      emps.forEach((emp: any) => {
-        if (emp.status !== 'ativo') return;
-        const admDate = new Date(emp.data_admissao);
-        const monthsSinceAdm = (now.getFullYear() - admDate.getFullYear()) * 12 + (now.getMonth() - admDate.getMonth());
-        if (monthsSinceAdm >= 23 && !employeesWithVacation.has(emp.id)) {
-          newAlerts.push({ type: 'risco_trabalhista', message: `⚠️ ${emp.nome}: período concessivo de férias vencendo — risco trabalhista!`, severity: 'error', route: '/rh/ferias' });
-        }
-      });
+      if (hoursExceedCount > 0) newAlerts.push({ type: 'banco_horas', message: `${hoursExceedCount} colaborador(es) com banco de horas excedente`, severity: 'warning', route: '/rh/banco-de-horas', count: hoursExceedCount, actionable: false });
+      if (absenteismo > 5) newAlerts.push({ type: 'absenteismo', message: `Absenteísmo elevado: ${absenteismo}%`, severity: 'warning', route: '/rh/analises', actionable: false });
+      if (turnover > 10) newAlerts.push({ type: 'turnover', message: `Turnover acima da média: ${turnover}%`, severity: 'info', route: '/rh/analises', actionable: false });
 
       setAlerts(newAlerts);
       setEmployees(emps);
@@ -213,6 +276,26 @@ const DashboardRH = () => {
       console.error('Erro dashboard:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openAlertSheet = (alert: AlertItem) => {
+    if (!alert.actionable || !alert.employeeIds?.length) {
+      navigate(alert.route);
+      return;
+    }
+    const empList: AlertEmployee[] = alert.employeeIds
+      .map(id => employees.find(e => e.id === id))
+      .filter(Boolean)
+      .map(e => ({ id: e.id, nome: e.nome, cargo: e.cargo, departamento: e.departamento, data_admissao: e.data_admissao, company_id: e.company_id }));
+
+    const actionType = alert.type === 'risco_trabalhista' ? 'ferias' : alert.type;
+    if (actionType === 'ferias' || actionType === 'treinamento' || actionType === 'aso') {
+      setSheetType(actionType);
+      setSheetEmployees(empList);
+      setSheetOpen(true);
+    } else {
+      navigate(alert.route);
     }
   };
 
@@ -273,6 +356,12 @@ const DashboardRH = () => {
     neutral: 'border-l-4 border-l-muted',
   };
 
+  const severityStyles: Record<string, { bg: string; text: string; icon: string }> = {
+    critical: { bg: 'bg-destructive/10 border-destructive/30', text: 'text-destructive', icon: '🔴' },
+    warning: { bg: 'bg-amber-500/10 border-amber-500/30', text: 'text-amber-700', icon: '🟡' },
+    info: { bg: 'bg-blue-500/10 border-blue-500/30', text: 'text-blue-700', icon: '🔵' },
+  };
+
   const filtered = employees.filter(e => {
     const matchSearch = e.nome.toLowerCase().includes(search.toLowerCase()) || e.cargo.toLowerCase().includes(search.toLowerCase());
     const matchSector = sectorFilter === 'todos' || (e.departamento || '') === sectorFilter;
@@ -283,6 +372,11 @@ const DashboardRH = () => {
     const deptEmps = employees.filter(e => e.departamento === dept);
     return { dept, count: deptEmps.length, ativos: deptEmps.filter(e => e.status === 'ativo').length };
   }) : [];
+
+  const criticalAlerts = alerts.filter(a => a.severity === 'critical');
+  const warningAlerts = alerts.filter(a => a.severity === 'warning');
+  const infoAlerts = alerts.filter(a => a.severity === 'info');
+  const visibleAlerts = alertsExpanded ? alerts : alerts.slice(0, 4);
 
   if (loading) {
     return (
@@ -299,23 +393,50 @@ const DashboardRH = () => {
       <div className="space-y-6">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Gestão de Pessoas</h1>
 
-        {/* Clickable Alerts */}
+        {/* Priority-based Actionable Alerts */}
         {alerts.length > 0 && (
           <Card className="border-amber-500/50 bg-amber-500/5">
-            <CardContent className="p-3 sm:p-4 space-y-1">
-              <div className="flex items-center gap-2 text-amber-700 font-medium mb-2">
-                <AlertTriangle className="w-4 h-4" /> {alerts.length} Alerta(s)
+            <CardContent className="p-3 sm:p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 font-medium text-foreground">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  <span className="text-sm">{alerts.length} Alerta(s)</span>
+                  {criticalAlerts.length > 0 && (
+                    <Badge variant="destructive" className="text-[10px]">{criticalAlerts.length} crítico(s)</Badge>
+                  )}
+                </div>
               </div>
-              {alerts.slice(0, 8).map((a, i) => (
-                <button
-                  key={i}
-                  onClick={() => navigate(a.route)}
-                  className={`text-xs sm:text-sm w-full text-left px-2 py-1 rounded hover:bg-amber-500/10 transition-colors cursor-pointer ${a.severity === 'error' ? 'text-destructive' : 'text-amber-700'}`}
-                >
-                  • {a.message} →
-                </button>
-              ))}
-              {alerts.length > 8 && <p className="text-xs text-muted-foreground px-2">+{alerts.length - 8} outros alertas</p>}
+
+              <div className="space-y-1">
+                {visibleAlerts.map((a, i) => {
+                  const style = severityStyles[a.severity];
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => openAlertSheet(a)}
+                      className={`text-xs sm:text-sm w-full text-left px-3 py-2 rounded-md border transition-all hover:shadow-sm cursor-pointer flex items-center justify-between gap-2 ${style.bg}`}
+                    >
+                      <span className={`flex items-center gap-2 min-w-0 ${style.text}`}>
+                        <span className="text-xs">{style.icon}</span>
+                        <span className="truncate">{a.message}</span>
+                      </span>
+                      {a.actionable ? (
+                        <Badge variant="outline" className="text-[10px] shrink-0 gap-1 border-current">
+                          <Zap className="w-3 h-3" /> Resolver
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground shrink-0">→</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {alerts.length > 4 && (
+                <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => setAlertsExpanded(!alertsExpanded)}>
+                  {alertsExpanded ? <><ChevronUp className="w-3 h-3 mr-1" /> Mostrar menos</> : <><ChevronDown className="w-3 h-3 mr-1" /> +{alerts.length - 4} outros alertas</>}
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}
@@ -541,12 +662,24 @@ const DashboardRH = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => navigate('/rh/colaboradores')}>Editar colaborador</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate('/rh/ferias')}>Programar férias</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setSheetType('ferias');
+                                setSheetEmployees([{ id: emp.id, nome: emp.nome, cargo: emp.cargo, departamento: emp.departamento, data_admissao: emp.data_admissao, company_id: emp.company_id }]);
+                                setSheetOpen(true);
+                              }}>Programar férias</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => navigate('/rh/atestados')}>Registrar atestado</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate('/rh/treinamentos')}>Adicionar treinamento</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setSheetType('treinamento');
+                                setSheetEmployees([{ id: emp.id, nome: emp.nome, cargo: emp.cargo, departamento: emp.departamento, data_admissao: emp.data_admissao, company_id: emp.company_id }]);
+                                setSheetOpen(true);
+                              }}>Adicionar treinamento</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => navigate('/rh/avaliacoes')}>Avaliar desempenho</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => navigate('/rh/banco-de-horas')}>Ajustar banco de horas</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate('/rh/aso')}>Visualizar ASO</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setSheetType('aso');
+                                setSheetEmployees([{ id: emp.id, nome: emp.nome, cargo: emp.cargo, departamento: emp.departamento, data_admissao: emp.data_admissao, company_id: emp.company_id }]);
+                                setSheetOpen(true);
+                              }}>Registrar ASO</DropdownMenuItem>
                               <DropdownMenuItem className="text-destructive" onClick={() => { setDesligEmployee({ id: emp.id, nome: emp.nome }); setDesligOpen(true); }}>
                                 <UserMinus className="w-4 h-4 mr-2" /> Registrar desligamento
                               </DropdownMenuItem>
@@ -569,21 +702,33 @@ const DashboardRH = () => {
                         )}
                       </div>
 
-                      {/* Alert indicators */}
+                      {/* Alert indicators — clickable to open action sheet */}
                       {(hasVacAlert || hasTrainAlert || hasHoursAlert || asoStatus) && (
                         <div className="flex flex-wrap gap-1.5">
                           {hasVacAlert && (
-                            <Badge variant="outline" className="text-[10px] bg-blue-500/10 text-blue-700 border-blue-500/30 gap-1 cursor-pointer" onClick={() => navigate('/rh/ferias')}>
+                            <Badge variant="outline" className="text-[10px] bg-blue-500/10 text-blue-700 border-blue-500/30 gap-1 cursor-pointer" onClick={() => {
+                              setSheetType('ferias');
+                              setSheetEmployees([{ id: emp.id, nome: emp.nome, cargo: emp.cargo, departamento: emp.departamento, data_admissao: emp.data_admissao, company_id: emp.company_id }]);
+                              setSheetOpen(true);
+                            }}>
                               <Calendar className="w-3 h-3" /> Férias
                             </Badge>
                           )}
                           {hasTrainAlert && (
-                            <Badge variant="outline" className="text-[10px] bg-destructive/10 text-destructive border-destructive/30 gap-1 cursor-pointer" onClick={() => navigate('/rh/treinamentos')}>
+                            <Badge variant="outline" className="text-[10px] bg-destructive/10 text-destructive border-destructive/30 gap-1 cursor-pointer" onClick={() => {
+                              setSheetType('treinamento');
+                              setSheetEmployees([{ id: emp.id, nome: emp.nome, cargo: emp.cargo, departamento: emp.departamento, data_admissao: emp.data_admissao, company_id: emp.company_id }]);
+                              setSheetOpen(true);
+                            }}>
                               <GraduationCap className="w-3 h-3" /> Treinamento
                             </Badge>
                           )}
                           {asoStatus && (
-                            <Badge variant="outline" className={`text-[10px] gap-1 cursor-pointer ${asoStatus === 'vencido' ? 'bg-destructive/10 text-destructive border-destructive/30' : 'bg-amber-500/10 text-amber-700 border-amber-500/30'}`} onClick={() => navigate('/rh/aso')}>
+                            <Badge variant="outline" className={`text-[10px] gap-1 cursor-pointer ${asoStatus === 'vencido' ? 'bg-destructive/10 text-destructive border-destructive/30' : 'bg-amber-500/10 text-amber-700 border-amber-500/30'}`} onClick={() => {
+                              setSheetType('aso');
+                              setSheetEmployees([{ id: emp.id, nome: emp.nome, cargo: emp.cargo, departamento: emp.departamento, data_admissao: emp.data_admissao, company_id: emp.company_id }]);
+                              setSheetOpen(true);
+                            }}>
                               <HeartPulse className="w-3 h-3" /> ASO
                             </Badge>
                           )}
@@ -607,6 +752,15 @@ const DashboardRH = () => {
         open={desligOpen}
         onOpenChange={setDesligOpen}
         employee={desligEmployee}
+        onSuccess={loadData}
+      />
+
+      <AlertActionSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        type={sheetType}
+        employees={sheetEmployees}
+        trainings={catalogTrainings}
         onSuccess={loadData}
       />
     </MainLayout>
