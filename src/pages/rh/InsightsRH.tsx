@@ -36,6 +36,7 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
   const ativos = employees.filter(e => e.status === 'ativo');
   const total = employees.length;
   const now = new Date();
+  const hoje = now.toISOString().split('T')[0];
   const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
 
   const desligMes = terminations.filter(t => t.data_desligamento >= inicioMes).length;
@@ -117,7 +118,7 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
     });
   }
 
-  // Absenteísmo — only count unresolved
+  // Absenteísmo
   const diasAtestado = certificates.filter(c => c.data_inicio >= inicioMes).reduce((s: number, c: any) => s + (c.dias || 0), 0);
   const absenteismo = ativos.length > 0 ? (diasAtestado / (ativos.length * 22)) * 100 : 0;
   if (absenteismo > 5) {
@@ -128,34 +129,51 @@ export const InsightsRH = ({ employees, terminations = [], certificates = [], tr
     });
   }
 
-  // Treinamentos vencidos — only count truly expired (no newer valid training)
-  const hoje = now.toISOString().split('T')[0];
-  const trainVencidos = trainings.filter(t => t.data_validade && t.data_validade < hoje).length;
-  if (trainVencidos > 0) {
+  // Treinamentos vencidos — DYNAMIC: only count if the LATEST training for each employee is expired
+  // Group by employee_id + training_id (via training relation), find latest per employee
+  const latestTrainPerEmployee = new Map<string, { data_validade: string }>();
+  trainings.forEach((t: any) => {
+    if (!t.data_validade) return;
+    const key = t.employee_id;
+    const current = latestTrainPerEmployee.get(key);
+    if (!current || t.data_validade > current.data_validade) {
+      latestTrainPerEmployee.set(key, { data_validade: t.data_validade });
+    }
+  });
+  const trainVencidoCount = [...latestTrainPerEmployee.values()].filter(t => t.data_validade < hoje).length;
+  if (trainVencidoCount > 0) {
     insights.push({
       icon: <AlertTriangle className="w-4 h-4" />,
-      message: `${trainVencidos} colaborador(es) possuem treinamentos vencidos.`,
+      message: `${trainVencidoCount} colaborador(es) possuem treinamentos vencidos.`,
       type: 'danger',
     });
   }
 
-  // ASO vencido
-  const asoVencidos = asos.filter(a => a.data_vencimento && a.data_vencimento < hoje).length;
-  if (asoVencidos > 0) {
+  // ASO vencido — DYNAMIC: only count if the LATEST ASO for each employee is expired
+  const latestAsoPerEmployee = new Map<string, string>();
+  asos.forEach((a: any) => {
+    if (!a.data_vencimento) return;
+    const current = latestAsoPerEmployee.get(a.employee_id);
+    if (!current || a.data_vencimento > current) {
+      latestAsoPerEmployee.set(a.employee_id, a.data_vencimento);
+    }
+  });
+  const asoVencidoCount = [...latestAsoPerEmployee.values()].filter(v => v < hoje).length;
+  if (asoVencidoCount > 0) {
     insights.push({
       icon: <AlertTriangle className="w-4 h-4" />,
-      message: `${asoVencidos} colaborador(es) com exames (ASO) vencidos.`,
+      message: `${asoVencidoCount} colaborador(es) com exames (ASO) vencidos.`,
       type: 'danger',
     });
   }
 
-  // Férias próximas
+  // Férias próximas — DYNAMIC: only show if there are actually upcoming vacations (non-cancelled)
   const em30dias = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
-  const feriasProx = vacations.filter(v => v.data_inicio >= hoje && v.data_inicio <= em30dias).length;
+  const feriasProx = vacations.filter(v => v.status !== 'cancelada' && v.data_inicio >= hoje && v.data_inicio <= em30dias).length;
   if (feriasProx > 0) {
     insights.push({
       icon: <Users className="w-4 h-4" />,
-      message: `${feriasProx} colaborador(es) com férias próximas do vencimento.`,
+      message: `${feriasProx} colaborador(es) com férias programadas nos próximos 30 dias.`,
       type: 'info',
     });
   }

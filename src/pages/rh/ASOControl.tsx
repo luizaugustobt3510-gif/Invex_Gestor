@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { MainLayout } from '@/components/MainLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,10 +9,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { HeartPulse, Plus, Upload, Download, Search } from 'lucide-react';
+import { HeartPulse, Plus, Download, Search, Pencil, Trash2, RefreshCw, History } from 'lucide-react';
 
 interface ASO {
   id: string;
@@ -23,12 +24,8 @@ interface ASO {
   arquivo_url: string | null;
   status: string;
   observacoes: string;
+  company_id: string;
   employees?: { nome: string };
-}
-
-interface Employee {
-  id: string;
-  nome: string;
 }
 
 const tipoLabels: Record<string, string> = { admissional: 'Admissional', periodico: 'Periódico', demissional: 'Demissional' };
@@ -38,12 +35,16 @@ const ASOControl = () => {
   const { user } = useAuth();
   const isViewer = user?.role === 'visualizador';
   const [asos, setAsos] = useState<ASO[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [employees, setEmployees] = useState<{ id: string; nome: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
   const [companyId, setCompanyId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [historyEmployeeId, setHistoryEmployeeId] = useState<string | null>(null);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [form, setForm] = useState({
     employee_id: '', tipo: 'periodico', data_realizacao: '', data_vencimento: '', observacoes: '',
   });
@@ -77,6 +78,48 @@ const ASOControl = () => {
     return <Badge className="bg-emerald-500 text-white">Válido</Badge>;
   };
 
+  const openNew = () => {
+    setEditingId(null);
+    setForm({ employee_id: '', tipo: 'periodico', data_realizacao: '', data_vencimento: '', observacoes: '' });
+    setFile(null);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (aso: ASO) => {
+    setEditingId(aso.id);
+    setForm({
+      employee_id: aso.employee_id,
+      tipo: aso.tipo,
+      data_realizacao: aso.data_realizacao,
+      data_vencimento: aso.data_vencimento || '',
+      observacoes: aso.observacoes || '',
+    });
+    setFile(null);
+    setDialogOpen(true);
+  };
+
+  const openRenew = (aso: ASO) => {
+    setEditingId(null);
+    const today = new Date().toISOString().split('T')[0];
+    // Auto-calculate new vencimento: +12 months from today
+    const newVenc = new Date();
+    newVenc.setFullYear(newVenc.getFullYear() + 1);
+    setForm({
+      employee_id: aso.employee_id,
+      tipo: aso.tipo,
+      data_realizacao: today,
+      data_vencimento: newVenc.toISOString().split('T')[0],
+      observacoes: '',
+    });
+    setFile(null);
+    setDialogOpen(true);
+  };
+
+  const openHistory = (employeeId: string) => {
+    setHistoryEmployeeId(employeeId);
+    setHistoryDialogOpen(true);
+  };
+
   const handleSave = async () => {
     if (!form.employee_id || !form.data_realizacao) {
       toast({ title: 'Campos obrigatórios', description: 'Selecione colaborador e data.', variant: 'destructive' });
@@ -92,26 +135,51 @@ const ASOControl = () => {
       if (!uploadErr) arquivo_url = path;
     }
 
-    const { error } = await supabase.from('employee_asos').insert({
-      company_id: companyId,
-      employee_id: form.employee_id,
-      tipo: form.tipo,
-      data_realizacao: form.data_realizacao,
-      data_vencimento: form.data_vencimento || null,
-      observacoes: form.observacoes,
-      arquivo_url,
-    });
+    if (editingId) {
+      const updateData: any = {
+        tipo: form.tipo,
+        data_realizacao: form.data_realizacao,
+        data_vencimento: form.data_vencimento || null,
+        observacoes: form.observacoes,
+      };
+      if (arquivo_url) updateData.arquivo_url = arquivo_url;
+      const { error } = await supabase.from('employee_asos').update(updateData).eq('id', editingId);
+      if (error) {
+        toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: 'ASO atualizado!' });
+      }
+    } else {
+      const { error } = await supabase.from('employee_asos').insert({
+        company_id: companyId,
+        employee_id: form.employee_id,
+        tipo: form.tipo,
+        data_realizacao: form.data_realizacao,
+        data_vencimento: form.data_vencimento || null,
+        observacoes: form.observacoes,
+        arquivo_url,
+      });
+      if (error) {
+        toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: 'ASO registrado!' });
+      }
+    }
+    setDialogOpen(false);
+    loadData();
+    setSaving(false);
+  };
 
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from('employee_asos').delete().eq('id', deleteId);
     if (error) {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'ASO registrado!' });
-      setDialogOpen(false);
-      setForm({ employee_id: '', tipo: 'periodico', data_realizacao: '', data_vencimento: '', observacoes: '' });
-      setFile(null);
+      toast({ title: 'ASO excluído!' });
       loadData();
     }
-    setSaving(false);
+    setDeleteId(null);
   };
 
   const handleDownload = async (url: string) => {
@@ -119,18 +187,23 @@ const ASOControl = () => {
     if (data?.signedUrl) window.open(data.signedUrl, '_blank');
   };
 
+  const formatDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('pt-BR');
+
   const filtered = asos.filter(a =>
     (a.employees?.nome || '').toLowerCase().includes(search.toLowerCase()) ||
     tipoLabels[a.tipo]?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const historyAsos = historyEmployeeId ? asos.filter(a => a.employee_id === historyEmployeeId) : [];
+  const historyName = historyEmployeeId ? (asos.find(a => a.employee_id === historyEmployeeId)?.employees?.nome || '') : '';
+
   return (
     <MainLayout>
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h1 className="text-2xl font-bold flex items-center gap-2"><HeartPulse className="w-6 h-6" /> ASO — Atestado de Saúde Ocupacional</h1>
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2"><HeartPulse className="w-6 h-6" /> ASO — Atestado de Saúde Ocupacional</h1>
           {!isViewer && (
-            <Button onClick={() => setDialogOpen(true)} className="gap-2"><Plus className="w-4 h-4" /> Novo ASO</Button>
+            <Button onClick={openNew} className="gap-2"><Plus className="w-4 h-4" /> Novo ASO</Button>
           )}
         </div>
 
@@ -150,20 +223,21 @@ const ASOControl = () => {
                     <TableHead>Realização</TableHead>
                     <TableHead>Vencimento</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Documento</TableHead>
+                    <TableHead>Doc</TableHead>
+                    {!isViewer && <TableHead className="text-right">Ações</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
                   ) : filtered.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum ASO registrado.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum ASO registrado.</TableCell></TableRow>
                   ) : filtered.map(aso => (
                     <TableRow key={aso.id}>
                       <TableCell className="font-medium">{aso.employees?.nome}</TableCell>
                       <TableCell>{tipoLabels[aso.tipo] || aso.tipo}</TableCell>
-                      <TableCell>{new Date(aso.data_realizacao + 'T00:00:00').toLocaleDateString('pt-BR')}</TableCell>
-                      <TableCell>{aso.data_vencimento ? new Date(aso.data_vencimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}</TableCell>
+                      <TableCell>{formatDate(aso.data_realizacao)}</TableCell>
+                      <TableCell>{aso.data_vencimento ? formatDate(aso.data_vencimento) : '—'}</TableCell>
                       <TableCell>{getStatusBadge(aso)}</TableCell>
                       <TableCell>
                         {aso.arquivo_url ? (
@@ -172,6 +246,24 @@ const ASOControl = () => {
                           </Button>
                         ) : '—'}
                       </TableCell>
+                      {!isViewer && (
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button size="icon" variant="ghost" className="h-8 w-8" title="Renovar" onClick={() => openRenew(aso)}>
+                              <RefreshCw className="w-4 h-4 text-emerald-600" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8" title="Editar" onClick={() => openEdit(aso)}>
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8" title="Histórico" onClick={() => openHistory(aso.employee_id)}>
+                              <History className="w-4 h-4 text-blue-600" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8" title="Excluir" onClick={() => setDeleteId(aso.id)}>
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -180,13 +272,14 @@ const ASOControl = () => {
           </CardContent>
         </Card>
 
+        {/* New/Edit Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-md">
-            <DialogHeader><DialogTitle>Novo ASO</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{editingId ? 'Editar ASO' : 'Novo ASO'}</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Colaborador *</Label>
-                <Select value={form.employee_id} onValueChange={v => setForm(p => ({ ...p, employee_id: v }))}>
+                <Select value={form.employee_id} onValueChange={v => setForm(p => ({ ...p, employee_id: v }))} disabled={!!editingId}>
                   <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
                     {employees.map(e => <SelectItem key={e.id} value={e.id}>{e.nome}</SelectItem>)}
@@ -225,8 +318,53 @@ const ASOControl = () => {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSave} disabled={saving}>{saving ? 'Salvando...' : 'Registrar'}</Button>
+              <Button onClick={handleSave} disabled={saving}>{saving ? 'Salvando...' : editingId ? 'Atualizar' : 'Registrar'}</Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation */}
+        <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir ASO</AlertDialogTitle>
+              <AlertDialogDescription>Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">Excluir</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* History Dialog */}
+        <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader><DialogTitle>Histórico de ASO — {historyName}</DialogTitle></DialogHeader>
+            <div className="max-h-96 overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Realização</TableHead>
+                    <TableHead>Vencimento</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {historyAsos.length === 0 ? (
+                    <TableRow><TableCell colSpan={4} className="text-center py-4 text-muted-foreground">Nenhum registro.</TableCell></TableRow>
+                  ) : historyAsos.map(aso => (
+                    <TableRow key={aso.id}>
+                      <TableCell>{tipoLabels[aso.tipo] || aso.tipo}</TableCell>
+                      <TableCell>{formatDate(aso.data_realizacao)}</TableCell>
+                      <TableCell>{aso.data_vencimento ? formatDate(aso.data_vencimento) : '—'}</TableCell>
+                      <TableCell>{getStatusBadge(aso)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
