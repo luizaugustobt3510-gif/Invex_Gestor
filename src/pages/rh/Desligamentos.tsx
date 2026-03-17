@@ -183,6 +183,7 @@ const Desligamentos = () => {
                     <TableHead>Motivo</TableHead>
                     <TableHead>Responsável</TableHead>
                     <TableHead>Observações</TableHead>
+                    <TableHead className="w-[60px]">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
