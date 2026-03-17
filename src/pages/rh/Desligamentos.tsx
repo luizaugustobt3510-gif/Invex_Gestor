@@ -130,6 +130,25 @@ const Desligamentos = () => {
     setReasons(prev => prev.filter(r => r.id !== id));
   };
 
+  const handleDeleteTermination = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from('employee_terminations').delete().eq('id', deleteId);
+    if (error) {
+      toast({ title: 'Erro ao excluir', description: error.message, variant: 'destructive' });
+      setDeleteId(null);
+      setDeleteEmpId(null);
+      return;
+    }
+    // Reativar colaborador
+    if (deleteEmpId) {
+      await supabase.from('employees').update({ status: 'ativo' }).eq('id', deleteEmpId);
+    }
+    toast({ title: 'Excluído', description: 'Registro de desligamento removido permanentemente.' });
+    setDeleteId(null);
+    setDeleteEmpId(null);
+    loadData();
+  };
+
   const filtered = terminations.filter(t =>
     (t.employees?.nome || '').toLowerCase().includes(search.toLowerCase()) ||
     t.motivo.toLowerCase().includes(search.toLowerCase())
