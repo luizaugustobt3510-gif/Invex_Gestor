@@ -49,6 +49,7 @@ import Desenvolvimento from "./pages/rh/Desenvolvimento";
 import PainelDiario from "./pages/rh/PainelDiario";
 import Desligamentos from "./pages/rh/Desligamentos";
 import ImportarFuncionarios from "./pages/rh/ImportarFuncionarios";
+import Turnover from "./pages/rh/Turnover";
 import GestaoUsuarios from "./pages/GestaoUsuarios";
 import ConferenciaTemperatura from "./pages/logistica/ConferenciaTemperatura";
 const queryClient = new QueryClient();
@@ -124,6 +125,7 @@ const App = () => (
             <Route path="/rh/desenvolvimento" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><Desenvolvimento /></RoleProtectedRoute>} />
             <Route path="/rh/painel-diario" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><PainelDiario /></RoleProtectedRoute>} />
             <Route path="/rh/desligamentos" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']}><Desligamentos /></RoleProtectedRoute>} />
+            <Route path="/rh/turnover" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><Turnover /></RoleProtectedRoute>} />
             <Route path="/rh/importar-funcionarios" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']}><ImportarFuncionarios /></RoleProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />

@@ -8,10 +8,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { UserMinus, Plus, Search, Settings } from 'lucide-react';
+import { UserMinus, Plus, Search, Settings, Trash2 } from 'lucide-react';
 
 const Desligamentos = () => {
   const { toast } = useToast();
@@ -24,6 +25,8 @@ const Desligamentos = () => {
   const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [newReason, setNewReason] = useState('');
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteEmpId, setDeleteEmpId] = useState<string | null>(null);
   const [form, setForm] = useState({
     employee_id: '',
     data_desligamento: new Date().toISOString().split('T')[0],
@@ -127,6 +130,25 @@ const Desligamentos = () => {
     setReasons(prev => prev.filter(r => r.id !== id));
   };
 
+  const handleDeleteTermination = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from('employee_terminations').delete().eq('id', deleteId);
+    if (error) {
+      toast({ title: 'Erro ao excluir', description: error.message, variant: 'destructive' });
+      setDeleteId(null);
+      setDeleteEmpId(null);
+      return;
+    }
+    // Reativar colaborador
+    if (deleteEmpId) {
+      await supabase.from('employees').update({ status: 'ativo' }).eq('id', deleteEmpId);
+    }
+    toast({ title: 'Excluído', description: 'Registro de desligamento removido permanentemente.' });
+    setDeleteId(null);
+    setDeleteEmpId(null);
+    loadData();
+  };
+
   const filtered = terminations.filter(t =>
     (t.employees?.nome || '').toLowerCase().includes(search.toLowerCase()) ||
     t.motivo.toLowerCase().includes(search.toLowerCase())
@@ -161,13 +183,14 @@ const Desligamentos = () => {
                     <TableHead>Motivo</TableHead>
                     <TableHead>Responsável</TableHead>
                     <TableHead>Observações</TableHead>
+                    <TableHead className="w-[60px]">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
                   ) : filtered.length === 0 ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum desligamento registrado.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum desligamento registrado.</TableCell></TableRow>
                   ) : filtered.map(t => (
                     <TableRow key={t.id}>
                       <TableCell className="font-medium">{t.employees?.nome}</TableCell>
@@ -177,6 +200,11 @@ const Desligamentos = () => {
                       <TableCell><Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">{t.motivo}</Badge></TableCell>
                       <TableCell>{t.responsavel_nome}</TableCell>
                       <TableCell className="max-w-[200px] truncate">{t.observacoes || '—'}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" className="text-destructive h-8 w-8" onClick={() => { setDeleteId(t.id); setDeleteEmpId(t.employee_id); }}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -248,6 +276,20 @@ const Desligamentos = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* AlertDialog: Confirmar Exclusão */}
+        <AlertDialog open={!!deleteId} onOpenChange={(open) => { if (!open) { setDeleteId(null); setDeleteEmpId(null); } }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir desligamento?</AlertDialogTitle>
+              <AlertDialogDescription>Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita. O colaborador será reativado.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteTermination} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </MainLayout>
   );
