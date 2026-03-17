@@ -188,9 +188,9 @@ const Desligamentos = () => {
                 </TableHeader>
                 <TableBody>
                   {loading ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
                   ) : filtered.length === 0 ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum desligamento registrado.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum desligamento registrado.</TableCell></TableRow>
                   ) : filtered.map(t => (
                     <TableRow key={t.id}>
                       <TableCell className="font-medium">{t.employees?.nome}</TableCell>
@@ -200,6 +200,11 @@ const Desligamentos = () => {
                       <TableCell><Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">{t.motivo}</Badge></TableCell>
                       <TableCell>{t.responsavel_nome}</TableCell>
                       <TableCell className="max-w-[200px] truncate">{t.observacoes || '—'}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" className="text-destructive h-8 w-8" onClick={() => { setDeleteId(t.id); setDeleteEmpId(t.employee_id); }}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
