@@ -25,6 +25,8 @@ const Desligamentos = () => {
   const [reasonDialogOpen, setReasonDialogOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [newReason, setNewReason] = useState('');
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteEmpId, setDeleteEmpId] = useState<string | null>(null);
   const [form, setForm] = useState({
     employee_id: '',
     data_desligamento: new Date().toISOString().split('T')[0],
