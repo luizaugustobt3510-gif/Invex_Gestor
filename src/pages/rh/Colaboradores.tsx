@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
 import { MainLayout } from '@/components/MainLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Users, Plus, Pencil, Search } from 'lucide-react';
+import { Users, Plus, Pencil, Search, Trash2 } from 'lucide-react';
 
 interface Employee {
   id: string;
@@ -36,15 +37,15 @@ const Colaboradores = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [search, setSearch] = useState('');
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteName, setDeleteName] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => { loadEmployees(); }, []);
 
   const loadEmployees = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('employees')
-      .select('*')
-      .order('nome');
+    const { data, error } = await supabase.from('employees').select('*').order('nome');
     if (!error) setEmployees(data || []);
     setLoading(false);
   };
@@ -57,30 +58,35 @@ const Colaboradores = () => {
       .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
   };
 
-  const handleOpenNew = () => {
-    setEditingId(null);
-    setForm(emptyForm);
-    setDialogOpen(true);
-  };
+  const handleOpenNew = () => { setEditingId(null); setForm(emptyForm); setDialogOpen(true); };
 
   const handleEdit = (emp: any) => {
     setEditingId(emp.id);
     setForm({
-      nome: emp.nome,
-      cpf: emp.cpf,
-      cargo: emp.cargo,
-      departamento: emp.departamento || '',
-      data_admissao: emp.data_admissao,
-      data_nascimento: emp.data_nascimento || '',
-      salario: String(emp.salario),
-      status: emp.status,
+      nome: emp.nome, cpf: emp.cpf, cargo: emp.cargo, departamento: emp.departamento || '',
+      data_admissao: emp.data_admissao, data_nascimento: emp.data_nascimento || '',
+      salario: String(emp.salario), status: emp.status,
     });
     setDialogOpen(true);
   };
 
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    const { error } = await supabase.from('employees').delete().eq('id', deleteId);
+    if (error) {
+      toast({ title: 'Erro ao excluir', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Colaborador excluído', description: 'Registro removido permanentemente.' });
+      loadEmployees();
+    }
+    setDeleting(false);
+    setDeleteId(null);
+  };
+
   const handleSave = async () => {
     if (!form.nome.trim() || !form.cpf.trim() || !form.cargo.trim() || !form.data_admissao) {
-      toast({ title: 'Campos obrigatórios', description: 'Preencha todos os campos.', variant: 'destructive' });
+      toast({ title: 'Campos obrigatórios', description: 'Preencha todos os campos obrigatórios.', variant: 'destructive' });
       return;
     }
     const salario = parseFloat(form.salario) || 0;
@@ -88,12 +94,10 @@ const Colaboradores = () => {
       toast({ title: 'Valor inválido', description: 'Salário não pode ser negativo.', variant: 'destructive' });
       return;
     }
-
     setSaving(true);
 
     if (editingId) {
-      const { error } = await supabase
-        .from('employees')
+      const { error } = await supabase.from('employees')
         .update({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, data_nascimento: form.data_nascimento || null, salario, status: form.status })
         .eq('id', editingId);
       if (error) {
@@ -102,7 +106,6 @@ const Colaboradores = () => {
         toast({ title: 'Sucesso', description: 'Colaborador atualizado.' });
       }
     } else {
-      // Get company_id
       const { data: profile } = await supabase.from('profiles').select('company_id').eq('user_id', (await supabase.auth.getUser()).data.user?.id || '').single();
       const companyId = profile?.company_id;
       if (!companyId) {
@@ -110,17 +113,14 @@ const Colaboradores = () => {
         setSaving(false);
         return;
       }
-
-      const { error } = await supabase
-        .from('employees')
+      const { error } = await supabase.from('employees')
         .insert({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, data_nascimento: form.data_nascimento || null, salario, status: form.status, company_id: companyId });
       if (error) {
         toast({ title: 'Erro', description: error.message, variant: 'destructive' });
       } else {
-        toast({ title: 'Sucesso', description: 'Colaborador cadastrado.' });
+        toast({ title: 'Colaborador cadastrado com sucesso', description: `${form.nome.trim()} foi adicionado à lista de colaboradores.` });
       }
     }
-
     setSaving(false);
     setDialogOpen(false);
     loadEmployees();
@@ -160,7 +160,7 @@ const Colaboradores = () => {
                     <TableHead>Admissão</TableHead>
                     <TableHead className="text-right">Salário</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="w-12"></TableHead>
+                    <TableHead className="w-20 text-center">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -177,11 +177,16 @@ const Colaboradores = () => {
                       <TableCell className="text-right">{formatCurrency(emp.salario)}</TableCell>
                       <TableCell>
                         <Badge variant={emp.status === 'ativo' ? 'default' : 'secondary'}>
-                          {emp.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                          {emp.status === 'ativo' ? 'Ativo' : emp.status === 'inativo' ? 'Inativo' : emp.status === 'afastado' ? 'Afastado' : 'Em Férias'}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button size="icon" variant="ghost" onClick={() => handleEdit(emp)}><Pencil className="w-4 h-4" /></Button>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button size="icon" variant="ghost" onClick={() => handleEdit(emp)}><Pencil className="w-4 h-4" /></Button>
+                          <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => { setDeleteId(emp.id); setDeleteName(emp.nome); }}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -191,11 +196,10 @@ const Colaboradores = () => {
           </CardContent>
         </Card>
 
+        {/* Form Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>{editingId ? 'Editar Colaborador' : 'Novo Colaborador'}</DialogTitle>
-            </DialogHeader>
+            <DialogHeader><DialogTitle>{editingId ? 'Editar Colaborador' : 'Novo Colaborador'}</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Nome Completo *</Label>
@@ -211,7 +215,7 @@ const Colaboradores = () => {
               </div>
               <div className="space-y-2">
                 <Label>Departamento / Setor</Label>
-                <Input value={form.departamento} onChange={e => setForm(p => ({ ...p, departamento: e.target.value }))} placeholder="Ex: Logística, Administrativo, Financeiro..." />
+                <Input value={form.departamento} onChange={e => setForm(p => ({ ...p, departamento: e.target.value }))} placeholder="Ex: Logística, Administrativo..." />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -245,6 +249,24 @@ const Colaboradores = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation */}
+        <AlertDialog open={!!deleteId} onOpenChange={open => { if (!open) setDeleteId(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir colaborador</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir <strong>{deleteName}</strong>? Esta ação não pode ser desfeita e todos os dados relacionados serão removidos permanentemente.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {deleting ? 'Excluindo...' : 'Excluir permanentemente'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </MainLayout>
   );
