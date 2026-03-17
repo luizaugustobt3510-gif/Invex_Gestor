@@ -276,6 +276,20 @@ const Desligamentos = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* AlertDialog: Confirmar Exclusão */}
+        <AlertDialog open={!!deleteId} onOpenChange={(open) => { if (!open) { setDeleteId(null); setDeleteEmpId(null); } }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir desligamento?</AlertDialogTitle>
+              <AlertDialogDescription>Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita. O colaborador será reativado.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteTermination} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </MainLayout>
   );
