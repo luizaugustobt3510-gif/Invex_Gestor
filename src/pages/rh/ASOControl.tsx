@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { hardDeleteById } from '@/lib/hardDelete';
 import { HeartPulse, Plus, Download, Search, Pencil, Trash2, RefreshCw, History } from 'lucide-react';
 
 interface ASO {
@@ -101,7 +102,6 @@ const ASOControl = () => {
   const openRenew = (aso: ASO) => {
     setEditingId(null);
     const today = new Date().toISOString().split('T')[0];
-    // Auto-calculate new vencimento: +12 months from today
     const newVenc = new Date();
     newVenc.setFullYear(newVenc.getFullYear() + 1);
     setForm({
@@ -172,14 +172,18 @@ const ASOControl = () => {
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    const { error } = await supabase.from('employee_asos').delete().eq('id', deleteId);
-    if (error) {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'ASO excluído!' });
-      loadData();
+
+    const result = await hardDeleteById('employee_asos', deleteId);
+
+    if (!result.success) {
+      toast({ title: 'Erro ao excluir', description: result.message, variant: 'destructive' });
+      return;
     }
+
+    setAsos(prev => prev.filter(aso => aso.id !== deleteId));
+    toast({ title: 'ASO excluído', description: 'Registro removido permanentemente do banco de dados.' });
     setDeleteId(null);
+    await loadData();
   };
 
   const handleDownload = async (url: string) => {

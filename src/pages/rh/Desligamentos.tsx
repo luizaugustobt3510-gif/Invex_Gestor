@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { hardDeleteById } from '@/lib/hardDelete';
 import { UserMinus, Plus, Search, Settings, Trash2 } from 'lucide-react';
 
 const Desligamentos = () => {
@@ -60,7 +61,6 @@ const Desligamentos = () => {
     const emp = employees.find(e => e.id === form.employee_id);
     if (!emp?.company_id) { setSaving(false); return; }
 
-    // Insert termination record
     const { error: termError } = await supabase.from('employee_terminations').insert({
       company_id: emp.company_id,
       employee_id: form.employee_id,
@@ -76,7 +76,6 @@ const Desligamentos = () => {
       return;
     }
 
-    // Update employee status
     const { error: empError } = await supabase.from('employees').update({ status: 'desligado' }).eq('id', form.employee_id);
     if (empError) {
       toast({ title: 'Erro ao atualizar status', description: empError.message, variant: 'destructive' });
@@ -84,7 +83,6 @@ const Desligamentos = () => {
       return;
     }
 
-    // Audit log
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await supabase.from('audit_log').insert({
@@ -132,21 +130,25 @@ const Desligamentos = () => {
 
   const handleDeleteTermination = async () => {
     if (!deleteId) return;
-    const { error } = await supabase.from('employee_terminations').delete().eq('id', deleteId);
-    if (error) {
-      toast({ title: 'Erro ao excluir', description: error.message, variant: 'destructive' });
+
+    const result = await hardDeleteById('employee_terminations', deleteId);
+
+    if (!result.success) {
+      toast({ title: 'Erro ao excluir', description: result.message, variant: 'destructive' });
       setDeleteId(null);
       setDeleteEmpId(null);
       return;
     }
-    // Reativar colaborador
+
     if (deleteEmpId) {
       await supabase.from('employees').update({ status: 'ativo' }).eq('id', deleteEmpId);
     }
-    toast({ title: 'Excluído', description: 'Registro de desligamento removido permanentemente.' });
+
+    setTerminations(prev => prev.filter(termination => termination.id !== deleteId));
+    toast({ title: 'Excluído', description: 'Registro de desligamento removido permanentemente do banco de dados.' });
     setDeleteId(null);
     setDeleteEmpId(null);
-    loadData();
+    await loadData();
   };
 
   const filtered = terminations.filter(t =>

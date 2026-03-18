@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { hardDeleteById } from '@/lib/hardDelete';
 import { Calendar, Plus, Pencil, Trash2, Search } from 'lucide-react';
 
 const Ferias = () => {
@@ -44,7 +45,6 @@ const Ferias = () => {
       supabase.from('employees').select('id, nome').eq('status', 'ativo').order('nome'),
     ]);
 
-    // Auto-update statuses
     const today = new Date().toISOString().split('T')[0];
     const vacs = vacRes.data || [];
     for (const vac of vacs) {
@@ -92,12 +92,10 @@ const Ferias = () => {
       return;
     }
 
-    // Auto-calculate days
     const start = new Date(form.data_inicio);
     const end = new Date(form.data_fim);
     const dias = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
 
-    // Auto-determine status
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     let status = form.status;
@@ -153,14 +151,18 @@ const Ferias = () => {
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    const { error } = await supabase.from('employee_vacations').delete().eq('id', deleteId);
-    if (error) {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Férias excluídas!' });
-      loadData();
+
+    const result = await hardDeleteById('employee_vacations', deleteId);
+
+    if (!result.success) {
+      toast({ title: 'Erro ao excluir', description: result.message, variant: 'destructive' });
+      return;
     }
+
+    setVacations(prev => prev.filter(vacation => vacation.id !== deleteId));
+    toast({ title: 'Férias excluídas', description: 'Registro removido permanentemente do banco de dados.' });
     setDeleteId(null);
+    await loadData();
   };
 
   const formatDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('pt-BR');
