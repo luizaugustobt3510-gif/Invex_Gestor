@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { hardDeleteById } from '@/lib/hardDelete';
 import { FileText, Plus, Download, Pencil, Trash2 } from 'lucide-react';
 
 const Atestados = () => {
@@ -56,15 +57,20 @@ const Atestados = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     setDeleting(true);
-    const { error } = await supabase.from('employee_certificates').delete().eq('id', deleteId);
-    if (error) {
-      toast({ title: 'Erro ao excluir', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Atestado excluído', description: 'Registro removido permanentemente.' });
-      loadData();
+
+    const result = await hardDeleteById('employee_certificates', deleteId);
+
+    if (!result.success) {
+      toast({ title: 'Erro ao excluir', description: result.message, variant: 'destructive' });
+      setDeleting(false);
+      return;
     }
+
+    setCertificates(prev => prev.filter(certificate => certificate.id !== deleteId));
+    toast({ title: 'Atestado excluído', description: 'Registro removido permanentemente do banco de dados.' });
     setDeleting(false);
     setDeleteId(null);
+    await loadData();
   };
 
   const handleSave = async () => {

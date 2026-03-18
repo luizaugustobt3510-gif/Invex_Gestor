@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { hardDeleteById } from '@/lib/hardDelete';
 import { Users, Plus, Pencil, Search, Trash2 } from 'lucide-react';
 
 interface Employee {
@@ -72,16 +73,22 @@ const Colaboradores = () => {
 
   const handleDelete = async () => {
     if (!deleteId) return;
+
     setDeleting(true);
-    const { error } = await supabase.from('employees').delete().eq('id', deleteId);
-    if (error) {
-      toast({ title: 'Erro ao excluir', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Colaborador excluído', description: 'Registro removido permanentemente.' });
-      loadEmployees();
+    const result = await hardDeleteById('employees', deleteId);
+
+    if (!result.success) {
+      toast({ title: 'Erro ao excluir', description: result.message, variant: 'destructive' });
+      setDeleting(false);
+      return;
     }
-    setDeleting(false);
+
+    setEmployees(prev => prev.filter(employee => employee.id !== deleteId));
+    toast({ title: 'Colaborador excluído', description: 'Registro removido permanentemente do banco de dados.' });
     setDeleteId(null);
+    setDeleteName('');
+    setDeleting(false);
+    await loadEmployees();
   };
 
   const handleSave = async () => {

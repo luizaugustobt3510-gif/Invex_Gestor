@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { hardDeleteById } from '@/lib/hardDelete';
 import { GraduationCap, Plus, UserPlus, AlertTriangle, Pencil, Trash2, RefreshCw, History, Search } from 'lucide-react';
 
 const Treinamentos = () => {
@@ -126,7 +127,6 @@ const Treinamentos = () => {
     const companyId = await getCompanyId();
     if (!companyId) { setSaving(false); return; }
 
-    // Auto-calculate validade if not set
     let dataValidade = linkForm.data_validade || null;
     if (!dataValidade) {
       const training = trainings.find(t => t.id === linkForm.training_id);
@@ -170,14 +170,18 @@ const Treinamentos = () => {
 
   const handleDeleteET = async () => {
     if (!deleteEtId) return;
-    const { error } = await supabase.from('employee_trainings').delete().eq('id', deleteEtId);
-    if (error) {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Registro excluído!' });
-      loadData();
+
+    const result = await hardDeleteById('employee_trainings', deleteEtId);
+
+    if (!result.success) {
+      toast({ title: 'Erro ao excluir', description: result.message, variant: 'destructive' });
+      return;
     }
+
+    setEmployeeTrainings(prev => prev.filter(training => training.id !== deleteEtId));
+    toast({ title: 'Treinamento excluído', description: 'Registro removido permanentemente do banco de dados.' });
     setDeleteEtId(null);
+    await loadData();
   };
 
   const formatDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('pt-BR');
