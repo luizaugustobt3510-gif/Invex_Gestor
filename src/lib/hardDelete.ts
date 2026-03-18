@@ -1,15 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
 
-type PublicTable = keyof Database['public']['Tables'];
-
-export const hardDeleteById = async <T extends PublicTable>(table: T, id: string) => {
-  const { data, error } = await supabase
-    .from(table)
-    .delete()
-    .eq('id', id)
-    .select('id')
-    .maybeSingle();
+export const hardDeleteById = async (table: string, id: string) => {
+  const query = supabase.from(table as never) as any;
+  const { data, error } = await query.delete().eq('id', id).select('id').maybeSingle();
 
   if (error) {
     return {
@@ -18,7 +11,7 @@ export const hardDeleteById = async <T extends PublicTable>(table: T, id: string
     };
   }
 
-  if (!data) {
+  if (!data?.id) {
     return {
       success: false,
       message: 'O registro não foi excluído. Verifique sua permissão ou tente novamente.',
@@ -27,6 +20,6 @@ export const hardDeleteById = async <T extends PublicTable>(table: T, id: string
 
   return {
     success: true,
-    deletedId: data.id,
+    deletedId: data.id as string,
   };
 };
