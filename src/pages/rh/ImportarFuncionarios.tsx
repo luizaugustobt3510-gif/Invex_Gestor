@@ -96,11 +96,9 @@ const ImportarFuncionarios = () => {
     setImported(false);
 
     const reader = new FileReader();
-    reader.onload = (evt) => {
-      const data = new Uint8Array(evt.target?.result as ArrayBuffer);
-      const wb = XLSX.read(data, { type: 'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(ws);
+    reader.onload = async (evt) => {
+      const buffer = evt.target?.result as ArrayBuffer;
+      const jsonData = await readExcelFile(buffer);
       const validated = jsonData.map((row, i) => validateRow(row, i));
       setRows(validated);
     };

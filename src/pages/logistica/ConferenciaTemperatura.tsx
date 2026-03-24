@@ -13,7 +13,7 @@ import { Thermometer, Calendar, History, CheckCircle, XCircle, Download, ScanLin
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import * as XLSX from 'xlsx';
+import { writeExcelFromJson } from '@/lib/excelUtils';
 
 const LOCAIS = [
   { key: 'almoxarifado', label: 'Almoxarifado' },

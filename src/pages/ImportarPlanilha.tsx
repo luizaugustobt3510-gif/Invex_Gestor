@@ -56,12 +56,10 @@ const ImportarPlanilha = () => {
     setResult(null);
 
     const reader = new FileReader();
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       try {
-        const data = new Uint8Array(evt.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
+        const buffer = evt.target?.result as ArrayBuffer;
+        const json = await readExcelFile(buffer);
 
         const parsed: ImportRow[] = json.map((row, i) => {
           const r: ImportRow = {

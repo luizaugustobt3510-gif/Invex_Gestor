@@ -15,7 +15,7 @@ import { toast } from '@/hooks/use-toast';
 import { DesligamentoDialog } from './DesligamentoDialog';
 import { InsightsRH } from './InsightsRH';
 import { AlertActionSheet, type AlertEmployee } from '@/components/rh/AlertActionSheet';
-import * as XLSX from 'xlsx';
+import { writeExcelMultiSheet } from '@/lib/excelUtils';
 
 const notaEmoji: Record<number, string> = { 1: '😞', 2: '😐', 3: '🙂', 4: '😃' };
 
