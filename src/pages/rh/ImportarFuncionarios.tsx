@@ -30,14 +30,11 @@ const ImportarFuncionarios = () => {
   const [imported, setImported] = useState(false);
 
   const handleDownloadTemplate = () => {
-    const ws = XLSX.utils.aoa_to_sheet([
+    writeExcelFromAoa('Modelo_Importacao_Funcionarios.xlsx', 'Modelo', [
       ['Nome', 'CPF', 'Cargo', 'Setor', 'Data Admissão', 'Data Nascimento', 'Salário', 'Status'],
       ['João Silva', '123.456.789-00', 'Auxiliar', 'Logística', '2024-01-15', '1990-05-20', 2500, 'ativo'],
       ['Maria Santos', '987.654.321-00', 'Analista', 'Administrativo', '2023-06-01', '1985-11-10', 3500, 'ativo'],
     ]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Modelo');
-    XLSX.writeFile(wb, 'Modelo_Importacao_Funcionarios.xlsx');
   };
 
   const validateRow = (row: any, index: number): ImportRow => {
