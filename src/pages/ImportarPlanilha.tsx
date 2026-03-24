@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { readExcelFile, writeExcelFromAoa } from '@/lib/excelUtils';
 
 interface ImportRow {
   rowNum: number;
