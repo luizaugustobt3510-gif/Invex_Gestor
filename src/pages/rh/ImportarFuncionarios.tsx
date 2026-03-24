@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, Download, FileSpreadsheet, CheckCircle, XCircle } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { readExcelFile, writeExcelFromAoa } from '@/lib/excelUtils';
 
 interface ImportRow {
   nome: string;
@@ -30,14 +30,11 @@ const ImportarFuncionarios = () => {
   const [imported, setImported] = useState(false);
 
   const handleDownloadTemplate = () => {
-    const ws = XLSX.utils.aoa_to_sheet([
+    writeExcelFromAoa('Modelo_Importacao_Funcionarios.xlsx', 'Modelo', [
       ['Nome', 'CPF', 'Cargo', 'Setor', 'Data Admissão', 'Data Nascimento', 'Salário', 'Status'],
       ['João Silva', '123.456.789-00', 'Auxiliar', 'Logística', '2024-01-15', '1990-05-20', 2500, 'ativo'],
       ['Maria Santos', '987.654.321-00', 'Analista', 'Administrativo', '2023-06-01', '1985-11-10', 3500, 'ativo'],
     ]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Modelo');
-    XLSX.writeFile(wb, 'Modelo_Importacao_Funcionarios.xlsx');
   };
 
   const validateRow = (row: any, index: number): ImportRow => {
@@ -99,11 +96,9 @@ const ImportarFuncionarios = () => {
     setImported(false);
 
     const reader = new FileReader();
-    reader.onload = (evt) => {
-      const data = new Uint8Array(evt.target?.result as ArrayBuffer);
-      const wb = XLSX.read(data, { type: 'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(ws);
+    reader.onload = async (evt) => {
+      const buffer = evt.target?.result as ArrayBuffer;
+      const jsonData = await readExcelFile(buffer);
       const validated = jsonData.map((row, i) => validateRow(row, i));
       setRows(validated);
     };

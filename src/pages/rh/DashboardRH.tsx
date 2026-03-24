@@ -15,7 +15,7 @@ import { toast } from '@/hooks/use-toast';
 import { DesligamentoDialog } from './DesligamentoDialog';
 import { InsightsRH } from './InsightsRH';
 import { AlertActionSheet, type AlertEmployee } from '@/components/rh/AlertActionSheet';
-import * as XLSX from 'xlsx';
+import { writeExcelMultiSheet } from '@/lib/excelUtils';
 
 const notaEmoji: Record<number, string> = { 1: '😞', 2: '😐', 3: '🙂', 4: '😃' };
 
@@ -315,22 +315,14 @@ const DashboardRH = () => {
         supabase.from('performance_evaluations').select('*, employees(nome)').eq('company_id', roleData.company_id),
       ]);
 
-      const wb = XLSX.utils.book_new();
-      const addSheet = (name: string, data: any[]) => {
-        if (data.length > 0) {
-          const ws = XLSX.utils.json_to_sheet(data);
-          XLSX.utils.book_append_sheet(wb, ws, name);
-        }
-      };
-
-      addSheet('Colaboradores', (empR.data || []).map(e => ({ Nome: e.nome, CPF: e.cpf, Cargo: e.cargo, Departamento: e.departamento, Status: e.status, Admissão: e.data_admissao, Salário: e.salario })));
-      addSheet('Férias', (vacR.data || []).map((v: any) => ({ Colaborador: v.employees?.nome, Início: v.data_inicio, Fim: v.data_fim, Dias: v.dias, Status: v.status })));
-      addSheet('Atestados', (certR.data || []).map((c: any) => ({ Colaborador: c.employees?.nome, Início: c.data_inicio, Fim: c.data_fim, Dias: c.dias, Motivo: c.motivo })));
-      addSheet('Banco de Horas', (timeR.data || []).map((t: any) => ({ Colaborador: t.employees?.nome, Data: t.data, Entrada: t.entrada, Saída: t.saida, 'Horas Trab.': t.horas_trabalhadas, 'Horas Extras': t.horas_extras })));
-      addSheet('Treinamentos', (trainR.data || []).map((t: any) => ({ Colaborador: t.employees?.nome, Treinamento: t.trainings?.nome, Realização: t.data_realizacao, Validade: t.data_validade, Status: t.status })));
-      addSheet('Avaliações', (evalR.data || []).map((e: any) => ({ Colaborador: e.employees?.nome, Nota: e.nota, Observações: e.observacoes, Data: e.created_at?.split('T')[0] })));
-
-      XLSX.writeFile(wb, `Backup_GP_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+      await writeExcelMultiSheet(`Backup_GP_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`, [
+        { name: 'Colaboradores', data: (empR.data || []).map(e => ({ Nome: e.nome, CPF: e.cpf, Cargo: e.cargo, Departamento: e.departamento, Status: e.status, Admissão: e.data_admissao, Salário: e.salario })) },
+        { name: 'Férias', data: (vacR.data || []).map((v: any) => ({ Colaborador: v.employees?.nome, Início: v.data_inicio, Fim: v.data_fim, Dias: v.dias, Status: v.status })) },
+        { name: 'Atestados', data: (certR.data || []).map((c: any) => ({ Colaborador: c.employees?.nome, Início: c.data_inicio, Fim: c.data_fim, Dias: c.dias, Motivo: c.motivo })) },
+        { name: 'Banco de Horas', data: (timeR.data || []).map((t: any) => ({ Colaborador: t.employees?.nome, Data: t.data, Entrada: t.entrada, Saída: t.saida, 'Horas Trab.': t.horas_trabalhadas, 'Horas Extras': t.horas_extras })) },
+        { name: 'Treinamentos', data: (trainR.data || []).map((t: any) => ({ Colaborador: t.employees?.nome, Treinamento: t.trainings?.nome, Realização: t.data_realizacao, Validade: t.data_validade, Status: t.status })) },
+        { name: 'Avaliações', data: (evalR.data || []).map((e: any) => ({ Colaborador: e.employees?.nome, Nota: e.nota, Observações: e.observacoes, Data: e.created_at?.split('T')[0] })) },
+      ]);
       toast({ title: 'Backup exportado com sucesso!' });
     } catch {
       toast({ title: 'Erro ao exportar', variant: 'destructive' });

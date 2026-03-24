@@ -15,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { CheckCircle, AlertTriangle, XCircle, ClipboardCheck, Upload, Search, Trash2, Wrench, Package, DollarSign } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import * as XLSX from 'xlsx';
+import { readExcelFile } from '@/lib/excelUtils';
 
 interface Material {
   id: string;
@@ -202,11 +202,10 @@ const Conciliacao = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       try {
-        const wb = XLSX.read(evt.target?.result, { type: 'binary' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(ws);
+        const buffer = evt.target?.result as ArrayBuffer;
+        const json = await readExcelFile(buffer);
         setImportData(json);
         const now = new Date();
         setImportLote(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-semana-${Math.ceil(now.getDate() / 7)}`);
@@ -214,7 +213,7 @@ const Conciliacao = () => {
         toast.error('Erro ao ler arquivo');
       }
     };
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
   };
 
   const handleProcessImport = async () => {

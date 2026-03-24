@@ -13,7 +13,7 @@ import { Thermometer, Calendar, History, CheckCircle, XCircle, Download, ScanLin
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import * as XLSX from 'xlsx';
+import { writeExcelFromJson } from '@/lib/excelUtils';
 
 const LOCAIS = [
   { key: 'almoxarifado', label: 'Almoxarifado' },
@@ -149,21 +149,22 @@ const ConferenciaTemperatura = () => {
   }, [records, filterLocal, filterDate]);
 
   const handleExport = () => {
-    const ws = XLSX.utils.json_to_sheet(filteredHistory.map(r => ({
-      Data: r.data,
-      Hora: r.hora,
-      Local: LOCAIS.find(l => l.key === r.local)?.label || r.local,
-      'Temp. Atual': r.temperatura_atual,
-      'Temp. Mín': r.temperatura_min,
-      'Temp. Máx': r.temperatura_max,
-      'Umid. Atual': r.umidade_atual,
-      'Umid. Mín': r.umidade_min,
-      'Umid. Máx': r.umidade_max,
-      Responsável: r.responsavel_nome,
-    })));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Conferências');
-    XLSX.writeFile(wb, `Conferencias_Temperatura_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+    writeExcelFromJson(
+      `Conferencias_Temperatura_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`,
+      'Conferências',
+      filteredHistory.map(r => ({
+        Data: r.data,
+        Hora: r.hora,
+        Local: LOCAIS.find(l => l.key === r.local)?.label || r.local,
+        'Temp. Atual': r.temperatura_atual,
+        'Temp. Mín': r.temperatura_min,
+        'Temp. Máx': r.temperatura_max,
+        'Umid. Atual': r.umidade_atual,
+        'Umid. Mín': r.umidade_min,
+        'Umid. Máx': r.umidade_max,
+        Responsável: r.responsavel_nome,
+      }))
+    );
     toast({ title: 'Relatório exportado!' });
   };
 

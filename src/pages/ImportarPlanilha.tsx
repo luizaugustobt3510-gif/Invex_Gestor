@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { readExcelFile, writeExcelFromAoa } from '@/lib/excelUtils';
 
 interface ImportRow {
   rowNum: number;
@@ -42,14 +42,11 @@ const ImportarPlanilha = () => {
   const [fileName, setFileName] = useState('');
 
   const downloadTemplate = () => {
-    const ws = XLSX.utils.aoa_to_sheet([
+    writeExcelFromAoa('modelo_importacao_invex.xlsx', 'Modelo', [
       ['codigo', 'material', 'unidade', 'quantidade', 'minimo', 'maximo', 'preco', 'localizacao'],
       ['001', 'Parafuso M8', 'UNIDADE', 100, 10, 500, 0.50, 'Prateleira A1'],
       ['002', 'Óleo Lubrificante', 'LITRO', 20, 5, 50, 25.00, 'Prateleira B2'],
     ]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Modelo');
-    XLSX.writeFile(wb, 'modelo_importacao_invex.xlsx');
   };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,12 +56,10 @@ const ImportarPlanilha = () => {
     setResult(null);
 
     const reader = new FileReader();
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       try {
-        const data = new Uint8Array(evt.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
+        const buffer = evt.target?.result as ArrayBuffer;
+        const json = await readExcelFile(buffer);
 
         const parsed: ImportRow[] = json.map((row, i) => {
           const r: ImportRow = {
