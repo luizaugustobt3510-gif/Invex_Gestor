@@ -15,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { CheckCircle, AlertTriangle, XCircle, ClipboardCheck, Upload, Search, Trash2, Wrench, Package, DollarSign } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import * as XLSX from 'xlsx';
+import { readExcelFile } from '@/lib/excelUtils';
 
 interface Material {
   id: string;
