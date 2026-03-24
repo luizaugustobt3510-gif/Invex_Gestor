@@ -213,7 +213,7 @@ const Conciliacao = () => {
         toast.error('Erro ao ler arquivo');
       }
     };
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
   };
 
   const handleProcessImport = async () => {
