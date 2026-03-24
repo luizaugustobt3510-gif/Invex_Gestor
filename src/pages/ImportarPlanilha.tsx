@@ -42,14 +42,11 @@ const ImportarPlanilha = () => {
   const [fileName, setFileName] = useState('');
 
   const downloadTemplate = () => {
-    const ws = XLSX.utils.aoa_to_sheet([
+    writeExcelFromAoa('modelo_importacao_invex.xlsx', 'Modelo', [
       ['codigo', 'material', 'unidade', 'quantidade', 'minimo', 'maximo', 'preco', 'localizacao'],
       ['001', 'Parafuso M8', 'UNIDADE', 100, 10, 500, 0.50, 'Prateleira A1'],
       ['002', 'Óleo Lubrificante', 'LITRO', 20, 5, 50, 25.00, 'Prateleira B2'],
     ]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Modelo');
-    XLSX.writeFile(wb, 'modelo_importacao_invex.xlsx');
   };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
