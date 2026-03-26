@@ -403,6 +403,14 @@ export function AppSidebar() {
           </>
         )}
 
+        {/* Academia groups */}
+        {!isRHOnly && !isSuperAdmin && academiaGroups.filter(g => hasPermission(g.allowedRoles)).length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            {academiaGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
+          </>
+        )}
+
         {/* Admin groups */}
         {adminGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
       </SidebarContent>
