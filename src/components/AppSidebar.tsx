@@ -429,6 +429,14 @@ export function AppSidebar() {
           </>
         )}
 
+        {/* Financeiro groups */}
+        {!isRHOnly && !isSuperAdmin && financeiroGroups.filter(g => hasPermission(g.allowedRoles)).length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            {financeiroGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
+          </>
+        )}
+
         {/* Admin groups */}
         {adminGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
       </SidebarContent>
