@@ -140,6 +140,20 @@ const logisticsGroups: MenuGroup[] = [
   },
 ];
 
+// Academia module groups
+const academiaGroups: MenuGroup[] = [
+  {
+    label: 'Academia',
+    icon: <Dumbbell className="w-4 h-4" />,
+    allowedRoles: ['admin', 'logistica'],
+    items: [
+      { path: '/academia', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      { path: '/academia/alunos', label: 'Alunos', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      { path: '/academia/mensalidades', label: 'Mensalidades', icon: <DollarSign className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+    ],
+  },
+];
+
 // RH module groups
 const rhMenuItems: MenuItem[] = [
   { path: '/rh', label: 'Gestão de Pessoas', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
