@@ -52,6 +52,9 @@ import ImportarFuncionarios from "./pages/rh/ImportarFuncionarios";
 import Turnover from "./pages/rh/Turnover";
 import GestaoUsuarios from "./pages/GestaoUsuarios";
 import ConferenciaTemperatura from "./pages/logistica/ConferenciaTemperatura";
+import DashboardAcademia from "./pages/academia/DashboardAcademia";
+import Alunos from "./pages/academia/Alunos";
+import Mensalidades from "./pages/academia/Mensalidades";
 const queryClient = new QueryClient();
 
 const App = () => (
