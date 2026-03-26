@@ -84,6 +84,7 @@ export type Database = {
           nome: string
           observacoes: string | null
           plano: string
+          renovacao_automatica: boolean
           status: string
           telefone: string | null
           updated_at: string
@@ -101,6 +102,7 @@ export type Database = {
           nome: string
           observacoes?: string | null
           plano?: string
+          renovacao_automatica?: boolean
           status?: string
           telefone?: string | null
           updated_at?: string
@@ -118,6 +120,7 @@ export type Database = {
           nome?: string
           observacoes?: string | null
           plano?: string
+          renovacao_automatica?: boolean
           status?: string
           telefone?: string | null
           updated_at?: string
@@ -801,6 +804,122 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_categories: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          is_default: boolean
+          nome: string
+          tipo: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          nome: string
+          tipo?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          nome?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_categories_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_entries: {
+        Row: {
+          categoria_id: string | null
+          company_id: string
+          created_at: string
+          data: string
+          data_pagamento: string | null
+          data_vencimento: string | null
+          descricao: string
+          forma_pagamento: string | null
+          id: string
+          observacoes: string | null
+          origem: string | null
+          origem_id: string | null
+          periodicidade: string | null
+          recorrente: boolean
+          status: string
+          tipo: string
+          updated_at: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          categoria_id?: string | null
+          company_id: string
+          created_at?: string
+          data?: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          descricao?: string
+          forma_pagamento?: string | null
+          id?: string
+          observacoes?: string | null
+          origem?: string | null
+          origem_id?: string | null
+          periodicidade?: string | null
+          recorrente?: boolean
+          status?: string
+          tipo?: string
+          updated_at?: string
+          user_id: string
+          valor?: number
+        }
+        Update: {
+          categoria_id?: string | null
+          company_id?: string
+          created_at?: string
+          data?: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          descricao?: string
+          forma_pagamento?: string | null
+          id?: string
+          observacoes?: string | null
+          origem?: string | null
+          origem_id?: string | null
+          periodicidade?: string | null
+          recorrente?: boolean
+          status?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_entries_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "financial_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_entries_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
