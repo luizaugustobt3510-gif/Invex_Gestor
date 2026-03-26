@@ -140,6 +140,12 @@ const App = () => (
             <Route path="/academia/alunos" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><Alunos /></RoleProtectedRoute>} />
             <Route path="/academia/mensalidades" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><Mensalidades /></RoleProtectedRoute>} />
             
+            {/* === FINANCEIRO === */}
+            <Route path="/financeiro" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']}><DashboardFinanceiro /></RoleProtectedRoute>} />
+            <Route path="/financeiro/lancamentos" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']}><Lancamentos /></RoleProtectedRoute>} />
+            <Route path="/financeiro/fluxo-caixa" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']}><FluxoCaixa /></RoleProtectedRoute>} />
+            <Route path="/financeiro/relatorios" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']}><RelatoriosFinanceiros /></RoleProtectedRoute>} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
