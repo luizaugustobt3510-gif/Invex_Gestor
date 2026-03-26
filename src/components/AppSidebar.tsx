@@ -39,6 +39,8 @@ import {
   Thermometer,
   Target,
   UserMinus,
+  Dumbbell,
+  DollarSign,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
