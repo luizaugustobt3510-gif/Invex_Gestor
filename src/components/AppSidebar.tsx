@@ -41,6 +41,9 @@ import {
   UserMinus,
   Dumbbell,
   DollarSign,
+  Wallet,
+  BarChart2,
+  Receipt,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -154,7 +157,22 @@ const academiaGroups: MenuGroup[] = [
   },
 ];
 
-// RH module groups
+// Financial module groups
+const financeiroGroups: MenuGroup[] = [
+  {
+    label: 'Financeiro',
+    icon: <Wallet className="w-4 h-4" />,
+    allowedRoles: ['admin', 'financeiro', 'logistica'],
+    items: [
+      { path: '/financeiro', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'financeiro', 'logistica'] },
+      { path: '/financeiro/lancamentos', label: 'Lançamentos', icon: <Receipt className="w-4 h-4" />, allowedRoles: ['admin', 'financeiro', 'logistica'] },
+      { path: '/financeiro/fluxo-caixa', label: 'Fluxo de Caixa', icon: <DollarSign className="w-4 h-4" />, allowedRoles: ['admin', 'financeiro', 'logistica'] },
+      { path: '/financeiro/relatorios', label: 'Relatórios', icon: <BarChart2 className="w-4 h-4" />, allowedRoles: ['admin', 'financeiro'] },
+    ],
+  },
+];
+
+
 const rhMenuItems: MenuItem[] = [
   { path: '/rh', label: 'Gestão de Pessoas', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
   { path: '/rh/colaboradores', label: 'Colaboradores', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
@@ -408,6 +426,14 @@ export function AppSidebar() {
           <>
             <SidebarSeparator className="my-2" />
             {academiaGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
+          </>
+        )}
+
+        {/* Financeiro groups */}
+        {!isRHOnly && !isSuperAdmin && financeiroGroups.filter(g => hasPermission(g.allowedRoles)).length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            {financeiroGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
           </>
         )}
 

@@ -55,6 +55,10 @@ import ConferenciaTemperatura from "./pages/logistica/ConferenciaTemperatura";
 import DashboardAcademia from "./pages/academia/DashboardAcademia";
 import Alunos from "./pages/academia/Alunos";
 import Mensalidades from "./pages/academia/Mensalidades";
+import DashboardFinanceiro from "./pages/financeiro/DashboardFinanceiro";
+import Lancamentos from "./pages/financeiro/Lancamentos";
+import FluxoCaixa from "./pages/financeiro/FluxoCaixa";
+import RelatoriosFinanceiros from "./pages/financeiro/RelatoriosFinanceiros";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -135,6 +139,12 @@ const App = () => (
             <Route path="/academia" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><DashboardAcademia /></RoleProtectedRoute>} />
             <Route path="/academia/alunos" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><Alunos /></RoleProtectedRoute>} />
             <Route path="/academia/mensalidades" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><Mensalidades /></RoleProtectedRoute>} />
+            
+            {/* === FINANCEIRO === */}
+            <Route path="/financeiro" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']}><DashboardFinanceiro /></RoleProtectedRoute>} />
+            <Route path="/financeiro/lancamentos" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']}><Lancamentos /></RoleProtectedRoute>} />
+            <Route path="/financeiro/fluxo-caixa" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']}><FluxoCaixa /></RoleProtectedRoute>} />
+            <Route path="/financeiro/relatorios" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']}><RelatoriosFinanceiros /></RoleProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
