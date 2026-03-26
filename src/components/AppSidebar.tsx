@@ -157,6 +157,20 @@ const academiaGroups: MenuGroup[] = [
   },
 ];
 
+// Sales module groups
+const vendasGroups: MenuGroup[] = [
+  {
+    label: 'Vendas',
+    icon: <ShoppingCart className="w-4 h-4" />,
+    allowedRoles: ['admin', 'logistica', 'financeiro'],
+    items: [
+      { path: '/vendas/pdv', label: 'PDV', icon: <ShoppingCart className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      { path: '/vendas/historico', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'financeiro'] },
+      { path: '/vendas/relatorios', label: 'Relatórios', icon: <BarChart2 className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'financeiro'] },
+    ],
+  },
+];
+
 // Financial module groups
 const financeiroGroups: MenuGroup[] = [
   {
