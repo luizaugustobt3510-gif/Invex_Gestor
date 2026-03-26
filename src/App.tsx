@@ -59,6 +59,9 @@ import DashboardFinanceiro from "./pages/financeiro/DashboardFinanceiro";
 import Lancamentos from "./pages/financeiro/Lancamentos";
 import FluxoCaixa from "./pages/financeiro/FluxoCaixa";
 import RelatoriosFinanceiros from "./pages/financeiro/RelatoriosFinanceiros";
+import PDV from "./pages/vendas/PDV";
+import HistoricoVendas from "./pages/vendas/HistoricoVendas";
+import RelatoriosVendas from "./pages/vendas/RelatoriosVendas";
 const queryClient = new QueryClient();
 
 const App = () => (
