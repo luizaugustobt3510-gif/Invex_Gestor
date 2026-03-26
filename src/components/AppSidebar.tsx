@@ -44,6 +44,7 @@ import {
   Wallet,
   BarChart2,
   Receipt,
+  ShoppingCart,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -153,6 +154,20 @@ const academiaGroups: MenuGroup[] = [
       { path: '/academia', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
       { path: '/academia/alunos', label: 'Alunos', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
       { path: '/academia/mensalidades', label: 'Mensalidades', icon: <DollarSign className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+    ],
+  },
+];
+
+// Sales module groups
+const vendasGroups: MenuGroup[] = [
+  {
+    label: 'Vendas',
+    icon: <ShoppingCart className="w-4 h-4" />,
+    allowedRoles: ['admin', 'logistica', 'financeiro'],
+    items: [
+      { path: '/vendas/pdv', label: 'PDV', icon: <ShoppingCart className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      { path: '/vendas/historico', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'financeiro'] },
+      { path: '/vendas/relatorios', label: 'Relatórios', icon: <BarChart2 className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'financeiro'] },
     ],
   },
 ];
@@ -426,6 +441,14 @@ export function AppSidebar() {
           <>
             <SidebarSeparator className="my-2" />
             {academiaGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
+          </>
+        )}
+
+        {/* Vendas groups */}
+        {!isRHOnly && !isSuperAdmin && vendasGroups.filter(g => hasPermission(g.allowedRoles)).length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            {vendasGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
           </>
         )}
 

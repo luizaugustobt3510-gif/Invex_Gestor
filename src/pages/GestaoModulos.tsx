@@ -14,6 +14,7 @@ const COMPANY_MODULES = [
   { key: 'rh_module', label: 'RH', description: 'Gestão de pessoas, férias, ASO, treinamentos' },
   { key: 'academia', label: 'Academia', description: 'Alunos, mensalidades, controle de pagamentos' },
   { key: 'financeiro_module', label: 'Financeiro', description: 'Controle financeiro e orçamentário' },
+  { key: 'vendas', label: 'Vendas', description: 'PDV, histórico de vendas, relatórios de vendas' },
   { key: 'compras', label: 'Compras', description: 'Ordens de compra e solicitações' },
   { key: 'relatorios', label: 'Relatórios', description: 'Relatórios gerenciais e exportações' },
 ];

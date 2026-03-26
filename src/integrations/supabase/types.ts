@@ -1316,6 +1316,111 @@ export type Database = {
           },
         ]
       }
+      sale_items: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          material_id: string
+          preco_unitario: number
+          quantidade: number
+          sale_id: string
+          subtotal: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          material_id: string
+          preco_unitario?: number
+          quantidade?: number
+          sale_id: string
+          subtotal?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          material_id?: string
+          preco_unitario?: number
+          quantidade?: number
+          sale_id?: string
+          subtotal?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          company_id: string
+          created_at: string
+          desconto: number
+          desconto_tipo: string
+          forma_pagamento: string
+          id: string
+          observacoes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          valor_total: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          desconto?: number
+          desconto_tipo?: string
+          forma_pagamento?: string
+          id?: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          valor_total?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          desconto?: number
+          desconto_tipo?: string
+          forma_pagamento?: string
+          id?: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sectors: {
         Row: {
           company_id: string
