@@ -41,6 +41,9 @@ import {
   UserMinus,
   Dumbbell,
   DollarSign,
+  Wallet,
+  BarChart2,
+  Receipt,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
