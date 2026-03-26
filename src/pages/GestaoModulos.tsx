@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 const COMPANY_MODULES = [
   { key: 'logistica', label: 'Logística', description: 'Estoque, conferência, ordens de compra, importações' },
   { key: 'rh_module', label: 'RH', description: 'Gestão de pessoas, férias, ASO, treinamentos' },
+  { key: 'academia', label: 'Academia', description: 'Alunos, mensalidades, controle de pagamentos' },
   { key: 'financeiro_module', label: 'Financeiro', description: 'Controle financeiro e orçamentário' },
   { key: 'compras', label: 'Compras', description: 'Ordens de compra e solicitações' },
   { key: 'relatorios', label: 'Relatórios', description: 'Relatórios gerenciais e exportações' },

@@ -39,6 +39,8 @@ import {
   Thermometer,
   Target,
   UserMinus,
+  Dumbbell,
+  DollarSign,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -134,6 +136,20 @@ const logisticsGroups: MenuGroup[] = [
     allowedRoles: ['admin', 'logistica', 'usuario almox'],
     items: [
       { path: '/conferencia-temperatura', label: 'Controle Temperatura', icon: <Thermometer className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'] },
+    ],
+  },
+];
+
+// Academia module groups
+const academiaGroups: MenuGroup[] = [
+  {
+    label: 'Academia',
+    icon: <Dumbbell className="w-4 h-4" />,
+    allowedRoles: ['admin', 'logistica'],
+    items: [
+      { path: '/academia', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      { path: '/academia/alunos', label: 'Alunos', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      { path: '/academia/mensalidades', label: 'Mensalidades', icon: <DollarSign className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
     ],
   },
 ];
@@ -384,6 +400,14 @@ export function AppSidebar() {
                 </SidebarGroup>
               </Collapsible>
             )}
+          </>
+        )}
+
+        {/* Academia groups */}
+        {!isRHOnly && !isSuperAdmin && academiaGroups.filter(g => hasPermission(g.allowedRoles)).length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            {academiaGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
           </>
         )}
 
