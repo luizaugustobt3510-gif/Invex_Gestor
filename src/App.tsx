@@ -55,6 +55,10 @@ import ConferenciaTemperatura from "./pages/logistica/ConferenciaTemperatura";
 import DashboardAcademia from "./pages/academia/DashboardAcademia";
 import Alunos from "./pages/academia/Alunos";
 import Mensalidades from "./pages/academia/Mensalidades";
+import DashboardFinanceiro from "./pages/financeiro/DashboardFinanceiro";
+import Lancamentos from "./pages/financeiro/Lancamentos";
+import FluxoCaixa from "./pages/financeiro/FluxoCaixa";
+import RelatoriosFinanceiros from "./pages/financeiro/RelatoriosFinanceiros";
 const queryClient = new QueryClient();
 
 const App = () => (
