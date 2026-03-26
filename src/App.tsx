@@ -130,6 +130,11 @@ const App = () => (
             <Route path="/rh/desligamentos" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']}><Desligamentos /></RoleProtectedRoute>} />
             <Route path="/rh/turnover" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><Turnover /></RoleProtectedRoute>} />
             <Route path="/rh/importar-funcionarios" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']}><ImportarFuncionarios /></RoleProtectedRoute>} />
+
+            {/* === ACADEMIA === */}
+            <Route path="/academia" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><DashboardAcademia /></RoleProtectedRoute>} />
+            <Route path="/academia/alunos" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><Alunos /></RoleProtectedRoute>} />
+            <Route path="/academia/mensalidades" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><Mensalidades /></RoleProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
