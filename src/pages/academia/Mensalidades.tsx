@@ -160,18 +160,21 @@ const Mensalidades = () => {
       }
     } else {
       // Still create financial entry even without auto-renewal
-      await supabase.from('financial_entries').insert({
-        company_id: user!.companyId!,
-        tipo: 'receita',
-        descricao: `Mensalidade ${student?.nome || 'Aluno'} - ${payment.referencia}`,
-        valor: Number(payment.valor),
-        data: format(new Date(), 'yyyy-MM-dd'),
-        data_pagamento: format(new Date(), 'yyyy-MM-dd'),
-        status: 'pago',
-        origem: 'academia',
-        origem_id: payment.id,
-        user_id: user!.id,
-      });
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
+        await supabase.from('financial_entries').insert({
+          company_id: user!.companyId!,
+          tipo: 'receita',
+          descricao: `Mensalidade ${student?.nome || 'Aluno'} - ${payment.referencia}`,
+          valor: Number(payment.valor),
+          data: format(new Date(), 'yyyy-MM-dd'),
+          data_pagamento: format(new Date(), 'yyyy-MM-dd'),
+          status: 'pago',
+          origem: 'academia',
+          origem_id: payment.id,
+          user_id: authUser.id,
+        });
+      }
       toast({ title: 'Pagamento registrado!' });
     }
     loadData();

@@ -1,13 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, subMonths, isSameDay } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
 import { ChartContainer } from '@/components/ui/chart';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -38,13 +37,7 @@ const FluxoCaixa = () => {
       const receitas = dayEntries.filter(e => e.tipo === 'receita').reduce((s, e) => s + Number(e.valor), 0);
       const despesas = dayEntries.filter(e => e.tipo === 'despesa').reduce((s, e) => s + Number(e.valor), 0);
       saldo += receitas - despesas;
-      return {
-        dia: format(day, 'dd'),
-        receitas,
-        despesas,
-        saldo,
-        liquido: receitas - despesas,
-      };
+      return { dia: format(day, 'dd'), receitas, despesas, saldo, liquido: receitas - despesas };
     });
   }, [entries, month]);
 
@@ -149,8 +142,5 @@ const FluxoCaixa = () => {
     </MainLayout>
   );
 };
-
-// Need Input import for month selector
-import { Input } from '@/components/ui/input';
 
 export default FluxoCaixa;

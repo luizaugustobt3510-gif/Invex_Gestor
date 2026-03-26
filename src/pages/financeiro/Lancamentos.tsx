@@ -77,7 +77,7 @@ const Lancamentos = () => {
       periodicidade: form.recorrente ? form.periodicidade : null,
       origem: 'manual',
       observacoes: form.observacoes,
-      user_id: user!.id,
+      user_id: (await supabase.auth.getUser()).data.user!.id,
     });
     if (error) {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
