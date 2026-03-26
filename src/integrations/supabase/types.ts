@@ -14,6 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
+      academy_payments: {
+        Row: {
+          company_id: string
+          created_at: string
+          data_pagamento: string | null
+          data_vencimento: string
+          forma_pagamento: string | null
+          id: string
+          observacoes: string | null
+          referencia: string
+          status: string
+          student_id: string
+          valor: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento: string
+          forma_pagamento?: string | null
+          id?: string
+          observacoes?: string | null
+          referencia?: string
+          status?: string
+          student_id: string
+          valor?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string
+          forma_pagamento?: string | null
+          id?: string
+          observacoes?: string | null
+          referencia?: string
+          status?: string
+          student_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_payments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "academy_students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_students: {
+        Row: {
+          company_id: string
+          cpf: string | null
+          created_at: string
+          data_matricula: string
+          data_nascimento: string | null
+          dia_vencimento: number
+          email: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          plano: string
+          status: string
+          telefone: string | null
+          updated_at: string
+          valor_mensalidade: number
+        }
+        Insert: {
+          company_id: string
+          cpf?: string | null
+          created_at?: string
+          data_matricula?: string
+          data_nascimento?: string | null
+          dia_vencimento?: number
+          email?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          plano?: string
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          valor_mensalidade?: number
+        }
+        Update: {
+          company_id?: string
+          cpf?: string | null
+          created_at?: string
+          data_matricula?: string
+          data_nascimento?: string | null
+          dia_vencimento?: number
+          email?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          plano?: string
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          valor_mensalidade?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_students_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
