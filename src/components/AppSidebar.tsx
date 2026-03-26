@@ -44,6 +44,7 @@ import {
   Wallet,
   BarChart2,
   Receipt,
+  ShoppingCart,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
