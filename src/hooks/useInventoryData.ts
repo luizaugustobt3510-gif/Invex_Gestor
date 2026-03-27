@@ -45,6 +45,7 @@ const classifyCurva = (items: InventoryItem[]): InventoryItem[] => {
 };
 
 export const useInventoryData = () => {
+  const { user } = useAuth();
   const [data, setData] = useState<InventoryItem[]>([]);
   const [summary, setSummary] = useState<InventorySummary>({
     total_itens: 0,
