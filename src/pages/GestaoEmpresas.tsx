@@ -5,10 +5,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Building, Edit, RefreshCw, Plus, Users, ShieldCheck, ShieldOff } from 'lucide-react';
+import { Building, Edit, RefreshCw, Plus, Users, ShieldCheck, ShieldOff, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface Company {
@@ -29,6 +29,9 @@ const GestaoEmpresas = () => {
   const [newName, setNewName] = useState('');
   const [newCnpj, setNewCnpj] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<Company | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const fetchCompanies = async () => {
     setLoading(true);
@@ -97,6 +100,25 @@ const GestaoEmpresas = () => {
     }
   };
 
+  const handleDeleteCompany = async () => {
+    if (!deleteDialog || deleteConfirmText !== deleteDialog.name) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('delete-company', {
+        body: { company_id: deleteDialog.id },
+      });
+      if (error) throw error;
+      toast({ title: 'Empresa excluída', description: data?.message || 'Empresa e todos os dados foram removidos.' });
+      setDeleteDialog(null);
+      setDeleteConfirmText('');
+      fetchCompanies();
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err?.message || 'Erro ao excluir empresa.', variant: 'destructive' });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <MainLayout>
       <Card className="max-w-5xl mx-auto">
@@ -159,6 +181,9 @@ const GestaoEmpresas = () => {
                               <ShieldCheck className="w-4 h-4 text-primary" />
                             )}
                           </Button>
+                          <Button variant="ghost" size="sm" onClick={() => setDeleteDialog(c)}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -212,6 +237,47 @@ const GestaoEmpresas = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditCompany(null)}>Cancelar</Button>
             <Button onClick={handleUpdate} disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Company Dialog */}
+      <Dialog open={!!deleteDialog} onOpenChange={open => { if (!open) { setDeleteDialog(null); setDeleteConfirmText(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="w-5 h-5" />
+              Excluir Empresa
+            </DialogTitle>
+            <DialogDescription>
+              <strong>Esta ação é irreversível!</strong> A empresa <strong>"{deleteDialog?.name}"</strong> e TODOS os seus dados serão permanentemente removidos:
+              <br /><br />
+              • Materiais, estoques e movimentações<br />
+              • Ordens de compra e solicitações<br />
+              • Setores e conferências<br />
+              • Alunos e mensalidades (Academia)<br />
+              • Vendas e lançamentos financeiros<br />
+              • Colaboradores e dados de RH<br />
+              • Usuários vinculados à empresa<br />
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Digite o nome da empresa <strong>"{deleteDialog?.name}"</strong> para confirmar:</Label>
+            <Input
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={deleteDialog?.name || ''}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDeleteDialog(null); setDeleteConfirmText(''); }}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteCompany}
+              disabled={deleteConfirmText !== deleteDialog?.name || deleting}
+            >
+              {deleting ? 'Excluindo...' : 'Excluir Permanentemente'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
