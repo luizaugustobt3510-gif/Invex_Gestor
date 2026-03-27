@@ -10,7 +10,6 @@ interface ModuleAccessState {
 
 // Maps sidebar module groups to company_modules keys
 const MODULE_KEY_MAP: Record<string, string> = {
-  // Sidebar group module keys → company_modules.module_key
   logistica: 'logistica',
   rh: 'rh_module',
   academia: 'academia',
@@ -41,16 +40,20 @@ export function useModuleAccess() {
     }
 
     try {
+      // Get current auth user id
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const userId = authUser?.id || '';
+
       const [companyRes, userRes] = await Promise.all([
         supabase
           .from('company_modules')
           .select('module_key, is_active')
           .eq('company_id', user.companyId),
-      supabase
+        supabase
           .from('user_module_permissions')
           .select('module_key, is_active')
           .eq('company_id', user.companyId)
-          .eq('user_id', (await supabase.auth.getUser()).data.user?.id || ''),
+          .eq('user_id', userId),
       ]);
 
       const companyModules: Record<string, boolean> = {};
@@ -73,13 +76,6 @@ export function useModuleAccess() {
     fetchModuleAccess();
   }, [fetchModuleAccess]);
 
-  /**
-   * Check if a module should be visible.
-   * A module is visible if:
-   * 1. SuperAdmin → always visible
-   * 2. Company has it active (or no record = active by default)
-   * 3. User has it active (or no record = active by default)
-   */
   const canAccessModule = useCallback(
     (moduleKey: string): boolean => {
       if (user?.role === 'superadm') return true;
