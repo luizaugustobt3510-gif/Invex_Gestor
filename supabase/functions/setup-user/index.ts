@@ -196,7 +196,8 @@ Deno.serve(async (req) => {
         );
       }
 
-      const companyId = callerRole.company_id;
+      const requestedCompanyId = typeof body.company_id === "string" ? body.company_id : null;
+      const companyId = callerRole.role === "super_admin" ? (requestedCompanyId || callerRole.company_id) : callerRole.company_id;
       const role = body.role || "solicitante";
 
       // Check if user already exists
