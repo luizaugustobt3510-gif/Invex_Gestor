@@ -46,10 +46,11 @@ export function useModuleAccess() {
           .from('company_modules')
           .select('module_key, is_active')
           .eq('company_id', user.companyId),
-        supabase
+      supabase
           .from('user_module_permissions')
           .select('module_key, is_active')
-          .eq('company_id', user.companyId),
+          .eq('company_id', user.companyId)
+          .eq('user_id', (await supabase.auth.getUser()).data.user?.id || ''),
       ]);
 
       const companyModules: Record<string, boolean> = {};
