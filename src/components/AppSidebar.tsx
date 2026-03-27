@@ -369,7 +369,7 @@ export function AppSidebar() {
         {visibleRHItems.length > 0 && (
           <>
             <SidebarSeparator className="my-2" />
-            {isRHOnly ? (
+            {(user?.role === 'rh' || user?.role === 'visualizador') ? (
               <SidebarGroup>
                 <SidebarGroupLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   <div className="flex items-center gap-2">
