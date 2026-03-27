@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface InventoryItem {
   id: string;
@@ -44,6 +45,7 @@ const classifyCurva = (items: InventoryItem[]): InventoryItem[] => {
 };
 
 export const useInventoryData = () => {
+  const { user } = useAuth();
   const [data, setData] = useState<InventoryItem[]>([]);
   const [summary, setSummary] = useState<InventorySummary>({
     total_itens: 0,
@@ -166,10 +168,12 @@ export const useInventoryData = () => {
   };
 
   useEffect(() => {
+    setData([]);
+    setSummary({ total_itens: 0, total_estoque_valor: 0, total_ok: 0, total_abaixo: 0, total_zerado: 0, curvaA: 0, curvaB: 0, curvaC: 0 });
     fetchData();
     const interval = setInterval(fetchData, 300000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user?.companyId, user?.email]);
 
   return { data, summary, loading, error, refetch: fetchData, updateStock };
 };
