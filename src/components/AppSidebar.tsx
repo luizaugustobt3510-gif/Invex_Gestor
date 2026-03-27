@@ -340,7 +340,7 @@ export function AppSidebar() {
 
       <SidebarContent className="px-2">
         {/* Dashboard link */}
-        {(showLogisticsDashboard || isSuperAdmin) && (
+        {(showDashboard || isSuperAdmin) && (
           <>
             <SidebarMenu>
               <SidebarMenuItem>
