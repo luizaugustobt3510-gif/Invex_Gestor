@@ -259,7 +259,6 @@ export function AppSidebar() {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const isRHOnly = user?.role === 'rh' || user?.role === 'visualizador';
   const isSuperAdmin = user?.role === 'superadm';
 
   // Filter groups by role AND module access
@@ -271,19 +270,19 @@ export function AppSidebar() {
     });
   };
 
-  // Build visible groups
-  const visibleLogistics = !isRHOnly && !isSuperAdmin ? filterGroups(logisticsGroups) : [];
-  const visibleAcademia = !isRHOnly && !isSuperAdmin ? filterGroups(academiaGroups) : [];
-  const visibleVendas = !isRHOnly && !isSuperAdmin ? filterGroups(vendasGroups) : [];
-  const visibleFinanceiro = !isRHOnly && !isSuperAdmin ? filterGroups(financeiroGroups) : [];
+  // Build visible groups - no longer block by isRHOnly, let allowedRoles handle it
+  const visibleLogistics = !isSuperAdmin ? filterGroups(logisticsGroups) : [];
+  const visibleAcademia = !isSuperAdmin ? filterGroups(academiaGroups) : [];
+  const visibleVendas = !isSuperAdmin ? filterGroups(vendasGroups) : [];
+  const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
   const visibleAdmin = filterGroups(adminGroups);
 
   // RH menu: check module access
   const showRHMenu = !isSuperAdmin && hasPermission(['admin', 'rh', 'visualizador']) && canAccessModule(rhModuleKey);
   const visibleRHItems = showRHMenu ? rhMenuItems.filter(item => hasPermission(item.allowedRoles)) : [];
 
-  // Dashboard link
-  const showLogisticsDashboard = !isRHOnly && !isSuperAdmin && hasPermission(['admin', 'logistica', 'usuario almox']);
+  // Dashboard link - show for any non-superadmin user
+  const showDashboard = !isSuperAdmin && hasPermission(['admin', 'logistica', 'usuario almox', 'solicitante', 'financeiro', 'rh', 'visualizador']);
 
   const renderGroup = (group: MenuGroup) => {
     const visibleItems = group.items.filter(item => hasPermission(item.allowedRoles));
