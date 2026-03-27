@@ -168,10 +168,12 @@ export const useInventoryData = () => {
   };
 
   useEffect(() => {
+    setData([]);
+    setSummary({ total_itens: 0, total_estoque_valor: 0, total_ok: 0, total_abaixo: 0, total_zerado: 0, curvaA: 0, curvaB: 0, curvaC: 0 });
     fetchData();
     const interval = setInterval(fetchData, 300000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user?.companyId, user?.email]);
 
   return { data, summary, loading, error, refetch: fetchData, updateStock };
 };
