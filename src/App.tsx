@@ -84,24 +84,24 @@ const App = () => (
             } />
             
             {/* === LOGÍSTICA === */}
-            <Route path="/cadastrar-material" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><CadastrarMaterial /></RoleProtectedRoute>} />
-            <Route path="/atualizar-estoque" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><AtualizarEstoque /></RoleProtectedRoute>} />
-            <Route path="/gerar-oc" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><GerarOC /></RoleProtectedRoute>} />
-            <Route path="/gerenciar-oc" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><GerenciarOC /></RoleProtectedRoute>} />
-            <Route path="/criar-setor" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><CriarSetor /></RoleProtectedRoute>} />
-            <Route path="/listar-setores" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><ListarSetores /></RoleProtectedRoute>} />
-            <Route path="/conciliacao" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><Conciliacao /></RoleProtectedRoute>} />
-            <Route path="/qr-scanner" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}><QRScanner /></RoleProtectedRoute>} />
-            <Route path="/gerar-qrcode" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}><GerarQRCode /></RoleProtectedRoute>} />
-            <Route path="/historico-movimentacoes" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}><HistoricoMovimentacoes /></RoleProtectedRoute>} />
-            <Route path="/importar-planilha" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}><ImportarPlanilha /></RoleProtectedRoute>} />
-            <Route path="/recontagem" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}><Recontagem /></RoleProtectedRoute>} />
-            <Route path="/itens-criticos" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}><ItensCriticos /></RoleProtectedRoute>} />
-            <Route path="/conferencia-temperatura" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']}><ConferenciaTemperatura /></RoleProtectedRoute>} />
+            <Route path="/cadastrar-material" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><CadastrarMaterial /></RoleProtectedRoute>} />
+            <Route path="/atualizar-estoque" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><AtualizarEstoque /></RoleProtectedRoute>} />
+            <Route path="/gerar-oc" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><GerarOC /></RoleProtectedRoute>} />
+            <Route path="/gerenciar-oc" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><GerenciarOC /></RoleProtectedRoute>} />
+            <Route path="/criar-setor" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><CriarSetor /></RoleProtectedRoute>} />
+            <Route path="/listar-setores" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><ListarSetores /></RoleProtectedRoute>} />
+            <Route path="/conciliacao" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><Conciliacao /></RoleProtectedRoute>} />
+            <Route path="/qr-scanner" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica"><QRScanner /></RoleProtectedRoute>} />
+            <Route path="/gerar-qrcode" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica"><GerarQRCode /></RoleProtectedRoute>} />
+            <Route path="/historico-movimentacoes" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica"><HistoricoMovimentacoes /></RoleProtectedRoute>} />
+            <Route path="/importar-planilha" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica"><ImportarPlanilha /></RoleProtectedRoute>} />
+            <Route path="/recontagem" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica"><Recontagem /></RoleProtectedRoute>} />
+            <Route path="/itens-criticos" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica"><ItensCriticos /></RoleProtectedRoute>} />
+            <Route path="/conferencia-temperatura" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica"><ConferenciaTemperatura /></RoleProtectedRoute>} />
 
             {/* === SOLICITAÇÕES === */}
-            <Route path="/solicitar-material" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox', 'solicitante']}><SolicitarMaterial /></RoleProtectedRoute>} />
-            <Route path="/listar-solicitacoes" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox', 'solicitante']}><ListarSolicitacoes /></RoleProtectedRoute>} />
+            <Route path="/solicitar-material" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox', 'solicitante']} moduleKey="logistica"><SolicitarMaterial /></RoleProtectedRoute>} />
+            <Route path="/listar-solicitacoes" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox', 'solicitante']} moduleKey="logistica"><ListarSolicitacoes /></RoleProtectedRoute>} />
             
             {/* === ADMIN === */}
             <Route path="/criar-usuario" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin']}><CriarUsuario /></RoleProtectedRoute>} />
@@ -120,39 +120,39 @@ const App = () => (
             <Route path="/meu-perfil" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador']}><MeuPerfil /></RoleProtectedRoute>} />
 
             {/* === GESTÃO DE PESSOAS === */}
-            <Route path="/rh" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><DashboardRH /></RoleProtectedRoute>} />
-            <Route path="/rh/colaboradores" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><Colaboradores /></RoleProtectedRoute>} />
-            <Route path="/rh/ferias" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><Ferias /></RoleProtectedRoute>} />
-            <Route path="/rh/atestados" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><Atestados /></RoleProtectedRoute>} />
-            <Route path="/rh/treinamentos" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><Treinamentos /></RoleProtectedRoute>} />
-            <Route path="/rh/banco-de-horas" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><BancoDeHoras /></RoleProtectedRoute>} />
-            <Route path="/rh/avaliacoes" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><Avaliacoes /></RoleProtectedRoute>} />
-            <Route path="/rh/analises" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><AnalisesIndicadores /></RoleProtectedRoute>} />
-            <Route path="/rh/indicadores" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><AnalisesIndicadores /></RoleProtectedRoute>} />
-            <Route path="/rh/graficos" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><AnalisesIndicadores /></RoleProtectedRoute>} />
-            <Route path="/rh/aso" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><ASOControl /></RoleProtectedRoute>} />
-            <Route path="/rh/ocorrencias" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><Ocorrencias /></RoleProtectedRoute>} />
-            <Route path="/rh/desenvolvimento" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><Desenvolvimento /></RoleProtectedRoute>} />
-            <Route path="/rh/painel-diario" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><PainelDiario /></RoleProtectedRoute>} />
-            <Route path="/rh/desligamentos" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']}><Desligamentos /></RoleProtectedRoute>} />
-            <Route path="/rh/turnover" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']}><Turnover /></RoleProtectedRoute>} />
-            <Route path="/rh/importar-funcionarios" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']}><ImportarFuncionarios /></RoleProtectedRoute>} />
+            <Route path="/rh" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><DashboardRH /></RoleProtectedRoute>} />
+            <Route path="/rh/colaboradores" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><Colaboradores /></RoleProtectedRoute>} />
+            <Route path="/rh/ferias" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><Ferias /></RoleProtectedRoute>} />
+            <Route path="/rh/atestados" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><Atestados /></RoleProtectedRoute>} />
+            <Route path="/rh/treinamentos" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><Treinamentos /></RoleProtectedRoute>} />
+            <Route path="/rh/banco-de-horas" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><BancoDeHoras /></RoleProtectedRoute>} />
+            <Route path="/rh/avaliacoes" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><Avaliacoes /></RoleProtectedRoute>} />
+            <Route path="/rh/analises" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><AnalisesIndicadores /></RoleProtectedRoute>} />
+            <Route path="/rh/indicadores" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><AnalisesIndicadores /></RoleProtectedRoute>} />
+            <Route path="/rh/graficos" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><AnalisesIndicadores /></RoleProtectedRoute>} />
+            <Route path="/rh/aso" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><ASOControl /></RoleProtectedRoute>} />
+            <Route path="/rh/ocorrencias" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><Ocorrencias /></RoleProtectedRoute>} />
+            <Route path="/rh/desenvolvimento" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><Desenvolvimento /></RoleProtectedRoute>} />
+            <Route path="/rh/painel-diario" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><PainelDiario /></RoleProtectedRoute>} />
+            <Route path="/rh/desligamentos" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']} moduleKey="rh"><Desligamentos /></RoleProtectedRoute>} />
+            <Route path="/rh/turnover" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh"><Turnover /></RoleProtectedRoute>} />
+            <Route path="/rh/importar-funcionarios" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']} moduleKey="rh"><ImportarFuncionarios /></RoleProtectedRoute>} />
 
             {/* === ACADEMIA === */}
-            <Route path="/academia" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><DashboardAcademia /></RoleProtectedRoute>} />
-            <Route path="/academia/alunos" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><Alunos /></RoleProtectedRoute>} />
-            <Route path="/academia/mensalidades" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><Mensalidades /></RoleProtectedRoute>} />
+            <Route path="/academia" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="academia"><DashboardAcademia /></RoleProtectedRoute>} />
+            <Route path="/academia/alunos" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="academia"><Alunos /></RoleProtectedRoute>} />
+            <Route path="/academia/mensalidades" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="academia"><Mensalidades /></RoleProtectedRoute>} />
             
             {/* === FINANCEIRO === */}
-            <Route path="/financeiro" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']}><DashboardFinanceiro /></RoleProtectedRoute>} />
-            <Route path="/financeiro/lancamentos" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']}><Lancamentos /></RoleProtectedRoute>} />
-            <Route path="/financeiro/fluxo-caixa" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']}><FluxoCaixa /></RoleProtectedRoute>} />
-            <Route path="/financeiro/relatorios" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']}><RelatoriosFinanceiros /></RoleProtectedRoute>} />
+            <Route path="/financeiro" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro"><DashboardFinanceiro /></RoleProtectedRoute>} />
+            <Route path="/financeiro/lancamentos" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro"><Lancamentos /></RoleProtectedRoute>} />
+            <Route path="/financeiro/fluxo-caixa" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro"><FluxoCaixa /></RoleProtectedRoute>} />
+            <Route path="/financeiro/relatorios" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro"><RelatoriosFinanceiros /></RoleProtectedRoute>} />
 
             {/* === VENDAS === */}
-            <Route path="/vendas/pdv" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']}><PDV /></RoleProtectedRoute>} />
-            <Route path="/vendas/historico" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']}><HistoricoVendas /></RoleProtectedRoute>} />
-            <Route path="/vendas/relatorios" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']}><RelatoriosVendas /></RoleProtectedRoute>} />
+            <Route path="/vendas/pdv" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="vendas"><PDV /></RoleProtectedRoute>} />
+            <Route path="/vendas/historico" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']} moduleKey="vendas"><HistoricoVendas /></RoleProtectedRoute>} />
+            <Route path="/vendas/relatorios" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']} moduleKey="vendas"><RelatoriosVendas /></RoleProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
