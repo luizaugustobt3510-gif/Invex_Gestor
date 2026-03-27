@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { useModuleAccess } from '@/hooks/useModuleAccess';
 import {
   LayoutDashboard,
   Package,
@@ -80,6 +81,7 @@ interface MenuGroup {
   icon: React.ReactNode;
   items: MenuItem[];
   allowedRoles: UserRole[];
+  moduleKey?: string; // maps to useModuleAccess
 }
 
 // Logistics module groups with granular permissions per spec
@@ -88,6 +90,7 @@ const logisticsGroups: MenuGroup[] = [
     label: 'Estoque',
     icon: <Package className="w-4 h-4" />,
     allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'],
+    moduleKey: 'logistica',
     items: [
       { path: '/cadastrar-material', label: 'Cadastrar Material', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
       { path: '/atualizar-estoque', label: 'Atualizar Estoque', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
@@ -103,6 +106,7 @@ const logisticsGroups: MenuGroup[] = [
     label: 'Ordens',
     icon: <FileText className="w-4 h-4" />,
     allowedRoles: ['admin', 'logistica'],
+    moduleKey: 'logistica',
     items: [
       { path: '/gerar-oc', label: 'Gerar OC', icon: <FileText className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
       { path: '/gerenciar-oc', label: 'Gerenciar OC', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
@@ -112,6 +116,7 @@ const logisticsGroups: MenuGroup[] = [
     label: 'Setores',
     icon: <Building2 className="w-4 h-4" />,
     allowedRoles: ['admin', 'logistica'],
+    moduleKey: 'logistica',
     items: [
       { path: '/criar-setor', label: 'Criar Setor', icon: <Building2 className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
       { path: '/listar-setores', label: 'Setores Cadastrados', icon: <List className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
@@ -121,6 +126,7 @@ const logisticsGroups: MenuGroup[] = [
     label: 'Conciliação',
     icon: <ClipboardList className="w-4 h-4" />,
     allowedRoles: ['admin', 'logistica'],
+    moduleKey: 'logistica',
     items: [
       { path: '/conciliacao', label: 'Conciliar', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
     ],
@@ -129,6 +135,7 @@ const logisticsGroups: MenuGroup[] = [
     label: 'Solicitações',
     icon: <Inbox className="w-4 h-4" />,
     allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'],
+    moduleKey: 'logistica',
     items: [
       { path: '/solicitar-material', label: 'Solicitar Material', icon: <Send className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'] },
       { path: '/listar-solicitacoes', label: 'Solicitações', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'] },
@@ -138,6 +145,7 @@ const logisticsGroups: MenuGroup[] = [
     label: 'Conferência',
     icon: <Thermometer className="w-4 h-4" />,
     allowedRoles: ['admin', 'logistica', 'usuario almox'],
+    moduleKey: 'logistica',
     items: [
       { path: '/conferencia-temperatura', label: 'Controle Temperatura', icon: <Thermometer className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'] },
     ],
@@ -150,6 +158,7 @@ const academiaGroups: MenuGroup[] = [
     label: 'Academia',
     icon: <Dumbbell className="w-4 h-4" />,
     allowedRoles: ['admin', 'logistica'],
+    moduleKey: 'academia',
     items: [
       { path: '/academia', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
       { path: '/academia/alunos', label: 'Alunos', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
@@ -164,6 +173,7 @@ const vendasGroups: MenuGroup[] = [
     label: 'Vendas',
     icon: <ShoppingCart className="w-4 h-4" />,
     allowedRoles: ['admin', 'logistica', 'financeiro'],
+    moduleKey: 'vendas',
     items: [
       { path: '/vendas/pdv', label: 'PDV', icon: <ShoppingCart className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
       { path: '/vendas/historico', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'financeiro'] },
@@ -178,6 +188,7 @@ const financeiroGroups: MenuGroup[] = [
     label: 'Financeiro',
     icon: <Wallet className="w-4 h-4" />,
     allowedRoles: ['admin', 'financeiro', 'logistica'],
+    moduleKey: 'financeiro',
     items: [
       { path: '/financeiro', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'financeiro', 'logistica'] },
       { path: '/financeiro/lancamentos', label: 'Lançamentos', icon: <Receipt className="w-4 h-4" />, allowedRoles: ['admin', 'financeiro', 'logistica'] },
@@ -187,7 +198,8 @@ const financeiroGroups: MenuGroup[] = [
   },
 ];
 
-
+// RH items with module key
+const rhModuleKey = 'rh';
 const rhMenuItems: MenuItem[] = [
   { path: '/rh', label: 'Gestão de Pessoas', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
   { path: '/rh/colaboradores', label: 'Colaboradores', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
@@ -206,7 +218,7 @@ const rhMenuItems: MenuItem[] = [
   { path: '/rh/painel-diario', label: 'Painel Diário', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'] },
 ];
 
-// Admin groups
+// Admin groups (no module key - always visible for their roles)
 const adminGroups: MenuGroup[] = [
   {
     label: 'Administração',
@@ -236,6 +248,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, hasPermission } = useAuth();
+  const { canAccessModule } = useModuleAccess();
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
 
@@ -248,35 +261,29 @@ export function AppSidebar() {
 
   const isRHOnly = user?.role === 'rh' || user?.role === 'visualizador';
   const isSuperAdmin = user?.role === 'superadm';
-  const isSolicitante = user?.role === 'solicitante';
 
-  // Build visible groups based on role isolation
-  const visibleGroups: MenuGroup[] = [];
-
-  // Logistics groups: NOT for RH/visualizador/superadm
-  if (!isRHOnly && !isSuperAdmin) {
-    logisticsGroups.forEach(group => {
-      if (hasPermission(group.allowedRoles)) {
-        visibleGroups.push(group);
-      }
+  // Filter groups by role AND module access
+  const filterGroups = (groups: MenuGroup[]): MenuGroup[] => {
+    return groups.filter(group => {
+      if (!hasPermission(group.allowedRoles)) return false;
+      if (group.moduleKey && !canAccessModule(group.moduleKey)) return false;
+      return true;
     });
-  }
+  };
 
-  // Admin groups
-  adminGroups.forEach(group => {
-    if (hasPermission(group.allowedRoles)) {
-      visibleGroups.push(group);
-    }
-  });
+  // Build visible groups
+  const visibleLogistics = !isRHOnly && !isSuperAdmin ? filterGroups(logisticsGroups) : [];
+  const visibleAcademia = !isRHOnly && !isSuperAdmin ? filterGroups(academiaGroups) : [];
+  const visibleVendas = !isRHOnly && !isSuperAdmin ? filterGroups(vendasGroups) : [];
+  const visibleFinanceiro = !isRHOnly && !isSuperAdmin ? filterGroups(financeiroGroups) : [];
+  const visibleAdmin = filterGroups(adminGroups);
 
-  // RH menu: for RH, visualizador, admin — NOT for superadm
-  const showRHMenu = !isSuperAdmin && hasPermission(['admin', 'rh', 'visualizador']);
+  // RH menu: check module access
+  const showRHMenu = !isSuperAdmin && hasPermission(['admin', 'rh', 'visualizador']) && canAccessModule(rhModuleKey);
   const visibleRHItems = showRHMenu ? rhMenuItems.filter(item => hasPermission(item.allowedRoles)) : [];
 
-  // Dashboard link: for logistics users and admin
+  // Dashboard link
   const showLogisticsDashboard = !isRHOnly && !isSuperAdmin && hasPermission(['admin', 'logistica', 'usuario almox']);
-  // Solicitante sees only solicitações, no dashboard
-  const showSolicitanteDashboard = isSolicitante;
 
   const renderGroup = (group: MenuGroup) => {
     const visibleItems = group.items.filter(item => hasPermission(item.allowedRoles));
@@ -357,7 +364,7 @@ export function AppSidebar() {
         )}
 
         {/* Logistics groups */}
-        {visibleGroups.filter(g => logisticsGroups.includes(g)).map(renderGroup)}
+        {visibleLogistics.map(renderGroup)}
 
         {/* RH Menu */}
         {visibleRHItems.length > 0 && (
@@ -437,31 +444,31 @@ export function AppSidebar() {
         )}
 
         {/* Academia groups */}
-        {!isRHOnly && !isSuperAdmin && academiaGroups.filter(g => hasPermission(g.allowedRoles)).length > 0 && (
+        {visibleAcademia.length > 0 && (
           <>
             <SidebarSeparator className="my-2" />
-            {academiaGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
+            {visibleAcademia.map(renderGroup)}
           </>
         )}
 
         {/* Vendas groups */}
-        {!isRHOnly && !isSuperAdmin && vendasGroups.filter(g => hasPermission(g.allowedRoles)).length > 0 && (
+        {visibleVendas.length > 0 && (
           <>
             <SidebarSeparator className="my-2" />
-            {vendasGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
+            {visibleVendas.map(renderGroup)}
           </>
         )}
 
         {/* Financeiro groups */}
-        {!isRHOnly && !isSuperAdmin && financeiroGroups.filter(g => hasPermission(g.allowedRoles)).length > 0 && (
+        {visibleFinanceiro.length > 0 && (
           <>
             <SidebarSeparator className="my-2" />
-            {financeiroGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
+            {visibleFinanceiro.map(renderGroup)}
           </>
         )}
 
         {/* Admin groups */}
-        {adminGroups.filter(g => hasPermission(g.allowedRoles)).map(renderGroup)}
+        {visibleAdmin.map(renderGroup)}
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-sidebar-border">

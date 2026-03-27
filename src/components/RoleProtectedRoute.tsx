@@ -1,16 +1,19 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { useModuleAccess } from '@/hooks/useModuleAccess';
 
 interface RoleProtectedRouteProps {
   children: ReactNode;
   allowedRoles: UserRole[];
+  moduleKey?: string;
 }
 
-export const RoleProtectedRoute = ({ children, allowedRoles }: RoleProtectedRouteProps) => {
+export const RoleProtectedRoute = ({ children, allowedRoles, moduleKey }: RoleProtectedRouteProps) => {
   const { user, isLoading, hasPermission } = useAuth();
+  const { canAccessModule, loading: moduleLoading } = useModuleAccess();
 
-  if (isLoading) {
+  if (isLoading || moduleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -28,6 +31,17 @@ export const RoleProtectedRoute = ({ children, allowedRoles }: RoleProtectedRout
         <div className="text-center">
           <h1 className="text-2xl font-bold text-destructive mb-2">Acesso Negado</h1>
           <p className="text-muted-foreground">Você não tem permissão para acessar esta página.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (moduleKey && !canAccessModule(moduleKey)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-destructive mb-2">Módulo Indisponível</h1>
+          <p className="text-muted-foreground">Este módulo não está ativo para sua empresa ou seu usuário.</p>
         </div>
       </div>
     );
