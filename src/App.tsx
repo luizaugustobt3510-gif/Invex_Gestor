@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import CadastrarMaterial from "./pages/CadastrarMaterial";
 import GerarOC from "./pages/GerarOC";
 import AtualizarEstoque from "./pages/AtualizarEstoque";
+import DashboardLogistica from "./pages/DashboardLogistica";
 
 import CriarSetor from "./pages/CriarSetor";
 import ListarSetores from "./pages/ListarSetores";
