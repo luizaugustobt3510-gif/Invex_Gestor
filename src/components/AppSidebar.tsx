@@ -87,6 +87,15 @@ interface MenuGroup {
 // Logistics module groups with granular permissions per spec
 const logisticsGroups: MenuGroup[] = [
   {
+    label: 'Logística',
+    icon: <Package className="w-4 h-4" />,
+    allowedRoles: ['admin', 'logistica', 'usuario almox'],
+    moduleKey: 'logistica',
+    items: [
+      { path: '/logistica/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'] },
+    ],
+  },
+  {
     label: 'Estoque',
     icon: <Package className="w-4 h-4" />,
     allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'],

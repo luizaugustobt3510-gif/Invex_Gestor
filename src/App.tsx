@@ -85,6 +85,7 @@ const App = () => (
             } />
             
             {/* === LOGÍSTICA === */}
+            <Route path="/logistica/dashboard" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica"><DashboardLogistica /></RoleProtectedRoute>} />
             <Route path="/cadastrar-material" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><CadastrarMaterial /></RoleProtectedRoute>} />
             <Route path="/atualizar-estoque" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><AtualizarEstoque /></RoleProtectedRoute>} />
             <Route path="/gerar-oc" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><GerarOC /></RoleProtectedRoute>} />

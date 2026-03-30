@@ -70,7 +70,7 @@ const DashboardEmpresa = () => {
           supabase.from('employees').select('id, status').eq('company_id', companyId).then(({ data }) => {
             const emps = data || [];
             result.rh = { totalColaboradores: emps.length, ativos: emps.filter(e => e.status === 'ativo').length };
-          })
+          }) as Promise<void>
         );
       }
 
@@ -79,7 +79,7 @@ const DashboardEmpresa = () => {
           supabase.from('academy_students').select('id, status').eq('company_id', companyId).then(({ data }) => {
             const students = data || [];
             result.academia = { totalAlunos: students.length, ativos: students.filter(s => s.status === 'ativo').length };
-          })
+          }) as Promise<void>
         );
       }
 
