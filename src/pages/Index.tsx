@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
-import DashboardLogistica from "./DashboardLogistica";
 import DashboardSuperAdmin from "./DashboardSuperAdmin";
+import DashboardEmpresa from "./DashboardEmpresa";
 
 const Index = () => {
   const { user } = useAuth();
@@ -11,17 +11,11 @@ const Index = () => {
   // SuperAdmin → platform management only
   if (user.role === 'superadm') return <DashboardSuperAdmin />;
 
-  // RH / Convidado (visualizador) → RH dashboard
-  if (user.role === 'rh' || user.role === 'visualizador') return <Navigate to="/rh" replace />;
-
-  // Financeiro → Financial dashboard
-  if (user.role === 'financeiro') return <Navigate to="/financeiro" replace />;
-
   // Solicitante → go to solicitations directly
   if (user.role === 'solicitante') return <Navigate to="/solicitar-material" replace />;
 
-  // Admin, Logística, Almoxarifado → Logistics dashboard
-  return <DashboardLogistica />;
+  // All other roles → Global company dashboard (consolidates active modules)
+  return <DashboardEmpresa />;
 };
 
 export default Index;
