@@ -3,8 +3,7 @@ import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { DollarSign, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { financeiroService } from '@/services/financeiroService';
 import { format, subMonths, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
@@ -17,11 +16,7 @@ const DashboardFinanceiro = () => {
   useEffect(() => {
     if (!user?.companyId) return;
     const load = async () => {
-      const { data } = await supabase
-        .from('financial_entries')
-        .select('*')
-        .eq('company_id', user.companyId)
-        .order('data', { ascending: false });
+      const { data } = await financeiroService.getEntries(user.companyId!);
       setEntries(data || []);
     };
     load();
@@ -49,13 +44,7 @@ const DashboardFinanceiro = () => {
     });
   }, [entries, period]);
 
-  const stats = useMemo(() => {
-    const receitas = filteredEntries.filter(e => e.tipo === 'receita' && e.status === 'pago').reduce((s, e) => s + Number(e.valor), 0);
-    const despesas = filteredEntries.filter(e => e.tipo === 'despesa' && e.status === 'pago').reduce((s, e) => s + Number(e.valor), 0);
-    const aReceber = filteredEntries.filter(e => e.tipo === 'receita' && e.status !== 'pago' && e.status !== 'cancelado').reduce((s, e) => s + Number(e.valor), 0);
-    const aPagar = filteredEntries.filter(e => e.tipo === 'despesa' && e.status !== 'pago' && e.status !== 'cancelado').reduce((s, e) => s + Number(e.valor), 0);
-    return { receitas, despesas, lucro: receitas - despesas, aReceber, aPagar };
-  }, [filteredEntries]);
+  const stats = useMemo(() => financeiroService.computeStats(filteredEntries), [filteredEntries]);
 
   // Chart: monthly comparison
   const monthlyData = useMemo(() => {
