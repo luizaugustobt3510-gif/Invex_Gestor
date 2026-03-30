@@ -14,6 +14,9 @@ const Index = () => {
   // RH / Convidado (visualizador) → RH dashboard
   if (user.role === 'rh' || user.role === 'visualizador') return <Navigate to="/rh" replace />;
 
+  // Financeiro → Financial dashboard
+  if (user.role === 'financeiro') return <Navigate to="/financeiro" replace />;
+
   // Solicitante → go to solicitations directly
   if (user.role === 'solicitante') return <Navigate to="/solicitar-material" replace />;
 
