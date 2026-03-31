@@ -95,6 +95,8 @@ const DashboardVendas = () => {
           </Select>
         </div>
 
+        <InsightsPanel insights={vendasInsights} title="Insights de Vendas" />
+
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-4">
