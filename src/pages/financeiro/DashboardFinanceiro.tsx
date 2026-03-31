@@ -7,6 +7,8 @@ import { financeiroService } from '@/services/financeiroService';
 import { format, subMonths, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { InsightsPanel } from '@/components/insights/InsightsPanel';
+import { generateFinanceiroInsights } from '@/components/insights/generateFinanceiroInsights';
 
 const DashboardFinanceiro = () => {
   const { user } = useAuth();
