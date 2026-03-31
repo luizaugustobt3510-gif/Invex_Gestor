@@ -9,6 +9,12 @@ import { financeiroService } from "@/services/financeiroService";
 import { vendasService } from "@/services/vendasService";
 import { logisticaService } from "@/services/logisticaService";
 import { supabase } from "@/integrations/supabase/client";
+import { InsightsPanel } from "@/components/insights/InsightsPanel";
+import { generateLogisticaInsights } from "@/components/insights/generateLogisticaInsights";
+import { generateFinanceiroInsights } from "@/components/insights/generateFinanceiroInsights";
+import { generateVendasInsights } from "@/components/insights/generateVendasInsights";
+import { generateRHInsights } from "@/components/insights/generateRHInsights";
+import type { Insight } from "@/components/insights/types";
 
 interface ModuleStats {
   logistica?: { totalItens: number; valorEstoque: number; criticos: number };
@@ -22,6 +28,7 @@ const DashboardEmpresa = () => {
   const { user } = useAuth();
   const { canAccessModule } = useModuleAccess();
   const [stats, setStats] = useState<ModuleStats>({});
+  const [allInsights, setAllInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,46 +38,92 @@ const DashboardEmpresa = () => {
     const fetchAll = async () => {
       setLoading(true);
       const result: ModuleStats = {};
-
+      const insights: Insight[] = [];
       const promises: Promise<void>[] = [];
 
       if (canAccessModule('logistica')) {
         promises.push(
-          logisticaService.getMaterials(companyId).then(({ data }) => {
+          (async () => {
+            const { data } = await logisticaService.getMaterials(companyId);
             const mats = data || [];
             const valorEstoque = mats.reduce((s, m) => s + Number(m.quantidade) * Number(m.preco), 0);
             const criticos = mats.filter(m => Number(m.quantidade) <= 0).length;
             result.logistica = { totalItens: mats.length, valorEstoque, criticos };
-          })
+
+            // Conciliation data
+            const { data: saldos } = await logisticaService.getSaldoSistema(companyId);
+            const latestSaldo = new Map<string, number>();
+            (saldos || []).forEach(s => {
+              if (!latestSaldo.has(s.material_id)) latestSaldo.set(s.material_id, Number(s.saldo_sistema));
+            });
+            let ok = 0, sobra = 0, falta = 0, valorDiv = 0;
+            mats.forEach(m => {
+              const qi = Number(m.quantidade);
+              if (!latestSaldo.has(m.id)) return;
+              const qs = latestSaldo.get(m.id)!;
+              const d = qi - qs;
+              if (d === 0) ok++;
+              else if (d > 0) { sobra++; valorDiv += Math.abs(d) * Number(m.preco); }
+              else { falta++; valorDiv += Math.abs(d) * Number(m.preco); }
+            });
+
+            insights.push(...generateLogisticaInsights(
+              mats.map(m => ({ quantidade: Number(m.quantidade), minimo: Number(m.minimo), maximo: Number(m.maximo), preco: Number(m.preco), material: m.material })),
+              { ok, sobra, falta, valorDiv }
+            ));
+          })()
         );
       }
 
       if (canAccessModule('financeiro')) {
         promises.push(
-          financeiroService.getEntries(companyId).then(({ data }) => {
+          (async () => {
+            const { data } = await financeiroService.getEntries(companyId);
             const entries = data || [];
             const s = financeiroService.computeStats(entries as any);
             result.financeiro = { receitas: s.receitas, despesas: s.despesas, lucro: s.lucro };
-          })
+            insights.push(...generateFinanceiroInsights(s, entries));
+          })()
         );
       }
 
       if (canAccessModule('vendas')) {
         promises.push(
-          vendasService.getSales(companyId).then(({ data }) => {
+          (async () => {
+            const { data } = await vendasService.getSales(companyId);
             const sales = data || [];
             const faturamento = sales.reduce((s, v) => s + Number(v.valor_total), 0);
             result.vendas = { totalVendas: sales.length, faturamento };
-          })
+            const s = vendasService.computeStats(sales as any);
+            insights.push(...generateVendasInsights(s, sales));
+          })()
         );
       }
 
       if (canAccessModule('rh')) {
         promises.push(
-          supabase.from('employees').select('id, status').eq('company_id', companyId).then(({ data }) => {
-            const emps = data || [];
-            result.rh = { totalColaboradores: emps.length, ativos: emps.filter(e => e.status === 'ativo').length };
-          }) as Promise<void>
+          (async () => {
+            const { data: emps } = await supabase.from('employees').select('*').eq('company_id', companyId);
+            const employees = emps || [];
+            result.rh = { totalColaboradores: employees.length, ativos: employees.filter(e => e.status === 'ativo').length };
+
+            const [{ data: terms }, { data: certs }, { data: trains }, { data: asoData }, { data: vacs }] = await Promise.all([
+              supabase.from('employee_terminations').select('*').eq('company_id', companyId),
+              supabase.from('employee_certificates').select('*').eq('company_id', companyId),
+              supabase.from('employee_trainings').select('*').eq('company_id', companyId),
+              supabase.from('employee_asos').select('*').eq('company_id', companyId),
+              supabase.from('employee_vacations').select('*').eq('company_id', companyId),
+            ]);
+
+            insights.push(...generateRHInsights({
+              employees,
+              terminations: terms || [],
+              certificates: certs || [],
+              trainings: trains || [],
+              asos: asoData || [],
+              vacations: vacs || [],
+            }));
+          })()
         );
       }
 
@@ -85,6 +138,7 @@ const DashboardEmpresa = () => {
 
       await Promise.all(promises);
       setStats(result);
+      setAllInsights(insights);
       setLoading(false);
     };
 
@@ -116,128 +170,133 @@ const DashboardEmpresa = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Logística */}
-            {stats.logistica && (
-              <>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                      <Package className="w-4 h-4" /> Itens em Estoque
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-3xl font-bold text-foreground">{stats.logistica.totalItens}</p>
-                    {stats.logistica.criticos > 0 && (
-                      <p className="text-xs text-destructive flex items-center gap-1 mt-1">
-                        <AlertTriangle className="w-3 h-3" /> {stats.logistica.criticos} crítico(s)
+          <>
+            {/* Insights consolidados */}
+            <InsightsPanel
+              insights={allInsights}
+              title="Insights da Empresa"
+              groupByModule={true}
+              maxItems={16}
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {stats.logistica && (
+                <>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <Package className="w-4 h-4" /> Itens em Estoque
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-3xl font-bold text-foreground">{stats.logistica.totalItens}</p>
+                      {stats.logistica.criticos > 0 && (
+                        <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+                          <AlertTriangle className="w-3 h-3" /> {stats.logistica.criticos} crítico(s)
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <DollarSign className="w-4 h-4" /> Valor do Estoque
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold text-foreground">
+                        R$ {stats.logistica.valorEstoque.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </p>
-                    )}
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                      <DollarSign className="w-4 h-4" /> Valor do Estoque
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold text-foreground">
-                      R$ {stats.logistica.valorEstoque.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </CardContent>
-                </Card>
-              </>
-            )}
+                    </CardContent>
+                  </Card>
+                </>
+              )}
 
-            {/* Financeiro */}
-            {stats.financeiro && (
-              <>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4" /> Receitas (Pagas)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                      R$ {stats.financeiro.receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                      <DollarSign className="w-4 h-4" /> Lucro
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className={`text-2xl font-bold ${stats.financeiro.lucro >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>
-                      R$ {stats.financeiro.lucro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </CardContent>
-                </Card>
-              </>
-            )}
+              {stats.financeiro && (
+                <>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4" /> Receitas (Pagas)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                        R$ {stats.financeiro.receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <DollarSign className="w-4 h-4" /> Lucro
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className={`text-2xl font-bold ${stats.financeiro.lucro >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>
+                        R$ {stats.financeiro.lucro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
 
-            {/* Vendas */}
-            {stats.vendas && (
-              <>
+              {stats.vendas && (
+                <>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <ShoppingCart className="w-4 h-4" /> Total de Vendas
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-3xl font-bold text-foreground">{stats.vendas.totalVendas}</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <DollarSign className="w-4 h-4" /> Faturamento
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold text-foreground">
+                        R$ {stats.vendas.faturamento.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+
+              {stats.rh && (
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                      <ShoppingCart className="w-4 h-4" /> Total de Vendas
+                      <Users className="w-4 h-4" /> Colaboradores
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-3xl font-bold text-foreground">{stats.vendas.totalVendas}</p>
+                    <p className="text-3xl font-bold text-foreground">{stats.rh.ativos}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{stats.rh.totalColaboradores} total</p>
                   </CardContent>
                 </Card>
+              )}
+
+              {stats.academia && (
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                      <DollarSign className="w-4 h-4" /> Faturamento
+                      <Dumbbell className="w-4 h-4" /> Alunos
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold text-foreground">
-                      R$ {stats.vendas.faturamento.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
+                    <p className="text-3xl font-bold text-foreground">{stats.academia.ativos}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{stats.academia.totalAlunos} total</p>
                   </CardContent>
                 </Card>
-              </>
-            )}
-
-            {/* RH */}
-            {stats.rh && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Users className="w-4 h-4" /> Colaboradores
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-foreground">{stats.rh.ativos}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{stats.rh.totalColaboradores} total</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Academia */}
-            {stats.academia && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Dumbbell className="w-4 h-4" /> Alunos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-foreground">{stats.academia.ativos}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{stats.academia.totalAlunos} total</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+              )}
+            </div>
+          </>
         )}
       </div>
     </MainLayout>

@@ -7,6 +7,8 @@ import { financeiroService } from '@/services/financeiroService';
 import { format, subMonths, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { InsightsPanel } from '@/components/insights/InsightsPanel';
+import { generateFinanceiroInsights } from '@/components/insights/generateFinanceiroInsights';
 
 const DashboardFinanceiro = () => {
   const { user } = useAuth();
@@ -45,6 +47,8 @@ const DashboardFinanceiro = () => {
   }, [entries, period]);
 
   const stats = useMemo(() => financeiroService.computeStats(filteredEntries), [filteredEntries]);
+
+  const finInsights = useMemo(() => generateFinanceiroInsights(stats, filteredEntries), [stats, filteredEntries]);
 
   // Chart: monthly comparison
   const monthlyData = useMemo(() => {
@@ -87,6 +91,8 @@ const DashboardFinanceiro = () => {
             </SelectContent>
           </Select>
         </div>
+
+        <InsightsPanel insights={finInsights} title="Insights Financeiros" />
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Receitas</p><p className="text-xl font-bold text-green-600">{fmt(stats.receitas)}</p></CardContent></Card>

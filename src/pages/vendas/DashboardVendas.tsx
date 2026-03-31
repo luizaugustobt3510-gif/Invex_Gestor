@@ -8,6 +8,8 @@ import { ShoppingCart, TrendingUp, DollarSign, BarChart3 } from 'lucide-react';
 import { format, subMonths, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { InsightsPanel } from '@/components/insights/InsightsPanel';
+import { generateVendasInsights } from '@/components/insights/generateVendasInsights';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
 const paymentLabels: Record<string, string> = {
@@ -55,6 +57,8 @@ const DashboardVendas = () => {
 
   const stats = useMemo(() => vendasService.computeStats(filteredSales), [filteredSales]);
 
+  const vendasInsights = useMemo(() => generateVendasInsights(stats, filteredSales), [stats, filteredSales]);
+
   const monthlyData = useMemo(() => {
     const months: Record<string, { vendas: number; faturamento: number }> = {};
     filteredSales.filter(s => s.status === 'finalizada').forEach(s => {
@@ -90,6 +94,8 @@ const DashboardVendas = () => {
             </SelectContent>
           </Select>
         </div>
+
+        <InsightsPanel insights={vendasInsights} title="Insights de Vendas" />
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <Card>
