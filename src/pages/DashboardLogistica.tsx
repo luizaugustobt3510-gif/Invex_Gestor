@@ -164,6 +164,15 @@ const DashboardLogistica = () => {
         </div>
       ) : (
         <div className="space-y-6">
+          {/* Insights de Logística */}
+          <InsightsPanel
+            insights={generateLogisticaInsights(
+              inventoryData.map(m => ({ quantidade: m.quantidade, minimo: m.minimo, maximo: m.maximo, preco: m.preco, material: m.material })),
+              { ok: concSummary.ok, sobra: concSummary.sobra, falta: concSummary.falta, valorDiv: concSummary.valorDiv }
+            )}
+            title="Insights de Logística"
+          />
+
           {/* Health Indicator Banner */}
           <Card className={`border-2 ${isHealthy ? 'border-emerald-500/40 bg-emerald-500/5' : criticalCount > 0 ? 'border-destructive/40 bg-destructive/5' : 'border-warning/40 bg-warning/5'}`}>
             <CardContent className="p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3">
