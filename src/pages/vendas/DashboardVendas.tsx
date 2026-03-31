@@ -57,6 +57,8 @@ const DashboardVendas = () => {
 
   const stats = useMemo(() => vendasService.computeStats(filteredSales), [filteredSales]);
 
+  const vendasInsights = useMemo(() => generateVendasInsights(stats, filteredSales), [stats, filteredSales]);
+
   const monthlyData = useMemo(() => {
     const months: Record<string, { vendas: number; faturamento: number }> = {};
     filteredSales.filter(s => s.status === 'finalizada').forEach(s => {
