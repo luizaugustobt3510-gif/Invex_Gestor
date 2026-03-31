@@ -76,9 +76,26 @@ export function useModuleAccess() {
     fetchModuleAccess();
   }, [fetchModuleAccess]);
 
+  /**
+   * Check if a module (or submodule) is accessible.
+   * Supports composite keys like "logistica.estoque" — checks parent module first,
+   * then the submodule key.
+   */
   const canAccessModule = useCallback(
     (moduleKey: string): boolean => {
       if (user?.role === 'superadm') return true;
+
+      // Handle composite submodule keys (e.g., "logistica.estoque")
+      if (moduleKey.includes('.')) {
+        const [parentKey] = moduleKey.split('.');
+        // First check parent module
+        if (!canAccessModule(parentKey)) return false;
+        // Then check the submodule itself
+        const companyActive = state.companyModules[moduleKey] ?? true;
+        if (!companyActive) return false;
+        const userActive = state.userModules[moduleKey] ?? true;
+        return userActive;
+      }
 
       const dbKey = MODULE_KEY_MAP[moduleKey] || moduleKey;
 

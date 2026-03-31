@@ -7,9 +7,10 @@ interface RoleProtectedRouteProps {
   children: ReactNode;
   allowedRoles: UserRole[];
   moduleKey?: string;
+  submoduleKey?: string;
 }
 
-export const RoleProtectedRoute = ({ children, allowedRoles, moduleKey }: RoleProtectedRouteProps) => {
+export const RoleProtectedRoute = ({ children, allowedRoles, moduleKey, submoduleKey }: RoleProtectedRouteProps) => {
   const { user, isLoading, hasPermission } = useAuth();
   const { canAccessModule, loading: moduleLoading } = useModuleAccess();
 
@@ -36,12 +37,25 @@ export const RoleProtectedRoute = ({ children, allowedRoles, moduleKey }: RolePr
     );
   }
 
+  // Check parent module
   if (moduleKey && !canAccessModule(moduleKey)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-destructive mb-2">Módulo Indisponível</h1>
           <p className="text-muted-foreground">Este módulo não está ativo para sua empresa ou seu usuário.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check submodule (composite key: "module.submodule")
+  if (submoduleKey && !canAccessModule(submoduleKey)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-destructive mb-2">Submódulo Indisponível</h1>
+          <p className="text-muted-foreground">Este submódulo não está ativo para sua empresa.</p>
         </div>
       </div>
     );
