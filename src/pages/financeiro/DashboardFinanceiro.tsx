@@ -48,6 +48,8 @@ const DashboardFinanceiro = () => {
 
   const stats = useMemo(() => financeiroService.computeStats(filteredEntries), [filteredEntries]);
 
+  const finInsights = useMemo(() => generateFinanceiroInsights(stats, filteredEntries), [stats, filteredEntries]);
+
   // Chart: monthly comparison
   const monthlyData = useMemo(() => {
     const months: Record<string, { receita: number; despesa: number }> = {};
