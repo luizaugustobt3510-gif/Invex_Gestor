@@ -8,6 +8,8 @@ import { ShoppingCart, TrendingUp, DollarSign, BarChart3 } from 'lucide-react';
 import { format, subMonths, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { InsightsPanel } from '@/components/insights/InsightsPanel';
+import { generateVendasInsights } from '@/components/insights/generateVendasInsights';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
 const paymentLabels: Record<string, string> = {
