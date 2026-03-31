@@ -12,6 +12,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { EditMaterialDialog } from "@/components/EditMaterialDialog";
+import { InsightsPanel } from "@/components/insights/InsightsPanel";
+import { generateLogisticaInsights } from "@/components/insights/generateLogisticaInsights";
 
 const DashboardLogistica = () => {
   const navigate = useNavigate();
