@@ -92,6 +92,8 @@ const DashboardFinanceiro = () => {
           </Select>
         </div>
 
+        <InsightsPanel insights={finInsights} title="Insights Financeiros" />
+
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Receitas</p><p className="text-xl font-bold text-green-600">{fmt(stats.receitas)}</p></CardContent></Card>
           <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Despesas</p><p className="text-xl font-bold text-red-600">{fmt(stats.despesas)}</p></CardContent></Card>
