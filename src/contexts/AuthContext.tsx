@@ -34,6 +34,7 @@ interface AuthContextType {
   hasPermission: (allowedRoles: UserRole[]) => boolean;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 async function loadUserProfile(supabaseUser: SupabaseUser): Promise<User | null> {
