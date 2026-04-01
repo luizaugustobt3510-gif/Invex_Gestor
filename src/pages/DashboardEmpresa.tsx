@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { MainLayout } from "@/components/MainLayout";
@@ -31,7 +31,7 @@ const DashboardEmpresa = () => {
   const [allInsights, setAllInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const canSeeDashboardModule = (moduleKey: 'logistica' | 'financeiro' | 'vendas' | 'rh' | 'academia') => {
+  const canSeeDashboardModule = useCallback((moduleKey: 'logistica' | 'financeiro' | 'vendas' | 'rh' | 'academia') => {
     if (!user) return false;
 
     if (user.role === 'superadm' || user.role === 'admin') {
@@ -50,7 +50,7 @@ const DashboardEmpresa = () => {
       default:
         return false;
     }
-  };
+  }, [user, canAccessModule]);
 
   useEffect(() => {
     if (!user?.companyId) return;
@@ -164,7 +164,7 @@ const DashboardEmpresa = () => {
     };
 
     fetchAll();
-  }, [user?.companyId, user?.role, canAccessModule]);
+  }, [user?.companyId, canSeeDashboardModule]);
 
   const hasAnyModule = Object.keys(stats).length > 0;
 
