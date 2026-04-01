@@ -157,10 +157,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
+  const logout = performLogout;
 
   const hasPermission = (allowedRoles: UserRole[]): boolean => {
     if (!user) return false;
