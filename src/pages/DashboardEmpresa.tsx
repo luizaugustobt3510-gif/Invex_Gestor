@@ -31,6 +31,27 @@ const DashboardEmpresa = () => {
   const [allInsights, setAllInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const canSeeDashboardModule = (moduleKey: 'logistica' | 'financeiro' | 'vendas' | 'rh' | 'academia') => {
+    if (!user) return false;
+
+    if (user.role === 'superadm' || user.role === 'admin') {
+      return canAccessModule(moduleKey);
+    }
+
+    switch (user.role) {
+      case 'rh':
+      case 'visualizador':
+        return moduleKey === 'rh' && canAccessModule(moduleKey);
+      case 'financeiro':
+        return moduleKey === 'financeiro' && canAccessModule(moduleKey);
+      case 'logistica':
+      case 'usuario almox':
+        return moduleKey === 'logistica' && canAccessModule(moduleKey);
+      default:
+        return false;
+    }
+  };
+
   useEffect(() => {
     if (!user?.companyId) return;
     const companyId = user.companyId;
@@ -41,7 +62,7 @@ const DashboardEmpresa = () => {
       const insights: Insight[] = [];
       const promises: Promise<void>[] = [];
 
-      if (canAccessModule('logistica')) {
+      if (canSeeDashboardModule('logistica')) {
         promises.push(
           (async () => {
             const { data } = await logisticaService.getMaterials(companyId);
@@ -75,7 +96,7 @@ const DashboardEmpresa = () => {
         );
       }
 
-      if (canAccessModule('financeiro')) {
+      if (canSeeDashboardModule('financeiro')) {
         promises.push(
           (async () => {
             const { data } = await financeiroService.getEntries(companyId);
@@ -87,7 +108,7 @@ const DashboardEmpresa = () => {
         );
       }
 
-      if (canAccessModule('vendas')) {
+      if (canSeeDashboardModule('vendas')) {
         promises.push(
           (async () => {
             const { data } = await vendasService.getSales(companyId);
@@ -100,7 +121,7 @@ const DashboardEmpresa = () => {
         );
       }
 
-      if (canAccessModule('rh')) {
+      if (canSeeDashboardModule('rh')) {
         promises.push(
           (async () => {
             const { data: emps } = await supabase.from('employees').select('*').eq('company_id', companyId);
@@ -127,7 +148,7 @@ const DashboardEmpresa = () => {
         );
       }
 
-      if (canAccessModule('academia')) {
+      if (canSeeDashboardModule('academia')) {
         promises.push(
           supabase.from('academy_students').select('id, status').eq('company_id', companyId).then(({ data }) => {
             const students = data || [];
@@ -143,7 +164,7 @@ const DashboardEmpresa = () => {
     };
 
     fetchAll();
-  }, [user?.companyId, canAccessModule]);
+  }, [user?.companyId, user?.role, canAccessModule]);
 
   const hasAnyModule = Object.keys(stats).length > 0;
 
