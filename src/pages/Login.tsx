@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
@@ -37,31 +37,6 @@ const Login = () => {
     checkSetup();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) { toast.error('Por favor, informe o e-mail.'); return; }
-    if (!senha.trim()) { toast.error('Por favor, informe a senha.'); return; }
-
-    setLoading(true);
-    const result = await login(email.trim(), senha);
-    setLoading(false);
-
-    if (result.success) {
-      toast.success(result.message);
-      navigate('/');
-    } else {
-      toast.error(result.message);
-    }
-  };
-
-  if (checkingSetup) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
-  }
-
   useEffect(() => {
     if (!needsSetup || checkingSetup) return;
     const runAutoSetup = async () => {
@@ -89,6 +64,36 @@ const Login = () => {
     };
     runAutoSetup();
   }, [needsSetup, checkingSetup]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) { toast.error('Por favor, informe o e-mail.'); return; }
+    if (!senha.trim()) { toast.error('Por favor, informe a senha.'); return; }
+
+    setLoading(true);
+    const result = await login(email.trim(), senha);
+    setLoading(false);
+
+    if (result.success) {
+      toast.success(result.message);
+      navigate('/');
+    } else {
+      toast.error(result.message);
+    }
+  };
+
+  if (checkingSetup || needsSetup) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+          <p className="text-sm text-muted-foreground">
+            {needsSetup ? 'Configurando o sistema...' : 'Verificando...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 p-4">
