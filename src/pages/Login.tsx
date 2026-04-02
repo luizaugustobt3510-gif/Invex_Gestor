@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
@@ -37,6 +37,34 @@ const Login = () => {
     checkSetup();
   }, []);
 
+  useEffect(() => {
+    if (!needsSetup || checkingSetup) return;
+    const runAutoSetup = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/setup-user`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'auto_setup_master' }),
+          }
+        );
+        const result = await response.json();
+        if (result.ok) {
+          toast.success('Sistema configurado! Faça login com suas credenciais.');
+          setNeedsSetup(false);
+        } else {
+          console.error('Auto setup:', result.error || result.msg);
+          setNeedsSetup(false);
+        }
+      } catch (err) {
+        console.error('Erro no auto setup:', err);
+        setNeedsSetup(false);
+      }
+    };
+    runAutoSetup();
+  }, [needsSetup, checkingSetup]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) { toast.error('Por favor, informe o e-mail.'); return; }
@@ -54,30 +82,15 @@ const Login = () => {
     }
   };
 
-  if (checkingSetup) {
+  if (checkingSetup || needsSetup) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
-  }
-
-  if (needsSetup) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 p-4">
-        <Card className="w-full max-w-md shadow-elevated">
-          <CardHeader className="space-y-4 text-center">
-            <div className="flex justify-center">
-              <InvexLogo size="lg" />
-            </div>
-            <div>
-              <CardTitle className="text-2xl font-bold text-foreground">Sistema não configurado</CardTitle>
-              <CardDescription className="text-base mt-2">
-                Nenhuma empresa cadastrada. Entre em contato com o administrador do sistema para realizar a configuração inicial.
-              </CardDescription>
-            </div>
-          </CardHeader>
-        </Card>
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+          <p className="text-sm text-muted-foreground">
+            {needsSetup ? 'Configurando o sistema...' : 'Verificando...'}
+          </p>
+        </div>
       </div>
     );
   }
