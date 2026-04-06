@@ -82,10 +82,10 @@ const Login = () => {
 
   if (checkingSetup || needsSetup) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500 mx-auto" />
-          <p className="text-sm text-zinc-400">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+          <p className="text-sm text-muted-foreground">
             {needsSetup ? 'Configurando o sistema...' : 'Verificando...'}
           </p>
         </div>
@@ -94,39 +94,34 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#0a0a0f] text-zinc-100">
+    <div className="min-h-screen flex bg-background text-foreground">
       {/* Left Panel - Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center">
-        {/* Gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 via-[#0a0a0f] to-blue-600/10" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-primary/5" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-primary/8 rounded-full blur-3xl" />
         
         <div className="relative z-10 px-16 max-w-lg">
-          {/* Logo */}
           <div className="mb-8">
-            <h1 className="text-5xl font-bold tracking-tight">
-              <span className="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">
-                Invex
-              </span>
+            <h1 className="text-5xl font-bold tracking-tight text-primary">
+              Invex
             </h1>
-            <div className="mt-2 h-1 w-16 bg-gradient-to-r from-violet-500 to-blue-500 rounded-full" />
+            <div className="mt-2 h-1 w-16 bg-primary rounded-full" />
           </div>
 
-          <p className="text-2xl font-light text-zinc-300 leading-relaxed">
+          <p className="text-2xl font-light text-foreground leading-relaxed">
             Controle inteligente de estoque e operações
           </p>
 
-          <p className="mt-6 text-zinc-500 text-sm leading-relaxed">
+          <p className="mt-6 text-muted-foreground text-sm leading-relaxed">
             Gerencie seu inventário, monitore movimentações e tome decisões estratégicas com dados em tempo real.
           </p>
 
-          {/* Feature pills */}
           <div className="mt-10 flex flex-wrap gap-3">
             {['Estoque', 'Logística', 'Financeiro', 'RH', 'Vendas'].map((item) => (
               <span
                 key={item}
-                className="px-4 py-1.5 rounded-full text-xs font-medium border border-zinc-800 text-zinc-400 bg-zinc-900/50"
+                className="px-4 py-1.5 rounded-full text-xs font-medium border border-border text-muted-foreground bg-muted/50"
               >
                 {item}
               </span>
@@ -138,33 +133,28 @@ const Login = () => {
       {/* Right Panel - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-md">
-          {/* Mobile logo */}
           <div className="lg:hidden mb-10 text-center">
-            <h1 className="text-4xl font-bold tracking-tight">
-              <span className="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">
-                Invex
-              </span>
-            </h1>
-            <p className="mt-2 text-zinc-500 text-sm">Controle inteligente de estoque e operações</p>
+            <h1 className="text-4xl font-bold tracking-tight text-primary">Invex</h1>
+            <p className="mt-2 text-muted-foreground text-sm">Controle inteligente de estoque e operações</p>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-zinc-100">Bem-vindo de volta</h2>
-            <p className="mt-1 text-zinc-500 text-sm">Faça login para acessar sua conta</p>
+            <h2 className="text-2xl font-semibold text-foreground">Bem-vindo de volta</h2>
+            <p className="mt-1 text-muted-foreground text-sm">Faça login para acessar sua conta</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-zinc-400 text-sm">Email</Label>
+              <Label htmlFor="email" className="text-muted-foreground text-sm">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-11 h-12 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 rounded-xl focus-visible:ring-violet-500/50 focus-visible:border-violet-500/50"
+                  className="pl-11 h-12 rounded-xl"
                   disabled={loading}
                   autoComplete="email"
                 />
@@ -173,10 +163,10 @@ const Login = () => {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="senha" className="text-zinc-400 text-sm">Senha</Label>
+                <Label htmlFor="senha" className="text-muted-foreground text-sm">Senha</Label>
                 <button
                   type="button"
-                  className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+                  className="text-xs text-primary hover:text-primary/80 transition-colors"
                   onClick={async () => {
                     if (!email.trim()) {
                       toast.error('Informe seu email para recuperar a senha.');
@@ -197,14 +187,14 @@ const Login = () => {
                 </button>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="senha"
                   type="password"
                   placeholder="••••••••"
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
-                  className="pl-11 h-12 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 rounded-xl focus-visible:ring-violet-500/50 focus-visible:border-violet-500/50"
+                  className="pl-11 h-12 rounded-xl"
                   disabled={loading}
                   autoComplete="current-password"
                 />
@@ -213,12 +203,12 @@ const Login = () => {
 
             <Button
               type="submit"
-              className="w-full h-12 text-base font-semibold rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white border-0 shadow-lg shadow-violet-600/20 transition-all duration-300"
+              className="w-full h-12 text-base font-semibold rounded-xl shadow-lg shadow-primary/20 transition-all duration-300"
               disabled={loading}
             >
               {loading ? (
                 <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
                   Entrando...
                 </div>
               ) : (
@@ -230,28 +220,26 @@ const Login = () => {
             </Button>
           </form>
 
-          {/* Divider */}
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-zinc-800" />
+              <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-3 bg-[#0a0a0f] text-zinc-600">Não tem uma conta?</span>
+              <span className="px-3 bg-background text-muted-foreground">Não tem uma conta?</span>
             </div>
           </div>
 
-          {/* WhatsApp CTA */}
           <a
             href="https://wa.me/5531973442958?text=Olá,%20quero%20criar%20uma%20conta%20no%20Invex"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border border-zinc-800 bg-zinc-900/30 text-zinc-300 hover:bg-zinc-800/50 hover:text-zinc-100 hover:border-zinc-700 transition-all duration-300 text-sm font-medium"
+            className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border border-border bg-muted/30 text-foreground hover:bg-muted/60 hover:border-primary/30 transition-all duration-300 text-sm font-medium"
           >
-            <MessageCircle className="w-4 h-4 text-green-400" />
+            <MessageCircle className="w-4 h-4 text-primary" />
             Criar conta via WhatsApp
           </a>
 
-          <p className="mt-6 text-center text-xs text-zinc-600">
+          <p className="mt-6 text-center text-xs text-muted-foreground">
             O acesso é liberado manualmente pelo administrador.
           </p>
         </div>
