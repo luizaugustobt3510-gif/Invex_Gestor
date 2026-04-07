@@ -174,6 +174,28 @@ Deno.serve(async (req) => {
         );
       }
 
+      // Cross-company check for admin_empresa
+      if (callerRole.role === "admin_empresa") {
+        const { data: targetRole } = await supabase
+          .from("user_roles")
+          .select("company_id, role")
+          .eq("user_id", user_id)
+          .single();
+
+        if (!targetRole || targetRole.company_id !== callerRole.company_id) {
+          return new Response(
+            JSON.stringify({ error: "Sem permissão para deletar usuário de outra empresa." }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        if (targetRole.role === "admin_empresa" || targetRole.role === "super_admin") {
+          return new Response(
+            JSON.stringify({ error: "Admins não podem remover outros admins." }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+
       // PROTECT MASTER ADMIN - cannot be deleted
       const { data: { user: targetUser } } = await supabase.auth.admin.getUserById(user_id);
       if (targetUser?.email?.toLowerCase() === PROTECTED_EMAIL) {
