@@ -48,6 +48,13 @@ const GerarQRCode = () => {
     link.click();
   };
 
+  const escapeHtml = (str: string) => str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
   const printQRCodes = () => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -69,8 +76,8 @@ const GerarQRCode = () => {
         ${selectedItems.map(item => `
           <div class="item">
             <img src="${qrImages.get(item.id) || ''}" />
-            <p class="code">${item.codigo}</p>
-            <p class="name">${item.material}</p>
+            <p class="code">${escapeHtml(item.codigo)}</p>
+            <p class="name">${escapeHtml(item.material)}</p>
           </div>
         `).join('')}
       </div>
