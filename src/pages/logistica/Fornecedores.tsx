@@ -220,7 +220,7 @@ export default function Fornecedores() {
   };
 
   return (
-    <MainLayout title="Gestão de Fornecedores">
+    <MainLayout>
       <Tabs defaultValue="cadastro" className="space-y-4">
         <TabsList className="grid w-full grid-cols-2 max-w-md">
           <TabsTrigger value="cadastro">Cadastro de Fornecedores</TabsTrigger>
