@@ -8,7 +8,7 @@ import {
   Puzzle, CreditCard, Settings, ScrollText, Download, Shield, User,
   AlertTriangle, Users, Calendar, HeartPulse, GraduationCap, Clock, Star,
   BarChart3, Thermometer, Target, UserMinus, Dumbbell, DollarSign, Wallet,
-  BarChart2, Receipt, ShoppingCart,
+  BarChart2, Receipt, ShoppingCart, Truck,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -89,6 +89,15 @@ const logisticsGroups: MenuGroup[] = [
     items: [
       { path: '/solicitar-material', label: 'Solicitar Material', icon: <Send className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'], submoduleKey: 'logistica.solicitacoes' },
       { path: '/listar-solicitacoes', label: 'Solicitações', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'], submoduleKey: 'logistica.solicitacoes' },
+    ],
+  },
+  {
+    label: 'Fornecedores',
+    icon: <Truck className="w-4 h-4" />,
+    allowedRoles: ['admin', 'logistica'],
+    moduleKey: 'logistica',
+    items: [
+      { path: '/fornecedores', label: 'Gestão de Fornecedores', icon: <Truck className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
     ],
   },
   {
