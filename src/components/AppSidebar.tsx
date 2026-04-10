@@ -101,6 +101,15 @@ const logisticsGroups: MenuGroup[] = [
     ],
   },
   {
+    label: 'Curva ABC',
+    icon: <TrendingUp className="w-4 h-4" />,
+    allowedRoles: ['admin', 'logistica'],
+    moduleKey: 'logistica',
+    items: [
+      { path: '/curva-abc', label: 'Curva ABC Inteligente', icon: <TrendingUp className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+    ],
+  },
+  {
     label: 'Conferência',
     icon: <Thermometer className="w-4 h-4" />,
     allowedRoles: ['admin', 'logistica', 'usuario almox'],
