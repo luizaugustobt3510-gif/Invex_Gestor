@@ -1504,6 +1504,101 @@ export type Database = {
           },
         ]
       }
+      supplier_evaluations: {
+        Row: {
+          avaliador_id: string
+          comentario: string | null
+          company_id: string
+          created_at: string
+          id: string
+          nota: number
+          supplier_id: string
+        }
+        Insert: {
+          avaliador_id: string
+          comentario?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          nota?: number
+          supplier_id: string
+        }
+        Update: {
+          avaliador_id?: string
+          comentario?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          nota?: number
+          supplier_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_evaluations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_evaluations_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          cnpj: string | null
+          company_id: string
+          created_at: string
+          id: string
+          nome: string
+          nota_qualidade: number
+          observacoes: string | null
+          prazo_medio_dias: number
+          preco_medio: number
+          tipo_material: string
+          updated_at: string
+        }
+        Insert: {
+          cnpj?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          nome: string
+          nota_qualidade?: number
+          observacoes?: string | null
+          prazo_medio_dias?: number
+          preco_medio?: number
+          tipo_material?: string
+          updated_at?: string
+        }
+        Update: {
+          cnpj?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          nome?: string
+          nota_qualidade?: number
+          observacoes?: string | null
+          prazo_medio_dias?: number
+          preco_medio?: number
+          tipo_material?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_config: {
         Row: {
           config_key: string
