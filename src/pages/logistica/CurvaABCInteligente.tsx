@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Line, Area } from 'recharts';
-import { Upload, Settings, BarChart3, TableIcon, Download, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Upload, Settings, BarChart3, TableIcon, Download, AlertTriangle, CheckCircle2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useInventoryData } from '@/hooks/useInventoryData';
 import { writeExcelFromAoa } from '@/lib/excelUtils';
