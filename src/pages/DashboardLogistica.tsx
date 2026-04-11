@@ -406,6 +406,7 @@ const DashboardLogistica = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             {filteredData.map((item) => {
               const status = getStatusInfo(item);
+              const abc = abcMap.get(item.material.toUpperCase().trim());
               return (
                 <Card key={item.codigo} className={`border ${status.color} transition-all hover:shadow-md`}>
                   <CardContent className="p-4 space-y-3">
@@ -416,10 +417,17 @@ const DashboardLogistica = () => {
                           {item.material}
                         </p>
                       </div>
-                      <Badge variant="outline" className={`shrink-0 text-xs ${status.color}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${status.dot}`} />
-                        {status.label}
-                      </Badge>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {abc && (
+                          <Badge variant="outline" className={`text-xs ${abc.classe === 'A' ? 'bg-destructive/10 text-destructive border-destructive/30' : abc.classe === 'B' ? 'bg-warning/10 text-warning border-warning/30' : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'}`}>
+                            {abc.classe}
+                          </Badge>
+                        )}
+                        <Badge variant="outline" className={`text-xs ${status.color}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${status.dot}`} />
+                          {status.label}
+                        </Badge>
+                      </div>
                     </div>
                     <div className="flex items-end justify-between">
                       <div>
@@ -437,6 +445,14 @@ const DashboardLogistica = () => {
                         </p>
                       </div>
                     </div>
+                    {abc && abc.compraSugerida > 0 && (
+                      <div className="flex items-center gap-2 p-2 rounded-md bg-primary/5 border border-primary/20">
+                        <TrendingUp className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <p className="text-xs text-primary font-medium">
+                          Compra sugerida: <span className="font-bold">{abc.compraSugerida}</span> un
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
