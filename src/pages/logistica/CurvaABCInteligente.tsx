@@ -252,7 +252,10 @@ export default function CurvaABCInteligente() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <h1 className="text-2xl font-bold text-foreground">Curva ABC Inteligente</h1>
           {abcItems.length > 0 && (
-            <Button variant="outline" size="sm" onClick={handleExport}><Download className="w-4 h-4 mr-2" /> Exportar</Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleExport}><Download className="w-4 h-4 mr-2" /> Exportar</Button>
+              <Button variant="destructive" size="sm" onClick={handleReset}><Trash2 className="w-4 h-4 mr-2" /> Resetar</Button>
+            </div>
           )}
         </div>
 
