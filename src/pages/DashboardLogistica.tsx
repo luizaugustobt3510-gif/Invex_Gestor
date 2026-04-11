@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit, Thermometer } from "lucide-react";
+import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit, Thermometer, TrendingUp } from "lucide-react";
 import { useInventoryData, InventoryItem } from "@/hooks/useInventoryData";
 import { useAuth } from "@/contexts/AuthContext";
 import { MainLayout } from "@/components/MainLayout";
@@ -12,8 +12,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { EditMaterialDialog } from "@/components/EditMaterialDialog";
-import { InsightsPanel } from "@/components/insights/InsightsPanel";
-import { generateLogisticaInsights } from "@/components/insights/generateLogisticaInsights";
+
+interface ABCResult {
+  material: string;
+  classe: 'A' | 'B' | 'C';
+  compraSugerida: number;
+  consumoMensal: number;
+}
 
 const DashboardLogistica = () => {
   const navigate = useNavigate();
