@@ -33,6 +33,28 @@ const DashboardLogistica = () => {
   // Conciliation summary
   const [concSummary, setConcSummary] = useState({ ok: 0, sobra: 0, falta: 0, semDado: 0, valorDiv: 0 });
   const [tempStatus, setTempStatus] = useState<Record<string, boolean>>({});
+  
+  // Curva ABC from localStorage
+  const [abcResults, setAbcResults] = useState<ABCResult[]>([]);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('invex_curva_abc_results');
+      if (saved) setAbcResults(JSON.parse(saved));
+    } catch { /* silent */ }
+  }, []);
+  
+  const abcMap = useMemo(() => {
+    const map = new Map<string, ABCResult>();
+    abcResults.forEach(r => map.set(r.material.toUpperCase().trim(), r));
+    return map;
+  }, [abcResults]);
+  
+  const abcSummary = useMemo(() => ({
+    qtdA: abcResults.filter(r => r.classe === 'A').length,
+    qtdB: abcResults.filter(r => r.classe === 'B').length,
+    qtdC: abcResults.filter(r => r.classe === 'C').length,
+    totalCompra: abcResults.reduce((s, r) => s + r.compraSugerida, 0),
+  }), [abcResults]);
 
   useEffect(() => {
     const fetchConciliation = async () => {
