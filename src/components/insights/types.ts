@@ -4,6 +4,7 @@ export interface Insight {
   title: string;
   message: string;
   suggestion?: string;
+  action?: string; // navigation path when clicked
 }
 
 export const MODULE_LABELS: Record<string, string> = {

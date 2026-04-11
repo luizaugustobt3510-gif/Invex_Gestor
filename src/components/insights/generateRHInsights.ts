@@ -30,6 +30,7 @@ export function generateRHInsights(data: RHData): Insight[] {
       title: 'Turnover',
       message: `${desligMes} desligamento(s) no mês (turnover ${turnover.toFixed(1)}%).`,
       suggestion: turnover > 10 ? 'Índice alto. Investigue as causas da rotatividade.' : undefined,
+      action: '/rh/turnover',
     });
   }
 
@@ -43,11 +44,11 @@ export function generateRHInsights(data: RHData): Insight[] {
         type: 'warning',
         title: 'Motivo principal',
         message: `Principal motivo de desligamento: ${topMotivo[0]} (${topMotivo[1]}x).`,
+        action: '/rh/desligamentos',
       });
     }
   }
 
-  // Absenteísmo
   const diasAtestado = certificates.filter(c => c.data_inicio >= inicioMes).reduce((s: number, c: any) => s + (c.dias || 0), 0);
   const absenteismo = ativos.length > 0 ? (diasAtestado / (ativos.length * 22)) * 100 : 0;
   if (absenteismo > 5) {
@@ -57,10 +58,10 @@ export function generateRHInsights(data: RHData): Insight[] {
       title: 'Absenteísmo alto',
       message: `Índice de absenteísmo: ${absenteismo.toFixed(1)}%.`,
       suggestion: 'Investigue causas de afastamento.',
+      action: '/rh/atestados',
     });
   }
 
-  // ASO vencido
   const latestAso = new Map<string, string>();
   asos.forEach((a: any) => {
     if (!a.data_vencimento) return;
@@ -75,10 +76,10 @@ export function generateRHInsights(data: RHData): Insight[] {
       title: 'ASO vencido',
       message: `${asoVencido} colaborador(es) com exame (ASO) vencido.`,
       suggestion: 'Agende os exames periódicos imediatamente.',
+      action: '/rh/aso',
     });
   }
 
-  // Treinamentos vencidos
   const latestTrain = new Map<string, string>();
   trainings.forEach((t: any) => {
     if (!t.data_validade) return;
@@ -92,10 +93,10 @@ export function generateRHInsights(data: RHData): Insight[] {
       type: 'danger',
       title: 'Treinamentos vencidos',
       message: `${trainVencido} colaborador(es) com treinamentos vencidos.`,
+      action: '/rh/treinamentos',
     });
   }
 
-  // Férias próximas
   const em30 = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
   const feriasProx = vacations.filter(v => v.status !== 'cancelada' && v.data_inicio >= hoje && v.data_inicio <= em30).length;
   if (feriasProx > 0) {
@@ -104,6 +105,7 @@ export function generateRHInsights(data: RHData): Insight[] {
       type: 'warning',
       title: 'Férias próximas',
       message: `${feriasProx} colaborador(es) com férias nos próximos 30 dias.`,
+      action: '/rh/ferias',
     });
   }
 
@@ -113,10 +115,10 @@ export function generateRHInsights(data: RHData): Insight[] {
       type: 'success',
       title: 'Conformidade',
       message: 'Todos os indicadores de RH estão em dia.',
+      action: '/rh',
     });
   }
 
-  // Custo
   const custoFolha = ativos.reduce((s, e) => s + Number(e.salario || 0), 0);
   if (custoFolha > 0) {
     const custoMedio = custoFolha / ativos.length;
@@ -125,6 +127,7 @@ export function generateRHInsights(data: RHData): Insight[] {
       type: 'success',
       title: 'Custo da folha',
       message: `Folha mensal: R$ ${custoFolha.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (média R$ ${custoMedio.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/colab.).`,
+      action: '/rh/analises',
     });
   }
 

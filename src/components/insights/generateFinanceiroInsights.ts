@@ -18,6 +18,7 @@ export function generateFinanceiroInsights(stats: FinStats, entries: any[]): Ins
       title: 'Prejuízo',
       message: `A empresa está com prejuízo de R$ ${Math.abs(stats.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} no período.`,
       suggestion: 'Analise as despesas e busque reduzir custos.',
+      action: '/financeiro/relatorios',
     });
   } else if (stats.lucro > 0) {
     const margem = stats.receitas > 0 ? (stats.lucro / stats.receitas) * 100 : 0;
@@ -27,6 +28,7 @@ export function generateFinanceiroInsights(stats: FinStats, entries: any[]): Ins
       title: 'Lucro',
       message: `Lucro de R$ ${stats.lucro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (margem ${margem.toFixed(1)}%).`,
       suggestion: margem < 10 ? 'Margem estreita. Busque aumentar receitas ou reduzir custos.' : undefined,
+      action: '/financeiro',
     });
   }
 
@@ -37,6 +39,7 @@ export function generateFinanceiroInsights(stats: FinStats, entries: any[]): Ins
       title: 'Contas a pagar',
       message: `R$ ${stats.aPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} em contas a pagar.`,
       suggestion: 'Verifique os vencimentos e priorize pagamentos.',
+      action: '/financeiro/lancamentos',
     });
   }
 
@@ -47,10 +50,10 @@ export function generateFinanceiroInsights(stats: FinStats, entries: any[]): Ins
       title: 'Contas a receber',
       message: `R$ ${stats.aReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} em contas a receber.`,
       suggestion: 'Acompanhe cobranças para melhorar o fluxo de caixa.',
+      action: '/financeiro/lancamentos',
     });
   }
 
-  // Vencidas
   const hoje = new Date().toISOString().split('T')[0];
   const vencidas = entries.filter(
     (e: any) => e.status === 'pendente' && e.data_vencimento && e.data_vencimento < hoje
@@ -63,6 +66,7 @@ export function generateFinanceiroInsights(stats: FinStats, entries: any[]): Ins
       title: 'Contas vencidas',
       message: `${vencidas.length} conta(s) vencida(s) totalizando R$ ${totalVencido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`,
       suggestion: 'Regularize as pendências imediatamente.',
+      action: '/financeiro/lancamentos',
     });
   }
 
@@ -72,6 +76,7 @@ export function generateFinanceiroInsights(stats: FinStats, entries: any[]): Ins
       type: 'warning',
       title: 'Sem movimentação',
       message: 'Nenhuma movimentação financeira registrada no período.',
+      action: '/financeiro/lancamentos',
     });
   }
 

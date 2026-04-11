@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Line, Area } from 'recharts';
-import { Upload, Settings, BarChart3, TableIcon, Download, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Upload, Settings, BarChart3, TableIcon, Download, AlertTriangle, CheckCircle2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useInventoryData } from '@/hooks/useInventoryData';
 import { writeExcelFromAoa } from '@/lib/excelUtils';
@@ -117,11 +117,24 @@ function parseCSVRows(text: string): RawRow[] {
   return rows;
 }
 
+const ABC_STORAGE_KEY = 'invex_curva_abc_data';
+const ABC_CONFIG_KEY = 'invex_curva_abc_config';
+
 export default function CurvaABCInteligente() {
   const [rawText, setRawText] = useState('');
-  const [parsedRows, setParsedRows] = useState<RawRow[]>([]);
-  const [config, setConfig] = useState<ABCConfig>(defaultConfig);
-  const [activeTab, setActiveTab] = useState('importar');
+  const [parsedRows, setParsedRows] = useState<RawRow[]>(() => {
+    try {
+      const saved = localStorage.getItem(ABC_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [config, setConfig] = useState<ABCConfig>(() => {
+    try {
+      const saved = localStorage.getItem(ABC_CONFIG_KEY);
+      return saved ? JSON.parse(saved) : defaultConfig;
+    } catch { return defaultConfig; }
+  });
+  const [activeTab, setActiveTab] = useState(parsedRows.length > 0 ? 'analise' : 'importar');
   const { data: inventoryData } = useInventoryData();
 
   const handleImport = useCallback(() => {
@@ -131,9 +144,20 @@ export default function CurvaABCInteligente() {
       return;
     }
     setParsedRows(rows);
+    localStorage.setItem(ABC_STORAGE_KEY, JSON.stringify(rows));
     toast.success(`${rows.length} registros importados com sucesso!`);
     setActiveTab('analise');
   }, [rawText]);
+
+  const handleReset = useCallback(() => {
+    setParsedRows([]);
+    setRawText('');
+    setConfig(defaultConfig);
+    localStorage.removeItem(ABC_STORAGE_KEY);
+    localStorage.removeItem(ABC_CONFIG_KEY);
+    setActiveTab('importar');
+    toast.success('Curva ABC resetada com sucesso!');
+  }, []);
 
   const abcItems = useMemo<ABCItem[]>(() => {
     if (parsedRows.length === 0) return [];
@@ -181,6 +205,17 @@ export default function CurvaABCInteligente() {
     });
   }, [parsedRows, config, inventoryData]);
 
+  // Persist ABC results and config to localStorage
+  useEffect(() => {
+    if (abcItems.length > 0) {
+      localStorage.setItem('invex_curva_abc_results', JSON.stringify(abcItems));
+    }
+  }, [abcItems]);
+
+  useEffect(() => {
+    localStorage.setItem(ABC_CONFIG_KEY, JSON.stringify(config));
+  }, [config]);
+
   const summary = useMemo(() => {
     const a = abcItems.filter(i => i.classe === 'A');
     const b = abcItems.filter(i => i.classe === 'B');
@@ -217,7 +252,10 @@ export default function CurvaABCInteligente() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <h1 className="text-2xl font-bold text-foreground">Curva ABC Inteligente</h1>
           {abcItems.length > 0 && (
-            <Button variant="outline" size="sm" onClick={handleExport}><Download className="w-4 h-4 mr-2" /> Exportar</Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleExport}><Download className="w-4 h-4 mr-2" /> Exportar</Button>
+              <Button variant="destructive" size="sm" onClick={handleReset}><Trash2 className="w-4 h-4 mr-2" /> Resetar</Button>
+            </div>
           )}
         </div>
 

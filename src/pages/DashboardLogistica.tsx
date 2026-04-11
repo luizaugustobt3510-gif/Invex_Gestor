@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit, Thermometer } from "lucide-react";
+import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit, Thermometer, TrendingUp } from "lucide-react";
 import { useInventoryData, InventoryItem } from "@/hooks/useInventoryData";
 import { useAuth } from "@/contexts/AuthContext";
 import { MainLayout } from "@/components/MainLayout";
@@ -12,8 +12,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { EditMaterialDialog } from "@/components/EditMaterialDialog";
-import { InsightsPanel } from "@/components/insights/InsightsPanel";
-import { generateLogisticaInsights } from "@/components/insights/generateLogisticaInsights";
+
+interface ABCResult {
+  material: string;
+  classe: 'A' | 'B' | 'C';
+  compraSugerida: number;
+  consumoMensal: number;
+}
 
 const DashboardLogistica = () => {
   const navigate = useNavigate();
@@ -28,6 +33,28 @@ const DashboardLogistica = () => {
   // Conciliation summary
   const [concSummary, setConcSummary] = useState({ ok: 0, sobra: 0, falta: 0, semDado: 0, valorDiv: 0 });
   const [tempStatus, setTempStatus] = useState<Record<string, boolean>>({});
+  
+  // Curva ABC from localStorage
+  const [abcResults, setAbcResults] = useState<ABCResult[]>([]);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('invex_curva_abc_results');
+      if (saved) setAbcResults(JSON.parse(saved));
+    } catch { /* silent */ }
+  }, []);
+  
+  const abcMap = useMemo(() => {
+    const map = new Map<string, ABCResult>();
+    abcResults.forEach(r => map.set(r.material.toUpperCase().trim(), r));
+    return map;
+  }, [abcResults]);
+  
+  const abcSummary = useMemo(() => ({
+    qtdA: abcResults.filter(r => r.classe === 'A').length,
+    qtdB: abcResults.filter(r => r.classe === 'B').length,
+    qtdC: abcResults.filter(r => r.classe === 'C').length,
+    totalCompra: abcResults.reduce((s, r) => s + r.compraSugerida, 0),
+  }), [abcResults]);
 
   useEffect(() => {
     const fetchConciliation = async () => {
@@ -164,16 +191,40 @@ const DashboardLogistica = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Insights de Logística */}
-          <InsightsPanel
-            insights={generateLogisticaInsights(
-              inventoryData.map(m => ({ quantidade: m.quantidade, minimo: m.minimo, maximo: m.maximo, preco: m.preco, material: m.material })),
-              { ok: concSummary.ok, sobra: concSummary.sobra, falta: concSummary.falta, valorDiv: concSummary.valorDiv }
-            )}
-            title="Insights de Logística"
-          />
-
-          {/* Health Indicator Banner */}
+          {/* Curva ABC Summary */}
+          {abcResults.length > 0 && (
+            <Card className="border-2 border-primary/30 bg-primary/5 cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/curva-abc')}>
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-3 rounded-full bg-primary/20">
+                    <TrendingUp className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground">Curva ABC Inteligente</h2>
+                    <p className="text-sm text-muted-foreground">{abcResults.length} materiais classificados</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 gap-3 text-center">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Classe A</p>
+                    <p className="text-lg font-bold text-destructive">{abcSummary.qtdA}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Classe B</p>
+                    <p className="text-lg font-bold text-warning">{abcSummary.qtdB}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Classe C</p>
+                    <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{abcSummary.qtdC}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Compras Sugeridas</p>
+                    <p className="text-lg font-bold text-primary">{abcSummary.totalCompra}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           <Card className={`border-2 ${isHealthy ? 'border-emerald-500/40 bg-emerald-500/5' : criticalCount > 0 ? 'border-destructive/40 bg-destructive/5' : 'border-warning/40 bg-warning/5'}`}>
             <CardContent className="p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <div className={`p-3 rounded-full ${isHealthy ? 'bg-emerald-500/20' : criticalCount > 0 ? 'bg-destructive/20' : 'bg-warning/20'}`}>
@@ -355,6 +406,7 @@ const DashboardLogistica = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             {filteredData.map((item) => {
               const status = getStatusInfo(item);
+              const abc = abcMap.get(item.material.toUpperCase().trim());
               return (
                 <Card key={item.codigo} className={`border ${status.color} transition-all hover:shadow-md`}>
                   <CardContent className="p-4 space-y-3">
@@ -365,10 +417,17 @@ const DashboardLogistica = () => {
                           {item.material}
                         </p>
                       </div>
-                      <Badge variant="outline" className={`shrink-0 text-xs ${status.color}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${status.dot}`} />
-                        {status.label}
-                      </Badge>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {abc && (
+                          <Badge variant="outline" className={`text-xs ${abc.classe === 'A' ? 'bg-destructive/10 text-destructive border-destructive/30' : abc.classe === 'B' ? 'bg-warning/10 text-warning border-warning/30' : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'}`}>
+                            {abc.classe}
+                          </Badge>
+                        )}
+                        <Badge variant="outline" className={`text-xs ${status.color}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${status.dot}`} />
+                          {status.label}
+                        </Badge>
+                      </div>
                     </div>
                     <div className="flex items-end justify-between">
                       <div>
@@ -386,6 +445,14 @@ const DashboardLogistica = () => {
                         </p>
                       </div>
                     </div>
+                    {abc && abc.compraSugerida > 0 && (
+                      <div className="flex items-center gap-2 p-2 rounded-md bg-primary/5 border border-primary/20">
+                        <TrendingUp className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <p className="text-xs text-primary font-medium">
+                          Compra sugerida: <span className="font-bold">{abc.compraSugerida}</span> un
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
