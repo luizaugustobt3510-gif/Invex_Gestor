@@ -205,6 +205,17 @@ export default function CurvaABCInteligente() {
     });
   }, [parsedRows, config, inventoryData]);
 
+  // Persist ABC results and config to localStorage
+  useEffect(() => {
+    if (abcItems.length > 0) {
+      localStorage.setItem('invex_curva_abc_results', JSON.stringify(abcItems));
+    }
+  }, [abcItems]);
+
+  useEffect(() => {
+    localStorage.setItem(ABC_CONFIG_KEY, JSON.stringify(config));
+  }, [config]);
+
   const summary = useMemo(() => {
     const a = abcItems.filter(i => i.classe === 'A');
     const b = abcItems.filter(i => i.classe === 'B');
