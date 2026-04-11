@@ -191,16 +191,40 @@ const DashboardLogistica = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Insights de Logística */}
-          <InsightsPanel
-            insights={generateLogisticaInsights(
-              inventoryData.map(m => ({ quantidade: m.quantidade, minimo: m.minimo, maximo: m.maximo, preco: m.preco, material: m.material })),
-              { ok: concSummary.ok, sobra: concSummary.sobra, falta: concSummary.falta, valorDiv: concSummary.valorDiv }
-            )}
-            title="Insights de Logística"
-          />
-
-          {/* Health Indicator Banner */}
+          {/* Curva ABC Summary */}
+          {abcResults.length > 0 && (
+            <Card className="border-2 border-primary/30 bg-primary/5 cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/curva-abc')}>
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-3 rounded-full bg-primary/20">
+                    <TrendingUp className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground">Curva ABC Inteligente</h2>
+                    <p className="text-sm text-muted-foreground">{abcResults.length} materiais classificados</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 gap-3 text-center">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Classe A</p>
+                    <p className="text-lg font-bold text-destructive">{abcSummary.qtdA}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Classe B</p>
+                    <p className="text-lg font-bold text-warning">{abcSummary.qtdB}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Classe C</p>
+                    <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{abcSummary.qtdC}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Compras Sugeridas</p>
+                    <p className="text-lg font-bold text-primary">{abcSummary.totalCompra}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           <Card className={`border-2 ${isHealthy ? 'border-emerald-500/40 bg-emerald-500/5' : criticalCount > 0 ? 'border-destructive/40 bg-destructive/5' : 'border-warning/40 bg-warning/5'}`}>
             <CardContent className="p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <div className={`p-3 rounded-full ${isHealthy ? 'bg-emerald-500/20' : criticalCount > 0 ? 'bg-destructive/20' : 'bg-warning/20'}`}>
