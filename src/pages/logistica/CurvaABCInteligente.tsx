@@ -205,16 +205,12 @@ export default function CurvaABCInteligente() {
     });
   }, [parsedRows, config, inventoryData]);
 
-  // Persist ABC results and config to localStorage
+  // Persist ABC results to database
   useEffect(() => {
-    if (abcItems.length > 0) {
-      localStorage.setItem('invex_curva_abc_results', JSON.stringify(abcItems));
+    if (initialized && abcItems.length > 0) {
+      saveToDb(parsedRows, config, abcItems);
     }
-  }, [abcItems]);
-
-  useEffect(() => {
-    localStorage.setItem(ABC_CONFIG_KEY, JSON.stringify(config));
-  }, [config]);
+  }, [abcItems, initialized]);
 
   const summary = useMemo(() => {
     const a = abcItems.filter(i => i.classe === 'A');
