@@ -15,6 +15,7 @@ import { Upload, Settings, BarChart3, TableIcon, Download, AlertTriangle, CheckC
 import { toast } from 'sonner';
 import { useInventoryData } from '@/hooks/useInventoryData';
 import { useCurvaABCData } from '@/hooks/useCurvaABCData';
+import { writeExcelFromAoa } from '@/lib/excelUtils';
 
 interface RawRow {
   data?: string;
