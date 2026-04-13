@@ -14,7 +14,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieCha
 import { Upload, Settings, BarChart3, TableIcon, Download, AlertTriangle, CheckCircle2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useInventoryData } from '@/hooks/useInventoryData';
-import { writeExcelFromAoa } from '@/lib/excelUtils';
+import { useCurvaABCData } from '@/hooks/useCurvaABCData';
 
 interface RawRow {
   data?: string;
