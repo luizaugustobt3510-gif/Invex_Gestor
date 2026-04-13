@@ -371,6 +371,41 @@ export type Database = {
           },
         ]
       }
+      curva_abc_data: {
+        Row: {
+          company_id: string
+          config: Json
+          id: string
+          raw_rows: Json
+          results: Json
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          config?: Json
+          id?: string
+          raw_rows?: Json
+          results?: Json
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          config?: Json
+          id?: string
+          raw_rows?: Json
+          results?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curva_abc_data_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       development_plans: {
         Row: {
           company_id: string

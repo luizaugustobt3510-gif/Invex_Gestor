@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,11 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useInventoryData, InventoryItem } from '@/hooks/useInventoryData';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurvaABCData } from '@/hooks/useCurvaABCData';
 import { StockUpdateDialog } from '@/components/StockUpdateDialog';
 import { AlertTriangle, RefreshCw, Wrench, ShoppingCart, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-interface ABCResult {
+interface ABCResultLocal {
   material: string;
   classe: 'A' | 'B' | 'C';
   compraSugerida: number;
@@ -36,20 +37,14 @@ const ItensCriticos = () => {
 
   const canAdjust = hasPermission(['superadm', 'admin']);
 
-  // Load ABC results from localStorage
-  const [abcResults, setAbcResults] = useState<ABCResult[]>([]);
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('invex_curva_abc_results');
-      if (saved) setAbcResults(JSON.parse(saved));
-    } catch { /* silent */ }
-  }, []);
+  // Load ABC results from database
+  const { results: abcResultsRaw } = useCurvaABCData();
 
   const abcMap = useMemo(() => {
-    const map = new Map<string, ABCResult>();
-    abcResults.forEach(r => map.set(r.material.toUpperCase().trim(), r));
+    const map = new Map<string, ABCResultLocal>();
+    abcResultsRaw.forEach(r => map.set(r.material.toUpperCase().trim(), r as ABCResultLocal));
     return map;
-  }, [abcResults]);
+  }, [abcResultsRaw]);
 
   // Items críticos: zerados ou abaixo do mínimo
   const criticalItems = useMemo(() => {
@@ -60,14 +55,14 @@ const ItensCriticos = () => {
 
   // Items com compra sugerida pela curva ABC (que não são necessariamente críticos no estoque)
   const abcReplenishItems = useMemo(() => {
-    if (abcResults.length === 0) return [];
+    if (abcResultsRaw.length === 0) return [];
     return inventoryData.filter(item => {
       const abc = abcMap.get(item.material.toUpperCase().trim());
       if (!abc || abc.compraSugerida <= 0) return false;
       // Excluir os que já estão nos críticos para não duplicar
       return item.status !== 'Zerado' && item.status !== 'Abaixo do Mínimo';
     });
-  }, [inventoryData, abcMap, abcResults]);
+  }, [inventoryData, abcMap, abcResultsRaw]);
 
   // Summary
   const zerados = criticalItems.filter(i => i.status === 'Zerado').length;
@@ -171,7 +166,7 @@ const ItensCriticos = () => {
         </div>
 
         {/* ABC not configured warning */}
-        {abcResults.length === 0 && (
+        {abcResultsRaw.length === 0 && (
           <Card className="border-warning/40 bg-warning/5 cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/curva-abc')}>
             <CardContent className="p-4 flex items-center gap-3">
               <TrendingUp className="w-5 h-5 text-warning" />
