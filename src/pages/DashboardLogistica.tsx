@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit, Thermometer, TrendingUp } from "lucide-react";
+import { useCurvaABCData, ABCResult } from "@/hooks/useCurvaABCData";
 import { useInventoryData, InventoryItem } from "@/hooks/useInventoryData";
 import { useAuth } from "@/contexts/AuthContext";
 import { MainLayout } from "@/components/MainLayout";
@@ -13,12 +14,6 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { EditMaterialDialog } from "@/components/EditMaterialDialog";
 
-interface ABCResult {
-  material: string;
-  classe: 'A' | 'B' | 'C';
-  compraSugerida: number;
-  consumoMensal: number;
-}
 
 const DashboardLogistica = () => {
   const navigate = useNavigate();
@@ -34,14 +29,8 @@ const DashboardLogistica = () => {
   const [concSummary, setConcSummary] = useState({ ok: 0, sobra: 0, falta: 0, semDado: 0, valorDiv: 0 });
   const [tempStatus, setTempStatus] = useState<Record<string, boolean>>({});
   
-  // Curva ABC from localStorage
-  const [abcResults, setAbcResults] = useState<ABCResult[]>([]);
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('invex_curva_abc_results');
-      if (saved) setAbcResults(JSON.parse(saved));
-    } catch { /* silent */ }
-  }, []);
+  // Curva ABC from database
+  const { results: abcResults } = useCurvaABCData();
   
   const abcMap = useMemo(() => {
     const map = new Map<string, ABCResult>();
