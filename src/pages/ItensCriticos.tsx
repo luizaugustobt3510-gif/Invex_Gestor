@@ -55,14 +55,14 @@ const ItensCriticos = () => {
 
   // Items com compra sugerida pela curva ABC (que não são necessariamente críticos no estoque)
   const abcReplenishItems = useMemo(() => {
-    if (abcResults.length === 0) return [];
+    if (abcResultsRaw.length === 0) return [];
     return inventoryData.filter(item => {
       const abc = abcMap.get(item.material.toUpperCase().trim());
       if (!abc || abc.compraSugerida <= 0) return false;
       // Excluir os que já estão nos críticos para não duplicar
       return item.status !== 'Zerado' && item.status !== 'Abaixo do Mínimo';
     });
-  }, [inventoryData, abcMap, abcResults]);
+  }, [inventoryData, abcMap, abcResultsRaw]);
 
   // Summary
   const zerados = criticalItems.filter(i => i.status === 'Zerado').length;
@@ -166,7 +166,7 @@ const ItensCriticos = () => {
         </div>
 
         {/* ABC not configured warning */}
-        {abcResults.length === 0 && (
+        {abcResultsRaw.length === 0 && (
           <Card className="border-warning/40 bg-warning/5 cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/curva-abc')}>
             <CardContent className="p-4 flex items-center gap-3">
               <TrendingUp className="w-5 h-5 text-warning" />
