@@ -58,23 +58,18 @@ export function useCurvaABCData() {
 
     const load = async () => {
       try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('company_id')
-          .eq('user_id', user.id)
-          .single();
-
-        if (!profile?.company_id) {
+        const cid = user.companyId;
+        if (!cid) {
           setLoading(false);
           return;
         }
 
-        setCompanyId(profile.company_id);
+        setCompanyId(cid);
 
         const { data, error } = await supabase
           .from('curva_abc_data' as any)
           .select('*')
-          .eq('company_id', profile.company_id)
+          .eq('company_id', cid)
           .maybeSingle();
 
         if (error) {
