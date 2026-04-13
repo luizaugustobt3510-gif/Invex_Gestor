@@ -118,25 +118,26 @@ function parseCSVRows(text: string): RawRow[] {
   return rows;
 }
 
-const ABC_STORAGE_KEY = 'invex_curva_abc_data';
-const ABC_CONFIG_KEY = 'invex_curva_abc_config';
-
 export default function CurvaABCInteligente() {
   const [rawText, setRawText] = useState('');
-  const [parsedRows, setParsedRows] = useState<RawRow[]>(() => {
-    try {
-      const saved = localStorage.getItem(ABC_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
-  const [config, setConfig] = useState<ABCConfig>(() => {
-    try {
-      const saved = localStorage.getItem(ABC_CONFIG_KEY);
-      return saved ? JSON.parse(saved) : defaultConfig;
-    } catch { return defaultConfig; }
-  });
-  const [activeTab, setActiveTab] = useState(parsedRows.length > 0 ? 'analise' : 'importar');
+  const { rawRows: savedRows, config: savedConfig, save: saveToDb, reset: resetDb, loading: dbLoading } = useCurvaABCData();
+  const [parsedRows, setParsedRows] = useState<RawRow[]>([]);
+  const [config, setConfig] = useState<ABCConfig>(defaultConfig);
+  const [initialized, setInitialized] = useState(false);
+  const [activeTab, setActiveTab] = useState('importar');
   const { data: inventoryData } = useInventoryData();
+
+  // Sync from DB once loaded
+  useEffect(() => {
+    if (!dbLoading && !initialized) {
+      if (savedRows.length > 0) {
+        setParsedRows(savedRows as RawRow[]);
+        setActiveTab('analise');
+      }
+      setConfig({ ...defaultConfig, ...savedConfig });
+      setInitialized(true);
+    }
+  }, [dbLoading, initialized, savedRows, savedConfig]);
 
   const handleImport = useCallback(() => {
     const rows = parseCSVRows(rawText);
@@ -145,7 +146,6 @@ export default function CurvaABCInteligente() {
       return;
     }
     setParsedRows(rows);
-    localStorage.setItem(ABC_STORAGE_KEY, JSON.stringify(rows));
     toast.success(`${rows.length} registros importados com sucesso!`);
     setActiveTab('analise');
   }, [rawText]);
@@ -154,11 +154,10 @@ export default function CurvaABCInteligente() {
     setParsedRows([]);
     setRawText('');
     setConfig(defaultConfig);
-    localStorage.removeItem(ABC_STORAGE_KEY);
-    localStorage.removeItem(ABC_CONFIG_KEY);
+    resetDb();
     setActiveTab('importar');
     toast.success('Curva ABC resetada com sucesso!');
-  }, []);
+  }, [resetDb]);
 
   const abcItems = useMemo<ABCItem[]>(() => {
     if (parsedRows.length === 0) return [];
