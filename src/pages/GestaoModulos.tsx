@@ -74,7 +74,12 @@ const MODULE_STRUCTURE: ModuleConfig[] = [
     key: 'manutencao',
     label: 'Manutenção',
     description: 'Gestão de manutenção preventiva e corretiva',
-    submodules: [],
+    submodules: [
+      { key: 'manutencao.dashboard', label: 'Dashboard' },
+      { key: 'manutencao.cadastro', label: 'Cadastro de Manutenção' },
+      { key: 'manutencao.listagem', label: 'Listagem' },
+      { key: 'manutencao.os', label: 'Ordens de Serviço' },
+    ],
   },
 ];
 

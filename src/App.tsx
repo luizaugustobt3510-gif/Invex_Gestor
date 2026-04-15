@@ -67,6 +67,9 @@ import RelatoriosVendas from "./pages/vendas/RelatoriosVendas";
 import Fornecedores from "./pages/logistica/Fornecedores";
 import CurvaABCInteligente from "./pages/logistica/CurvaABCInteligente";
 import DashboardManutencao from "./pages/manutencao/DashboardManutencao";
+import CadastroManutencao from "./pages/manutencao/CadastroManutencao";
+import ListagemManutencao from "./pages/manutencao/ListagemManutencao";
+import SolicitacaoOS from "./pages/manutencao/SolicitacaoOS";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -83,7 +86,7 @@ const App = () => (
             
             {/* Home — all authenticated roles */}
             <Route path="/" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox', 'manutencao']}>
                 <Index />
               </RoleProtectedRoute>
             } />
@@ -125,7 +128,7 @@ const App = () => (
             <Route path="/logs-auditoria" element={<RoleProtectedRoute allowedRoles={['superadm']}><LogsAuditoria /></RoleProtectedRoute>} />
 
             {/* === PERFIL === */}
-            <Route path="/meu-perfil" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador']}><MeuPerfil /></RoleProtectedRoute>} />
+            <Route path="/meu-perfil" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><MeuPerfil /></RoleProtectedRoute>} />
 
             {/* === GESTÃO DE PESSOAS === */}
             <Route path="/rh" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh" submoduleKey="rh.dashboard"><DashboardRH /></RoleProtectedRoute>} />
@@ -164,7 +167,10 @@ const App = () => (
             <Route path="/vendas/relatorios" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']} moduleKey="vendas"><RelatoriosVendas /></RoleProtectedRoute>} />
 
             {/* === MANUTENÇÃO === */}
-            <Route path="/manutencao" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="manutencao"><DashboardManutencao /></RoleProtectedRoute>} />
+            <Route path="/manutencao" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'manutencao']} moduleKey="manutencao"><DashboardManutencao /></RoleProtectedRoute>} />
+            <Route path="/manutencao/cadastro" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'manutencao']} moduleKey="manutencao"><CadastroManutencao /></RoleProtectedRoute>} />
+            <Route path="/manutencao/listagem" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'manutencao', 'solicitante', 'visualizador']} moduleKey="manutencao"><ListagemManutencao /></RoleProtectedRoute>} />
+            <Route path="/manutencao/solicitacao-os" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'manutencao', 'solicitante']} moduleKey="manutencao"><SolicitacaoOS /></RoleProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
