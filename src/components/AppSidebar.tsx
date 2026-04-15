@@ -192,10 +192,13 @@ const manutencaoGroups: MenuGroup[] = [
   {
     label: 'Manutenção',
     icon: <Wrench className="w-4 h-4" />,
-    allowedRoles: ['admin', 'logistica'],
+    allowedRoles: ['admin', 'logistica', 'manutencao'],
     moduleKey: 'manutencao',
     items: [
-      { path: '/manutencao', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'], submoduleKey: 'manutencao.dashboard' },
+      { path: '/manutencao', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'manutencao'], submoduleKey: 'manutencao.dashboard' },
+      { path: '/manutencao/cadastro', label: 'Cadastrar Manutenção', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'manutencao'], submoduleKey: 'manutencao.cadastro' },
+      { path: '/manutencao/listagem', label: 'Listagem', icon: <List className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'manutencao', 'solicitante', 'visualizador'], submoduleKey: 'manutencao.listagem' },
+      { path: '/manutencao/solicitacao-os', label: 'Solicitação de OS', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'manutencao', 'solicitante'], submoduleKey: 'manutencao.os' },
     ],
   },
 ];
