@@ -83,7 +83,7 @@ const App = () => (
             
             {/* Home — all authenticated roles */}
             <Route path="/" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox', 'manutencao']}>
                 <Index />
               </RoleProtectedRoute>
             } />
@@ -125,7 +125,7 @@ const App = () => (
             <Route path="/logs-auditoria" element={<RoleProtectedRoute allowedRoles={['superadm']}><LogsAuditoria /></RoleProtectedRoute>} />
 
             {/* === PERFIL === */}
-            <Route path="/meu-perfil" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador']}><MeuPerfil /></RoleProtectedRoute>} />
+            <Route path="/meu-perfil" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><MeuPerfil /></RoleProtectedRoute>} />
 
             {/* === GESTÃO DE PESSOAS === */}
             <Route path="/rh" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh" submoduleKey="rh.dashboard"><DashboardRH /></RoleProtectedRoute>} />
