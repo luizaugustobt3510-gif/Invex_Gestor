@@ -8,7 +8,7 @@ import {
   Puzzle, CreditCard, Settings, ScrollText, Download, Shield, User,
   AlertTriangle, Users, Calendar, HeartPulse, GraduationCap, Clock, Star,
   BarChart3, Thermometer, Target, UserMinus, Dumbbell, DollarSign, Wallet,
-  BarChart2, Receipt, ShoppingCart, Truck,
+  BarChart2, Receipt, ShoppingCart, Truck, Wrench,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -185,6 +185,19 @@ const rhMenuItems: MenuItem[] = [
   { path: '/rh/importar-funcionarios', label: 'Importar Funcionários', icon: <FileText className="w-4 h-4" />, allowedRoles: ['admin', 'rh'], submoduleKey: 'rh.dashboard' },
   { path: '/rh/analises', label: 'Análises e Indicadores', icon: <BarChart3 className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.analises_indicadores' },
   { path: '/rh/painel-diario', label: 'Painel Diário', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.dashboard' },
+];
+
+// ─── MANUTENÇÃO ───
+const manutencaoGroups: MenuGroup[] = [
+  {
+    label: 'Manutenção',
+    icon: <Wrench className="w-4 h-4" />,
+    allowedRoles: ['admin', 'logistica'],
+    moduleKey: 'manutencao',
+    items: [
+      { path: '/manutencao', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'], submoduleKey: 'manutencao.dashboard' },
+    ],
+  },
 ];
 
 // ─── ADMIN ───
