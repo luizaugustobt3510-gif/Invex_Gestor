@@ -962,6 +962,175 @@ export type Database = {
           },
         ]
       }
+      maintenance_attachments: {
+        Row: {
+          arquivo_url: string
+          company_id: string
+          created_at: string
+          id: string
+          maintenance_record_id: string
+          nome_arquivo: string
+          tipo_documento: string
+          uploaded_by: string
+          uploaded_by_nome: string
+        }
+        Insert: {
+          arquivo_url: string
+          company_id: string
+          created_at?: string
+          id?: string
+          maintenance_record_id: string
+          nome_arquivo: string
+          tipo_documento?: string
+          uploaded_by: string
+          uploaded_by_nome?: string
+        }
+        Update: {
+          arquivo_url?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          maintenance_record_id?: string
+          nome_arquivo?: string
+          tipo_documento?: string
+          uploaded_by?: string
+          uploaded_by_nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_attachments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_attachments_maintenance_record_id_fkey"
+            columns: ["maintenance_record_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_records: {
+        Row: {
+          company_id: string
+          controle: string
+          created_at: string
+          created_by: string
+          data_validade: string
+          empresa_prestadora: string
+          equipamento: string
+          frequencia: string
+          id: string
+          manutencao_corretiva: string | null
+          manutencao_preventiva: string
+          observacoes: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          controle?: string
+          created_at?: string
+          created_by: string
+          data_validade: string
+          empresa_prestadora?: string
+          equipamento: string
+          frequencia?: string
+          id?: string
+          manutencao_corretiva?: string | null
+          manutencao_preventiva: string
+          observacoes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          controle?: string
+          created_at?: string
+          created_by?: string
+          data_validade?: string
+          empresa_prestadora?: string
+          equipamento?: string
+          frequencia?: string
+          id?: string
+          manutencao_corretiva?: string | null
+          manutencao_preventiva?: string
+          observacoes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_records_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_service_orders: {
+        Row: {
+          company_id: string
+          created_at: string
+          data_solicitacao: string
+          descricao: string
+          empresa_prestadora: string
+          equipamento: string
+          id: string
+          observacoes: string | null
+          prioridade: string
+          solicitante_id: string
+          solicitante_nome: string
+          status: string
+          tipo_servico: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          data_solicitacao?: string
+          descricao?: string
+          empresa_prestadora?: string
+          equipamento: string
+          id?: string
+          observacoes?: string | null
+          prioridade?: string
+          solicitante_id: string
+          solicitante_nome?: string
+          status?: string
+          tipo_servico?: string
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          data_solicitacao?: string
+          descricao?: string
+          empresa_prestadora?: string
+          equipamento?: string
+          id?: string
+          observacoes?: string | null
+          prioridade?: string
+          solicitante_id?: string
+          solicitante_nome?: string
+          status?: string
+          tipo_servico?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_service_orders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       material_requests: {
         Row: {
           codigo: string
