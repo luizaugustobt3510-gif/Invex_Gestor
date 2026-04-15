@@ -70,6 +70,12 @@ const MODULE_STRUCTURE: ModuleConfig[] = [
     description: 'Alunos, mensalidades, controle de pagamentos',
     submodules: [],
   },
+  {
+    key: 'manutencao',
+    label: 'Manutenção',
+    description: 'Gestão de manutenção preventiva e corretiva',
+    submodules: [],
+  },
 ];
 
 interface Company {

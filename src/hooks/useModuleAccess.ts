@@ -17,6 +17,7 @@ const MODULE_KEY_MAP: Record<string, string> = {
   vendas: 'vendas',
   compras: 'compras',
   relatorios: 'relatorios',
+  manutencao: 'manutencao',
 };
 
 export function useModuleAccess() {

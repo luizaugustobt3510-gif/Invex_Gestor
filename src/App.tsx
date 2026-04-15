@@ -66,6 +66,7 @@ import HistoricoVendas from "./pages/vendas/HistoricoVendas";
 import RelatoriosVendas from "./pages/vendas/RelatoriosVendas";
 import Fornecedores from "./pages/logistica/Fornecedores";
 import CurvaABCInteligente from "./pages/logistica/CurvaABCInteligente";
+import DashboardManutencao from "./pages/manutencao/DashboardManutencao";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -161,6 +162,9 @@ const App = () => (
             <Route path="/vendas/pdv" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="vendas"><PDV /></RoleProtectedRoute>} />
             <Route path="/vendas/historico" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']} moduleKey="vendas"><HistoricoVendas /></RoleProtectedRoute>} />
             <Route path="/vendas/relatorios" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']} moduleKey="vendas"><RelatoriosVendas /></RoleProtectedRoute>} />
+
+            {/* === MANUTENÇÃO === */}
+            <Route path="/manutencao" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="manutencao"><DashboardManutencao /></RoleProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
