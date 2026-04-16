@@ -4,7 +4,7 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { MainLayout } from "@/components/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package, DollarSign, ShoppingCart, Users, Dumbbell, TrendingUp, AlertTriangle, BarChart3 } from "lucide-react";
+import { Package, DollarSign, ShoppingCart, Users, Dumbbell, TrendingUp, AlertTriangle, BarChart3, Wrench } from "lucide-react";
 import { financeiroService } from "@/services/financeiroService";
 import { vendasService } from "@/services/vendasService";
 import { logisticaService } from "@/services/logisticaService";
@@ -22,6 +22,7 @@ interface ModuleStats {
   vendas?: { totalVendas: number; faturamento: number };
   rh?: { totalColaboradores: number; ativos: number };
   academia?: { totalAlunos: number; ativos: number };
+  manutencao?: { total: number; vencidos: number; osAbertas: number };
 }
 
 const DashboardEmpresa = () => {
@@ -31,7 +32,7 @@ const DashboardEmpresa = () => {
   const [allInsights, setAllInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const canSeeDashboardModule = useCallback((moduleKey: 'logistica' | 'financeiro' | 'vendas' | 'rh' | 'academia') => {
+  const canSeeDashboardModule = useCallback((moduleKey: 'logistica' | 'financeiro' | 'vendas' | 'rh' | 'academia' | 'manutencao') => {
     if (!user) return false;
 
     if (user.role === 'superadm' || user.role === 'admin') {
@@ -46,7 +47,9 @@ const DashboardEmpresa = () => {
         return moduleKey === 'financeiro' && canAccessModule(moduleKey);
       case 'logistica':
       case 'usuario almox':
-        return moduleKey === 'logistica' && canAccessModule(moduleKey);
+        return (moduleKey === 'logistica' || moduleKey === 'manutencao') && canAccessModule(moduleKey);
+      case 'manutencao':
+        return moduleKey === 'manutencao' && canAccessModule(moduleKey);
       default:
         return false;
     }
