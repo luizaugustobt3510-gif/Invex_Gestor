@@ -160,6 +160,22 @@ const DashboardEmpresa = () => {
         );
       }
 
+      if (canSeeDashboardModule('manutencao')) {
+        promises.push(
+          (async () => {
+            const [recRes, osRes] = await Promise.all([
+              supabase.from('maintenance_records').select('id, data_validade, parent_id').eq('company_id', companyId),
+              supabase.from('maintenance_service_orders').select('id, status').eq('company_id', companyId),
+            ]);
+            const recs = (recRes.data || []).filter((r: any) => !r.parent_id);
+            const today = new Date().toISOString().split('T')[0];
+            const vencidos = recs.filter((r: any) => r.data_validade < today).length;
+            const osAbertas = (osRes.data || []).filter((o: any) => o.status === 'pendente' || o.status === 'em_andamento').length;
+            result.manutencao = { total: recs.length, vencidos, osAbertas };
+          })()
+        );
+      }
+
       await Promise.all(promises);
       setStats(result);
       setAllInsights(insights);
