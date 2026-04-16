@@ -335,6 +335,30 @@ const DashboardEmpresa = () => {
                   </CardContent>
                 </Card>
               )}
+
+              {stats.manutencao && (
+                <>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <Wrench className="w-4 h-4" /> Manutenção
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-3xl font-bold text-foreground">{stats.manutencao.total}</p>
+                      {stats.manutencao.vencidos > 0 && (
+                        <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+                          <AlertTriangle className="w-3 h-3" /> {stats.manutencao.vencidos} vencido(s)
+                        </p>
+                      )}
+                      {stats.manutencao.osAbertas > 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">{stats.manutencao.osAbertas} OS aberta(s)</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+              )}
             </div>
           </>
         )}
