@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ const CadastroManutencao = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [parentEquipments, setParentEquipments] = useState<{ id: string; equipamento: string }[]>([]);
   const [form, setForm] = useState({
     equipamento: '',
     controle: '',
@@ -29,7 +30,19 @@ const CadastroManutencao = () => {
     data_validade: '',
     manutencao_corretiva: '',
     observacoes: '',
+    setor: '',
+    sala: '',
+    andar: '',
+    parent_id: '',
   });
+
+  useEffect(() => {
+    if (!user?.companyId) return;
+    supabase.from('maintenance_records').select('id, equipamento')
+      .eq('company_id', user.companyId)
+      .is('parent_id', null)
+      .then(({ data }) => setParentEquipments(data || []));
+  }, [user?.companyId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +64,10 @@ const CadastroManutencao = () => {
       data_validade: form.data_validade,
       manutencao_corretiva: form.manutencao_corretiva || null,
       observacoes: form.observacoes.trim(),
+      setor: form.setor.trim(),
+      sala: form.sala.trim(),
+      andar: form.andar.trim(),
+      parent_id: form.parent_id || null,
       created_by: authData?.user?.id || '',
     });
     setLoading(false);
@@ -74,6 +91,19 @@ const CadastroManutencao = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Parent equipment (subgroup) */}
+              <div>
+                <Label>Equipamento Principal (subgrupo - opcional)</Label>
+                <Select value={form.parent_id} onValueChange={v => setForm(p => ({ ...p, parent_id: v === '_none' ? '' : v }))}>
+                  <SelectTrigger><SelectValue placeholder="Nenhum (equipamento independente)" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">Nenhum (equipamento independente)</SelectItem>
+                    {parentEquipments.map(eq => <SelectItem key={eq.id} value={eq.id}>{eq.equipamento}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">Vincule como subgrupo de um equipamento existente</p>
+              </div>
+
               <div>
                 <Label>Equipamento *</Label>
                 <Input value={form.equipamento} onChange={e => setForm(p => ({ ...p, equipamento: e.target.value }))} placeholder="Nome do equipamento" />
@@ -119,6 +149,22 @@ const CadastroManutencao = () => {
               <div>
                 <Label>Manutenção Corretiva (data opcional)</Label>
                 <Input type="date" value={form.manutencao_corretiva} onChange={e => setForm(p => ({ ...p, manutencao_corretiva: e.target.value }))} />
+              </div>
+
+              {/* Location fields */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Setor</Label>
+                  <Input value={form.setor} onChange={e => setForm(p => ({ ...p, setor: e.target.value }))} placeholder="Ex: Produção" />
+                </div>
+                <div>
+                  <Label>Sala</Label>
+                  <Input value={form.sala} onChange={e => setForm(p => ({ ...p, sala: e.target.value }))} placeholder="Ex: Sala 3" />
+                </div>
+                <div>
+                  <Label>Andar</Label>
+                  <Input value={form.andar} onChange={e => setForm(p => ({ ...p, andar: e.target.value }))} placeholder="Ex: 2º" />
+                </div>
               </div>
 
               <div>

@@ -1013,8 +1013,69 @@ export type Database = {
           },
         ]
       }
+      maintenance_history: {
+        Row: {
+          arquivo_url: string | null
+          company_id: string
+          created_at: string
+          dados_anteriores: Json | null
+          dados_novos: Json | null
+          data_evento: string
+          descricao: string
+          id: string
+          maintenance_record_id: string
+          tipo: string
+          usuario_id: string
+          usuario_nome: string
+        }
+        Insert: {
+          arquivo_url?: string | null
+          company_id: string
+          created_at?: string
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          data_evento?: string
+          descricao?: string
+          id?: string
+          maintenance_record_id: string
+          tipo?: string
+          usuario_id: string
+          usuario_nome?: string
+        }
+        Update: {
+          arquivo_url?: string | null
+          company_id?: string
+          created_at?: string
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          data_evento?: string
+          descricao?: string
+          id?: string
+          maintenance_record_id?: string
+          tipo?: string
+          usuario_id?: string
+          usuario_nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_history_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_history_maintenance_record_id_fkey"
+            columns: ["maintenance_record_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_records: {
         Row: {
+          andar: string | null
           company_id: string
           controle: string
           created_at: string
@@ -1027,9 +1088,13 @@ export type Database = {
           manutencao_corretiva: string | null
           manutencao_preventiva: string
           observacoes: string | null
+          parent_id: string | null
+          sala: string | null
+          setor: string | null
           updated_at: string
         }
         Insert: {
+          andar?: string | null
           company_id: string
           controle?: string
           created_at?: string
@@ -1042,9 +1107,13 @@ export type Database = {
           manutencao_corretiva?: string | null
           manutencao_preventiva: string
           observacoes?: string | null
+          parent_id?: string | null
+          sala?: string | null
+          setor?: string | null
           updated_at?: string
         }
         Update: {
+          andar?: string | null
           company_id?: string
           controle?: string
           created_at?: string
@@ -1057,6 +1126,9 @@ export type Database = {
           manutencao_corretiva?: string | null
           manutencao_preventiva?: string
           observacoes?: string | null
+          parent_id?: string | null
+          sala?: string | null
+          setor?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1067,12 +1139,21 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "maintenance_records_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_records"
+            referencedColumns: ["id"]
+          },
         ]
       }
       maintenance_service_orders: {
         Row: {
           company_id: string
           created_at: string
+          data_conclusao: string | null
+          data_inicio_atendimento: string | null
           data_solicitacao: string
           descricao: string
           empresa_prestadora: string
@@ -1090,6 +1171,8 @@ export type Database = {
         Insert: {
           company_id: string
           created_at?: string
+          data_conclusao?: string | null
+          data_inicio_atendimento?: string | null
           data_solicitacao?: string
           descricao?: string
           empresa_prestadora?: string
@@ -1107,6 +1190,8 @@ export type Database = {
         Update: {
           company_id?: string
           created_at?: string
+          data_conclusao?: string | null
+          data_inicio_atendimento?: string | null
           data_solicitacao?: string
           descricao?: string
           empresa_prestadora?: string

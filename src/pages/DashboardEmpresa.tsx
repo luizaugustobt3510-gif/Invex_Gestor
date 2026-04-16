@@ -4,7 +4,7 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { MainLayout } from "@/components/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Package, DollarSign, ShoppingCart, Users, Dumbbell, TrendingUp, AlertTriangle, BarChart3 } from "lucide-react";
+import { Package, DollarSign, ShoppingCart, Users, Dumbbell, TrendingUp, AlertTriangle, BarChart3, Wrench } from "lucide-react";
 import { financeiroService } from "@/services/financeiroService";
 import { vendasService } from "@/services/vendasService";
 import { logisticaService } from "@/services/logisticaService";
@@ -22,6 +22,7 @@ interface ModuleStats {
   vendas?: { totalVendas: number; faturamento: number };
   rh?: { totalColaboradores: number; ativos: number };
   academia?: { totalAlunos: number; ativos: number };
+  manutencao?: { total: number; vencidos: number; osAbertas: number };
 }
 
 const DashboardEmpresa = () => {
@@ -31,7 +32,7 @@ const DashboardEmpresa = () => {
   const [allInsights, setAllInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const canSeeDashboardModule = useCallback((moduleKey: 'logistica' | 'financeiro' | 'vendas' | 'rh' | 'academia') => {
+  const canSeeDashboardModule = useCallback((moduleKey: 'logistica' | 'financeiro' | 'vendas' | 'rh' | 'academia' | 'manutencao') => {
     if (!user) return false;
 
     if (user.role === 'superadm' || user.role === 'admin') {
@@ -46,7 +47,9 @@ const DashboardEmpresa = () => {
         return moduleKey === 'financeiro' && canAccessModule(moduleKey);
       case 'logistica':
       case 'usuario almox':
-        return moduleKey === 'logistica' && canAccessModule(moduleKey);
+        return (moduleKey === 'logistica' || moduleKey === 'manutencao') && canAccessModule(moduleKey);
+      case 'manutencao':
+        return moduleKey === 'manutencao' && canAccessModule(moduleKey);
       default:
         return false;
     }
@@ -154,6 +157,22 @@ const DashboardEmpresa = () => {
             const students = data || [];
             result.academia = { totalAlunos: students.length, ativos: students.filter(s => s.status === 'ativo').length };
           }) as Promise<void>
+        );
+      }
+
+      if (canSeeDashboardModule('manutencao')) {
+        promises.push(
+          (async () => {
+            const [recRes, osRes] = await Promise.all([
+              supabase.from('maintenance_records').select('id, data_validade, parent_id').eq('company_id', companyId),
+              supabase.from('maintenance_service_orders').select('id, status').eq('company_id', companyId),
+            ]);
+            const recs = (recRes.data || []).filter((r: any) => !r.parent_id);
+            const today = new Date().toISOString().split('T')[0];
+            const vencidos = recs.filter((r: any) => r.data_validade < today).length;
+            const osAbertas = (osRes.data || []).filter((o: any) => o.status === 'pendente' || o.status === 'em_andamento').length;
+            result.manutencao = { total: recs.length, vencidos, osAbertas };
+          })()
         );
       }
 
@@ -315,6 +334,29 @@ const DashboardEmpresa = () => {
                     <p className="text-xs text-muted-foreground mt-1">{stats.academia.totalAlunos} total</p>
                   </CardContent>
                 </Card>
+              )}
+
+              {stats.manutencao && (
+                <>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <Wrench className="w-4 h-4" /> Manutenção
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-3xl font-bold text-foreground">{stats.manutencao.total}</p>
+                      {stats.manutencao.vencidos > 0 && (
+                        <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+                          <AlertTriangle className="w-3 h-3" /> {stats.manutencao.vencidos} vencido(s)
+                        </p>
+                      )}
+                      {stats.manutencao.osAbertas > 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">{stats.manutencao.osAbertas} OS aberta(s)</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
               )}
             </div>
           </>
