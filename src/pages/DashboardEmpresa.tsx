@@ -357,8 +357,7 @@ const DashboardEmpresa = () => {
                     </CardContent>
                   </Card>
                 </>
-              )}
-              )}
+              )
             </div>
           </>
         )}
