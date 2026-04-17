@@ -137,7 +137,7 @@ const AtualizarEstoque = () => {
                     <TableHead className="text-right">Qtd Atual</TableHead>
                     <TableHead className="text-right">Mínimo</TableHead>
                     <TableHead className="text-right">Máximo</TableHead>
-                    <TableHead className="w-[120px]">Nova Qtd</TableHead>
+                    <TableHead className="w-[180px]">Nova Qtd</TableHead>
                     <TableHead className="text-center">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -151,7 +151,7 @@ const AtualizarEstoque = () => {
                       <TableCell className="text-right">{item.minimo}</TableCell>
                       <TableCell className="text-right">{item.maximo}</TableCell>
                       <TableCell>
-                        <Input type="number" value={quantities[item.codigo] || ''} onChange={(e) => handleQuantityChange(item.codigo, e.target.value)} className="w-full" />
+                        <Input type="number" inputMode="numeric" value={quantities[item.codigo] ?? ''} onChange={(e) => handleQuantityChange(item.codigo, e.target.value)} className="w-full min-w-[140px] h-11 text-base" />
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
