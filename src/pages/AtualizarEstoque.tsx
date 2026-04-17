@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useInventoryData, InventoryItem } from '@/hooks/useInventoryData';
 import { EditMaterialDialog } from '@/components/EditMaterialDialog';
@@ -16,6 +17,7 @@ const AtualizarEstoque = () => {
   const { data: inventoryData, loading: inventoryLoading, refetch, updateStock } = useInventoryData();
   const [saving, setSaving] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'codigo' | 'material'>('codigo');
   const [quantities, setQuantities] = useState<Record<string, string>>({});
   const [editItem, setEditItem] = useState<InventoryItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<InventoryItem | null>(null);
@@ -79,10 +81,17 @@ const AtualizarEstoque = () => {
     }
   };
 
-  const filteredItems = inventoryData.filter(item =>
-    String(item.codigo).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    String(item.material).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = inventoryData
+    .filter(item =>
+      String(item.codigo).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(item.material).toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === 'material') {
+        return String(a.material).localeCompare(String(b.material), 'pt-BR', { sensitivity: 'base' });
+      }
+      return String(a.codigo).localeCompare(String(b.codigo), 'pt-BR', { numeric: true, sensitivity: 'base' });
+    });
 
   return (
     <MainLayout>
@@ -97,9 +106,20 @@ const AtualizarEstoque = () => {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Buscar por código ou material..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Buscar por código ou material..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+            </div>
+            <Select value={sortBy} onValueChange={(v: 'codigo' | 'material') => setSortBy(v)}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectValue placeholder="Ordenar por" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="codigo">Código (ID) ↑</SelectItem>
+                <SelectItem value="material">Nome (A-Z)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {inventoryLoading ? (
