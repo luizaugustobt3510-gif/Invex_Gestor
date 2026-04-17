@@ -106,9 +106,20 @@ const AtualizarEstoque = () => {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Buscar por código ou material..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Buscar por código ou material..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+            </div>
+            <Select value={sortBy} onValueChange={(v: 'codigo' | 'material') => setSortBy(v)}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectValue placeholder="Ordenar por" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="codigo">Código (ID) ↑</SelectItem>
+                <SelectItem value="material">Nome (A-Z)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {inventoryLoading ? (
