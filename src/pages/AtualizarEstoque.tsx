@@ -17,6 +17,7 @@ const AtualizarEstoque = () => {
   const { data: inventoryData, loading: inventoryLoading, refetch, updateStock } = useInventoryData();
   const [saving, setSaving] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'codigo' | 'material'>('codigo');
   const [quantities, setQuantities] = useState<Record<string, string>>({});
   const [editItem, setEditItem] = useState<InventoryItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<InventoryItem | null>(null);
