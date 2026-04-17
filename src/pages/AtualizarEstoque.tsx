@@ -81,10 +81,17 @@ const AtualizarEstoque = () => {
     }
   };
 
-  const filteredItems = inventoryData.filter(item =>
-    String(item.codigo).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    String(item.material).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = inventoryData
+    .filter(item =>
+      String(item.codigo).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(item.material).toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === 'material') {
+        return String(a.material).localeCompare(String(b.material), 'pt-BR', { sensitivity: 'base' });
+      }
+      return String(a.codigo).localeCompare(String(b.codigo), 'pt-BR', { numeric: true, sensitivity: 'base' });
+    });
 
   return (
     <MainLayout>
