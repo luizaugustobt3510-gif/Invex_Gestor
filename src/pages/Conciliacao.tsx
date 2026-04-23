@@ -308,21 +308,35 @@ const Conciliacao = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase.from('materials').update({ quantidade: adjustItem.saldo_sistema }).eq('id', adjustItem.material_id);
+      const novoSaldoSistema = adjustItem.saldo_invex;
+      const saldoAnteriorSistema = adjustItem.saldo_sistema;
+      const loteAjuste = `ajuste-conciliacao-${Date.now()}`;
 
-      await supabase.from('conciliacao_log').insert({
+      const { error: saldoError } = await supabase.from('saldo_sistema_importado').insert({
+        company_id: companyId,
+        material_id: adjustItem.material_id,
+        saldo_sistema: novoSaldoSistema,
+        lote_importacao: loteAjuste,
+      });
+
+      if (saldoError) throw saldoError;
+
+      const { error: logError } = await supabase.from('conciliacao_log').insert({
         company_id: companyId,
         material_id: adjustItem.material_id,
         saldo_fisico: adjustItem.saldo_invex,
-        saldo_teorico: adjustItem.saldo_sistema,
+        saldo_teorico: saldoAnteriorSistema,
         divergencia: adjustItem.divergencia,
-        tipo_ajuste: 'conciliacao',
-        motivo: adjustMotivo,
+        tipo_ajuste: 'ajuste por conciliacao',
+        motivo: `Sistema ajustado de ${saldoAnteriorSistema} para ${novoSaldoSistema}. Motivo: ${adjustMotivo}`,
         usuario_id: user.id,
       });
 
-      toast.success('Ajuste realizado!');
+      if (logError) throw logError;
+
+      toast.success(`Sistema ajustado para ${novoSaldoSistema} unidade(s)!`);
       setAdjustDialogOpen(false);
+      setAdjustItem(null);
       setAdjustMotivo('');
       loadData();
     } catch {
@@ -514,7 +528,7 @@ const Conciliacao = () => {
                               Valor: R$ {Math.abs(item.divergencia_valor).toFixed(2)}
                             </span>
                             <Button size="sm" variant="outline" onClick={() => { setAdjustItem(item); setAdjustDialogOpen(true); }}>
-                              <Wrench className="w-3 h-3 mr-1" /> Ajustar
+                              <Wrench className="w-3 h-3 mr-1" /> Ajustar Sistema para {item.saldo_invex}
                             </Button>
                           </div>
                         )}
@@ -554,8 +568,8 @@ const Conciliacao = () => {
                               <TableCell>{getStatusBadge(item.status)}</TableCell>
                               <TableCell>
                                 {item.status !== 'ok' && item.status !== 'sem_dado' && (
-                                  <Button size="sm" variant="outline" onClick={() => { setAdjustItem(item); setAdjustDialogOpen(true); }}>
-                                    <Wrench className="w-3 h-3 mr-1" /> Ajustar
+                                   <Button size="sm" variant="outline" onClick={() => { setAdjustItem(item); setAdjustDialogOpen(true); }}>
+                                     <Wrench className="w-3 h-3 mr-1" /> Ajustar Sistema para {item.saldo_invex}
                                   </Button>
                                 )}
                               </TableCell>
@@ -721,7 +735,7 @@ const Conciliacao = () => {
                 </p>
               </div>
               <p className="text-sm">
-                O estoque do Invex será ajustado de <strong>{adjustItem.saldo_invex}</strong> para <strong>{adjustItem.saldo_sistema}</strong> (saldo do sistema).
+                Deseja ajustar o sistema para refletir o estoque físico (Invex)? O saldo do sistema será atualizado de <strong>{adjustItem.saldo_sistema}</strong> para <strong>{adjustItem.saldo_invex}</strong> unidade(s), sem alterar o saldo do Invex.
               </p>
               <div className="space-y-2">
                 <Label>Motivo do Ajuste *</Label>
@@ -730,8 +744,8 @@ const Conciliacao = () => {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAdjustDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAdjust} disabled={!adjustMotivo}>Confirmar Ajuste</Button>
+            <Button variant="outline" onClick={() => { setAdjustDialogOpen(false); setAdjustItem(null); }}>Cancelar</Button>
+            <Button onClick={handleAdjust} disabled={!adjustMotivo}>Ajustar Sistema para {adjustItem?.saldo_invex ?? 0}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
