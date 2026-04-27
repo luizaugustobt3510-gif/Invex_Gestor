@@ -222,6 +222,11 @@ const HistoricoMovimentacoes = () => {
             </TabsList>
 
             <TabsContent value="todas" className="space-y-2">
+              <div className="flex justify-end">
+                <Button variant="outline" size="sm" onClick={() => handlePrint(filteredAll, 'Todas', false)} disabled={filteredAll.length === 0}>
+                  <Printer className="w-4 h-4 mr-1" /> Imprimir filtrados
+                </Button>
+              </div>
               {renderTable(filteredAll, false)}
               <div className="text-sm text-muted-foreground">
                 Exibindo {filteredAll.length} de {movements.length} movimentações
@@ -229,6 +234,11 @@ const HistoricoMovimentacoes = () => {
             </TabsContent>
 
             <TabsContent value="qr" className="space-y-2">
+              <div className="flex justify-end">
+                <Button variant="outline" size="sm" onClick={() => handlePrint(filteredQr, 'Itens Escaneados', true)} disabled={filteredQr.length === 0}>
+                  <Printer className="w-4 h-4 mr-1" /> Imprimir filtrados
+                </Button>
+              </div>
               {renderTable(filteredQr, true)}
               <div className="text-sm text-muted-foreground">
                 Exibindo {filteredQr.length} alterações via QR Code
