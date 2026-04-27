@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { History, RefreshCw, Filter, QrCode } from 'lucide-react';
+import { History, RefreshCw, Filter, QrCode, Printer } from 'lucide-react';
+import { printList } from '@/lib/printUtils';
 
 interface Movement {
   id: string;
