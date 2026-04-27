@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { History, RefreshCw, Filter } from 'lucide-react';
+import { History, RefreshCw, Filter, QrCode } from 'lucide-react';
 
 interface Movement {
   id: string;
@@ -18,10 +19,13 @@ interface Movement {
   quantidade: number;
   obs: string | null;
   material_id: string;
+  user_id?: string | null;
   material_codigo?: string;
   material_nome?: string;
-  user_email?: string;
+  user_nome?: string;
 }
+
+const isQrMovement = (m: Movement) => (m.obs || '').toLowerCase().includes('qr code');
 
 const HistoricoMovimentacoes = () => {
   const { toast } = useToast();
@@ -57,19 +61,24 @@ const HistoricoMovimentacoes = () => {
 
       if (error) throw error;
 
-      // Fetch material info for each movement
       const materialIds = [...new Set((data || []).map(m => m.material_id))];
-      const { data: materials } = await supabase
-        .from('materials')
-        .select('id, codigo, material')
-        .in('id', materialIds);
+      const userIds = [...new Set((data || []).map(m => m.user_id).filter(Boolean) as string[])];
+
+      const [{ data: materials }, { data: profiles }] = await Promise.all([
+        supabase.from('materials').select('id, codigo, material').in('id', materialIds),
+        userIds.length
+          ? supabase.from('profiles').select('user_id, nome, email').in('user_id', userIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
 
       const matMap = new Map((materials || []).map(m => [m.id, m]));
+      const userMap = new Map((profiles || []).map((p: any) => [p.user_id, p.nome || p.email]));
 
       const enriched: Movement[] = (data || []).map(m => ({
         ...m,
         material_codigo: matMap.get(m.material_id)?.codigo || '?',
         material_nome: matMap.get(m.material_id)?.material || '?',
+        user_nome: m.user_id ? (userMap.get(m.user_id) || '—') : '—',
       }));
 
       setMovements(enriched);
@@ -82,20 +91,58 @@ const HistoricoMovimentacoes = () => {
 
   useEffect(() => { fetchMovements(); }, []);
 
-  const filtered = movements.filter(m => {
+  const applyFilters = (list: Movement[]) => list.filter(m => {
     if (tipoFilter !== 'todos' && m.tipo !== tipoFilter) return false;
     if (searchTerm) {
       const s = searchTerm.toLowerCase();
       if (!m.material_codigo?.toLowerCase().includes(s) && !m.material_nome?.toLowerCase().includes(s)) return false;
     }
-    if (dataInicial) {
-      if (new Date(m.created_at) < new Date(dataInicial)) return false;
-    }
-    if (dataFinal) {
-      if (new Date(m.created_at) > new Date(dataFinal + 'T23:59:59')) return false;
-    }
+    if (dataInicial && new Date(m.created_at) < new Date(dataInicial)) return false;
+    if (dataFinal && new Date(m.created_at) > new Date(dataFinal + 'T23:59:59')) return false;
     return true;
   });
+
+  const filteredAll = useMemo(() => applyFilters(movements), [movements, tipoFilter, searchTerm, dataInicial, dataFinal]);
+  const filteredQr = useMemo(() => filteredAll.filter(isQrMovement), [filteredAll]);
+
+  const renderTable = (rows: Movement[], showUser: boolean) => {
+    if (loading) return <div className="text-center py-8 text-muted-foreground">Carregando...</div>;
+    if (rows.length === 0) return <div className="text-center py-8 text-muted-foreground">Nenhuma movimentação encontrada.</div>;
+    return (
+      <div className="border rounded-lg overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Data/Hora</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Código</TableHead>
+              <TableHead>Material</TableHead>
+              <TableHead>Qtd</TableHead>
+              {showUser && <TableHead>Usuário</TableHead>}
+              <TableHead>Observação</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map(m => (
+              <TableRow key={m.id}>
+                <TableCell className="text-sm">{new Date(m.created_at).toLocaleString('pt-BR')}</TableCell>
+                <TableCell>
+                  <Badge variant={m.tipo === 'entrada' ? 'default' : 'destructive'}>
+                    {m.tipo === 'entrada' ? 'Entrada' : 'Saída'}
+                  </Badge>
+                </TableCell>
+                <TableCell className="font-mono">{m.material_codigo}</TableCell>
+                <TableCell>{m.material_nome}</TableCell>
+                <TableCell className="font-semibold">{m.quantidade}</TableCell>
+                {showUser && <TableCell className="text-sm">{m.user_nome}</TableCell>}
+                <TableCell className="max-w-[200px] truncate">{m.obs || '-'}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  };
 
   return (
     <MainLayout>
@@ -137,45 +184,30 @@ const HistoricoMovimentacoes = () => {
             </div>
           </div>
 
-          {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Carregando...</div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">Nenhuma movimentação encontrada.</div>
-          ) : (
-            <div className="border rounded-lg overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data/Hora</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Código</TableHead>
-                    <TableHead>Material</TableHead>
-                    <TableHead>Qtd</TableHead>
-                    <TableHead>Observação</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map(m => (
-                    <TableRow key={m.id}>
-                      <TableCell className="text-sm">{new Date(m.created_at).toLocaleString('pt-BR')}</TableCell>
-                      <TableCell>
-                        <Badge variant={m.tipo === 'entrada' ? 'default' : 'destructive'}>
-                          {m.tipo === 'entrada' ? 'Entrada' : 'Saída'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono">{m.material_codigo}</TableCell>
-                      <TableCell>{m.material_nome}</TableCell>
-                      <TableCell className="font-semibold">{m.quantidade}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{m.obs || '-'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-          <div className="text-sm text-muted-foreground">
-            Exibindo {filtered.length} de {movements.length} movimentações
-          </div>
+          <Tabs defaultValue="todas" className="w-full">
+            <TabsList>
+              <TabsTrigger value="todas" className="gap-2">
+                <History className="w-4 h-4" /> Todas ({filteredAll.length})
+              </TabsTrigger>
+              <TabsTrigger value="qr" className="gap-2">
+                <QrCode className="w-4 h-4" /> Itens Escaneados ({filteredQr.length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="todas" className="space-y-2">
+              {renderTable(filteredAll, false)}
+              <div className="text-sm text-muted-foreground">
+                Exibindo {filteredAll.length} de {movements.length} movimentações
+              </div>
+            </TabsContent>
+
+            <TabsContent value="qr" className="space-y-2">
+              {renderTable(filteredQr, true)}
+              <div className="text-sm text-muted-foreground">
+                Exibindo {filteredQr.length} alterações via QR Code
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </MainLayout>
