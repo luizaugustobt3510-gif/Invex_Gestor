@@ -139,8 +139,14 @@ const ImportarPlanilha = () => {
               errors.push({ row: row.rowNum, message: `Código ${row.codigo} já existe (modo somente criar)` });
               continue;
             }
-            // Update
-            const { error } = await supabase.from('materials').update({
+            // Fetch current values to compare and only update changed fields
+            const { data: current } = await supabase
+              .from('materials')
+              .select('material, unidade, quantidade, minimo, maximo, preco, localizacao')
+              .eq('id', existingId)
+              .single();
+
+            const desired: Record<string, any> = {
               material: row.material,
               unidade: row.unidade,
               quantidade: row.quantidade,
@@ -148,10 +154,36 @@ const ImportarPlanilha = () => {
               maximo: row.maximo,
               preco: row.preco,
               localizacao: row.localizacao,
-            }).eq('id', existingId);
+            };
+
+            const changes: Record<string, any> = {};
+            if (current) {
+              for (const key of Object.keys(desired)) {
+                const currentVal = (current as any)[key];
+                const desiredVal = desired[key];
+                const isNumeric = ['quantidade', 'minimo', 'maximo', 'preco'].includes(key);
+                const equal = isNumeric
+                  ? Number(currentVal ?? 0) === Number(desiredVal ?? 0)
+                  : String(currentVal ?? '') === String(desiredVal ?? '');
+                if (!equal) changes[key] = desiredVal;
+              }
+            } else {
+              Object.assign(changes, desired);
+            }
+
+            if (Object.keys(changes).length === 0) {
+              // Nothing changed; skip without counting as updated
+              continue;
+            }
+
+            const { error } = await supabase.from('materials').update(changes).eq('id', existingId);
             if (error) throw error;
             updated++;
           } else {
+            if (mode === 'update_only') {
+              errors.push({ row: row.rowNum, message: `Código ${row.codigo} não existe (modo somente atualizar)` });
+              continue;
+            }
             // Insert
             const { error } = await supabase.from('materials').insert({
               company_id: companyId,
