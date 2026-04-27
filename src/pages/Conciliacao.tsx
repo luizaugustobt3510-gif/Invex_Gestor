@@ -384,7 +384,7 @@ const Conciliacao = () => {
           Conciliação de Estoque
         </h1>
 
-        <Tabs defaultValue="dashboard" className="space-y-4 md:space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
           <TabsList className="grid w-full grid-cols-3 max-w-md">
             <TabsTrigger value="dashboard">Resumo</TabsTrigger>
             <TabsTrigger value="conciliacao">Conciliação</TabsTrigger>
