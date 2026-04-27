@@ -56,6 +56,18 @@ const Conciliacao = () => {
     const filtro = searchParams.get('filtro');
     return filtro && ['ok', 'sobra', 'falta', 'sem_dado'].includes(filtro) ? filtro : 'todos';
   });
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    return searchParams.get('filtro') ? 'conciliacao' : 'dashboard';
+  });
+
+  // Sync with URL changes (when navigating from other pages)
+  useEffect(() => {
+    const filtro = searchParams.get('filtro');
+    if (filtro && ['ok', 'sobra', 'falta', 'sem_dado'].includes(filtro)) {
+      setStatusFilter(filtro);
+      setActiveTab('conciliacao');
+    }
+  }, [searchParams]);
 
   // Import state
   const [importDialogOpen, setImportDialogOpen] = useState(false);
