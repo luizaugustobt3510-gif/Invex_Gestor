@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { History, RefreshCw, Filter, QrCode } from 'lucide-react';
+import { History, RefreshCw, Filter, QrCode, Printer } from 'lucide-react';
+import { printList } from '@/lib/printUtils';
 
 interface Movement {
   id: string;
@@ -105,6 +106,32 @@ const HistoricoMovimentacoes = () => {
   const filteredAll = useMemo(() => applyFilters(movements), [movements, tipoFilter, searchTerm, dataInicial, dataFinal]);
   const filteredQr = useMemo(() => filteredAll.filter(isQrMovement), [filteredAll]);
 
+  const handlePrint = (rows: Movement[], scope: 'Todas' | 'Itens Escaneados', showUser: boolean) => {
+    if (rows.length === 0) {
+      toast({ title: 'Nada para imprimir', description: 'Nenhum registro nos filtros atuais.' });
+      return;
+    }
+    const filtros: string[] = [];
+    if (searchTerm) filtros.push(`Busca: "${searchTerm}"`);
+    if (tipoFilter !== 'todos') filtros.push(`Tipo: ${tipoFilter}`);
+    if (dataInicial) filtros.push(`De: ${dataInicial}`);
+    if (dataFinal) filtros.push(`Até: ${dataFinal}`);
+    printList<Movement>({
+      title: `Histórico de Movimentações — ${scope}`,
+      subtitle: filtros.join(' · '),
+      rows,
+      columns: [
+        { header: 'Data/Hora', accessor: m => new Date(m.created_at).toLocaleString('pt-BR') },
+        { header: 'Tipo', accessor: m => (m.tipo === 'entrada' ? 'Entrada' : 'Saída') },
+        { header: 'Código', accessor: m => m.material_codigo || '' },
+        { header: 'Material', accessor: m => m.material_nome || '' },
+        { header: 'Qtd', accessor: m => m.quantidade, align: 'right' },
+        ...(showUser ? [{ header: 'Usuário', accessor: (m: Movement) => m.user_nome || '—' }] : []),
+        { header: 'Observação', accessor: m => m.obs || '-' },
+      ],
+    });
+  };
+
   const renderTable = (rows: Movement[], showUser: boolean) => {
     if (loading) return <div className="text-center py-8 text-muted-foreground">Carregando...</div>;
     if (rows.length === 0) return <div className="text-center py-8 text-muted-foreground">Nenhuma movimentação encontrada.</div>;
@@ -195,6 +222,11 @@ const HistoricoMovimentacoes = () => {
             </TabsList>
 
             <TabsContent value="todas" className="space-y-2">
+              <div className="flex justify-end">
+                <Button variant="outline" size="sm" onClick={() => handlePrint(filteredAll, 'Todas', false)} disabled={filteredAll.length === 0}>
+                  <Printer className="w-4 h-4 mr-1" /> Imprimir filtrados
+                </Button>
+              </div>
               {renderTable(filteredAll, false)}
               <div className="text-sm text-muted-foreground">
                 Exibindo {filteredAll.length} de {movements.length} movimentações
@@ -202,6 +234,11 @@ const HistoricoMovimentacoes = () => {
             </TabsContent>
 
             <TabsContent value="qr" className="space-y-2">
+              <div className="flex justify-end">
+                <Button variant="outline" size="sm" onClick={() => handlePrint(filteredQr, 'Itens Escaneados', true)} disabled={filteredQr.length === 0}>
+                  <Printer className="w-4 h-4 mr-1" /> Imprimir filtrados
+                </Button>
+              </div>
               {renderTable(filteredQr, true)}
               <div className="text-sm text-muted-foreground">
                 Exibindo {filteredQr.length} alterações via QR Code

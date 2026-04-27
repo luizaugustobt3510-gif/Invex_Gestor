@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit, Thermometer, TrendingUp, Trash2 } from "lucide-react";
+import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit, Thermometer, TrendingUp, Trash2, Printer } from "lucide-react";
+import { printList } from "@/lib/printUtils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useCurvaABCData, ABCResult } from "@/hooks/useCurvaABCData";
 import { useInventoryData, InventoryItem } from "@/hooks/useInventoryData";
@@ -404,6 +405,34 @@ const DashboardLogistica = () => {
                   className="pl-10 w-full sm:w-64"
                 />
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0 gap-1"
+                disabled={filteredData.length === 0}
+                onClick={() => {
+                  const filtros: string[] = [];
+                  if (searchQuery) filtros.push(`Busca: "${searchQuery}"`);
+                  if (statusFilter) filtros.push(`Status: ${statusFilter}`);
+                  printList<InventoryItem>({
+                    title: 'Materiais — Logística',
+                    subtitle: filtros.join(' · '),
+                    rows: filteredData,
+                    columns: [
+                      { header: 'Código', accessor: i => i.codigo },
+                      { header: 'Material', accessor: i => i.material },
+                      { header: 'Qtd', accessor: i => i.quantidade, align: 'right' },
+                      { header: 'Unidade', accessor: i => i.unidade },
+                      { header: 'Valor Unit.', accessor: i => `R$ ${i.preco.toFixed(2)}`, align: 'right' },
+                      { header: 'Valor Total', accessor: i => `R$ ${i.valorTotal.toFixed(2)}`, align: 'right' },
+                      { header: 'Status', accessor: i => i.status },
+                    ],
+                  });
+                }}
+              >
+                <Printer className="w-4 h-4" />
+                <span className="hidden sm:inline">Imprimir</span>
+              </Button>
               <Button onClick={refetch} variant="outline" size="icon" className="shrink-0">
                 <RefreshCw className="w-4 h-4" />
               </Button>
