@@ -444,9 +444,14 @@ const DashboardLogistica = () => {
                       </div>
                       <div className="flex items-end gap-2">
                         {isAdmin && (
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditItem(item); setEditOpen(true); }}>
-                            <Edit className="w-3.5 h-3.5" />
-                          </Button>
+                          <>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditItem(item); setEditOpen(true); }}>
+                              <Edit className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setDeleteItem(item)}>
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </>
                         )}
                         <p className="text-xs text-muted-foreground text-right">
                           R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
