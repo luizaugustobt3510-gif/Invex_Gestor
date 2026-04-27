@@ -36,7 +36,8 @@ export const logisticaService = {
     return supabase
       .from('saldo_sistema_importado')
       .select('*')
-      .eq('company_id', companyId);
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false });
   },
 
   async getContagemFisica(companyId: string) {

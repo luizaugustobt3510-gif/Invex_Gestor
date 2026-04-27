@@ -104,7 +104,7 @@ const Conciliacao = () => {
 
       const [matRes, saldoRes, movRes] = await Promise.all([
         supabase.from('materials').select('*').eq('company_id', roleData.company_id).order('codigo'),
-        supabase.from('saldo_sistema_importado').select('*').eq('company_id', roleData.company_id).order('data_importacao', { ascending: false }),
+        supabase.from('saldo_sistema_importado').select('*').eq('company_id', roleData.company_id).order('created_at', { ascending: false }),
         supabase.from('movimentacoes_importadas').select('*').eq('company_id', roleData.company_id),
       ]);
 
