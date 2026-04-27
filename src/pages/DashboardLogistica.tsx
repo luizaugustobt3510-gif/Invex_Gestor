@@ -450,7 +450,7 @@ const DashboardLogistica = () => {
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-mono text-muted-foreground">{item.codigo}</p>
-                        <p className="font-semibold text-sm text-foreground truncate" title={item.material}>
+                        <p className="font-semibold text-sm text-foreground leading-snug break-words line-clamp-2" title={item.material}>
                           {item.material}
                         </p>
                       </div>
