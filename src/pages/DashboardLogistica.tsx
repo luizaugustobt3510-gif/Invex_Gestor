@@ -440,7 +440,7 @@ const DashboardLogistica = () => {
           </div>
 
           {/* Material Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 md:gap-4">
             {filteredData.map((item) => {
               const status = getStatusInfo(item);
               const abc = abcMap.get(item.material.toUpperCase().trim());
@@ -450,7 +450,7 @@ const DashboardLogistica = () => {
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-mono text-muted-foreground">{item.codigo}</p>
-                        <p className="font-semibold text-sm text-foreground truncate" title={item.material}>
+                        <p className="font-semibold text-sm text-foreground leading-snug break-words line-clamp-2" title={item.material}>
                           {item.material}
                         </p>
                       </div>
