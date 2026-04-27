@@ -247,6 +247,7 @@ const ImportarPlanilha = () => {
                 <SelectContent>
                   <SelectItem value="create_update">Criar e atualizar existentes</SelectItem>
                   <SelectItem value="create_only">Somente criar novos</SelectItem>
+                  <SelectItem value="update_only">Somente atualizar existentes</SelectItem>
                 </SelectContent>
               </Select>
             </div>
