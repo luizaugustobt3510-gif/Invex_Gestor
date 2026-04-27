@@ -26,7 +26,7 @@ const DashboardLogistica = () => {
   const [deleteItem, setDeleteItem] = useState<InventoryItem | null>(null);
   const [deleting, setDeleting] = useState(false);
   const { hasPermission } = useAuth();
-  const isAdmin = hasPermission(['superadm', 'admin', 'logistica', 'usuario_almox']);
+  const isAdmin = hasPermission(['superadm', 'admin', 'logistica', 'usuario almox']);
 
   const handleDelete = async () => {
     if (!deleteItem) return;
