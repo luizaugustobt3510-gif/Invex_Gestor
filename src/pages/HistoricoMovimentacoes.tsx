@@ -106,6 +106,32 @@ const HistoricoMovimentacoes = () => {
   const filteredAll = useMemo(() => applyFilters(movements), [movements, tipoFilter, searchTerm, dataInicial, dataFinal]);
   const filteredQr = useMemo(() => filteredAll.filter(isQrMovement), [filteredAll]);
 
+  const handlePrint = (rows: Movement[], scope: 'Todas' | 'Itens Escaneados', showUser: boolean) => {
+    if (rows.length === 0) {
+      toast({ title: 'Nada para imprimir', description: 'Nenhum registro nos filtros atuais.' });
+      return;
+    }
+    const filtros: string[] = [];
+    if (searchTerm) filtros.push(`Busca: "${searchTerm}"`);
+    if (tipoFilter !== 'todos') filtros.push(`Tipo: ${tipoFilter}`);
+    if (dataInicial) filtros.push(`De: ${dataInicial}`);
+    if (dataFinal) filtros.push(`Até: ${dataFinal}`);
+    printList<Movement>({
+      title: `Histórico de Movimentações — ${scope}`,
+      subtitle: filtros.join(' · '),
+      rows,
+      columns: [
+        { header: 'Data/Hora', accessor: m => new Date(m.created_at).toLocaleString('pt-BR') },
+        { header: 'Tipo', accessor: m => (m.tipo === 'entrada' ? 'Entrada' : 'Saída') },
+        { header: 'Código', accessor: m => m.material_codigo || '' },
+        { header: 'Material', accessor: m => m.material_nome || '' },
+        { header: 'Qtd', accessor: m => m.quantidade, align: 'right' },
+        ...(showUser ? [{ header: 'Usuário', accessor: (m: Movement) => m.user_nome || '—' }] : []),
+        { header: 'Observação', accessor: m => m.obs || '-' },
+      ],
+    });
+  };
+
   const renderTable = (rows: Movement[], showUser: boolean) => {
     if (loading) return <div className="text-center py-8 text-muted-foreground">Carregando...</div>;
     if (rows.length === 0) return <div className="text-center py-8 text-muted-foreground">Nenhuma movimentação encontrada.</div>;
