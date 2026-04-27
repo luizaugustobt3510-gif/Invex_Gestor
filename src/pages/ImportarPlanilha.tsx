@@ -36,7 +36,7 @@ const ImportarPlanilha = () => {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<ImportRow[]>([]);
-  const [mode, setMode] = useState<'create_update' | 'create_only'>('create_update');
+  const [mode, setMode] = useState<'create_update' | 'create_only' | 'update_only'>('create_update');
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [fileName, setFileName] = useState('');
