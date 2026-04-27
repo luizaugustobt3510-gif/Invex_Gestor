@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit, Thermometer, TrendingUp } from "lucide-react";
+import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit, Thermometer, TrendingUp, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useCurvaABCData, ABCResult } from "@/hooks/useCurvaABCData";
 import { useInventoryData, InventoryItem } from "@/hooks/useInventoryData";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,8 +23,26 @@ const DashboardLogistica = () => {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [editItem, setEditItem] = useState<InventoryItem | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<InventoryItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const { hasPermission } = useAuth();
   const isAdmin = hasPermission(['superadm', 'admin']);
+
+  const handleDelete = async () => {
+    if (!deleteItem) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from('materials').delete().eq('id', deleteItem.id);
+      if (error) throw error;
+      toast({ title: 'Material excluído', description: deleteItem.material });
+      setDeleteItem(null);
+      refetch();
+    } catch (e: any) {
+      toast({ title: 'Erro ao excluir', description: e?.message || 'Tente novamente', variant: 'destructive' });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // Conciliation summary
   const [concSummary, setConcSummary] = useState({ ok: 0, sobra: 0, falta: 0, semDado: 0, valorDiv: 0 });
@@ -425,9 +444,14 @@ const DashboardLogistica = () => {
                       </div>
                       <div className="flex items-end gap-2">
                         {isAdmin && (
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditItem(item); setEditOpen(true); }}>
-                            <Edit className="w-3.5 h-3.5" />
-                          </Button>
+                          <>
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditItem(item); setEditOpen(true); }}>
+                              <Edit className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setDeleteItem(item)}>
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </>
                         )}
                         <p className="text-xs text-muted-foreground text-right">
                           R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -462,6 +486,23 @@ const DashboardLogistica = () => {
         onOpenChange={setEditOpen}
         onSaved={refetch}
       />
+
+      <AlertDialog open={!!deleteItem} onOpenChange={(o) => !o && setDeleteItem(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir material?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir <strong>{deleteItem?.material}</strong> (cód. {deleteItem?.codigo})? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleting ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </MainLayout>
   );
 };
