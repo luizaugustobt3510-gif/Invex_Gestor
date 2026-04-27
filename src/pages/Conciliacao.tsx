@@ -56,6 +56,18 @@ const Conciliacao = () => {
     const filtro = searchParams.get('filtro');
     return filtro && ['ok', 'sobra', 'falta', 'sem_dado'].includes(filtro) ? filtro : 'todos';
   });
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    return searchParams.get('filtro') ? 'conciliacao' : 'dashboard';
+  });
+
+  // Sync with URL changes (when navigating from other pages)
+  useEffect(() => {
+    const filtro = searchParams.get('filtro');
+    if (filtro && ['ok', 'sobra', 'falta', 'sem_dado'].includes(filtro)) {
+      setStatusFilter(filtro);
+      setActiveTab('conciliacao');
+    }
+  }, [searchParams]);
 
   // Import state
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -372,7 +384,7 @@ const Conciliacao = () => {
           Conciliação de Estoque
         </h1>
 
-        <Tabs defaultValue="dashboard" className="space-y-4 md:space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
           <TabsList className="grid w-full grid-cols-3 max-w-md">
             <TabsTrigger value="dashboard">Resumo</TabsTrigger>
             <TabsTrigger value="conciliacao">Conciliação</TabsTrigger>
