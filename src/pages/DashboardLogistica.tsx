@@ -23,8 +23,26 @@ const DashboardLogistica = () => {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [editItem, setEditItem] = useState<InventoryItem | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<InventoryItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const { hasPermission } = useAuth();
   const isAdmin = hasPermission(['superadm', 'admin']);
+
+  const handleDelete = async () => {
+    if (!deleteItem) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from('materials').delete().eq('id', deleteItem.id);
+      if (error) throw error;
+      toast({ title: 'Material excluído', description: deleteItem.material });
+      setDeleteItem(null);
+      refetch();
+    } catch (e: any) {
+      toast({ title: 'Erro ao excluir', description: e?.message || 'Tente novamente', variant: 'destructive' });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // Conciliation summary
   const [concSummary, setConcSummary] = useState({ ok: 0, sobra: 0, falta: 0, semDado: 0, valorDiv: 0 });
