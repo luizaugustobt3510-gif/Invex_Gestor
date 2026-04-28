@@ -169,22 +169,78 @@ const financeiroGroups: MenuGroup[] = [
 
 // ─── GESTÃO DE PESSOAS (RH) ───
 const rhModuleKey = 'rh';
-const rhMenuItems: MenuItem[] = [
-  { path: '/rh', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.dashboard' },
-  { path: '/rh/colaboradores', label: 'Colaboradores', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.dashboard' },
-  { path: '/rh/desligamentos', label: 'Desligamentos', icon: <UserMinus className="w-4 h-4" />, allowedRoles: ['admin', 'rh'], submoduleKey: 'rh.desligamentos' },
-  { path: '/rh/turnover', label: 'Turnover', icon: <TrendingUp className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.turnover' },
-  { path: '/rh/ferias', label: 'Férias', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.ferias' },
-  { path: '/rh/atestados', label: 'Atestados', icon: <FileText className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.atestados' },
-  { path: '/rh/aso', label: 'ASO', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.aso' },
-  { path: '/rh/treinamentos', label: 'Treinamentos', icon: <GraduationCap className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.treinamentos' },
-  { path: '/rh/banco-de-horas', label: 'Banco de Horas', icon: <Clock className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.dashboard' },
-  { path: '/rh/avaliacoes', label: 'Avaliações', icon: <Star className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.avaliacoes' },
-  { path: '/rh/ocorrencias', label: 'Ocorrências', icon: <AlertTriangle className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.ocorrencias' },
-  { path: '/rh/desenvolvimento', label: 'Desenvolvimento', icon: <Target className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.treinamentos' },
-  { path: '/rh/importar-funcionarios', label: 'Importar Funcionários', icon: <FileText className="w-4 h-4" />, allowedRoles: ['admin', 'rh'], submoduleKey: 'rh.dashboard' },
-  { path: '/rh/analises', label: 'Análises e Indicadores', icon: <BarChart3 className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.analises_indicadores' },
-  { path: '/rh/painel-diario', label: 'Painel Diário', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.dashboard' },
+const rhGroups: MenuGroup[] = [
+  {
+    label: 'Visão Geral',
+    icon: <LayoutDashboard className="w-4 h-4" />,
+    allowedRoles: ['admin', 'rh', 'visualizador'],
+    moduleKey: 'rh',
+    items: [
+      { path: '/rh', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.dashboard' },
+      { path: '/rh/painel-diario', label: 'Painel Diário', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.dashboard' },
+    ],
+  },
+  {
+    label: 'Colaboradores',
+    icon: <Users className="w-4 h-4" />,
+    allowedRoles: ['admin', 'rh', 'visualizador'],
+    moduleKey: 'rh',
+    items: [
+      { path: '/rh/colaboradores', label: 'Colaboradores', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.dashboard' },
+      { path: '/rh/importar-funcionarios', label: 'Importar Funcionários', icon: <FileText className="w-4 h-4" />, allowedRoles: ['admin', 'rh'], submoduleKey: 'rh.dashboard' },
+    ],
+  },
+  {
+    label: 'Movimentação',
+    icon: <UserMinus className="w-4 h-4" />,
+    allowedRoles: ['admin', 'rh', 'visualizador'],
+    moduleKey: 'rh',
+    items: [
+      { path: '/rh/desligamentos', label: 'Desligamentos', icon: <UserMinus className="w-4 h-4" />, allowedRoles: ['admin', 'rh'], submoduleKey: 'rh.desligamentos' },
+      { path: '/rh/turnover', label: 'Turnover', icon: <TrendingUp className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.turnover' },
+      { path: '/rh/ocorrencias', label: 'Ocorrências', icon: <AlertTriangle className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.ocorrencias' },
+    ],
+  },
+  {
+    label: 'Saúde & Segurança',
+    icon: <HeartPulse className="w-4 h-4" />,
+    allowedRoles: ['admin', 'rh', 'visualizador'],
+    moduleKey: 'rh',
+    items: [
+      { path: '/rh/atestados', label: 'Atestados', icon: <FileText className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.atestados' },
+      { path: '/rh/aso', label: 'ASO', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.aso' },
+    ],
+  },
+  {
+    label: 'Tempo & Jornada',
+    icon: <Clock className="w-4 h-4" />,
+    allowedRoles: ['admin', 'rh', 'visualizador'],
+    moduleKey: 'rh',
+    items: [
+      { path: '/rh/ferias', label: 'Férias', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.ferias' },
+      { path: '/rh/banco-de-horas', label: 'Banco de Horas', icon: <Clock className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.dashboard' },
+    ],
+  },
+  {
+    label: 'Desenvolvimento',
+    icon: <GraduationCap className="w-4 h-4" />,
+    allowedRoles: ['admin', 'rh', 'visualizador'],
+    moduleKey: 'rh',
+    items: [
+      { path: '/rh/treinamentos', label: 'Treinamentos', icon: <GraduationCap className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.treinamentos' },
+      { path: '/rh/avaliacoes', label: 'Avaliações', icon: <Star className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.avaliacoes' },
+      { path: '/rh/desenvolvimento', label: 'Desenvolvimento (PDI)', icon: <Target className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.treinamentos' },
+    ],
+  },
+  {
+    label: 'Análises',
+    icon: <BarChart3 className="w-4 h-4" />,
+    allowedRoles: ['admin', 'rh', 'visualizador'],
+    moduleKey: 'rh',
+    items: [
+      { path: '/rh/analises', label: 'Análises e Indicadores', icon: <BarChart3 className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.analises_indicadores' },
+    ],
+  },
 ];
 
 // ─── MANUTENÇÃO ───
@@ -290,9 +346,9 @@ export function AppSidebar() {
   const visibleBeneficios = !isSuperAdmin ? filterGroups(beneficiosGroups) : [];
   const visibleAdmin = filterGroups(adminGroups);
 
-  // RH menu: check module access then filter by submodule
+  // RH menu: filter groups using same logic as other modules
   const showRHMenu = !isSuperAdmin && hasPermission(['admin', 'rh', 'visualizador']) && canAccessModule(rhModuleKey);
-  const visibleRHItems = showRHMenu ? filterItems(rhMenuItems) : [];
+  const visibleRHGroups = showRHMenu ? filterGroups(rhGroups) : [];
 
   const showDashboard = !isSuperAdmin && hasPermission(['admin', 'logistica', 'usuario almox', 'solicitante', 'financeiro', 'rh', 'visualizador']);
 
@@ -376,80 +432,61 @@ export function AppSidebar() {
         {/* Logistics groups */}
         {visibleLogistics.map(renderGroup)}
 
-        {/* RH Menu */}
-        {visibleRHItems.length > 0 && (
+        {/* Gestão de Pessoas (RH) - parent group with collapsible subgroups */}
+        {visibleRHGroups.length > 0 && (
           <>
             <SidebarSeparator className="my-2" />
-            {(user?.role === 'rh' || user?.role === 'visualizador') ? (
-              <SidebarGroup>
-                <SidebarGroupLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    <span>Gestão de Pessoas</span>
-                  </div>
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {visibleRHItems.map((item) => (
-                      <SidebarMenuItem key={item.path}>
-                        <SidebarMenuButton
-                          onClick={() => navigate(item.path)}
-                          isActive={isActive(item.path)}
-                          tooltip={item.label}
-                          className={cn(
-                            "w-full justify-start gap-3 pl-6 text-sm transition-colors",
-                            isActive(item.path)
-                              ? "bg-primary/10 text-primary font-medium"
-                              : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
-                          )}
+            <SidebarGroup>
+              <SidebarGroupLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  <span>Gestão de Pessoas</span>
+                </div>
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                {visibleRHGroups.map((group) => {
+                  const isGroupActive = group.items.some(item => isActive(item.path));
+                  return (
+                    <Collapsible key={group.label} defaultOpen={isGroupActive} className="group/collapsible">
+                      <CollapsibleTrigger asChild>
+                        <button
+                          type="button"
+                          className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-sidebar-accent rounded-md transition-colors"
                         >
-                          {item.icon}
-                          <span>{item.label}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            ) : (
-              <Collapsible defaultOpen={visibleRHItems.some(i => isActive(i.path))} className="group/collapsible">
-                <SidebarGroup>
-                  <CollapsibleTrigger asChild>
-                    <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent rounded-md transition-colors px-2 py-1.5 flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span>Gestão de Pessoas</span>
-                      </div>
-                      <ChevronDown className="w-3.5 h-3.5 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                    </SidebarGroupLabel>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarGroupContent>
-                      <SidebarMenu>
-                        {visibleRHItems.map((item) => (
-                          <SidebarMenuItem key={item.path}>
-                            <SidebarMenuButton
-                              onClick={() => navigate(item.path)}
-                              isActive={isActive(item.path)}
-                              tooltip={item.label}
-                              className={cn(
-                                "w-full justify-start gap-3 pl-6 text-sm transition-colors",
-                                isActive(item.path)
-                                  ? "bg-primary/10 text-primary font-medium"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
-                              )}
-                            >
-                              {item.icon}
-                              <span>{item.label}</span>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        ))}
-                      </SidebarMenu>
-                    </SidebarGroupContent>
-                  </CollapsibleContent>
-                </SidebarGroup>
-              </Collapsible>
-            )}
+                          <div className="flex items-center gap-2">
+                            {group.icon}
+                            <span>{group.label}</span>
+                          </div>
+                          <ChevronDown className="w-3.5 h-3.5 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenu>
+                          {group.items.map((item) => (
+                            <SidebarMenuItem key={item.path}>
+                              <SidebarMenuButton
+                                onClick={() => navigate(item.path)}
+                                isActive={isActive(item.path)}
+                                tooltip={item.label}
+                                className={cn(
+                                  "w-full justify-start gap-3 pl-8 text-sm transition-colors",
+                                  isActive(item.path)
+                                    ? "bg-primary/10 text-primary font-medium"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+                                )}
+                              >
+                                {item.icon}
+                                <span>{item.label}</span>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          ))}
+                        </SidebarMenu>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                })}
+              </SidebarGroupContent>
+            </SidebarGroup>
           </>
         )}
 
