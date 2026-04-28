@@ -16,6 +16,7 @@ import { DesligamentoDialog } from './DesligamentoDialog';
 import { InsightsRH } from './InsightsRH';
 import { AlertActionSheet, type AlertEmployee } from '@/components/rh/AlertActionSheet';
 import { writeExcelMultiSheet } from '@/lib/excelUtils';
+import { resolveGender } from '@/lib/genderUtils';
 
 const notaEmoji: Record<number, string> = { 1: '😞', 2: '😐', 3: '🙂', 4: '😃' };
 
