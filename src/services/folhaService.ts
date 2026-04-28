@@ -153,9 +153,9 @@ export const folhaService = {
     const selected = employees.filter(e => employeeIds.includes(e.id));
     return selected.map(emp => {
       const empEvents = events.filter(ev => ev.employee_id === emp.id);
-      const bonus = sumBy(empEvents.filter(e => e.type === 'bonus'), e => e.value);
-      const faltas = sumBy(empEvents.filter(e => e.type === 'falta'), e => e.value);
-      const outros = sumBy(empEvents.filter(e => e.type === 'desconto' || e.type === 'outros'), e => e.value);
+      const bonus = sumBy<PayrollEvent>(empEvents.filter(e => e.type === 'bonus'), e => e.value);
+      const faltas = sumBy<PayrollEvent>(empEvents.filter(e => e.type === 'falta'), e => e.value);
+      const outros = sumBy<PayrollEvent>(empEvents.filter(e => e.type === 'desconto' || e.type === 'outros'), e => e.value);
       const pensaoEvent = empEvents.find(e => e.type === 'pensao');
       const dependents = Math.round(empEvents.find(e => e.type === 'dependentes')?.value || 0);
       const ben = benefits.get(emp.id) || { company: 0, employee: 0 };
