@@ -443,14 +443,14 @@ const DashboardRH = () => {
             { label: 'Banco Horas', value: `${stats.bancoHorasTotal >= 0 ? '+' : ''}${stats.bancoHorasTotal}h`, sub: 'acumulado', icon: <Clock className="w-4 h-4 text-primary" />, bg: 'bg-primary/10', extraClass: stats.bancoHorasTotal >= 0 ? 'text-emerald-600' : 'text-destructive' },
             { label: 'Folha Mensal', value: `R$ ${stats.custoFolha.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`, sub: 'ativos', icon: <DollarSign className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10' },
           ].map(item => (
-            <Card key={item.label}>
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase">{item.label}</span>
-                  <div className={`p-1.5 sm:p-2 rounded-lg ${item.bg}`}>{item.icon}</div>
+            <Card key={item.label} className="h-full">
+              <CardContent className="p-3 sm:p-4 h-full flex flex-col">
+                <div className="flex items-start justify-between gap-2 mb-2 min-w-0">
+                  <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase leading-tight break-words flex-1 min-w-0">{item.label}</span>
+                  <div className={`shrink-0 p-1.5 sm:p-2 rounded-lg ${item.bg}`}>{item.icon}</div>
                 </div>
-                <p className={`text-lg sm:text-2xl font-bold ${'extraClass' in item ? item.extraClass : ''}`}>{item.value}</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">{item.sub}</p>
+                <p className={`text-base sm:text-xl lg:text-2xl font-bold leading-tight break-words ${'extraClass' in item ? item.extraClass : ''}`}>{item.value}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-auto pt-1">{item.sub}</p>
               </CardContent>
             </Card>
           ))}
@@ -465,14 +465,14 @@ const DashboardRH = () => {
             { label: 'Admissões', value: `+${stats.admissoesPeriodo}`, sub: 'no período', icon: <Users className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10' },
             { label: 'Desligamentos', value: stats.desligamentosPeriodo, sub: 'no período', icon: <UserMinus className="w-4 h-4 text-destructive" />, bg: 'bg-destructive/10' },
           ].map(item => (
-            <Card key={item.label}>
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase">{item.label}</span>
-                  <div className={`p-1.5 sm:p-2 rounded-lg ${item.bg}`}>{item.icon}</div>
+            <Card key={item.label} className="h-full">
+              <CardContent className="p-3 sm:p-4 h-full flex flex-col">
+                <div className="flex items-start justify-between gap-2 mb-2 min-w-0">
+                  <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase leading-tight break-words flex-1 min-w-0">{item.label}</span>
+                  <div className={`shrink-0 p-1.5 sm:p-2 rounded-lg ${item.bg}`}>{item.icon}</div>
                 </div>
-                <p className="text-lg sm:text-2xl font-bold">{item.value}</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">{item.sub}</p>
+                <p className="text-base sm:text-xl lg:text-2xl font-bold leading-tight break-words">{item.value}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-auto pt-1">{item.sub}</p>
               </CardContent>
             </Card>
           ))}
