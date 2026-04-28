@@ -97,10 +97,13 @@ export default function SimulacaoFolha() {
   };
 
   const generate = async () => {
-    if (!user?.companyId || !user?.id) return;
+    if (!user?.companyId) return;
     setLoading(true);
     try {
-      await folhaService.generate(user.companyId, user.id, competencia, forecast);
+      const { data: authData } = await import('@/integrations/supabase/client').then(m => m.supabase.auth.getUser());
+      const userId = authData.user?.id;
+      if (!userId) { toast.error('Usuário não autenticado'); return; }
+      await folhaService.generate(user.companyId, userId, competencia, forecast);
       toast.success('Pré-folha gerada e enviada ao Financeiro!');
       setStep(4);
     } catch (e: any) {
