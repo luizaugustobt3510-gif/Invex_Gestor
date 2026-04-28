@@ -41,7 +41,8 @@ export default function ConfiguracaoFolha() {
   const set = <K extends keyof PayrollConfig>(k: K, v: PayrollConfig[K]) => setCfg({ ...cfg, [k]: v });
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl">
+    <MainLayout>
+    <div className="space-y-6 max-w-4xl">
       <div>
         <h1 className="text-3xl font-bold">Configuração da Folha</h1>
         <p className="text-muted-foreground">Defina regras de cálculo e encargos por competência</p>
