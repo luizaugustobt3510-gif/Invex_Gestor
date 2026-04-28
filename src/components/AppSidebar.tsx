@@ -287,6 +287,7 @@ export function AppSidebar() {
   const visibleVendas = !isSuperAdmin ? filterGroups(vendasGroups) : [];
   const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
   const visibleManutencao = !isSuperAdmin ? filterGroups(manutencaoGroups) : [];
+  const visibleBeneficios = !isSuperAdmin ? filterGroups(beneficiosGroups) : [];
   const visibleAdmin = filterGroups(adminGroups);
 
   // RH menu: check module access then filter by submodule
@@ -481,6 +482,13 @@ export function AppSidebar() {
           <>
             <SidebarSeparator className="my-2" />
             {visibleManutencao.map(renderGroup)}
+          </>
+        )}
+
+        {visibleBeneficios.length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            {visibleBeneficios.map(renderGroup)}
           </>
         )}
 
