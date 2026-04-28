@@ -1517,6 +1517,228 @@ export type Database = {
           },
         ]
       }
+      payroll_config: {
+        Row: {
+          company_id: string
+          competencia: string
+          created_at: string
+          fgts_rate: number
+          id: string
+          inss_manual_rate: number
+          inss_mode: string
+          inss_patronal_rate: number
+          irrf_manual_rate: number
+          irrf_mode: string
+          other_discounts: number
+          rat_rate: number
+          sistema_s_rate: number
+          updated_at: string
+          vt_mode: string
+          vt_value: number
+        }
+        Insert: {
+          company_id: string
+          competencia: string
+          created_at?: string
+          fgts_rate?: number
+          id?: string
+          inss_manual_rate?: number
+          inss_mode?: string
+          inss_patronal_rate?: number
+          irrf_manual_rate?: number
+          irrf_mode?: string
+          other_discounts?: number
+          rat_rate?: number
+          sistema_s_rate?: number
+          updated_at?: string
+          vt_mode?: string
+          vt_value?: number
+        }
+        Update: {
+          company_id?: string
+          competencia?: string
+          created_at?: string
+          fgts_rate?: number
+          id?: string
+          inss_manual_rate?: number
+          inss_mode?: string
+          inss_patronal_rate?: number
+          irrf_manual_rate?: number
+          irrf_mode?: string
+          other_discounts?: number
+          rat_rate?: number
+          sistema_s_rate?: number
+          updated_at?: string
+          vt_mode?: string
+          vt_value?: number
+        }
+        Relationships: []
+      }
+      payroll_events: {
+        Row: {
+          company_id: string
+          competencia: string
+          created_at: string
+          description: string
+          employee_id: string
+          id: string
+          is_percent: boolean
+          type: string
+          value: number
+        }
+        Insert: {
+          company_id: string
+          competencia: string
+          created_at?: string
+          description?: string
+          employee_id: string
+          id?: string
+          is_percent?: boolean
+          type: string
+          value?: number
+        }
+        Update: {
+          company_id?: string
+          competencia?: string
+          created_at?: string
+          description?: string
+          employee_id?: string
+          id?: string
+          is_percent?: boolean
+          type?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      payroll_forecast: {
+        Row: {
+          base_salary: number
+          benefits_company: number
+          benefits_employee: number
+          benefits_total: number
+          bonus_total: number
+          company_cost: number
+          company_id: string
+          competencia: string
+          created_at: string
+          dependents: number
+          employee_id: string
+          encargos_patronais: number
+          faltas_value: number
+          financial_entry_id: string | null
+          generated_at: string | null
+          gross_salary: number
+          id: string
+          inss_value: number
+          irrf_value: number
+          net_salary: number
+          other_discounts: number
+          pensao_value: number
+          status: string
+          total_discounts: number
+          updated_at: string
+          vt_value: number
+        }
+        Insert: {
+          base_salary?: number
+          benefits_company?: number
+          benefits_employee?: number
+          benefits_total?: number
+          bonus_total?: number
+          company_cost?: number
+          company_id: string
+          competencia: string
+          created_at?: string
+          dependents?: number
+          employee_id: string
+          encargos_patronais?: number
+          faltas_value?: number
+          financial_entry_id?: string | null
+          generated_at?: string | null
+          gross_salary?: number
+          id?: string
+          inss_value?: number
+          irrf_value?: number
+          net_salary?: number
+          other_discounts?: number
+          pensao_value?: number
+          status?: string
+          total_discounts?: number
+          updated_at?: string
+          vt_value?: number
+        }
+        Update: {
+          base_salary?: number
+          benefits_company?: number
+          benefits_employee?: number
+          benefits_total?: number
+          bonus_total?: number
+          company_cost?: number
+          company_id?: string
+          competencia?: string
+          created_at?: string
+          dependents?: number
+          employee_id?: string
+          encargos_patronais?: number
+          faltas_value?: number
+          financial_entry_id?: string | null
+          generated_at?: string | null
+          gross_salary?: number
+          id?: string
+          inss_value?: number
+          irrf_value?: number
+          net_salary?: number
+          other_discounts?: number
+          pensao_value?: number
+          status?: string
+          total_discounts?: number
+          updated_at?: string
+          vt_value?: number
+        }
+        Relationships: []
+      }
+      payroll_tax_brackets: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          deduction: number
+          dependent_deduction: number
+          id: string
+          max_value: number | null
+          min_value: number
+          rate: number
+          tax_type: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          deduction?: number
+          dependent_deduction?: number
+          id?: string
+          max_value?: number | null
+          min_value?: number
+          rate?: number
+          tax_type: string
+          updated_at?: string
+          year?: number
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          deduction?: number
+          dependent_deduction?: number
+          id?: string
+          max_value?: number | null
+          min_value?: number
+          rate?: number
+          tax_type?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       performance_evaluations: {
         Row: {
           avaliador_id: string
