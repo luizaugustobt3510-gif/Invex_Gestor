@@ -13,7 +13,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { folhaService, Employee, PayrollEvent, PayrollForecastRow } from '@/services/folhaService';
 import { formatBRL } from '@/lib/payrollCalc';
 import { toast } from 'sonner';
-import { AlertTriangle, Calculator, FileText } from 'lucide-react';
+import { AlertTriangle, Calculator, FileText, Printer, Search } from 'lucide-react';
+import { MainLayout } from '@/components/MainLayout';
 
 type Step = 1 | 2 | 3 | 4;
 
