@@ -1,11 +1,15 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { BarChart3, TrendingDown, TrendingUp, Clock, Users, Filter, Calendar, DollarSign, Timer } from 'lucide-react';
+import { BarChart3, TrendingDown, TrendingUp, Clock, Users, Filter, Calendar, DollarSign, Timer, UserCheck } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, CartesianGrid, LineChart, Line } from 'recharts';
+import { resolveGender } from '@/lib/genderUtils';
+
+const GENDER_COLORS = { M: '#93c5fd', F: '#fbcfe8', N: '#d4d4d8' };
 
 const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
 
@@ -33,6 +37,7 @@ const getDateRange = (period: string) => {
 };
 
 const AnalisesIndicadores = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [sectorFilter, setSectorFilter] = useState('todos');
   const [periodFilter, setPeriodFilter] = useState('all');
@@ -50,7 +55,7 @@ const AnalisesIndicadores = () => {
   const loadData = async () => {
     try {
       const [empRes, certRes, timeRes, vacRes, termRes, trainRes, asoRes] = await Promise.all([
-        supabase.from('employees').select('id, status, data_admissao, departamento, salario, data_nascimento, cargo, nome'),
+        supabase.from('employees').select('id, status, data_admissao, departamento, salario, data_nascimento, cargo, nome, sexo'),
         supabase.from('employee_certificates').select('dias, data_inicio, employee_id'),
         supabase.from('time_records').select('horas_extras, employee_id, data'),
         supabase.from('employee_vacations').select('employee_id, data_inicio, data_fim, status'),
@@ -279,6 +284,53 @@ const AnalisesIndicadores = () => {
     return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [ativosEmps]);
 
+  // === GENDER ===
+  const genderCounts = useMemo(() => {
+    let m = 0, f = 0, n = 0;
+    ativosEmps.forEach(e => {
+      const g = resolveGender(e);
+      if (g === 'M') m++;
+      else if (g === 'F') f++;
+      else n++;
+    });
+    return { m, f, n };
+  }, [ativosEmps]);
+
+  const genderPie = useMemo(() => {
+    const data = [
+      { name: 'Masculino', value: genderCounts.m, color: GENDER_COLORS.M },
+      { name: 'Feminino', value: genderCounts.f, color: GENDER_COLORS.F },
+    ];
+    if (genderCounts.n > 0) data.push({ name: 'Não informado', value: genderCounts.n, color: GENDER_COLORS.N });
+    return data.filter(d => d.value > 0);
+  }, [genderCounts]);
+
+  const genderBySector = useMemo(() => {
+    const map: Record<string, { name: string; Masculino: number; Feminino: number; 'Não informado': number }> = {};
+    ativosEmps.forEach(e => {
+      const d = e.departamento || 'Sem setor';
+      if (!map[d]) map[d] = { name: d, Masculino: 0, Feminino: 0, 'Não informado': 0 };
+      const g = resolveGender(e);
+      if (g === 'M') map[d].Masculino++;
+      else if (g === 'F') map[d].Feminino++;
+      else map[d]['Não informado']++;
+    });
+    return Object.values(map).sort((a, b) => (b.Masculino + b.Feminino + b['Não informado']) - (a.Masculino + a.Feminino + a['Não informado']));
+  }, [ativosEmps]);
+
+  const genderByCargo = useMemo(() => {
+    const map: Record<string, { name: string; Masculino: number; Feminino: number }> = {};
+    ativosEmps.forEach(e => {
+      const c = e.cargo || 'N/A';
+      if (!map[c]) map[c] = { name: c, Masculino: 0, Feminino: 0 };
+      const g = resolveGender(e);
+      if (g === 'M') map[c].Masculino++;
+      else if (g === 'F') map[c].Feminino++;
+    });
+    return Object.values(map).sort((a, b) => (b.Masculino + b.Feminino) - (a.Masculino + a.Feminino)).slice(0, 10);
+  }, [ativosEmps]);
+
+
   if (loading) {
     return (
       <MainLayout>
@@ -336,13 +388,13 @@ const AnalisesIndicadores = () => {
         {/* Indicator Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {[
-            { label: 'Colaboradores', value: `${ativos}`, sub: `de ${totalColaboradores} total`, icon: <Users className="w-4 h-4 text-primary" />, bg: 'bg-primary/10' },
-            { label: 'Absenteísmo', value: `${absenteismo}%`, sub: `${diasAtestado} dias`, icon: <TrendingDown className="w-4 h-4 text-amber-600" />, bg: 'bg-amber-500/10' },
-            { label: 'Turnover', value: `${turnover}%`, sub: `${filteredTerminations.length} desl.`, icon: <TrendingUp className="w-4 h-4 text-destructive" />, bg: 'bg-destructive/10' },
-            { label: 'Banco Horas', value: `${bancoHoras >= 0 ? '+' : ''}${bancoHoras}h`, sub: 'acumulado', icon: <Clock className="w-4 h-4 text-primary" />, bg: 'bg-primary/10' },
-            { label: 'Retenção', value: `${taxaRetencao}%`, sub: 'taxa', icon: <Users className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10' },
+            { label: 'Colaboradores', value: `${ativos}`, sub: `de ${totalColaboradores} total`, icon: <Users className="w-4 h-4 text-primary" />, bg: 'bg-primary/10', route: '/rh/colaboradores' },
+            { label: 'Absenteísmo', value: `${absenteismo}%`, sub: `${diasAtestado} dias`, icon: <TrendingDown className="w-4 h-4 text-amber-600" />, bg: 'bg-amber-500/10', route: '/rh/atestados' },
+            { label: 'Turnover', value: `${turnover}%`, sub: `${filteredTerminations.length} desl.`, icon: <TrendingUp className="w-4 h-4 text-destructive" />, bg: 'bg-destructive/10', route: '/rh/turnover' },
+            { label: 'Banco Horas', value: `${bancoHoras >= 0 ? '+' : ''}${bancoHoras}h`, sub: 'acumulado', icon: <Clock className="w-4 h-4 text-primary" />, bg: 'bg-primary/10', route: '/rh/banco-de-horas' },
+            { label: 'Retenção', value: `${taxaRetencao}%`, sub: 'taxa', icon: <Users className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10', route: '/rh/colaboradores' },
           ].map(item => (
-            <Card key={item.label}>
+            <Card key={item.label} onClick={() => navigate(item.route)} className="cursor-pointer hover:shadow-md hover:border-primary/40 transition-all">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase">{item.label}</span>
@@ -357,13 +409,13 @@ const AnalisesIndicadores = () => {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {[
-            { label: 'Folha Mensal', value: custoFolha.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), sub: `Média: ${custoMedio.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`, icon: <DollarSign className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10' },
-            { label: 'Tempo Médio', value: `${tempoMedio} meses`, sub: 'permanência', icon: <Timer className="w-4 h-4 text-primary" />, bg: 'bg-primary/10' },
-            { label: 'Idade Média', value: `${mediaIdade} anos`, sub: 'da equipe', icon: <Users className="w-4 h-4 text-blue-600" />, bg: 'bg-blue-500/10' },
-            { label: 'Admissões', value: `+${admissoes}`, sub: 'no período', icon: <Users className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10' },
-            { label: 'Desligamentos', value: `${filteredTerminations.length}`, sub: 'no período', icon: <TrendingDown className="w-4 h-4 text-destructive" />, bg: 'bg-destructive/10' },
+            { label: 'Folha Mensal', value: custoFolha.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), sub: `Média: ${custoMedio.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`, icon: <DollarSign className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10', route: '/rh/colaboradores' },
+            { label: 'Tempo Médio', value: `${tempoMedio} meses`, sub: 'permanência', icon: <Timer className="w-4 h-4 text-primary" />, bg: 'bg-primary/10', route: '/rh/colaboradores' },
+            { label: 'Idade Média', value: `${mediaIdade} anos`, sub: 'da equipe', icon: <Users className="w-4 h-4 text-blue-600" />, bg: 'bg-blue-500/10', route: '/rh/colaboradores' },
+            { label: 'Admissões', value: `+${admissoes}`, sub: 'no período', icon: <Users className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10', route: '/rh/colaboradores' },
+            { label: 'Desligamentos', value: `${filteredTerminations.length}`, sub: 'no período', icon: <TrendingDown className="w-4 h-4 text-destructive" />, bg: 'bg-destructive/10', route: '/rh/desligamentos' },
           ].map(item => (
-            <Card key={item.label}>
+            <Card key={item.label} onClick={() => navigate(item.route)} className="cursor-pointer hover:shadow-md hover:border-primary/40 transition-all">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase truncate">{item.label}</span>
@@ -376,10 +428,33 @@ const AnalisesIndicadores = () => {
           ))}
         </div>
 
+        {/* Gender Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+          {[
+            { label: 'Masculino', value: genderCounts.m, pct: ativos > 0 ? Math.round((genderCounts.m / ativos) * 100) : 0, bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200' },
+            { label: 'Feminino', value: genderCounts.f, pct: ativos > 0 ? Math.round((genderCounts.f / ativos) * 100) : 0, bg: 'bg-pink-100', text: 'text-pink-700', border: 'border-pink-200' },
+            { label: 'Não informado', value: genderCounts.n, pct: ativos > 0 ? Math.round((genderCounts.n / ativos) * 100) : 0, bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border' },
+          ].map(item => (
+            <Card key={item.label} onClick={() => navigate('/rh/colaboradores')} className={`cursor-pointer hover:shadow-md transition-all ${item.bg} ${item.border}`}>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-[10px] sm:text-xs font-medium uppercase ${item.text}`}>{item.label}</span>
+                  <div className="p-1.5 sm:p-2 rounded-lg bg-white/60">
+                    <UserCheck className={`w-4 h-4 ${item.text}`} />
+                  </div>
+                </div>
+                <p className={`text-lg sm:text-2xl font-bold ${item.text}`}>{item.value}</p>
+                <p className={`text-[10px] sm:text-xs ${item.text} opacity-80`}>{item.pct}% da equipe ativa</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
         {/* Charts */}
         <Tabs defaultValue="pessoas" className="w-full">
           <TabsList className="w-full sm:w-auto flex flex-wrap">
             <TabsTrigger value="pessoas" className="text-xs sm:text-sm">Pessoas</TabsTrigger>
+            <TabsTrigger value="genero" className="text-xs sm:text-sm">Gênero</TabsTrigger>
             <TabsTrigger value="desligamentos" className="text-xs sm:text-sm">Desligamentos</TabsTrigger>
             <TabsTrigger value="operacional" className="text-xs sm:text-sm">Operacional</TabsTrigger>
             <TabsTrigger value="financeiro" className="text-xs sm:text-sm">Financeiro</TabsTrigger>
@@ -425,6 +500,85 @@ const AnalisesIndicadores = () => {
                     <Line type="monotone" dataKey="ativos" name="Ativos" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
                   </LineChart>
                 </ResponsiveContainer>
+              </ChartCard>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="genero" className="mt-4">
+            <div className="grid lg:grid-cols-2 gap-6">
+              <ChartCard title="Distribuição por Gênero">
+                {genderPie.length === 0 ? <EmptyChart /> : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie data={genderPie} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
+                        {genderPie.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </ChartCard>
+
+              <ChartCard title="Resumo por Gênero">
+                <div className="space-y-4 py-4">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-blue-100 border border-blue-200">
+                    <div>
+                      <p className="text-sm font-medium text-blue-700">Masculino</p>
+                      <p className="text-3xl font-bold text-blue-700">{genderCounts.m}</p>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-700">{ativos > 0 ? Math.round((genderCounts.m / ativos) * 100) : 0}%</p>
+                  </div>
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-pink-100 border border-pink-200">
+                    <div>
+                      <p className="text-sm font-medium text-pink-700">Feminino</p>
+                      <p className="text-3xl font-bold text-pink-700">{genderCounts.f}</p>
+                    </div>
+                    <p className="text-2xl font-bold text-pink-700">{ativos > 0 ? Math.round((genderCounts.f / ativos) * 100) : 0}%</p>
+                  </div>
+                  {genderCounts.n > 0 && (
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted border">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Não informado</p>
+                        <p className="text-3xl font-bold">{genderCounts.n}</p>
+                      </div>
+                      <p className="text-2xl font-bold text-muted-foreground">{ativos > 0 ? Math.round((genderCounts.n / ativos) * 100) : 0}%</p>
+                    </div>
+                  )}
+                </div>
+              </ChartCard>
+
+              <ChartCard title="Gênero por Setor" colSpan>
+                {genderBySector.length === 0 ? <EmptyChart /> : (
+                  <ResponsiveContainer width="100%" height={320}>
+                    <BarChart data={genderBySector}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" fontSize={11} />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="Masculino" stackId="a" fill={GENDER_COLORS.M} radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="Feminino" stackId="a" fill={GENDER_COLORS.F} radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="Não informado" stackId="a" fill={GENDER_COLORS.N} radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </ChartCard>
+
+              <ChartCard title="Gênero por Cargo (Top 10)" colSpan>
+                {genderByCargo.length === 0 ? <EmptyChart /> : (
+                  <ResponsiveContainer width="100%" height={320}>
+                    <BarChart data={genderByCargo} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" allowDecimals={false} />
+                      <YAxis type="category" dataKey="name" width={140} fontSize={11} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="Masculino" stackId="a" fill={GENDER_COLORS.M} />
+                      <Bar dataKey="Feminino" stackId="a" fill={GENDER_COLORS.F} radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </ChartCard>
             </div>
           </TabsContent>
