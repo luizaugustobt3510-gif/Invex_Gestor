@@ -105,7 +105,7 @@ const Colaboradores = () => {
 
     if (editingId) {
       const { error } = await supabase.from('employees')
-        .update({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, data_nascimento: form.data_nascimento || null, salario, status: form.status })
+        .update({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, data_nascimento: form.data_nascimento || null, salario, status: form.status, sexo: form.sexo || null })
         .eq('id', editingId);
       if (error) {
         toast({ title: 'Erro', description: error.message, variant: 'destructive' });
@@ -121,7 +121,7 @@ const Colaboradores = () => {
         return;
       }
       const { error } = await supabase.from('employees')
-        .insert({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, data_nascimento: form.data_nascimento || null, salario, status: form.status, company_id: companyId });
+        .insert({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, data_nascimento: form.data_nascimento || null, salario, status: form.status, sexo: form.sexo || null, company_id: companyId });
       if (error) {
         toast({ title: 'Erro', description: error.message, variant: 'destructive' });
       } else {
