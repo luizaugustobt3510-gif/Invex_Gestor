@@ -8,7 +8,7 @@ import {
   Puzzle, CreditCard, Settings, ScrollText, Download, Shield, User,
   AlertTriangle, Users, Calendar, HeartPulse, GraduationCap, Clock, Star,
   BarChart3, Thermometer, Target, UserMinus, Dumbbell, DollarSign, Wallet,
-  BarChart2, Receipt, ShoppingCart, Truck, Wrench,
+  BarChart2, Receipt, ShoppingCart, Truck, Wrench, Heart, Gift,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -203,7 +203,20 @@ const manutencaoGroups: MenuGroup[] = [
   },
 ];
 
-// ─── ADMIN ───
+// ─── BENEFÍCIOS ───
+const beneficiosGroups: MenuGroup[] = [
+  {
+    label: 'Benefícios',
+    icon: <Gift className="w-4 h-4" />,
+    allowedRoles: ['admin', 'rh', 'financeiro', 'visualizador'],
+    items: [
+      { path: '/beneficios', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro', 'visualizador'] },
+      { path: '/beneficios/cadastro', label: 'Catálogo', icon: <Heart className="w-4 h-4" />, allowedRoles: ['admin', 'rh'] },
+      { path: '/beneficios/vinculo', label: 'Vínculos', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'rh'] },
+      { path: '/beneficios/controle-mensal', label: 'Controle Mensal', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
+    ],
+  },
+];
 const adminGroups: MenuGroup[] = [
   {
     label: 'Administração',
@@ -274,6 +287,7 @@ export function AppSidebar() {
   const visibleVendas = !isSuperAdmin ? filterGroups(vendasGroups) : [];
   const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
   const visibleManutencao = !isSuperAdmin ? filterGroups(manutencaoGroups) : [];
+  const visibleBeneficios = !isSuperAdmin ? filterGroups(beneficiosGroups) : [];
   const visibleAdmin = filterGroups(adminGroups);
 
   // RH menu: check module access then filter by submodule
@@ -468,6 +482,13 @@ export function AppSidebar() {
           <>
             <SidebarSeparator className="my-2" />
             {visibleManutencao.map(renderGroup)}
+          </>
+        )}
+
+        {visibleBeneficios.length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            {visibleBeneficios.map(renderGroup)}
           </>
         )}
 

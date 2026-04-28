@@ -166,6 +166,99 @@ export type Database = {
         }
         Relationships: []
       }
+      benefits: {
+        Row: {
+          allows_dependents: boolean
+          base_value: number
+          company_id: string
+          cost_type: string
+          created_at: string
+          description: string | null
+          id: string
+          is_variable: boolean
+          name: string
+          start_date: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          allows_dependents?: boolean
+          base_value?: number
+          company_id: string
+          cost_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_variable?: boolean
+          name: string
+          start_date?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          allows_dependents?: boolean
+          base_value?: number
+          company_id?: string
+          cost_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_variable?: boolean
+          name?: string
+          start_date?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      benefits_monthly: {
+        Row: {
+          benefit_id: string
+          company_cost: number
+          company_id: string
+          competencia: string
+          created_at: string
+          employee_benefit_id: string | null
+          employee_cost: number
+          employee_id: string
+          financial_discount_id: string | null
+          financial_entry_id: string | null
+          id: string
+          net_cost: number
+        }
+        Insert: {
+          benefit_id: string
+          company_cost?: number
+          company_id: string
+          competencia: string
+          created_at?: string
+          employee_benefit_id?: string | null
+          employee_cost?: number
+          employee_id: string
+          financial_discount_id?: string | null
+          financial_entry_id?: string | null
+          id?: string
+          net_cost?: number
+        }
+        Update: {
+          benefit_id?: string
+          company_cost?: number
+          company_id?: string
+          competencia?: string
+          created_at?: string
+          employee_benefit_id?: string | null
+          employee_cost?: number
+          employee_id?: string
+          financial_discount_id?: string | null
+          financial_entry_id?: string | null
+          id?: string
+          net_cost?: number
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           cnpj: string | null
@@ -533,6 +626,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      employee_benefits: {
+        Row: {
+          benefit_id: string
+          company_id: string
+          created_at: string
+          custom_value: number | null
+          dependents_count: number
+          employee_id: string
+          end_date: string | null
+          id: string
+          observacoes: string | null
+          payroll_discount: number
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          benefit_id: string
+          company_id: string
+          created_at?: string
+          custom_value?: number | null
+          dependents_count?: number
+          employee_id: string
+          end_date?: string | null
+          id?: string
+          observacoes?: string | null
+          payroll_discount?: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          benefit_id?: string
+          company_id?: string
+          created_at?: string
+          custom_value?: number | null
+          dependents_count?: number
+          employee_id?: string
+          end_date?: string | null
+          id?: string
+          observacoes?: string | null
+          payroll_discount?: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       employee_certificates: {
         Row: {
