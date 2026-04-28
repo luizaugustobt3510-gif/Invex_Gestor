@@ -432,80 +432,61 @@ export function AppSidebar() {
         {/* Logistics groups */}
         {visibleLogistics.map(renderGroup)}
 
-        {/* RH Menu */}
-        {visibleRHItems.length > 0 && (
+        {/* Gestão de Pessoas (RH) - parent group with collapsible subgroups */}
+        {visibleRHGroups.length > 0 && (
           <>
             <SidebarSeparator className="my-2" />
-            {(user?.role === 'rh' || user?.role === 'visualizador') ? (
-              <SidebarGroup>
-                <SidebarGroupLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    <span>Gestão de Pessoas</span>
-                  </div>
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {visibleRHItems.map((item) => (
-                      <SidebarMenuItem key={item.path}>
-                        <SidebarMenuButton
-                          onClick={() => navigate(item.path)}
-                          isActive={isActive(item.path)}
-                          tooltip={item.label}
-                          className={cn(
-                            "w-full justify-start gap-3 pl-6 text-sm transition-colors",
-                            isActive(item.path)
-                              ? "bg-primary/10 text-primary font-medium"
-                              : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
-                          )}
+            <SidebarGroup>
+              <SidebarGroupLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  <span>Gestão de Pessoas</span>
+                </div>
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                {visibleRHGroups.map((group) => {
+                  const isGroupActive = group.items.some(item => isActive(item.path));
+                  return (
+                    <Collapsible key={group.label} defaultOpen={isGroupActive} className="group/collapsible">
+                      <CollapsibleTrigger asChild>
+                        <button
+                          type="button"
+                          className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-sidebar-accent rounded-md transition-colors"
                         >
-                          {item.icon}
-                          <span>{item.label}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            ) : (
-              <Collapsible defaultOpen={visibleRHItems.some(i => isActive(i.path))} className="group/collapsible">
-                <SidebarGroup>
-                  <CollapsibleTrigger asChild>
-                    <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent rounded-md transition-colors px-2 py-1.5 flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span>Gestão de Pessoas</span>
-                      </div>
-                      <ChevronDown className="w-3.5 h-3.5 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                    </SidebarGroupLabel>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarGroupContent>
-                      <SidebarMenu>
-                        {visibleRHItems.map((item) => (
-                          <SidebarMenuItem key={item.path}>
-                            <SidebarMenuButton
-                              onClick={() => navigate(item.path)}
-                              isActive={isActive(item.path)}
-                              tooltip={item.label}
-                              className={cn(
-                                "w-full justify-start gap-3 pl-6 text-sm transition-colors",
-                                isActive(item.path)
-                                  ? "bg-primary/10 text-primary font-medium"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
-                              )}
-                            >
-                              {item.icon}
-                              <span>{item.label}</span>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        ))}
-                      </SidebarMenu>
-                    </SidebarGroupContent>
-                  </CollapsibleContent>
-                </SidebarGroup>
-              </Collapsible>
-            )}
+                          <div className="flex items-center gap-2">
+                            {group.icon}
+                            <span>{group.label}</span>
+                          </div>
+                          <ChevronDown className="w-3.5 h-3.5 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenu>
+                          {group.items.map((item) => (
+                            <SidebarMenuItem key={item.path}>
+                              <SidebarMenuButton
+                                onClick={() => navigate(item.path)}
+                                isActive={isActive(item.path)}
+                                tooltip={item.label}
+                                className={cn(
+                                  "w-full justify-start gap-3 pl-8 text-sm transition-colors",
+                                  isActive(item.path)
+                                    ? "bg-primary/10 text-primary font-medium"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+                                )}
+                              >
+                                {item.icon}
+                                <span>{item.label}</span>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          ))}
+                        </SidebarMenu>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                })}
+              </SidebarGroupContent>
+            </SidebarGroup>
           </>
         )}
 
