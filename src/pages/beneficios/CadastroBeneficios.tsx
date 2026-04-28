@@ -96,7 +96,12 @@ export default function CadastroBeneficios() {
   };
 
   return (
-    <MainLayout title="Catálogo de Benefícios" subtitle="Cadastre benefícios oferecidos pela empresa">
+    <MainLayout>
+      <div className="p-6 space-y-4">
+      <div>
+        <h1 className="text-2xl font-bold flex items-center gap-2"><Heart className="w-6 h-6 text-primary" /> Catálogo de Benefícios</h1>
+        <p className="text-sm text-muted-foreground">Cadastre os benefícios oferecidos pela empresa</p>
+      </div>
       <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
         <div className="flex items-center gap-2 text-muted-foreground"><Heart className="w-5 h-5 text-primary" /><span className="text-sm">{items.length} benefício(s) cadastrado(s)</span></div>
         <div className="flex gap-2">
@@ -196,6 +201,7 @@ export default function CadastroBeneficios() {
           </div>
         </DialogContent>
       </Dialog>
+      </div>
     </MainLayout>
   );
 }
