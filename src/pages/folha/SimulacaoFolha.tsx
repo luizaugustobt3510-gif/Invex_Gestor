@@ -102,19 +102,72 @@ export default function SimulacaoFolha() {
     } finally { setLoading(false); }
   };
 
-  const generate = async () => {
-    if (!user?.companyId) return;
-    setLoading(true);
-    try {
-      const { data: authData } = await import('@/integrations/supabase/client').then(m => m.supabase.auth.getUser());
-      const userId = authData.user?.id;
-      if (!userId) { toast.error('Usuário não autenticado'); return; }
-      await folhaService.generate(user.companyId, userId, competencia, forecast);
-      toast.success('Pré-folha gerada e enviada ao Financeiro!');
-      setStep(4);
-    } catch (e: any) {
-      toast.error('Erro: ' + e.message);
-    } finally { setLoading(false); }
+  const printPayroll = () => {
+    if (forecast.length === 0) {
+      toast.error('Nenhum funcionário simulado');
+      return;
+    }
+    const win = window.open('', '_blank');
+    if (!win) { toast.error('Pop-up bloqueado pelo navegador'); return; }
+    const escapeHtml = (s: any) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const fmt = (n: number) => formatBRL(n);
+    const rowsHtml = forecast.map(r => {
+      const emp = empMap.get(r.employee_id);
+      return `<tr>
+        <td>${escapeHtml(emp?.nome)}</td>
+        <td>${escapeHtml(emp?.cargo || '-')}</td>
+        <td style="text-align:right">${fmt(r.base_salary)}</td>
+        <td style="text-align:right">${fmt(r.bonus_total)}</td>
+        <td style="text-align:right">${fmt(r.gross_salary)}</td>
+        <td style="text-align:right">${fmt(r.inss_value)}</td>
+        <td style="text-align:right">${fmt(r.irrf_value)}</td>
+        <td style="text-align:right">${fmt(r.vt_value)}</td>
+        <td style="text-align:right">${fmt(r.total_discounts)}</td>
+        <td style="text-align:right;font-weight:600">${fmt(r.net_salary)}</td>
+        <td style="text-align:right">${fmt(r.company_cost)}</td>
+      </tr>`;
+    }).join('');
+    const html = `<!doctype html><html><head><meta charset="utf-8"/>
+      <title>Folha de Pagamento ${escapeHtml(competencia)}</title>
+      <style>
+        body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;padding:24px;color:#111}
+        h1{font-size:18px;margin:0 0 4px} .meta{color:#555;font-size:12px;margin-bottom:16px}
+        .totals{display:flex;gap:16px;margin:12px 0;font-size:12px}
+        .totals div{padding:8px 12px;background:#f4f4f5;border-radius:6px}
+        table{width:100%;border-collapse:collapse;font-size:11px}
+        th,td{border-bottom:1px solid #ddd;padding:6px 8px;vertical-align:top}
+        th{background:#f4f4f5;text-align:left;font-weight:600}
+        tr:nth-child(even) td{background:#fafafa}
+        .footer{margin-top:16px;font-size:11px;color:#777;text-align:right}
+        .warn{margin-top:12px;font-size:11px;color:#92400e;background:#fef3c7;padding:8px;border-radius:6px}
+        @media print{body{padding:12px}}
+      </style></head><body>
+      <h1>Folha de Pagamento — Simulação</h1>
+      <div class="meta">Competência ${escapeHtml(competencia)} · Gerado em ${escapeHtml(new Date().toLocaleString('pt-BR'))} · ${forecast.length} funcionário(s)</div>
+      <div class="totals">
+        <div><strong>Bruto:</strong> ${fmt(totals.bruto)}</div>
+        <div><strong>Líquido:</strong> ${fmt(totals.liquido)}</div>
+        <div><strong>Encargos:</strong> ${fmt(totals.encargos)}</div>
+        <div><strong>Custo Empresa:</strong> ${fmt(totals.custo)}</div>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Funcionário</th><th>Cargo</th>
+          <th style="text-align:right">Base</th><th style="text-align:right">Bônus</th>
+          <th style="text-align:right">Bruto</th><th style="text-align:right">INSS</th>
+          <th style="text-align:right">IRRF</th><th style="text-align:right">VT</th>
+          <th style="text-align:right">Descontos</th><th style="text-align:right">Líquido</th>
+          <th style="text-align:right">Custo Emp.</th>
+        </tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+      <div class="warn">⚙️ Módulo em desenvolvimento — valores ilustrativos. Integração com o Financeiro será feita posteriormente.</div>
+      <div class="footer">Invex</div>
+      <script>window.onload=()=>{window.print();}<\/script>
+      </body></html>`;
+    win.document.write(html);
+    win.document.close();
+    setStep(4);
   };
 
   const totals = useMemo(() => ({
