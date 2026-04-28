@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { folhaService } from '@/services/folhaService';
 import { PayrollConfig } from '@/lib/payrollCalc';
 import { toast } from 'sonner';
+import { MainLayout } from '@/components/MainLayout';
 
 export default function ConfiguracaoFolha() {
   const { user } = useAuth();
