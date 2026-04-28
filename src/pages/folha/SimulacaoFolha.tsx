@@ -57,6 +57,10 @@ export default function SimulacaoFolha() {
   const filtered = employees.filter(e => {
     if (filterStatus !== 'todos' && e.status !== filterStatus) return false;
     if (filterSetor !== 'todos' && e.departamento !== filterSetor) return false;
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      if (!e.nome.toLowerCase().includes(q) && !(e.cargo || '').toLowerCase().includes(q)) return false;
+    }
     return true;
   });
 
