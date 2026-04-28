@@ -479,7 +479,69 @@ const DashboardRH = () => {
           ))}
         </div>
 
-        {/* Custo por setor */}
+        {/* Distribuição por gênero (sexo cadastrado ou inferido pelo nome) */}
+        {(() => {
+          const ativosEmps = employees.filter(e => e.status === 'ativo');
+          let masc = 0, fem = 0, indef = 0;
+          ativosEmps.forEach(e => {
+            const g = resolveGender(e);
+            if (g === 'M') masc++;
+            else if (g === 'F') fem++;
+            else indef++;
+          });
+          const total = ativosEmps.length || 1;
+          const pctM = Math.round((masc / total) * 100);
+          const pctF = Math.round((fem / total) * 100);
+          const cards = [
+            {
+              label: 'Masculino',
+              value: masc,
+              sub: `${pctM}% da equipe ativa`,
+              icon: <Users className="w-4 h-4 text-sky-700" />,
+              cardBg: 'bg-sky-100/70 border-sky-200',
+              iconBg: 'bg-sky-200/70',
+              valueColor: 'text-sky-900',
+            },
+            {
+              label: 'Feminino',
+              value: fem,
+              sub: `${pctF}% da equipe ativa`,
+              icon: <Users className="w-4 h-4 text-pink-700" />,
+              cardBg: 'bg-pink-100/70 border-pink-200',
+              iconBg: 'bg-pink-200/70',
+              valueColor: 'text-pink-900',
+            },
+          ];
+          if (indef > 0) {
+            cards.push({
+              label: 'Não informado',
+              value: indef,
+              sub: 'cadastre o sexo no perfil',
+              icon: <Users className="w-4 h-4 text-muted-foreground" />,
+              cardBg: 'bg-muted/40 border-border',
+              iconBg: 'bg-muted',
+              valueColor: 'text-foreground',
+            });
+          }
+          return (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+              {cards.map(c => (
+                <Card key={c.label} className={`h-full border ${c.cardBg}`}>
+                  <CardContent className="p-3 sm:p-4 h-full flex flex-col">
+                    <div className="flex items-start justify-between gap-2 mb-2 min-w-0">
+                      <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase leading-tight break-words flex-1 min-w-0">{c.label}</span>
+                      <div className={`shrink-0 p-1.5 sm:p-2 rounded-lg ${c.iconBg}`}>{c.icon}</div>
+                    </div>
+                    <p className={`text-base sm:text-xl lg:text-2xl font-bold leading-tight break-words ${c.valueColor}`}>{c.value}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-auto pt-1">{c.sub}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          );
+        })()}
+
+
         {(() => {
           const ativosEmps = employees.filter(e => e.status === 'ativo');
           const custoPorSetor: Record<string, number> = {};
