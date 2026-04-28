@@ -13,7 +13,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { folhaService, Employee, PayrollEvent, PayrollForecastRow } from '@/services/folhaService';
 import { formatBRL } from '@/lib/payrollCalc';
 import { toast } from 'sonner';
-import { AlertTriangle, Calculator, FileText } from 'lucide-react';
+import { AlertTriangle, Calculator, FileText, Printer, Search } from 'lucide-react';
+import { MainLayout } from '@/components/MainLayout';
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -38,6 +39,7 @@ export default function SimulacaoFolha() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filterSetor, setFilterSetor] = useState('todos');
   const [filterStatus, setFilterStatus] = useState('ativo');
+  const [searchTerm, setSearchTerm] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [adjustments, setAdjustments] = useState<Record<string, IndividualAdj>>({});
   const [forecast, setForecast] = useState<PayrollForecastRow[]>([]);
@@ -55,6 +57,10 @@ export default function SimulacaoFolha() {
   const filtered = employees.filter(e => {
     if (filterStatus !== 'todos' && e.status !== filterStatus) return false;
     if (filterSetor !== 'todos' && e.departamento !== filterSetor) return false;
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      if (!e.nome.toLowerCase().includes(q) && !(e.cargo || '').toLowerCase().includes(q)) return false;
+    }
     return true;
   });
 
@@ -96,19 +102,72 @@ export default function SimulacaoFolha() {
     } finally { setLoading(false); }
   };
 
-  const generate = async () => {
-    if (!user?.companyId) return;
-    setLoading(true);
-    try {
-      const { data: authData } = await import('@/integrations/supabase/client').then(m => m.supabase.auth.getUser());
-      const userId = authData.user?.id;
-      if (!userId) { toast.error('Usuário não autenticado'); return; }
-      await folhaService.generate(user.companyId, userId, competencia, forecast);
-      toast.success('Pré-folha gerada e enviada ao Financeiro!');
-      setStep(4);
-    } catch (e: any) {
-      toast.error('Erro: ' + e.message);
-    } finally { setLoading(false); }
+  const printPayroll = () => {
+    if (forecast.length === 0) {
+      toast.error('Nenhum funcionário simulado');
+      return;
+    }
+    const win = window.open('', '_blank');
+    if (!win) { toast.error('Pop-up bloqueado pelo navegador'); return; }
+    const escapeHtml = (s: any) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const fmt = (n: number) => formatBRL(n);
+    const rowsHtml = forecast.map(r => {
+      const emp = empMap.get(r.employee_id);
+      return `<tr>
+        <td>${escapeHtml(emp?.nome)}</td>
+        <td>${escapeHtml(emp?.cargo || '-')}</td>
+        <td style="text-align:right">${fmt(r.base_salary)}</td>
+        <td style="text-align:right">${fmt(r.bonus_total)}</td>
+        <td style="text-align:right">${fmt(r.gross_salary)}</td>
+        <td style="text-align:right">${fmt(r.inss_value)}</td>
+        <td style="text-align:right">${fmt(r.irrf_value)}</td>
+        <td style="text-align:right">${fmt(r.vt_value)}</td>
+        <td style="text-align:right">${fmt(r.total_discounts)}</td>
+        <td style="text-align:right;font-weight:600">${fmt(r.net_salary)}</td>
+        <td style="text-align:right">${fmt(r.company_cost)}</td>
+      </tr>`;
+    }).join('');
+    const html = `<!doctype html><html><head><meta charset="utf-8"/>
+      <title>Folha de Pagamento ${escapeHtml(competencia)}</title>
+      <style>
+        body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;padding:24px;color:#111}
+        h1{font-size:18px;margin:0 0 4px} .meta{color:#555;font-size:12px;margin-bottom:16px}
+        .totals{display:flex;gap:16px;margin:12px 0;font-size:12px}
+        .totals div{padding:8px 12px;background:#f4f4f5;border-radius:6px}
+        table{width:100%;border-collapse:collapse;font-size:11px}
+        th,td{border-bottom:1px solid #ddd;padding:6px 8px;vertical-align:top}
+        th{background:#f4f4f5;text-align:left;font-weight:600}
+        tr:nth-child(even) td{background:#fafafa}
+        .footer{margin-top:16px;font-size:11px;color:#777;text-align:right}
+        .warn{margin-top:12px;font-size:11px;color:#92400e;background:#fef3c7;padding:8px;border-radius:6px}
+        @media print{body{padding:12px}}
+      </style></head><body>
+      <h1>Folha de Pagamento — Simulação</h1>
+      <div class="meta">Competência ${escapeHtml(competencia)} · Gerado em ${escapeHtml(new Date().toLocaleString('pt-BR'))} · ${forecast.length} funcionário(s)</div>
+      <div class="totals">
+        <div><strong>Bruto:</strong> ${fmt(totals.bruto)}</div>
+        <div><strong>Líquido:</strong> ${fmt(totals.liquido)}</div>
+        <div><strong>Encargos:</strong> ${fmt(totals.encargos)}</div>
+        <div><strong>Custo Empresa:</strong> ${fmt(totals.custo)}</div>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Funcionário</th><th>Cargo</th>
+          <th style="text-align:right">Base</th><th style="text-align:right">Bônus</th>
+          <th style="text-align:right">Bruto</th><th style="text-align:right">INSS</th>
+          <th style="text-align:right">IRRF</th><th style="text-align:right">VT</th>
+          <th style="text-align:right">Descontos</th><th style="text-align:right">Líquido</th>
+          <th style="text-align:right">Custo Emp.</th>
+        </tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+      <div class="warn">⚙️ Módulo em desenvolvimento — valores ilustrativos. Integração com o Financeiro será feita posteriormente.</div>
+      <div class="footer">Invex</div>
+      <script>window.onload=()=>{window.print();}<\/script>
+      </body></html>`;
+    win.document.write(html);
+    win.document.close();
+    setStep(4);
   };
 
   const totals = useMemo(() => ({
@@ -134,7 +193,17 @@ export default function SimulacaoFolha() {
   }, [forecast, empMap]);
 
   return (
-    <div className="p-6 space-y-6">
+    <MainLayout>
+    <div className="space-y-6">
+      <Card className="border-amber-200 bg-amber-50">
+        <CardContent className="p-3 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5" />
+          <p className="text-xs text-amber-900">
+            ⚙️ Módulo em desenvolvimento — funcionalidades e cálculos podem mudar nas próximas versões.
+          </p>
+        </CardContent>
+      </Card>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Simulação da Folha</h1>
@@ -154,7 +223,7 @@ export default function SimulacaoFolha() {
             <CardTitle>1. Selecione Funcionários</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <Label>Competência</Label>
                 <Input type="month" value={competencia} onChange={e => setCompetencia(e.target.value)} />
@@ -179,6 +248,18 @@ export default function SimulacaoFolha() {
                     <SelectItem value="afastado">Afastado</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label>Pesquisar</Label>
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Nome ou cargo..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
               </div>
             </div>
 
@@ -298,7 +379,9 @@ export default function SimulacaoFolha() {
 
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setStep(2)}>Voltar</Button>
-            <Button onClick={generate} disabled={loading}>Gerar Pré-Folha e Enviar ao Financeiro</Button>
+            <Button onClick={printPayroll} disabled={loading}>
+              <Printer className="w-4 h-4 mr-2" />Gerar PDF / Imprimir Folha
+            </Button>
           </div>
         </>
       )}
@@ -308,12 +391,15 @@ export default function SimulacaoFolha() {
         <Card>
           <CardContent className="p-12 text-center space-y-4">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-              <Calculator className="w-8 h-8 text-primary" />
+              <Printer className="w-8 h-8 text-primary" />
             </div>
-            <h2 className="text-2xl font-bold">Pré-Folha Gerada com Sucesso!</h2>
+            <h2 className="text-2xl font-bold">Folha pronta para impressão!</h2>
             <p className="text-muted-foreground">Competência {competencia} • {forecast.length} funcionários • Custo total {formatBRL(totals.custo)}</p>
-            <p className="text-sm text-muted-foreground">Lançamento agregado criado no módulo Financeiro.</p>
-            <Button onClick={() => { setStep(1); setSelected(new Set()); setForecast([]); setAdjustments({}); }}>Nova Simulação</Button>
+            <p className="text-sm text-muted-foreground">Use a janela aberta para salvar como PDF ou imprimir. A integração com o Financeiro será feita em uma versão futura.</p>
+            <div className="flex gap-2 justify-center">
+              <Button variant="outline" onClick={printPayroll}>Reabrir impressão</Button>
+              <Button onClick={() => { setStep(1); setSelected(new Set()); setForecast([]); setAdjustments({}); }}>Nova Simulação</Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -381,6 +467,7 @@ export default function SimulacaoFolha() {
         </SheetContent>
       </Sheet>
     </div>
+    </MainLayout>
   );
 }
 
