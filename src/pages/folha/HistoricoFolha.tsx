@@ -31,7 +31,8 @@ export default function HistoricoFolha() {
   const competencias = Object.keys(grouped).sort().reverse();
 
   return (
-    <div className="p-6 space-y-6">
+    <MainLayout>
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Histórico de Folhas</h1>
         <p className="text-muted-foreground">Pré-folhas geradas anteriormente</p>
