@@ -504,6 +504,85 @@ const AnalisesIndicadores = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="genero" className="mt-4">
+            <div className="grid lg:grid-cols-2 gap-6">
+              <ChartCard title="Distribuição por Gênero">
+                {genderPie.length === 0 ? <EmptyChart /> : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie data={genderPie} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
+                        {genderPie.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </ChartCard>
+
+              <ChartCard title="Resumo por Gênero">
+                <div className="space-y-4 py-4">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-blue-100 border border-blue-200">
+                    <div>
+                      <p className="text-sm font-medium text-blue-700">Masculino</p>
+                      <p className="text-3xl font-bold text-blue-700">{genderCounts.m}</p>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-700">{ativos > 0 ? Math.round((genderCounts.m / ativos) * 100) : 0}%</p>
+                  </div>
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-pink-100 border border-pink-200">
+                    <div>
+                      <p className="text-sm font-medium text-pink-700">Feminino</p>
+                      <p className="text-3xl font-bold text-pink-700">{genderCounts.f}</p>
+                    </div>
+                    <p className="text-2xl font-bold text-pink-700">{ativos > 0 ? Math.round((genderCounts.f / ativos) * 100) : 0}%</p>
+                  </div>
+                  {genderCounts.n > 0 && (
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted border">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Não informado</p>
+                        <p className="text-3xl font-bold">{genderCounts.n}</p>
+                      </div>
+                      <p className="text-2xl font-bold text-muted-foreground">{ativos > 0 ? Math.round((genderCounts.n / ativos) * 100) : 0}%</p>
+                    </div>
+                  )}
+                </div>
+              </ChartCard>
+
+              <ChartCard title="Gênero por Setor" colSpan>
+                {genderBySector.length === 0 ? <EmptyChart /> : (
+                  <ResponsiveContainer width="100%" height={320}>
+                    <BarChart data={genderBySector}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" fontSize={11} />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="Masculino" stackId="a" fill={GENDER_COLORS.M} radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="Feminino" stackId="a" fill={GENDER_COLORS.F} radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="Não informado" stackId="a" fill={GENDER_COLORS.N} radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </ChartCard>
+
+              <ChartCard title="Gênero por Cargo (Top 10)" colSpan>
+                {genderByCargo.length === 0 ? <EmptyChart /> : (
+                  <ResponsiveContainer width="100%" height={320}>
+                    <BarChart data={genderByCargo} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" allowDecimals={false} />
+                      <YAxis type="category" dataKey="name" width={140} fontSize={11} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="Masculino" stackId="a" fill={GENDER_COLORS.M} />
+                      <Bar dataKey="Feminino" stackId="a" fill={GENDER_COLORS.F} radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </ChartCard>
+            </div>
+          </TabsContent>
+
           <TabsContent value="desligamentos" className="mt-4">
             <div className="grid lg:grid-cols-2 gap-6">
               <ChartCard title="Desligamentos por Setor">
