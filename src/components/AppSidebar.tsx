@@ -273,6 +273,22 @@ const beneficiosGroups: MenuGroup[] = [
     ],
   },
 ];
+
+// ─── FOLHA DE PAGAMENTO ───
+const folhaGroups: MenuGroup[] = [
+  {
+    label: 'Folha de Pagamento',
+    icon: <Receipt className="w-4 h-4" />,
+    allowedRoles: ['admin', 'rh', 'financeiro'],
+    items: [
+      { path: '/folha', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
+      { path: '/folha/simulacao', label: 'Nova Simulação', icon: <Calculator className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
+      { path: '/folha/configuracao', label: 'Configuração', icon: <Settings className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
+      { path: '/folha/historico', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
+    ],
+  },
+];
+
 const adminGroups: MenuGroup[] = [
   {
     label: 'Administração',
