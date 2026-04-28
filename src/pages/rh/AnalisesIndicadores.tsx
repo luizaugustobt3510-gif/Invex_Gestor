@@ -1,11 +1,15 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { BarChart3, TrendingDown, TrendingUp, Clock, Users, Filter, Calendar, DollarSign, Timer } from 'lucide-react';
+import { BarChart3, TrendingDown, TrendingUp, Clock, Users, Filter, Calendar, DollarSign, Timer, UserCheck } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, CartesianGrid, LineChart, Line } from 'recharts';
+import { resolveGender } from '@/lib/genderUtils';
+
+const GENDER_COLORS = { M: '#93c5fd', F: '#fbcfe8', N: '#d4d4d8' };
 
 const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
 
