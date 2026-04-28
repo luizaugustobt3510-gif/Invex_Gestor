@@ -43,11 +43,13 @@ export default function ControleMensalBeneficios() {
   useEffect(() => { load(); }, [user?.companyId, competencia]);
 
   const handleGenerate = async () => {
-    if (!user?.companyId || !user?.id) return;
+    if (!user?.companyId) return;
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser?.id) { toast({ title: 'Sessão inválida', variant: 'destructive' }); return; }
     if (!confirm(`Gerar competência ${competenciaLabel(competencia)}?\nCriará lançamentos financeiros individuais por funcionário e benefício.`)) return;
     setGenerating(true);
     try {
-      const { generated } = await beneficiosService.generateCompetencia(user.companyId, user.id, competencia);
+      const { generated } = await beneficiosService.generateCompetencia(user.companyId, authUser.id, competencia);
       toast({ title: 'Competência gerada', description: `${generated} registro(s) processado(s).` });
       load();
     } catch (err: unknown) {
