@@ -73,5 +73,6 @@ export default function HistoricoFolha() {
         );
       })}
     </div>
+    </MainLayout>
   );
 }
