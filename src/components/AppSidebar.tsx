@@ -8,7 +8,7 @@ import {
   Puzzle, CreditCard, Settings, ScrollText, Download, Shield, User,
   AlertTriangle, Users, Calendar, HeartPulse, GraduationCap, Clock, Star,
   BarChart3, Thermometer, Target, UserMinus, Dumbbell, DollarSign, Wallet,
-  BarChart2, Receipt, ShoppingCart, Truck, Wrench, Heart, Gift,
+  BarChart2, Receipt, ShoppingCart, Truck, Wrench, Heart, Gift, Calculator,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
