@@ -8,7 +8,7 @@ import {
   Puzzle, CreditCard, Settings, ScrollText, Download, Shield, User,
   AlertTriangle, Users, Calendar, HeartPulse, GraduationCap, Clock, Star,
   BarChart3, Thermometer, Target, UserMinus, Dumbbell, DollarSign, Wallet,
-  BarChart2, Receipt, ShoppingCart, Truck, Wrench, Heart, Gift,
+  BarChart2, Receipt, ShoppingCart, Truck, Wrench, Heart, Gift, Calculator,
 } from 'lucide-react';
 import { InvexLogo } from '@/components/InvexLogo';
 import {
@@ -273,6 +273,22 @@ const beneficiosGroups: MenuGroup[] = [
     ],
   },
 ];
+
+// ─── FOLHA DE PAGAMENTO ───
+const folhaGroups: MenuGroup[] = [
+  {
+    label: 'Folha de Pagamento',
+    icon: <Receipt className="w-4 h-4" />,
+    allowedRoles: ['admin', 'rh', 'financeiro'],
+    items: [
+      { path: '/folha', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
+      { path: '/folha/simulacao', label: 'Nova Simulação', icon: <Calculator className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
+      { path: '/folha/configuracao', label: 'Configuração', icon: <Settings className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
+      { path: '/folha/historico', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
+    ],
+  },
+];
+
 const adminGroups: MenuGroup[] = [
   {
     label: 'Administração',
@@ -344,6 +360,7 @@ export function AppSidebar() {
   const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
   const visibleManutencao = !isSuperAdmin ? filterGroups(manutencaoGroups) : [];
   const visibleBeneficios = !isSuperAdmin ? filterGroups(beneficiosGroups) : [];
+  const visibleFolha = !isSuperAdmin ? filterGroups(folhaGroups) : [];
   const visibleAdmin = filterGroups(adminGroups);
 
   // RH menu: filter groups using same logic as other modules
@@ -526,6 +543,13 @@ export function AppSidebar() {
           <>
             <SidebarSeparator className="my-2" />
             {visibleBeneficios.map(renderGroup)}
+          </>
+        )}
+
+        {visibleFolha.length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            {visibleFolha.map(renderGroup)}
           </>
         )}
 
