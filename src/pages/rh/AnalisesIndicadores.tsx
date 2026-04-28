@@ -409,13 +409,13 @@ const AnalisesIndicadores = () => {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {[
-            { label: 'Folha Mensal', value: custoFolha.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), sub: `Média: ${custoMedio.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`, icon: <DollarSign className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10' },
-            { label: 'Tempo Médio', value: `${tempoMedio} meses`, sub: 'permanência', icon: <Timer className="w-4 h-4 text-primary" />, bg: 'bg-primary/10' },
-            { label: 'Idade Média', value: `${mediaIdade} anos`, sub: 'da equipe', icon: <Users className="w-4 h-4 text-blue-600" />, bg: 'bg-blue-500/10' },
-            { label: 'Admissões', value: `+${admissoes}`, sub: 'no período', icon: <Users className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10' },
-            { label: 'Desligamentos', value: `${filteredTerminations.length}`, sub: 'no período', icon: <TrendingDown className="w-4 h-4 text-destructive" />, bg: 'bg-destructive/10' },
+            { label: 'Folha Mensal', value: custoFolha.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), sub: `Média: ${custoMedio.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`, icon: <DollarSign className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10', route: '/rh/colaboradores' },
+            { label: 'Tempo Médio', value: `${tempoMedio} meses`, sub: 'permanência', icon: <Timer className="w-4 h-4 text-primary" />, bg: 'bg-primary/10', route: '/rh/colaboradores' },
+            { label: 'Idade Média', value: `${mediaIdade} anos`, sub: 'da equipe', icon: <Users className="w-4 h-4 text-blue-600" />, bg: 'bg-blue-500/10', route: '/rh/colaboradores' },
+            { label: 'Admissões', value: `+${admissoes}`, sub: 'no período', icon: <Users className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10', route: '/rh/colaboradores' },
+            { label: 'Desligamentos', value: `${filteredTerminations.length}`, sub: 'no período', icon: <TrendingDown className="w-4 h-4 text-destructive" />, bg: 'bg-destructive/10', route: '/rh/desligamentos' },
           ].map(item => (
-            <Card key={item.label}>
+            <Card key={item.label} onClick={() => navigate(item.route)} className="cursor-pointer hover:shadow-md hover:border-primary/40 transition-all">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase truncate">{item.label}</span>
@@ -423,6 +423,28 @@ const AnalisesIndicadores = () => {
                 </div>
                 <p className="text-sm sm:text-xl font-bold truncate">{item.value}</p>
                 <p className="text-[10px] sm:text-xs text-muted-foreground">{item.sub}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Gender Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+          {[
+            { label: 'Masculino', value: genderCounts.m, pct: ativos > 0 ? Math.round((genderCounts.m / ativos) * 100) : 0, bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200' },
+            { label: 'Feminino', value: genderCounts.f, pct: ativos > 0 ? Math.round((genderCounts.f / ativos) * 100) : 0, bg: 'bg-pink-100', text: 'text-pink-700', border: 'border-pink-200' },
+            { label: 'Não informado', value: genderCounts.n, pct: ativos > 0 ? Math.round((genderCounts.n / ativos) * 100) : 0, bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border' },
+          ].map(item => (
+            <Card key={item.label} onClick={() => navigate('/rh/colaboradores')} className={`cursor-pointer hover:shadow-md transition-all ${item.bg} ${item.border}`}>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-[10px] sm:text-xs font-medium uppercase ${item.text}`}>{item.label}</span>
+                  <div className="p-1.5 sm:p-2 rounded-lg bg-white/60">
+                    <UserCheck className={`w-4 h-4 ${item.text}`} />
+                  </div>
+                </div>
+                <p className={`text-lg sm:text-2xl font-bold ${item.text}`}>{item.value}</p>
+                <p className={`text-[10px] sm:text-xs ${item.text} opacity-80`}>{item.pct}% da equipe ativa</p>
               </CardContent>
             </Card>
           ))}
