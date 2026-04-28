@@ -55,7 +55,7 @@ const AnalisesIndicadores = () => {
   const loadData = async () => {
     try {
       const [empRes, certRes, timeRes, vacRes, termRes, trainRes, asoRes] = await Promise.all([
-        supabase.from('employees').select('id, status, data_admissao, departamento, salario, data_nascimento, cargo, nome'),
+        supabase.from('employees').select('id, status, data_admissao, departamento, salario, data_nascimento, cargo, nome, sexo'),
         supabase.from('employee_certificates').select('dias, data_inicio, employee_id'),
         supabase.from('time_records').select('horas_extras, employee_id, data'),
         supabase.from('employee_vacations').select('employee_id, data_inicio, data_fim, status'),
