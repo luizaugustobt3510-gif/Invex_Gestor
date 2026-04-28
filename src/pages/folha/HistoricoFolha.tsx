@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { folhaService, PayrollForecastRow } from '@/services/folhaService';
 import { formatBRL } from '@/lib/payrollCalc';
 import { supabase } from '@/integrations/supabase/client';
+import { MainLayout } from '@/components/MainLayout';
 
 export default function HistoricoFolha() {
   const { user } = useAuth();
