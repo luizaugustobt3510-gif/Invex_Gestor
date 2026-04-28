@@ -388,13 +388,13 @@ const AnalisesIndicadores = () => {
         {/* Indicator Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {[
-            { label: 'Colaboradores', value: `${ativos}`, sub: `de ${totalColaboradores} total`, icon: <Users className="w-4 h-4 text-primary" />, bg: 'bg-primary/10' },
-            { label: 'Absenteísmo', value: `${absenteismo}%`, sub: `${diasAtestado} dias`, icon: <TrendingDown className="w-4 h-4 text-amber-600" />, bg: 'bg-amber-500/10' },
-            { label: 'Turnover', value: `${turnover}%`, sub: `${filteredTerminations.length} desl.`, icon: <TrendingUp className="w-4 h-4 text-destructive" />, bg: 'bg-destructive/10' },
-            { label: 'Banco Horas', value: `${bancoHoras >= 0 ? '+' : ''}${bancoHoras}h`, sub: 'acumulado', icon: <Clock className="w-4 h-4 text-primary" />, bg: 'bg-primary/10' },
-            { label: 'Retenção', value: `${taxaRetencao}%`, sub: 'taxa', icon: <Users className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10' },
+            { label: 'Colaboradores', value: `${ativos}`, sub: `de ${totalColaboradores} total`, icon: <Users className="w-4 h-4 text-primary" />, bg: 'bg-primary/10', route: '/rh/colaboradores' },
+            { label: 'Absenteísmo', value: `${absenteismo}%`, sub: `${diasAtestado} dias`, icon: <TrendingDown className="w-4 h-4 text-amber-600" />, bg: 'bg-amber-500/10', route: '/rh/atestados' },
+            { label: 'Turnover', value: `${turnover}%`, sub: `${filteredTerminations.length} desl.`, icon: <TrendingUp className="w-4 h-4 text-destructive" />, bg: 'bg-destructive/10', route: '/rh/turnover' },
+            { label: 'Banco Horas', value: `${bancoHoras >= 0 ? '+' : ''}${bancoHoras}h`, sub: 'acumulado', icon: <Clock className="w-4 h-4 text-primary" />, bg: 'bg-primary/10', route: '/rh/banco-de-horas' },
+            { label: 'Retenção', value: `${taxaRetencao}%`, sub: 'taxa', icon: <Users className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-500/10', route: '/rh/colaboradores' },
           ].map(item => (
-            <Card key={item.label}>
+            <Card key={item.label} onClick={() => navigate(item.route)} className="cursor-pointer hover:shadow-md hover:border-primary/40 transition-all">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase">{item.label}</span>
