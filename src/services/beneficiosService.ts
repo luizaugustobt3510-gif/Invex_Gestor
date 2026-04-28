@@ -111,7 +111,7 @@ export const beneficiosService = {
   async listEmployeeBenefits(companyId: string, employeeId?: string) {
     let q = supabase
       .from('employee_benefits')
-      .select('*, benefits(name, type, cost_type, base_value), employees(nome, cargo, departamento)')
+      .select('*')
       .eq('company_id', companyId);
     if (employeeId) q = q.eq('employee_id', employeeId);
     return q.order('created_at', { ascending: false });
@@ -133,7 +133,7 @@ export const beneficiosService = {
   async listMonthly(companyId: string, competencia?: string) {
     let q = supabase
       .from('benefits_monthly')
-      .select('*, benefits(name, type), employees(nome, departamento)')
+      .select('*')
       .eq('company_id', companyId);
     if (competencia) q = q.eq('competencia', competencia);
     return q.order('created_at', { ascending: false });
@@ -150,12 +150,22 @@ export const beneficiosService = {
     // Carrega vínculos ativos
     const { data: links, error: linksError } = await supabase
       .from('employee_benefits')
-      .select('*, benefits(*), employees(nome)')
+      .select('*')
       .eq('company_id', companyId)
       .eq('status', 'ativo');
 
     if (linksError) throw linksError;
     if (!links || links.length === 0) return { generated: 0 };
+
+    // Carrega benefícios e funcionários referenciados
+    const benefitIds = Array.from(new Set(links.map(l => l.benefit_id)));
+    const empIds = Array.from(new Set(links.map(l => l.employee_id)));
+    const [{ data: benefits }, { data: emps }] = await Promise.all([
+      supabase.from('benefits').select('*').in('id', benefitIds),
+      supabase.from('employees').select('id, nome').in('id', empIds),
+    ]);
+    const benefitMap = new Map((benefits || []).map(b => [b.id, b as Benefit]));
+    const empMap = new Map((emps || []).map(e => [e.id, e.nome as string]));
 
     // Categorias financeiras (criar "Benefícios" se não existir)
     let categoriaId: string | null = null;
