@@ -357,7 +357,9 @@ export default function SimulacaoFolha() {
 
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setStep(2)}>Voltar</Button>
-            <Button onClick={generate} disabled={loading}>Gerar Pré-Folha e Enviar ao Financeiro</Button>
+            <Button onClick={printPayroll} disabled={loading}>
+              <Printer className="w-4 h-4 mr-2" />Gerar PDF / Imprimir Folha
+            </Button>
           </div>
         </>
       )}
@@ -367,12 +369,15 @@ export default function SimulacaoFolha() {
         <Card>
           <CardContent className="p-12 text-center space-y-4">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-              <Calculator className="w-8 h-8 text-primary" />
+              <Printer className="w-8 h-8 text-primary" />
             </div>
-            <h2 className="text-2xl font-bold">Pré-Folha Gerada com Sucesso!</h2>
+            <h2 className="text-2xl font-bold">Folha pronta para impressão!</h2>
             <p className="text-muted-foreground">Competência {competencia} • {forecast.length} funcionários • Custo total {formatBRL(totals.custo)}</p>
-            <p className="text-sm text-muted-foreground">Lançamento agregado criado no módulo Financeiro.</p>
-            <Button onClick={() => { setStep(1); setSelected(new Set()); setForecast([]); setAdjustments({}); }}>Nova Simulação</Button>
+            <p className="text-sm text-muted-foreground">Use a janela aberta para salvar como PDF ou imprimir. A integração com o Financeiro será feita em uma versão futura.</p>
+            <div className="flex gap-2 justify-center">
+              <Button variant="outline" onClick={printPayroll}>Reabrir impressão</Button>
+              <Button onClick={() => { setStep(1); setSelected(new Set()); setForecast([]); setAdjustments({}); }}>Nova Simulação</Button>
+            </div>
           </CardContent>
         </Card>
       )}
