@@ -26,7 +26,7 @@ interface Employee {
   status: string;
 }
 
-const emptyForm = { nome: '', cpf: '', cargo: '', departamento: '', data_admissao: '', data_nascimento: '', salario: '', status: 'ativo' };
+const emptyForm = { nome: '', cpf: '', cargo: '', departamento: '', data_admissao: '', data_nascimento: '', salario: '', status: 'ativo', sexo: '' };
 
 const Colaboradores = () => {
   const { toast } = useToast();
@@ -66,7 +66,7 @@ const Colaboradores = () => {
     setForm({
       nome: emp.nome, cpf: emp.cpf, cargo: emp.cargo, departamento: emp.departamento || '',
       data_admissao: emp.data_admissao, data_nascimento: emp.data_nascimento || '',
-      salario: String(emp.salario), status: emp.status,
+      salario: String(emp.salario), status: emp.status, sexo: emp.sexo || '',
     });
     setDialogOpen(true);
   };
@@ -105,7 +105,7 @@ const Colaboradores = () => {
 
     if (editingId) {
       const { error } = await supabase.from('employees')
-        .update({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, data_nascimento: form.data_nascimento || null, salario, status: form.status })
+        .update({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, data_nascimento: form.data_nascimento || null, salario, status: form.status, sexo: form.sexo || null })
         .eq('id', editingId);
       if (error) {
         toast({ title: 'Erro', description: error.message, variant: 'destructive' });
@@ -121,7 +121,7 @@ const Colaboradores = () => {
         return;
       }
       const { error } = await supabase.from('employees')
-        .insert({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, data_nascimento: form.data_nascimento || null, salario, status: form.status, company_id: companyId });
+        .insert({ nome: form.nome.trim(), cpf: form.cpf.trim(), cargo: form.cargo.trim(), departamento: form.departamento.trim(), data_admissao: form.data_admissao, data_nascimento: form.data_nascimento || null, salario, status: form.status, sexo: form.sexo || null, company_id: companyId });
       if (error) {
         toast({ title: 'Erro', description: error.message, variant: 'destructive' });
       } else {
@@ -238,17 +238,30 @@ const Colaboradores = () => {
                 <Label>Salário (R$)</Label>
                 <Input type="number" min="0" step="0.01" value={form.salario} onChange={e => setForm(p => ({ ...p, salario: e.target.value }))} placeholder="0.00" />
               </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={form.status} onValueChange={v => setForm(p => ({ ...p, status: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ativo">Ativo</SelectItem>
-                    <SelectItem value="inativo">Inativo</SelectItem>
-                    <SelectItem value="afastado">Afastado</SelectItem>
-                    <SelectItem value="ferias">Em Férias</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select value={form.status} onValueChange={v => setForm(p => ({ ...p, status: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ativo">Ativo</SelectItem>
+                      <SelectItem value="inativo">Inativo</SelectItem>
+                      <SelectItem value="afastado">Afastado</SelectItem>
+                      <SelectItem value="ferias">Em Férias</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Sexo</Label>
+                  <Select value={form.sexo || 'auto'} onValueChange={v => setForm(p => ({ ...p, sexo: v === 'auto' ? '' : v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">Não informado</SelectItem>
+                      <SelectItem value="M">Masculino</SelectItem>
+                      <SelectItem value="F">Feminino</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <Button onClick={handleSave} className="w-full" disabled={saving}>
                 {saving ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Cadastrar'}
