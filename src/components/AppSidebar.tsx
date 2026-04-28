@@ -346,9 +346,9 @@ export function AppSidebar() {
   const visibleBeneficios = !isSuperAdmin ? filterGroups(beneficiosGroups) : [];
   const visibleAdmin = filterGroups(adminGroups);
 
-  // RH menu: check module access then filter by submodule
+  // RH menu: filter groups using same logic as other modules
   const showRHMenu = !isSuperAdmin && hasPermission(['admin', 'rh', 'visualizador']) && canAccessModule(rhModuleKey);
-  const visibleRHItems = showRHMenu ? filterItems(rhMenuItems) : [];
+  const visibleRHGroups = showRHMenu ? filterGroups(rhGroups) : [];
 
   const showDashboard = !isSuperAdmin && hasPermission(['admin', 'logistica', 'usuario almox', 'solicitante', 'financeiro', 'rh', 'visualizador']);
 
