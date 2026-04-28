@@ -455,6 +455,7 @@ export default function SimulacaoFolha() {
         </SheetContent>
       </Sheet>
     </div>
+    </MainLayout>
   );
 }
 
