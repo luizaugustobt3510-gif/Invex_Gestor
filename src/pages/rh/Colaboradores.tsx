@@ -66,7 +66,7 @@ const Colaboradores = () => {
     setForm({
       nome: emp.nome, cpf: emp.cpf, cargo: emp.cargo, departamento: emp.departamento || '',
       data_admissao: emp.data_admissao, data_nascimento: emp.data_nascimento || '',
-      salario: String(emp.salario), status: emp.status,
+      salario: String(emp.salario), status: emp.status, sexo: emp.sexo || '',
     });
     setDialogOpen(true);
   };
