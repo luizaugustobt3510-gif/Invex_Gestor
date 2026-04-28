@@ -223,7 +223,7 @@ export default function SimulacaoFolha() {
             <CardTitle>1. Selecione Funcionários</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <Label>Competência</Label>
                 <Input type="month" value={competencia} onChange={e => setCompetencia(e.target.value)} />
@@ -248,6 +248,18 @@ export default function SimulacaoFolha() {
                     <SelectItem value="afastado">Afastado</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label>Pesquisar</Label>
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Nome ou cargo..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
               </div>
             </div>
 
