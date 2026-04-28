@@ -139,10 +139,10 @@ const ImportarFuncionarios = () => {
       nome: r.nome,
       cpf: r.cpf,
       cargo: r.cargo,
-      departamento: r.departamento,
-      data_admissao: r.data_admissao,
+      departamento: r.departamento || '',
+      data_admissao: r.data_admissao || null,
       data_nascimento: r.data_nascimento || null,
-      salario: r.salario,
+      salario: Number.isFinite(r.salario) ? r.salario : 0,
       status: r.status,
     }));
 
