@@ -454,6 +454,7 @@ const AnalisesIndicadores = () => {
         <Tabs defaultValue="pessoas" className="w-full">
           <TabsList className="w-full sm:w-auto flex flex-wrap">
             <TabsTrigger value="pessoas" className="text-xs sm:text-sm">Pessoas</TabsTrigger>
+            <TabsTrigger value="genero" className="text-xs sm:text-sm">Gênero</TabsTrigger>
             <TabsTrigger value="desligamentos" className="text-xs sm:text-sm">Desligamentos</TabsTrigger>
             <TabsTrigger value="operacional" className="text-xs sm:text-sm">Operacional</TabsTrigger>
             <TabsTrigger value="financeiro" className="text-xs sm:text-sm">Financeiro</TabsTrigger>
