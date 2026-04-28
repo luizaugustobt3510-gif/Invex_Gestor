@@ -546,6 +546,13 @@ export function AppSidebar() {
           </>
         )}
 
+        {visibleFolha.length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            {visibleFolha.map(renderGroup)}
+          </>
+        )}
+
         {/* Admin */}
         {visibleAdmin.length > 0 && (
           <>
