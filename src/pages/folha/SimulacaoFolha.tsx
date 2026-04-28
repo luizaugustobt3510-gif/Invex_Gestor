@@ -193,7 +193,17 @@ export default function SimulacaoFolha() {
   }, [forecast, empMap]);
 
   return (
-    <div className="p-6 space-y-6">
+    <MainLayout>
+    <div className="space-y-6">
+      <Card className="border-amber-200 bg-amber-50">
+        <CardContent className="p-3 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5" />
+          <p className="text-xs text-amber-900">
+            ⚙️ Módulo em desenvolvimento — funcionalidades e cálculos podem mudar nas próximas versões.
+          </p>
+        </CardContent>
+      </Card>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Simulação da Folha</h1>
