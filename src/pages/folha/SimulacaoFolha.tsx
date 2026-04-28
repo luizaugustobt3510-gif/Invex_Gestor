@@ -39,6 +39,7 @@ export default function SimulacaoFolha() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filterSetor, setFilterSetor] = useState('todos');
   const [filterStatus, setFilterStatus] = useState('ativo');
+  const [searchTerm, setSearchTerm] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [adjustments, setAdjustments] = useState<Record<string, IndividualAdj>>({});
   const [forecast, setForecast] = useState<PayrollForecastRow[]>([]);
