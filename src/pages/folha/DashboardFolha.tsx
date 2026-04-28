@@ -6,6 +6,7 @@ import { Calculator, Settings, FileText, History, AlertTriangle } from 'lucide-r
 import { useAuth } from '@/contexts/AuthContext';
 import { folhaService, PayrollForecastRow } from '@/services/folhaService';
 import { formatBRL } from '@/lib/payrollCalc';
+import { MainLayout } from '@/components/MainLayout';
 
 export default function DashboardFolha() {
   const navigate = useNavigate();
