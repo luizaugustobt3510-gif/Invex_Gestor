@@ -238,17 +238,30 @@ const Colaboradores = () => {
                 <Label>Salário (R$)</Label>
                 <Input type="number" min="0" step="0.01" value={form.salario} onChange={e => setForm(p => ({ ...p, salario: e.target.value }))} placeholder="0.00" />
               </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={form.status} onValueChange={v => setForm(p => ({ ...p, status: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ativo">Ativo</SelectItem>
-                    <SelectItem value="inativo">Inativo</SelectItem>
-                    <SelectItem value="afastado">Afastado</SelectItem>
-                    <SelectItem value="ferias">Em Férias</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select value={form.status} onValueChange={v => setForm(p => ({ ...p, status: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ativo">Ativo</SelectItem>
+                      <SelectItem value="inativo">Inativo</SelectItem>
+                      <SelectItem value="afastado">Afastado</SelectItem>
+                      <SelectItem value="ferias">Em Férias</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Sexo</Label>
+                  <Select value={form.sexo || 'auto'} onValueChange={v => setForm(p => ({ ...p, sexo: v === 'auto' ? '' : v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">Não informado</SelectItem>
+                      <SelectItem value="M">Masculino</SelectItem>
+                      <SelectItem value="F">Feminino</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <Button onClick={handleSave} className="w-full" disabled={saving}>
                 {saving ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Cadastrar'}
