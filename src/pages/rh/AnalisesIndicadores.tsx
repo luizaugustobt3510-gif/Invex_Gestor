@@ -37,6 +37,7 @@ const getDateRange = (period: string) => {
 };
 
 const AnalisesIndicadores = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [sectorFilter, setSectorFilter] = useState('todos');
   const [periodFilter, setPeriodFilter] = useState('all');
