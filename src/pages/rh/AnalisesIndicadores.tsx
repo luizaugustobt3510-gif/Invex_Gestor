@@ -284,6 +284,53 @@ const AnalisesIndicadores = () => {
     return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [ativosEmps]);
 
+  // === GENDER ===
+  const genderCounts = useMemo(() => {
+    let m = 0, f = 0, n = 0;
+    ativosEmps.forEach(e => {
+      const g = resolveGender(e);
+      if (g === 'M') m++;
+      else if (g === 'F') f++;
+      else n++;
+    });
+    return { m, f, n };
+  }, [ativosEmps]);
+
+  const genderPie = useMemo(() => {
+    const data = [
+      { name: 'Masculino', value: genderCounts.m, color: GENDER_COLORS.M },
+      { name: 'Feminino', value: genderCounts.f, color: GENDER_COLORS.F },
+    ];
+    if (genderCounts.n > 0) data.push({ name: 'Não informado', value: genderCounts.n, color: GENDER_COLORS.N });
+    return data.filter(d => d.value > 0);
+  }, [genderCounts]);
+
+  const genderBySector = useMemo(() => {
+    const map: Record<string, { name: string; Masculino: number; Feminino: number; 'Não informado': number }> = {};
+    ativosEmps.forEach(e => {
+      const d = e.departamento || 'Sem setor';
+      if (!map[d]) map[d] = { name: d, Masculino: 0, Feminino: 0, 'Não informado': 0 };
+      const g = resolveGender(e);
+      if (g === 'M') map[d].Masculino++;
+      else if (g === 'F') map[d].Feminino++;
+      else map[d]['Não informado']++;
+    });
+    return Object.values(map).sort((a, b) => (b.Masculino + b.Feminino + b['Não informado']) - (a.Masculino + a.Feminino + a['Não informado']));
+  }, [ativosEmps]);
+
+  const genderByCargo = useMemo(() => {
+    const map: Record<string, { name: string; Masculino: number; Feminino: number }> = {};
+    ativosEmps.forEach(e => {
+      const c = e.cargo || 'N/A';
+      if (!map[c]) map[c] = { name: c, Masculino: 0, Feminino: 0 };
+      const g = resolveGender(e);
+      if (g === 'M') map[c].Masculino++;
+      else if (g === 'F') map[c].Feminino++;
+    });
+    return Object.values(map).sort((a, b) => (b.Masculino + b.Feminino) - (a.Masculino + a.Feminino)).slice(0, 10);
+  }, [ativosEmps]);
+
+
   if (loading) {
     return (
       <MainLayout>
