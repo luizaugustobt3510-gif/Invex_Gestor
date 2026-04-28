@@ -54,27 +54,37 @@ const ImportarFuncionarios = () => {
     if (!dataAdm) errors.push('Data admissão obrigatória');
     if (salario < 0) errors.push('Salário inválido');
 
-    // Validate date format
-    const parseDate = (d: string) => {
+    // Validate date format -> always returns YYYY-MM-DD or '' (never an invalid string)
+    const parseDate = (d: string): string => {
       if (!d) return '';
-      // Handle dd/mm/yyyy
-      const brMatch = d.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      if (brMatch) return `${brMatch[3]}-${brMatch[2]}-${brMatch[1]}`;
-      // Handle yyyy-mm-dd
-      if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
-      // Handle Excel serial dates
-      const num = Number(d);
-      if (!isNaN(num) && num > 30000) {
-        const date = new Date((num - 25569) * 86400 * 1000);
-        return date.toISOString().split('T')[0];
+      const trimmed = d.trim();
+      if (!trimmed) return '';
+      // Handle dd/mm/yyyy or dd-mm-yyyy
+      const brMatch = trimmed.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
+      if (brMatch) {
+        const iso = `${brMatch[3]}-${brMatch[2]}-${brMatch[1]}`;
+        return isNaN(new Date(iso).getTime()) ? '' : iso;
       }
-      return d;
+      // Handle yyyy-mm-dd
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        return isNaN(new Date(trimmed).getTime()) ? '' : trimmed;
+      }
+      // Handle Excel serial dates
+      const num = Number(trimmed);
+      if (!isNaN(num) && num > 30000 && num < 80000) {
+        const date = new Date(Math.round((num - 25569) * 86400 * 1000));
+        if (!isNaN(date.getTime())) return date.toISOString().split('T')[0];
+      }
+      // Try generic Date parse as last resort
+      const generic = new Date(trimmed);
+      if (!isNaN(generic.getTime())) return generic.toISOString().split('T')[0];
+      return '';
     };
 
     const parsedAdm = parseDate(dataAdm);
     const parsedNasc = parseDate(dataNasc);
 
-    if (parsedAdm && isNaN(new Date(parsedAdm).getTime())) errors.push('Data admissão inválida');
+    if (!parsedAdm) errors.push('Data admissão inválida');
 
     return {
       nome,
