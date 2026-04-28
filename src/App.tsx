@@ -74,6 +74,10 @@ import DashboardBeneficios from "./pages/beneficios/DashboardBeneficios";
 import CadastroBeneficios from "./pages/beneficios/CadastroBeneficios";
 import VinculoBeneficios from "./pages/beneficios/VinculoBeneficios";
 import ControleMensalBeneficios from "./pages/beneficios/ControleMensalBeneficios";
+import DashboardFolha from "./pages/folha/DashboardFolha";
+import ConfiguracaoFolha from "./pages/folha/ConfiguracaoFolha";
+import SimulacaoFolha from "./pages/folha/SimulacaoFolha";
+import HistoricoFolha from "./pages/folha/HistoricoFolha";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -181,7 +185,11 @@ const App = () => (
             <Route path="/beneficios/cadastro" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']}><CadastroBeneficios /></RoleProtectedRoute>} />
             <Route path="/beneficios/vinculo" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']}><VinculoBeneficios /></RoleProtectedRoute>} />
             <Route path="/beneficios/controle-mensal" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><ControleMensalBeneficios /></RoleProtectedRoute>} />
-            
+            <Route path="/folha" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><DashboardFolha /></RoleProtectedRoute>} />
+            <Route path="/folha/configuracao" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><ConfiguracaoFolha /></RoleProtectedRoute>} />
+            <Route path="/folha/simulacao" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><SimulacaoFolha /></RoleProtectedRoute>} />
+            <Route path="/folha/historico" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><HistoricoFolha /></RoleProtectedRoute>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
