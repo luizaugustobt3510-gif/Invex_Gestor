@@ -189,9 +189,10 @@ export const beneficiosService = {
     const dataLancamento = `${competencia}-05`;
     let generated = 0;
 
-    for (const link of links as Array<EmployeeBenefit & { benefits: Benefit; employees: { nome: string } }>) {
-      const benefit = link.benefits;
+    for (const link of links) {
+      const benefit = benefitMap.get(link.benefit_id);
       if (!benefit) continue;
+      const empNome = empMap.get(link.employee_id) ?? 'Funcionário';
       const valorTotal = Number(link.custom_value ?? benefit.base_value ?? 0);
       const desconto = Number(link.payroll_discount ?? 0);
       const employeeCost = desconto;
