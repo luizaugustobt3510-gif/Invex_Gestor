@@ -451,13 +451,13 @@ export function AppSidebar() {
                       <CollapsibleTrigger asChild>
                         <button
                           type="button"
-                          className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+                          className="w-full flex items-center justify-between px-2 py-2 text-sm font-semibold text-foreground hover:bg-sidebar-accent rounded-md transition-colors"
                         >
                           <div className="flex items-center gap-2">
                             {group.icon}
                             <span>{group.label}</span>
                           </div>
-                          <ChevronDown className="w-3.5 h-3.5 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                          <ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
                         </button>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
@@ -469,7 +469,7 @@ export function AppSidebar() {
                                 isActive={isActive(item.path)}
                                 tooltip={item.label}
                                 className={cn(
-                                  "w-full justify-start gap-3 pl-8 text-sm transition-colors",
+                                  "w-full justify-start gap-3 pl-8 py-2 text-sm transition-colors",
                                   isActive(item.path)
                                     ? "bg-primary/10 text-primary font-medium"
                                     : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
