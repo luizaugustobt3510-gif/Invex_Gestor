@@ -805,6 +805,7 @@ export type Database = {
           id: string
           nome: string
           salario: number
+          sexo: string | null
           status: string
           updated_at: string
         }
@@ -819,6 +820,7 @@ export type Database = {
           id?: string
           nome: string
           salario?: number
+          sexo?: string | null
           status?: string
           updated_at?: string
         }
@@ -833,6 +835,7 @@ export type Database = {
           id?: string
           nome?: string
           salario?: number
+          sexo?: string | null
           status?: string
           updated_at?: string
         }
