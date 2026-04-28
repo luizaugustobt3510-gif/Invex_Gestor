@@ -129,5 +129,6 @@ export default function ConfiguracaoFolha() {
 
       <Button onClick={save} disabled={loading}>Salvar Configuração</Button>
     </div>
+    </MainLayout>
   );
 }
