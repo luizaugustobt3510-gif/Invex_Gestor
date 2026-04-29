@@ -36,6 +36,15 @@ interface MenuGroup {
   moduleKey?: string;
 }
 
+const SIDEBAR_SCROLL_KEY = 'invex:sidebar-scroll-top';
+let persistedSidebarScrollTop = 0;
+
+const getStoredSidebarScrollTop = () => {
+  if (typeof window === 'undefined') return persistedSidebarScrollTop;
+  const stored = window.sessionStorage.getItem(SIDEBAR_SCROLL_KEY);
+  return stored ? Number(stored) || 0 : persistedSidebarScrollTop;
+};
+
 // ─── LOGÍSTICA ───
 const logisticsGroups: MenuGroup[] = [
   {
@@ -323,21 +332,44 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
   const scrollRef = useRef<HTMLDivElement>(null);
-  const scrollPos = useRef<number>(0);
+  const scrollPos = useRef<number>(getStoredSidebarScrollTop());
+
+  const saveSidebarScroll = () => {
+    const nextScrollTop = scrollRef.current?.scrollTop ?? scrollPos.current;
+    scrollPos.current = nextScrollTop;
+    persistedSidebarScrollTop = nextScrollTop;
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(nextScrollTop));
+    }
+  };
+
+  const restoreSidebarScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = scrollPos.current;
+  };
 
   // Preserva a posição de scroll do sidebar entre navegações
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const onScroll = () => { scrollPos.current = el.scrollTop; };
+    restoreSidebarScroll();
+    const onScroll = saveSidebarScroll;
     el.addEventListener('scroll', onScroll, { passive: true });
     return () => el.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (el) el.scrollTop = scrollPos.current;
+    scrollPos.current = getStoredSidebarScrollTop();
+    requestAnimationFrame(restoreSidebarScroll);
+    const timeout = window.setTimeout(restoreSidebarScroll, 80);
+    return () => window.clearTimeout(timeout);
   }, [location.pathname]);
+
+  const navigatePreservingScroll = (path: string) => {
+    saveSidebarScroll();
+    navigate(path);
+  };
 
   const handleLogout = () => {
     logout();
@@ -408,7 +440,7 @@ export function AppSidebar() {
                 {group.items.map((item) => (
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
-                      onClick={() => navigate(item.path)}
+                      onClick={() => navigatePreservingScroll(item.path)}
                       isActive={isActive(item.path)}
                       tooltip={item.label}
                       className={cn(
@@ -434,7 +466,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigatePreservingScroll('/')}>
           <InvexLogo size="sm" />
         </div>
       </SidebarHeader>
@@ -446,7 +478,7 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  onClick={() => navigate('/')}
+                  onClick={() => navigatePreservingScroll('/')}
                   isActive={isActive('/')}
                   tooltip={isSuperAdmin ? "Painel SuperAdmin" : "Dashboard"}
                   className={cn(
@@ -499,7 +531,7 @@ export function AppSidebar() {
                           {group.items.map((item) => (
                             <SidebarMenuItem key={item.path}>
                               <SidebarMenuButton
-                                onClick={() => navigate(item.path)}
+                                onClick={() => navigatePreservingScroll(item.path)}
                                 isActive={isActive(item.path)}
                                 tooltip={item.label}
                                 className={cn(
@@ -583,7 +615,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => navigate('/meu-perfil')}
+              onClick={() => navigatePreservingScroll('/meu-perfil')}
               tooltip="Meu Perfil"
               className="text-muted-foreground hover:text-foreground"
             >
