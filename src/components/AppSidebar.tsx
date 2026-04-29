@@ -439,7 +439,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2">
+      <SidebarContent ref={scrollRef} className="px-2">
         {/* Dashboard link */}
         {(showDashboard || isSuperAdmin) && (
           <>
