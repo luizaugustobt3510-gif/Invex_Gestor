@@ -322,6 +322,22 @@ export function AppSidebar() {
   const { canAccessModule } = useModuleAccess();
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollPos = useRef<number>(0);
+
+  // Preserva a posição de scroll do sidebar entre navegações
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => { scrollPos.current = el.scrollTop; };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = scrollPos.current;
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
