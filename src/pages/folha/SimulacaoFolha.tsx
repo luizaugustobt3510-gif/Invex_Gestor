@@ -636,7 +636,10 @@ export default function SimulacaoFolha() {
             <h2 className="text-2xl font-bold">Folha pronta para impressão!</h2>
             <p className="text-muted-foreground">Competência {competencia} • {forecast.length} funcionários • Custo total {formatBRL(totals.custo)}</p>
             <p className="text-sm text-muted-foreground">Use a janela aberta para salvar como PDF ou imprimir. A integração com o Financeiro será feita em uma versão futura.</p>
-            <div className="flex gap-2 justify-center">
+            <div className="flex gap-2 justify-center flex-wrap">
+              <Button variant="outline" onClick={exportExcel}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" />Exportar Excel
+              </Button>
               <Button variant="outline" onClick={printPayroll}>Reabrir impressão</Button>
               <Button onClick={() => { setStep(1); setSelected(new Set()); setForecast([]); setAdjustments({}); }}>Nova Simulação</Button>
             </div>
