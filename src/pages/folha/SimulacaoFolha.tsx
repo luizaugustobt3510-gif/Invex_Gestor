@@ -612,11 +612,16 @@ export default function SimulacaoFolha() {
             </CardContent>
           </Card>
 
-          <div className="flex justify-between">
+          <div className="flex justify-between flex-wrap gap-2">
             <Button variant="outline" onClick={() => setStep(2)}>Voltar</Button>
-            <Button onClick={printPayroll} disabled={loading}>
-              <Printer className="w-4 h-4 mr-2" />Gerar PDF / Imprimir Folha
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="outline" onClick={exportExcel} disabled={loading}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" />Exportar Excel
+              </Button>
+              <Button onClick={printPayroll} disabled={loading}>
+                <Printer className="w-4 h-4 mr-2" />Gerar PDF / Imprimir
+              </Button>
+            </div>
           </div>
         </>
       )}
