@@ -29,7 +29,7 @@ interface IndividualAdj {
 }
 
 const emptyAdj = (): IndividualAdj => ({
-  bonus: 0, faltas: 0, outros: 0, pensao: 0, pensaoIsPercent: false, dependents: 0, vtEnabled: true,
+  bonus: 0, faltas: 0, outros: 0, pensao: 0, pensaoIsPercent: false, dependents: 0, vtEnabled: false,
 });
 
 export default function SimulacaoFolha() {
