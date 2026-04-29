@@ -171,6 +171,240 @@ export default function SimulacaoFolha() {
     setStep(4);
   };
 
+  const exportExcel = async () => {
+    if (forecast.length === 0) {
+      toast.error('Nenhum funcionário simulado');
+      return;
+    }
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Invex';
+    wb.created = new Date();
+
+    const thinBorder = {
+      top: { style: 'thin' as const, color: { argb: 'FF000000' } },
+      left: { style: 'thin' as const, color: { argb: 'FF000000' } },
+      bottom: { style: 'thin' as const, color: { argb: 'FF000000' } },
+      right: { style: 'thin' as const, color: { argb: 'FF000000' } },
+    };
+    const headerFill = { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FFE5E7EB' } };
+    const totalFill = { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FFF3F4F6' } };
+
+    // ========= Aba 1: Resumo Geral (formato quadriculado) =========
+    const resumo = wb.addWorksheet('Resumo');
+    resumo.columns = [
+      { width: 6 }, { width: 32 }, { width: 22 }, { width: 18 },
+      { width: 14 }, { width: 14 }, { width: 14 }, { width: 14 },
+      { width: 14 }, { width: 14 }, { width: 14 }, { width: 16 }, { width: 16 },
+    ];
+
+    resumo.mergeCells('A1:M1');
+    const t1 = resumo.getCell('A1');
+    t1.value = `FOLHA DE PAGAMENTO — Competência ${competencia}`;
+    t1.font = { bold: true, size: 14 };
+    t1.alignment = { horizontal: 'center', vertical: 'middle' };
+    resumo.getRow(1).height = 24;
+
+    resumo.mergeCells('A2:M2');
+    const t2 = resumo.getCell('A2');
+    t2.value = `Gerado em ${new Date().toLocaleString('pt-BR')} • ${forecast.length} funcionário(s) • Simulação`;
+    t2.alignment = { horizontal: 'center' };
+    t2.font = { italic: true, size: 10 };
+
+    const headers = ['#', 'Funcionário', 'Cargo', 'Setor', 'Base', 'Bônus', 'Bruto', 'INSS', 'IRRF', 'VT', 'Descontos', 'Líquido', 'Custo Empresa'];
+    const headerRow = resumo.addRow([]);
+    headerRow.values = ['', ...[]];
+    const r4 = resumo.getRow(4);
+    headers.forEach((h, i) => {
+      const c = r4.getCell(i + 1);
+      c.value = h;
+      c.font = { bold: true };
+      c.fill = headerFill;
+      c.alignment = { horizontal: 'center', vertical: 'middle' };
+      c.border = thinBorder;
+    });
+    r4.height = 22;
+
+    forecast.forEach((r, idx) => {
+      const emp = empMap.get(r.employee_id);
+      const row = resumo.addRow([
+        idx + 1,
+        emp?.nome || '',
+        emp?.cargo || '-',
+        emp?.departamento || '-',
+        r.base_salary, r.bonus_total, r.gross_salary,
+        r.inss_value, r.irrf_value, r.vt_value, r.total_discounts,
+        r.net_salary, r.company_cost,
+      ]);
+      row.eachCell((c, col) => {
+        c.border = thinBorder;
+        if (col >= 5) c.numFmt = 'R$ #,##0.00;[Red]-R$ #,##0.00';
+        if (col === 1) c.alignment = { horizontal: 'center' };
+        if (col === 12) c.font = { bold: true };
+      });
+    });
+
+    const totalRow = resumo.addRow([
+      '', 'TOTAL', '', '',
+      forecast.reduce((s, r) => s + r.base_salary, 0),
+      forecast.reduce((s, r) => s + r.bonus_total, 0),
+      totals.bruto,
+      forecast.reduce((s, r) => s + r.inss_value, 0),
+      forecast.reduce((s, r) => s + r.irrf_value, 0),
+      forecast.reduce((s, r) => s + r.vt_value, 0),
+      forecast.reduce((s, r) => s + r.total_discounts, 0),
+      totals.liquido,
+      totals.custo,
+    ]);
+    totalRow.eachCell((c, col) => {
+      c.border = thinBorder;
+      c.font = { bold: true };
+      c.fill = totalFill;
+      if (col >= 5) c.numFmt = 'R$ #,##0.00';
+    });
+
+    // ========= Aba 2: Holerites individuais (formato quadriculado tradicional) =========
+    const hol = wb.addWorksheet('Holerites');
+    hol.columns = [
+      { width: 6 }, { width: 38 }, { width: 16 }, { width: 16 }, { width: 16 },
+    ];
+
+    let row = 1;
+    forecast.forEach((r, idx) => {
+      const emp = empMap.get(r.employee_id);
+
+      // Cabeçalho do holerite
+      hol.mergeCells(row, 1, row, 5);
+      const hd = hol.getCell(row, 1);
+      hd.value = `RECIBO DE PAGAMENTO DE SALÁRIO — ${competencia}`;
+      hd.font = { bold: true, size: 12 };
+      hd.alignment = { horizontal: 'center', vertical: 'middle' };
+      hd.fill = headerFill;
+      hd.border = thinBorder;
+      hol.getRow(row).height = 22;
+      row++;
+
+      // Identificação
+      hol.mergeCells(row, 1, row, 3);
+      const n1 = hol.getCell(row, 1);
+      n1.value = `Funcionário: ${emp?.nome || ''}`;
+      n1.font = { bold: true };
+      n1.border = thinBorder;
+      hol.mergeCells(row, 4, row, 5);
+      const n2 = hol.getCell(row, 4);
+      n2.value = `Cargo: ${emp?.cargo || '-'}`;
+      n2.border = thinBorder;
+      row++;
+
+      hol.mergeCells(row, 1, row, 3);
+      const n3 = hol.getCell(row, 1);
+      n3.value = `Setor: ${emp?.departamento || '-'}`;
+      n3.border = thinBorder;
+      hol.mergeCells(row, 4, row, 5);
+      const n4 = hol.getCell(row, 4);
+      n4.value = `Salário base: ${formatBRL(r.base_salary)}`;
+      n4.border = thinBorder;
+      row++;
+
+      // Cabeçalho da tabela de eventos
+      const headerCells = ['Cód.', 'Descrição', 'Referência', 'Provento (R$)', 'Desconto (R$)'];
+      headerCells.forEach((h, i) => {
+        const c = hol.getCell(row, i + 1);
+        c.value = h;
+        c.font = { bold: true };
+        c.fill = headerFill;
+        c.alignment = { horizontal: 'center' };
+        c.border = thinBorder;
+      });
+      row++;
+
+      const eventos: { cod: string; desc: string; ref: string; prov: number; desc2: number }[] = [
+        { cod: '001', desc: 'Salário base', ref: '30 dias', prov: r.base_salary, desc2: 0 },
+      ];
+      if (r.bonus_total > 0) eventos.push({ cod: '002', desc: 'Bônus / Bonificação', ref: '-', prov: r.bonus_total, desc2: 0 });
+      if (r.faltas_value > 0) eventos.push({ cod: '101', desc: 'Faltas', ref: '-', prov: 0, desc2: r.faltas_value });
+      if (r.inss_value > 0) eventos.push({ cod: '901', desc: 'INSS', ref: '-', prov: 0, desc2: r.inss_value });
+      if (r.irrf_value > 0) eventos.push({ cod: '902', desc: 'IRRF', ref: '-', prov: 0, desc2: r.irrf_value });
+      if (r.vt_value > 0) eventos.push({ cod: '910', desc: 'Vale-transporte', ref: '6%', prov: 0, desc2: r.vt_value });
+      if (r.pensao_value > 0) eventos.push({ cod: '920', desc: 'Pensão alimentícia', ref: '-', prov: 0, desc2: r.pensao_value });
+      if (r.benefits_employee > 0) eventos.push({ cod: '930', desc: 'Benefícios (parte do colaborador)', ref: '-', prov: 0, desc2: r.benefits_employee });
+      if (r.other_discounts > 0) eventos.push({ cod: '999', desc: 'Outros descontos', ref: '-', prov: 0, desc2: r.other_discounts });
+
+      eventos.forEach(ev => {
+        const cells = [ev.cod, ev.desc, ev.ref, ev.prov || '', ev.desc2 || ''];
+        cells.forEach((v, i) => {
+          const c = hol.getCell(row, i + 1);
+          c.value = v as any;
+          c.border = thinBorder;
+          if (i >= 3 && typeof v === 'number') c.numFmt = 'R$ #,##0.00';
+          if (i === 0) c.alignment = { horizontal: 'center' };
+        });
+        row++;
+      });
+
+      // Totais
+      const totProv = r.base_salary + r.bonus_total;
+      const totDesc = r.total_discounts;
+      hol.mergeCells(row, 1, row, 3);
+      const tp = hol.getCell(row, 1);
+      tp.value = 'TOTAIS';
+      tp.font = { bold: true };
+      tp.alignment = { horizontal: 'right' };
+      tp.fill = totalFill;
+      tp.border = thinBorder;
+      const tpv = hol.getCell(row, 4);
+      tpv.value = totProv;
+      tpv.font = { bold: true };
+      tpv.numFmt = 'R$ #,##0.00';
+      tpv.fill = totalFill;
+      tpv.border = thinBorder;
+      const tdv = hol.getCell(row, 5);
+      tdv.value = totDesc;
+      tdv.font = { bold: true };
+      tdv.numFmt = 'R$ #,##0.00';
+      tdv.fill = totalFill;
+      tdv.border = thinBorder;
+      row++;
+
+      // Líquido
+      hol.mergeCells(row, 1, row, 3);
+      const lq = hol.getCell(row, 1);
+      lq.value = 'VALOR LÍQUIDO A RECEBER';
+      lq.font = { bold: true, size: 12 };
+      lq.alignment = { horizontal: 'right' };
+      lq.fill = headerFill;
+      lq.border = thinBorder;
+      hol.mergeCells(row, 4, row, 5);
+      const lqv = hol.getCell(row, 4);
+      lqv.value = r.net_salary;
+      lqv.font = { bold: true, size: 12 };
+      lqv.numFmt = 'R$ #,##0.00';
+      lqv.alignment = { horizontal: 'right' };
+      lqv.fill = headerFill;
+      lqv.border = thinBorder;
+      row++;
+
+      // Assinatura
+      hol.mergeCells(row, 1, row, 5);
+      const as = hol.getCell(row, 1);
+      as.value = 'Declaro ter recebido a importância líquida discriminada acima.   ____________________________________';
+      as.font = { italic: true, size: 9 };
+      as.border = thinBorder;
+      hol.getRow(row).height = 30;
+      row += 2; // espaço entre holerites
+    });
+
+    // Download
+    const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `folha-pagamento-${competencia}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Folha exportada em Excel');
+  };
+
   const totals = useMemo(() => ({
     liquido: forecast.reduce((s, r) => s + r.net_salary, 0),
     bruto: forecast.reduce((s, r) => s + r.gross_salary, 0),
