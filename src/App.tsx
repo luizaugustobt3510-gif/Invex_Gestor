@@ -152,7 +152,7 @@ const App = () => (
             <Route path="/rh/graficos" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh" submoduleKey="rh.analises_indicadores"><AnalisesIndicadores /></RoleProtectedRoute>} />
             <Route path="/rh/aso" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh" submoduleKey="rh.aso"><ASOControl /></RoleProtectedRoute>} />
             <Route path="/rh/ocorrencias" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh" submoduleKey="rh.ocorrencias"><Ocorrencias /></RoleProtectedRoute>} />
-            <Route path="/rh/desenvolvimento" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh" submoduleKey="rh.treinamentos"><Desenvolvimento /></RoleProtectedRoute>} />
+            <Route path="/rh/desenvolvimento" element={<Navigate to="/rh/dashboard" replace />} />
             <Route path="/rh/painel-diario" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh" submoduleKey="rh.dashboard"><PainelDiario /></RoleProtectedRoute>} />
             <Route path="/rh/desligamentos" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']} moduleKey="rh" submoduleKey="rh.desligamentos"><Desligamentos /></RoleProtectedRoute>} />
             <Route path="/rh/turnover" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh" submoduleKey="rh.turnover"><Turnover /></RoleProtectedRoute>} />
