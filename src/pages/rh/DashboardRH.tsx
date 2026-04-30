@@ -37,6 +37,7 @@ const DashboardRH = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [sectorFilter, setSectorFilter] = useState('todos');
+  const [genderFilter, setGenderFilter] = useState<'todos' | 'M' | 'F' | 'N'>('todos');
   const [employees, setEmployees] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [alertsExpanded, setAlertsExpanded] = useState(false);
@@ -358,7 +359,13 @@ const DashboardRH = () => {
   const filtered = employees.filter(e => {
     const matchSearch = e.nome.toLowerCase().includes(search.toLowerCase()) || e.cargo.toLowerCase().includes(search.toLowerCase());
     const matchSector = sectorFilter === 'todos' || (e.departamento || '') === sectorFilter;
-    return matchSearch && matchSector;
+    let matchGender = true;
+    if (genderFilter === 'N') {
+      matchGender = !e.sexo || (e.sexo !== 'M' && e.sexo !== 'F');
+    } else if (genderFilter === 'M' || genderFilter === 'F') {
+      matchGender = resolveGender(e) === genderFilter;
+    }
+    return matchSearch && matchSector && matchGender;
   });
 
   const sectorStats = departments.length > 0 ? departments.map(dept => {
