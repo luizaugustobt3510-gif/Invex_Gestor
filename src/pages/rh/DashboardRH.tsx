@@ -37,6 +37,7 @@ const DashboardRH = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [sectorFilter, setSectorFilter] = useState('todos');
+  const [genderFilter, setGenderFilter] = useState<'todos' | 'M' | 'F' | 'N'>('todos');
   const [employees, setEmployees] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [alertsExpanded, setAlertsExpanded] = useState(false);
@@ -358,7 +359,13 @@ const DashboardRH = () => {
   const filtered = employees.filter(e => {
     const matchSearch = e.nome.toLowerCase().includes(search.toLowerCase()) || e.cargo.toLowerCase().includes(search.toLowerCase());
     const matchSector = sectorFilter === 'todos' || (e.departamento || '') === sectorFilter;
-    return matchSearch && matchSector;
+    let matchGender = true;
+    if (genderFilter === 'N') {
+      matchGender = !e.sexo || (e.sexo !== 'M' && e.sexo !== 'F');
+    } else if (genderFilter === 'M' || genderFilter === 'F') {
+      matchGender = resolveGender(e) === genderFilter;
+    }
+    return matchSearch && matchSector && matchGender;
   });
 
   const sectorStats = departments.length > 0 ? departments.map(dept => {
@@ -479,64 +486,65 @@ const DashboardRH = () => {
           ))}
         </div>
 
-        {/* Distribuição por gênero (sexo cadastrado ou inferido pelo nome) */}
+        {/* Distribuição por gênero (sexo cadastrado ou inferido pelo nome) — clicável para filtrar */}
         {(() => {
           const ativosEmps = employees.filter(e => e.status === 'ativo');
-          let masc = 0, fem = 0, indef = 0;
+          let masc = 0, fem = 0;
+          // Não informado = sem sexo cadastrado no banco (M ou F)
+          let semSexoCadastrado = 0;
           ativosEmps.forEach(e => {
             const g = resolveGender(e);
             if (g === 'M') masc++;
             else if (g === 'F') fem++;
-            else indef++;
+            if (e.sexo !== 'M' && e.sexo !== 'F') semSexoCadastrado++;
           });
           const total = ativosEmps.length || 1;
           const pctM = Math.round((masc / total) * 100);
           const pctF = Math.round((fem / total) * 100);
-          const cards = [
-            {
-              label: 'Masculino',
-              value: masc,
-              sub: `${pctM}% da equipe ativa`,
-              icon: <Users className="w-4 h-4 text-sky-700" />,
-              cardBg: 'bg-sky-100/70 border-sky-200',
-              iconBg: 'bg-sky-200/70',
-              valueColor: 'text-sky-900',
-            },
-            {
-              label: 'Feminino',
-              value: fem,
-              sub: `${pctF}% da equipe ativa`,
-              icon: <Users className="w-4 h-4 text-pink-700" />,
-              cardBg: 'bg-pink-100/70 border-pink-200',
-              iconBg: 'bg-pink-200/70',
-              valueColor: 'text-pink-900',
-            },
+
+          const cards: Array<{ key: 'M' | 'F' | 'N'; label: string; value: number; sub: string; cardBg: string; iconBg: string; valueColor: string; iconColor: string }> = [
+            { key: 'M', label: 'Masculino', value: masc, sub: `${pctM}% da equipe ativa`, cardBg: 'bg-sky-100/70 border-sky-200', iconBg: 'bg-sky-200/70', valueColor: 'text-sky-900', iconColor: 'text-sky-700' },
+            { key: 'F', label: 'Feminino', value: fem, sub: `${pctF}% da equipe ativa`, cardBg: 'bg-pink-100/70 border-pink-200', iconBg: 'bg-pink-200/70', valueColor: 'text-pink-900', iconColor: 'text-pink-700' },
           ];
-          if (indef > 0) {
-            cards.push({
-              label: 'Não informado',
-              value: indef,
-              sub: 'cadastre o sexo no perfil',
-              icon: <Users className="w-4 h-4 text-muted-foreground" />,
-              cardBg: 'bg-muted/40 border-border',
-              iconBg: 'bg-muted',
-              valueColor: 'text-foreground',
-            });
+          if (semSexoCadastrado > 0) {
+            cards.push({ key: 'N', label: 'Não informado', value: semSexoCadastrado, sub: 'clique para ver quem cadastrar', cardBg: 'bg-muted/40 border-border', iconBg: 'bg-muted', valueColor: 'text-foreground', iconColor: 'text-muted-foreground' });
           }
+
           return (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-              {cards.map(c => (
-                <Card key={c.label} className={`h-full border ${c.cardBg}`}>
-                  <CardContent className="p-3 sm:p-4 h-full flex flex-col">
-                    <div className="flex items-start justify-between gap-2 mb-2 min-w-0">
-                      <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase leading-tight break-words flex-1 min-w-0">{c.label}</span>
-                      <div className={`shrink-0 p-1.5 sm:p-2 rounded-lg ${c.iconBg}`}>{c.icon}</div>
-                    </div>
-                    <p className={`text-base sm:text-xl lg:text-2xl font-bold leading-tight break-words ${c.valueColor}`}>{c.value}</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-auto pt-1">{c.sub}</p>
-                  </CardContent>
-                </Card>
-              ))}
+              {cards.map(c => {
+                const isActive = genderFilter === c.key;
+                return (
+                  <Card
+                    key={c.label}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      setGenderFilter(prev => (prev === c.key ? 'todos' : c.key));
+                      // Rola até a lista de colaboradores
+                      setTimeout(() => {
+                        document.getElementById('colab-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }, 50);
+                    }}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
+                    className={`h-full border cursor-pointer transition-all hover:shadow-md ${c.cardBg} ${isActive ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                  >
+                    <CardContent className="p-3 sm:p-4 h-full flex flex-col">
+                      <div className="flex items-start justify-between gap-2 mb-2 min-w-0">
+                        <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase leading-tight break-words flex-1 min-w-0">{c.label}</span>
+                        <div className={`shrink-0 p-1.5 sm:p-2 rounded-lg ${c.iconBg}`}>
+                          <Users className={`w-4 h-4 ${c.iconColor}`} />
+                        </div>
+                      </div>
+                      <p className={`text-base sm:text-xl lg:text-2xl font-bold leading-tight break-words ${c.valueColor}`}>{c.value}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-auto pt-1">{c.sub}</p>
+                      {isActive && (
+                        <p className="text-[10px] text-primary font-medium mt-1">✓ Filtro aplicado</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           );
         })()}
@@ -653,9 +661,21 @@ const DashboardRH = () => {
         )}
 
         {/* Employee Cards */}
-        <div>
+        <div id="colab-list">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
-            <h2 className="text-lg font-bold text-foreground">Colaboradores ({filtered.length})</h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-lg font-bold text-foreground">Colaboradores ({filtered.length})</h2>
+              {genderFilter !== 'todos' && (
+                <Badge
+                  variant="outline"
+                  className="gap-1 cursor-pointer hover:bg-muted"
+                  onClick={() => setGenderFilter('todos')}
+                  title="Remover filtro de gênero"
+                >
+                  Gênero: {genderFilter === 'M' ? 'Masculino' : genderFilter === 'F' ? 'Feminino' : 'Não informado'} ✕
+                </Badge>
+              )}
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               {departments.length > 0 && (
                 <Select value={sectorFilter} onValueChange={setSectorFilter}>

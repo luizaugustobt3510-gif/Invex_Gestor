@@ -183,9 +183,17 @@ const Colaboradores = () => {
                       <TableCell>{formatDate(emp.data_admissao)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(emp.salario)}</TableCell>
                       <TableCell>
-                        <Badge variant={emp.status === 'ativo' ? 'default' : 'secondary'}>
-                          {emp.status === 'ativo' ? 'Ativo' : emp.status === 'inativo' ? 'Inativo' : emp.status === 'afastado' ? 'Afastado' : 'Em Férias'}
-                        </Badge>
+                        {(() => {
+                          const statusMap: Record<string, { label: string; className: string }> = {
+                            ativo: { label: 'Ativo', className: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30' },
+                            inativo: { label: 'Inativo', className: 'bg-muted text-muted-foreground border-border' },
+                            afastado: { label: 'Afastado', className: 'bg-amber-500/15 text-amber-700 border-amber-500/30' },
+                            ferias: { label: 'Em Férias', className: 'bg-blue-500/15 text-blue-700 border-blue-500/30' },
+                            desligado: { label: 'Desligado', className: 'bg-destructive/15 text-destructive border-destructive/30' },
+                          };
+                          const s = statusMap[emp.status] || { label: emp.status || '—', className: 'bg-muted text-muted-foreground border-border' };
+                          return <Badge variant="outline" className={`whitespace-nowrap ${s.className}`}>{s.label}</Badge>;
+                        })()}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
@@ -205,7 +213,7 @@ const Colaboradores = () => {
 
         {/* Form Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{editingId ? 'Editar Colaborador' : 'Novo Colaborador'}</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
