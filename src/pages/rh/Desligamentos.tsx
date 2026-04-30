@@ -199,7 +199,7 @@ const Desligamentos = () => {
                       <TableCell>{t.employees?.cargo}</TableCell>
                       <TableCell>{t.employees?.departamento || '—'}</TableCell>
                       <TableCell>{new Date(t.data_desligamento + 'T00:00:00').toLocaleDateString('pt-BR')}</TableCell>
-                      <TableCell><Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">{t.motivo}</Badge></TableCell>
+                      <TableCell><Badge variant="outline" className="whitespace-nowrap bg-destructive/10 text-destructive border-destructive/30">{t.motivo}</Badge></TableCell>
                       <TableCell>{t.responsavel_nome}</TableCell>
                       <TableCell className="max-w-[200px] truncate">{t.observacoes || '—'}</TableCell>
                       <TableCell>
