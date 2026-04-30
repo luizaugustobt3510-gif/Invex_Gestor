@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
+import { EmailRestrictedRoute } from "./components/EmailRestrictedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import CadastrarMaterial from "./pages/CadastrarMaterial";
@@ -185,10 +186,10 @@ const App = () => (
             <Route path="/beneficios/cadastro" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']}><CadastroBeneficios /></RoleProtectedRoute>} />
             <Route path="/beneficios/vinculo" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']}><VinculoBeneficios /></RoleProtectedRoute>} />
             <Route path="/beneficios/controle-mensal" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><ControleMensalBeneficios /></RoleProtectedRoute>} />
-            <Route path="/folha" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><DashboardFolha /></RoleProtectedRoute>} />
-            <Route path="/folha/configuracao" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><ConfiguracaoFolha /></RoleProtectedRoute>} />
-            <Route path="/folha/simulacao" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><SimulacaoFolha /></RoleProtectedRoute>} />
-            <Route path="/folha/historico" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><HistoricoFolha /></RoleProtectedRoute>} />
+            <Route path="/folha" element={<EmailRestrictedRoute allowedEmails={['teste@invex.com']}><RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><DashboardFolha /></RoleProtectedRoute></EmailRestrictedRoute>} />
+            <Route path="/folha/configuracao" element={<EmailRestrictedRoute allowedEmails={['teste@invex.com']}><RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><ConfiguracaoFolha /></RoleProtectedRoute></EmailRestrictedRoute>} />
+            <Route path="/folha/simulacao" element={<EmailRestrictedRoute allowedEmails={['teste@invex.com']}><RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><SimulacaoFolha /></RoleProtectedRoute></EmailRestrictedRoute>} />
+            <Route path="/folha/historico" element={<EmailRestrictedRoute allowedEmails={['teste@invex.com']}><RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><HistoricoFolha /></RoleProtectedRoute></EmailRestrictedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
