@@ -1106,6 +1106,53 @@ export type Database = {
           },
         ]
       }
+      hr_appointments: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          data_evento: string
+          descricao: string | null
+          hora_evento: string | null
+          id: string
+          notificar: boolean
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          data_evento: string
+          descricao?: string | null
+          hora_evento?: string | null
+          id?: string
+          notificar?: boolean
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          data_evento?: string
+          descricao?: string | null
+          hora_evento?: string | null
+          id?: string
+          notificar?: boolean
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_appointments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_attachments: {
         Row: {
           arquivo_url: string
