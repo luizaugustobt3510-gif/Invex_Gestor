@@ -661,9 +661,21 @@ const DashboardRH = () => {
         )}
 
         {/* Employee Cards */}
-        <div>
+        <div id="colab-list">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
-            <h2 className="text-lg font-bold text-foreground">Colaboradores ({filtered.length})</h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-lg font-bold text-foreground">Colaboradores ({filtered.length})</h2>
+              {genderFilter !== 'todos' && (
+                <Badge
+                  variant="outline"
+                  className="gap-1 cursor-pointer hover:bg-muted"
+                  onClick={() => setGenderFilter('todos')}
+                  title="Remover filtro de gênero"
+                >
+                  Gênero: {genderFilter === 'M' ? 'Masculino' : genderFilter === 'F' ? 'Feminino' : 'Não informado'} ✕
+                </Badge>
+              )}
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               {departments.length > 0 && (
                 <Select value={sectorFilter} onValueChange={setSectorFilter}>
