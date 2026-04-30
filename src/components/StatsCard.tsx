@@ -21,20 +21,20 @@ export const StatsCard = ({ title, value, icon: Icon, trend, variant = "default"
   };
 
   return (
-    <Card className="transition-all duration-300 hover:shadow-lg border-border/50">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-3xl font-bold text-foreground">{value}</p>
+    <Card className="h-full transition-all duration-300 hover:shadow-lg border-border/50">
+      <CardContent className="p-4 sm:p-6 h-full">
+        <div className="flex items-start justify-between gap-3 h-full">
+          <div className="space-y-2 min-w-0 flex-1">
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground break-words leading-tight">{value}</p>
             {trend && (
               <p className={`text-xs font-medium ${trend.positive ? "text-success" : "text-danger"}`}>
                 {trend.positive ? "↑" : "↓"} {trend.value}
               </p>
             )}
           </div>
-          <div className={`p-3 rounded-xl ${variantClasses[variant]}`}>
-            <Icon className="w-6 h-6" />
+          <div className={`shrink-0 p-2 sm:p-3 rounded-xl ${variantClasses[variant]}`}>
+            <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
       </CardContent>
