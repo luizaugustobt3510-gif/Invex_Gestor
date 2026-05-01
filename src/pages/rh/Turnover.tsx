@@ -223,12 +223,12 @@ const Turnover = () => {
         )}
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 items-stretch">
-          <StatsCard title="Desligamentos" value={metrics.totalDesligamentos} icon={Users} variant="danger" />
-          <StatsCard title="Taxa de Turnover" value={`${metrics.taxaTurnover.toFixed(1)}%`} icon={TrendingDown} variant={metrics.taxaTurnover > 10 ? 'danger' : metrics.taxaTurnover > 5 ? 'warning' : 'success'} />
-          <StatsCard title="Custo Turnover" value={fmt(metrics.custoTurnover)} icon={DollarSign} variant="warning" />
-          <StatsCard title="Custo Médio/Colab." value={fmt(metrics.custoMedio)} icon={DollarSign} variant="default" />
-          <StatsCard title="Tempo Médio (meses)" value={metrics.tempoMedio.toFixed(1)} icon={Clock} variant="default" />
+        <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-5">
+          <TurnoverMetricCard title="Desligamentos" value={metrics.totalDesligamentos} icon={Users} tone="danger" />
+          <TurnoverMetricCard title="Taxa de Turnover" value={`${metrics.taxaTurnover.toFixed(1)}%`} icon={TrendingDown} tone={metrics.taxaTurnover > 10 ? 'danger' : metrics.taxaTurnover > 5 ? 'warning' : 'success'} />
+          <TurnoverMetricCard title="Custo Turnover" value={fmt(metrics.custoTurnover)} icon={DollarSign} tone="warning" />
+          <TurnoverMetricCard title="Custo Médio/Colab." value={fmt(metrics.custoMedio)} icon={DollarSign} tone="default" />
+          <TurnoverMetricCard title="Tempo Médio (meses)" value={metrics.tempoMedio.toFixed(1)} icon={Clock} tone="default" />
         </div>
 
         {/* Ver cálculo */}
