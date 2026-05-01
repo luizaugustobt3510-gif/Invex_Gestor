@@ -9,11 +9,43 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { StatsCard } from '@/components/StatsCard';
-import { TrendingDown, Users, DollarSign, Clock, Calculator, Settings, Info } from 'lucide-react';
+import { TrendingDown, Users, DollarSign, Clock, Calculator, Settings, Info, type LucideIcon } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--destructive))', 'hsl(var(--warning))', '#6366f1', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+
+type MetricTone = 'default' | 'success' | 'warning' | 'danger';
+
+const metricToneClasses: Record<MetricTone, string> = {
+  default: 'bg-primary/10 text-primary',
+  success: 'bg-success/10 text-success',
+  warning: 'bg-warning/10 text-warning',
+  danger: 'bg-danger/10 text-danger',
+};
+
+const TurnoverMetricCard = ({
+  title,
+  value,
+  icon: Icon,
+  tone = 'default',
+}: {
+  title: string;
+  value: string | number;
+  icon: LucideIcon;
+  tone?: MetricTone;
+}) => (
+  <Card className="h-full border-border/50 transition-all duration-300 hover:shadow-lg">
+    <CardContent className="flex h-full min-h-[108px] items-start justify-between gap-3 p-4">
+      <div className="min-w-0 flex-1 space-y-2">
+        <p className="text-sm font-medium leading-snug text-muted-foreground">{title}</p>
+        <p className="text-xl font-bold leading-snug text-foreground [overflow-wrap:anywhere]">{value}</p>
+      </div>
+      <div className={`shrink-0 rounded-lg p-2.5 ${metricToneClasses[tone]}`}>
+        <Icon className="h-5 w-5" />
+      </div>
+    </CardContent>
+  </Card>
+);
 
 const Turnover = () => {
   const { toast } = useToast();
