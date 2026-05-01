@@ -9,11 +9,43 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { StatsCard } from '@/components/StatsCard';
-import { TrendingDown, Users, DollarSign, Clock, Calculator, Settings, Info } from 'lucide-react';
+import { TrendingDown, Users, DollarSign, Clock, Calculator, Settings, Info, type LucideIcon } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--destructive))', 'hsl(var(--warning))', '#6366f1', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+
+type MetricTone = 'default' | 'success' | 'warning' | 'danger';
+
+const metricToneClasses: Record<MetricTone, string> = {
+  default: 'bg-primary/10 text-primary',
+  success: 'bg-success/10 text-success',
+  warning: 'bg-warning/10 text-warning',
+  danger: 'bg-danger/10 text-danger',
+};
+
+const TurnoverMetricCard = ({
+  title,
+  value,
+  icon: Icon,
+  tone = 'default',
+}: {
+  title: string;
+  value: string | number;
+  icon: LucideIcon;
+  tone?: MetricTone;
+}) => (
+  <Card className="h-full border-border/50 transition-all duration-300 hover:shadow-lg">
+    <CardContent className="flex h-full min-h-[108px] items-start justify-between gap-3 p-4">
+      <div className="min-w-0 flex-1 space-y-2">
+        <p className="text-sm font-medium leading-snug text-muted-foreground">{title}</p>
+        <p className="text-xl font-bold leading-snug text-foreground [overflow-wrap:anywhere]">{value}</p>
+      </div>
+      <div className={`shrink-0 rounded-lg p-2.5 ${metricToneClasses[tone]}`}>
+        <Icon className="h-5 w-5" />
+      </div>
+    </CardContent>
+  </Card>
+);
 
 const Turnover = () => {
   const { toast } = useToast();
@@ -191,12 +223,12 @@ const Turnover = () => {
         )}
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 items-stretch">
-          <StatsCard title="Desligamentos" value={metrics.totalDesligamentos} icon={Users} variant="danger" />
-          <StatsCard title="Taxa de Turnover" value={`${metrics.taxaTurnover.toFixed(1)}%`} icon={TrendingDown} variant={metrics.taxaTurnover > 10 ? 'danger' : metrics.taxaTurnover > 5 ? 'warning' : 'success'} />
-          <StatsCard title="Custo Turnover" value={fmt(metrics.custoTurnover)} icon={DollarSign} variant="warning" />
-          <StatsCard title="Custo Médio/Colab." value={fmt(metrics.custoMedio)} icon={DollarSign} variant="default" />
-          <StatsCard title="Tempo Médio (meses)" value={metrics.tempoMedio.toFixed(1)} icon={Clock} variant="default" />
+        <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-5">
+          <TurnoverMetricCard title="Desligamentos" value={metrics.totalDesligamentos} icon={Users} tone="danger" />
+          <TurnoverMetricCard title="Taxa de Turnover" value={`${metrics.taxaTurnover.toFixed(1)}%`} icon={TrendingDown} tone={metrics.taxaTurnover > 10 ? 'danger' : metrics.taxaTurnover > 5 ? 'warning' : 'success'} />
+          <TurnoverMetricCard title="Custo Turnover" value={fmt(metrics.custoTurnover)} icon={DollarSign} tone="warning" />
+          <TurnoverMetricCard title="Custo Médio/Colab." value={fmt(metrics.custoMedio)} icon={DollarSign} tone="default" />
+          <TurnoverMetricCard title="Tempo Médio (meses)" value={metrics.tempoMedio.toFixed(1)} icon={Clock} tone="default" />
         </div>
 
         {/* Ver cálculo */}
