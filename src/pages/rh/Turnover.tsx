@@ -191,7 +191,7 @@ const Turnover = () => {
         )}
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-stretch">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 items-stretch">
           <StatsCard title="Desligamentos" value={metrics.totalDesligamentos} icon={Users} variant="danger" />
           <StatsCard title="Taxa de Turnover" value={`${metrics.taxaTurnover.toFixed(1)}%`} icon={TrendingDown} variant={metrics.taxaTurnover > 10 ? 'danger' : metrics.taxaTurnover > 5 ? 'warning' : 'success'} />
           <StatsCard title="Custo Turnover" value={fmt(metrics.custoTurnover)} icon={DollarSign} variant="warning" />
