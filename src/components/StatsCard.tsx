@@ -26,7 +26,7 @@ export const StatsCard = ({ title, value, icon: Icon, trend, variant = "default"
         <div className="flex items-start justify-between gap-3 h-full">
           <div className="space-y-2 min-w-0 flex-1">
             <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</p>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground break-words leading-tight">{value}</p>
+            <p className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground break-words leading-tight">{value}</p>
             {trend && (
               <p className={`text-xs font-medium ${trend.positive ? "text-success" : "text-danger"}`}>
                 {trend.positive ? "↑" : "↓"} {trend.value}
