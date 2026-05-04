@@ -35,13 +35,13 @@ const TurnoverMetricCard = ({
   tone?: MetricTone;
 }) => (
   <Card className="h-full border-border/50 transition-all duration-300 hover:shadow-lg">
-    <CardContent className="flex h-full min-h-[108px] items-start justify-between gap-3 p-4">
-      <div className="min-w-0 flex-1 space-y-2">
-        <p className="text-sm font-medium leading-snug text-muted-foreground">{title}</p>
-        <p className="text-xl font-bold leading-snug text-foreground [overflow-wrap:anywhere]">{value}</p>
+    <CardContent className="flex h-full min-h-[100px] items-start justify-between gap-2 p-3 sm:p-4">
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <p className="text-xs font-medium leading-snug text-muted-foreground">{title}</p>
+        <p className="text-base sm:text-lg font-bold leading-snug text-foreground [overflow-wrap:anywhere]">{value}</p>
       </div>
-      <div className={`shrink-0 rounded-lg p-2.5 ${metricToneClasses[tone]}`}>
-        <Icon className="h-5 w-5" />
+      <div className={`shrink-0 rounded-lg p-2 ${metricToneClasses[tone]}`}>
+        <Icon className="h-4 w-4" />
       </div>
     </CardContent>
   </Card>
