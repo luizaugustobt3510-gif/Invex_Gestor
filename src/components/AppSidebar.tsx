@@ -65,6 +65,7 @@ const logisticsGroups: MenuGroup[] = [
       { path: '/cadastrar-material', label: 'Cadastrar Material', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'], submoduleKey: 'logistica.estoque' },
       { path: '/atualizar-estoque', label: 'Atualizar Estoque', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'], submoduleKey: 'logistica.estoque' },
       { path: '/itens-criticos', label: 'Itens Críticos', icon: <AlertTriangle className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.estoque' },
+      { path: '/reposicao', label: 'Reposição', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.estoque' },
       { path: '/qr-scanner', label: 'Escanear QR Code', icon: <ScanLine className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.estoque' },
       { path: '/gerar-qrcode', label: 'Gerar QR Code', icon: <QrCode className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.estoque' },
       { path: '/historico-movimentacoes', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.estoque' },

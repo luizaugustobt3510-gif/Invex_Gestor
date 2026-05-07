@@ -66,6 +66,7 @@ import PDV from "./pages/vendas/PDV";
 import HistoricoVendas from "./pages/vendas/HistoricoVendas";
 import RelatoriosVendas from "./pages/vendas/RelatoriosVendas";
 import Fornecedores from "./pages/logistica/Fornecedores";
+import Reposicao from "./pages/logistica/Reposicao";
 import CurvaABCInteligente from "./pages/logistica/CurvaABCInteligente";
 import DashboardManutencao from "./pages/manutencao/DashboardManutencao";
 import CadastroManutencao from "./pages/manutencao/CadastroManutencao";
@@ -115,6 +116,7 @@ const App = () => (
             <Route path="/importar-planilha" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><ImportarPlanilha /></RoleProtectedRoute>} />
             <Route path="/recontagem" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><Recontagem /></RoleProtectedRoute>} />
             <Route path="/itens-criticos" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><ItensCriticos /></RoleProtectedRoute>} />
+            <Route path="/reposicao" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><Reposicao /></RoleProtectedRoute>} />
             <Route path="/conferencia-temperatura" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.conferencia"><ConferenciaTemperatura /></RoleProtectedRoute>} />
             <Route path="/fornecedores" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><Fornecedores /></RoleProtectedRoute>} />
             <Route path="/curva-abc" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><CurvaABCInteligente /></RoleProtectedRoute>} />
