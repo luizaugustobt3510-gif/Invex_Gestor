@@ -137,7 +137,10 @@ export const useInventoryData = () => {
         };
       });
 
-      items = classifyCurva(items);
+      // Se Curva ABC não estiver configurada, classifica por valor (fallback)
+      if (abcResults.length === 0) {
+        items = classifyCurva(items);
+      }
 
       const sum: InventorySummary = {
         total_itens: items.length,
