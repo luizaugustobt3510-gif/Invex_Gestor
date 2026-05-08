@@ -68,6 +68,7 @@ import RelatoriosVendas from "./pages/vendas/RelatoriosVendas";
 import Fornecedores from "./pages/logistica/Fornecedores";
 import Reposicao from "./pages/logistica/Reposicao";
 import CurvaABCInteligente from "./pages/logistica/CurvaABCInteligente";
+import EstoqueInteligente from "./pages/logistica/EstoqueInteligente";
 import DashboardManutencao from "./pages/manutencao/DashboardManutencao";
 import CadastroManutencao from "./pages/manutencao/CadastroManutencao";
 import ListagemManutencao from "./pages/manutencao/ListagemManutencao";
