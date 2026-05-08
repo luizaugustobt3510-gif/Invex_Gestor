@@ -121,6 +121,7 @@ const App = () => (
             <Route path="/conferencia-temperatura" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.conferencia"><ConferenciaTemperatura /></RoleProtectedRoute>} />
             <Route path="/fornecedores" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><Fornecedores /></RoleProtectedRoute>} />
             <Route path="/curva-abc" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><CurvaABCInteligente /></RoleProtectedRoute>} />
+            <Route path="/estoque-inteligente" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><EstoqueInteligente /></RoleProtectedRoute>} />
 
             {/* === SOLICITAÇÕES === */}
             <Route path="/solicitar-material" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox', 'solicitante']} moduleKey="logistica" submoduleKey="logistica.solicitacoes"><SolicitarMaterial /></RoleProtectedRoute>} />
