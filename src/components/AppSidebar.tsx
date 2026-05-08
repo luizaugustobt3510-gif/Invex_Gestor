@@ -118,6 +118,17 @@ const logisticsGroups: MenuGroup[] = [
     moduleKey: 'logistica',
     items: [
       { path: '/curva-abc', label: 'Curva ABC Inteligente', icon: <TrendingUp className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      { path: '/estoque-inteligente', label: 'Mín/Máx Inteligente', icon: <Target className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+    ],
+  },
+  {
+    label: 'Setores',
+    icon: <Building2 className="w-4 h-4" />,
+    allowedRoles: ['admin', 'logistica'],
+    moduleKey: 'logistica',
+    items: [
+      { path: '/criar-setor', label: 'Cadastrar Setor', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      { path: '/listar-setores', label: 'Listar Setores', icon: <List className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
     ],
   },
   {
