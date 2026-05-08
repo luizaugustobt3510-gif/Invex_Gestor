@@ -86,13 +86,39 @@ export const useInventoryData = () => {
 
       if (matError) throw matError;
 
+      // Carrega Curva ABC para calcular mín/máx inteligente (substitui valores da planilha)
+      const { data: abcRow } = await supabase
+        .from('curva_abc_data')
+        .select('results')
+        .eq('company_id', roleData.company_id)
+        .maybeSingle();
+      const abcResults: Array<{ material: string; classe: string; consumoMensal: number }> =
+        (abcRow?.results as any) || [];
+      const abcMap = new Map<string, { classe: string; consumoMensal: number }>();
+      abcResults.forEach(r => abcMap.set(String(r.material).toUpperCase().trim(), { classe: r.classe, consumoMensal: Number(r.consumoMensal) || 0 }));
+
+      const coverage = (c: string) => {
+        if (c === 'A') return { minDays: 20, maxDays: 60 };
+        if (c === 'B') return { minDays: 15, maxDays: 45 };
+        return { minDays: 10, maxDays: 30 };
+      };
+
       let items: InventoryItem[] = (materials || []).map(m => {
         const qty = Number(m.quantidade);
-        const min = Number(m.minimo);
         const preco = Number(m.preco);
+
+        const abc = abcMap.get(String(m.material).toUpperCase().trim());
+        const classe = abc?.classe || 'C';
+        const consumoDiario = (abc?.consumoMensal || 0) / 30;
+        const cov = coverage(classe);
+
+        // Mín/máx INTELIGENTE substitui valores da planilha quando há consumo registrado
+        const smartMin = abc && abc.consumoMensal > 0 ? Math.max(0, Math.ceil(consumoDiario * cov.minDays)) : Number(m.minimo);
+        const smartMax = abc && abc.consumoMensal > 0 ? Math.max(smartMin, Math.ceil(consumoDiario * cov.maxDays)) : Number(m.maximo);
+
         let status = 'OK';
         if (qty === 0) status = 'Zerado';
-        else if (qty < min) status = 'Abaixo do Mínimo';
+        else if (qty < smartMin) status = 'Abaixo do Mínimo';
 
         return {
           id: m.id,
@@ -102,12 +128,12 @@ export const useInventoryData = () => {
           localizacao: m.localizacao || '',
           validade: m.validade || '',
           quantidade: qty,
-          minimo: min,
-          maximo: Number(m.maximo),
+          minimo: smartMin,
+          maximo: smartMax,
           preco,
           valorTotal: qty * preco,
           status,
-          curva: 'C',
+          curva: abc?.classe || 'C',
         };
       });
 
