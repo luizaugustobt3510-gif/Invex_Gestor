@@ -542,6 +542,24 @@ const GestaoUsuarios = () => {
                       </div>
                     ));
                   })()}
+
+                  <div className="mt-6 pt-4 border-t">
+                    <h4 className="text-sm font-semibold mb-2">Módulos extras concedidos</h4>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Conceda acesso completo (ler/criar/editar/excluir) a outros módulos além do perfil principal deste usuário.
+                    </p>
+                    <div className="space-y-2">
+                      {GRANTABLE_MODULES.map(mod => (
+                        <div key={mod.key} className="flex items-center justify-between rounded-lg border p-3">
+                          <span className="text-sm font-medium">{mod.label}</span>
+                          <Switch
+                            checked={extraModules[mod.key] ?? false}
+                            onCheckedChange={(checked) => toggleExtraModule(mod.key, checked)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </>
               )}
             </div>
