@@ -76,6 +76,16 @@ const ALL_MODULES = [
   { key: 'relatorios', label: 'Relatórios' },
 ];
 
+// Modules that can be GRANTED to a user (full CRUD) regardless of role
+const GRANTABLE_MODULES = [
+  { key: 'logistica', label: 'Logística & Estoque' },
+  { key: 'rh', label: 'Gestão de Pessoas' },
+  { key: 'financeiro', label: 'Financeiro' },
+  { key: 'manutencao', label: 'Manutenção' },
+  { key: 'academia', label: 'Academia' },
+  { key: 'vendas', label: 'Vendas' },
+];
+
 const GestaoUsuarios = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -89,6 +99,7 @@ const GestaoUsuarios = () => {
   const [modulesOpen, setModulesOpen] = useState(false);
   const [modulesUser, setModulesUser] = useState<UserRow | null>(null);
   const [userModules, setUserModules] = useState<Record<string, boolean>>({});
+  const [extraModules, setExtraModules] = useState<Record<string, boolean>>({});
   const [createOpen, setCreateOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [formData, setFormData] = useState({ email: '', senha: '', nome: '', role: '', company_id: '' });
@@ -208,20 +219,43 @@ const GestaoUsuarios = () => {
     setModulesUser(u);
     // Load company modules for user's company
     if (u.company_id) {
-      const { data } = await supabase
-        .from('company_modules')
-        .select('module_key, is_active')
-        .eq('company_id', u.company_id);
+      const [companyRes, extraRes] = await Promise.all([
+        supabase.from('company_modules').select('module_key, is_active').eq('company_id', u.company_id),
+        supabase.from('user_module_permissions').select('module_key, is_active').eq('company_id', u.company_id).eq('user_id', u.user_id),
+      ]);
       const state: Record<string, boolean> = {};
       ALL_MODULES.forEach(m => { state[m.key] = true; });
-      (data || []).forEach(d => { state[d.module_key] = d.is_active; });
+      (companyRes.data || []).forEach(d => { state[d.module_key] = d.is_active; });
       setUserModules(state);
+
+      const extras: Record<string, boolean> = {};
+      (extraRes.data || []).forEach(d => { extras[d.module_key] = d.is_active; });
+      setExtraModules(extras);
     } else {
       const state: Record<string, boolean> = {};
       ALL_MODULES.forEach(m => { state[m.key] = true; });
       setUserModules(state);
+      setExtraModules({});
     }
     setModulesOpen(true);
+  };
+
+  const toggleExtraModule = async (moduleKey: string, active: boolean) => {
+    if (!modulesUser?.company_id) return;
+    setExtraModules(prev => ({ ...prev, [moduleKey]: active }));
+    try {
+      const { error } = await supabase
+        .from('user_module_permissions')
+        .upsert(
+          { user_id: modulesUser.user_id, company_id: modulesUser.company_id, module_key: moduleKey, is_active: active },
+          { onConflict: 'user_id,company_id,module_key' }
+        );
+      if (error) throw error;
+      toast({ title: active ? 'Módulo concedido' : 'Módulo revogado', description: 'Atualizado com sucesso.' });
+    } catch (e: any) {
+      setExtraModules(prev => ({ ...prev, [moduleKey]: !active }));
+      toast({ title: 'Erro', description: e.message || 'Não foi possível atualizar.', variant: 'destructive' });
+    }
   };
 
   const toggleModule = async (moduleKey: string, active: boolean) => {
@@ -508,6 +542,24 @@ const GestaoUsuarios = () => {
                       </div>
                     ));
                   })()}
+
+                  <div className="mt-6 pt-4 border-t">
+                    <h4 className="text-sm font-semibold mb-2">Módulos extras concedidos</h4>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Conceda acesso completo (ler/criar/editar/excluir) a outros módulos além do perfil principal deste usuário.
+                    </p>
+                    <div className="space-y-2">
+                      {GRANTABLE_MODULES.map(mod => (
+                        <div key={mod.key} className="flex items-center justify-between rounded-lg border p-3">
+                          <span className="text-sm font-medium">{mod.label}</span>
+                          <Switch
+                            checked={extraModules[mod.key] ?? false}
+                            onCheckedChange={(checked) => toggleExtraModule(mod.key, checked)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </>
               )}
             </div>
