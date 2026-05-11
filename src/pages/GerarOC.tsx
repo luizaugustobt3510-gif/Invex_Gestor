@@ -309,7 +309,12 @@ const GerarOC = () => {
                                 <TableCell className="font-mono text-xs">{it.codigo}</TableCell>
                                 <TableCell>{it.material}</TableCell>
                                 <TableCell>
-                                  <Badge variant={it.status === 'Zerado' ? 'destructive' : 'outline'}>{it.status}</Badge>
+                                  <Badge
+                                    variant={it.status === 'Zerado' ? 'destructive' : 'outline'}
+                                    className={`whitespace-nowrap ${it.status === 'Abaixo do Mínimo' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : ''}`}
+                                  >
+                                    {it.status}
+                                  </Badge>
                                 </TableCell>
                                 <TableCell><Badge className={classeBadge(it.classe)} variant="outline">{it.classe}</Badge></TableCell>
                                 <TableCell className="text-right">{it.quantidade}</TableCell>
