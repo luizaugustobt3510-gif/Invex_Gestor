@@ -26,7 +26,10 @@ export const RoleProtectedRoute = ({ children, allowedRoles, moduleKey, submodul
     return <Navigate to="/login" replace />;
   }
 
-  if (!hasPermission(allowedRoles)) {
+  // If a moduleKey is provided, granting that module via user_module_permissions
+  // bypasses the role check (granted module = full access). Otherwise, role gates.
+  const hasModuleGrant = !!moduleKey && canAccessModule(moduleKey);
+  if (!hasModuleGrant && !hasPermission(allowedRoles)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
