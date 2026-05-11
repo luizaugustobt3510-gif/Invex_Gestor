@@ -89,6 +89,7 @@ const GestaoUsuarios = () => {
   const [modulesOpen, setModulesOpen] = useState(false);
   const [modulesUser, setModulesUser] = useState<UserRow | null>(null);
   const [userModules, setUserModules] = useState<Record<string, boolean>>({});
+  const [extraModules, setExtraModules] = useState<Record<string, boolean>>({});
   const [createOpen, setCreateOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [formData, setFormData] = useState({ email: '', senha: '', nome: '', role: '', company_id: '' });
