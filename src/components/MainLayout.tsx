@@ -78,8 +78,10 @@ export function MainLayout({ children, onExportReport, showExport = false, showQ
           </header>
 
           {/* Main content */}
-          <main className="flex-1 p-4 md:p-6">
-            {children}
+          <main className="flex-1 p-3 sm:p-4 md:p-6 2xl:p-8">
+            <div className="mx-auto w-full 2xl:max-w-[1600px]">
+              {children}
+            </div>
           </main>
         </SidebarInset>
       </div>
