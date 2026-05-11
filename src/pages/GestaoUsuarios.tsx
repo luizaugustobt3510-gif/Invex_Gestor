@@ -76,6 +76,16 @@ const ALL_MODULES = [
   { key: 'relatorios', label: 'Relatórios' },
 ];
 
+// Modules that can be GRANTED to a user (full CRUD) regardless of role
+const GRANTABLE_MODULES = [
+  { key: 'logistica', label: 'Logística & Estoque' },
+  { key: 'rh', label: 'Gestão de Pessoas' },
+  { key: 'financeiro', label: 'Financeiro' },
+  { key: 'manutencao', label: 'Manutenção' },
+  { key: 'academia', label: 'Academia' },
+  { key: 'vendas', label: 'Vendas' },
+];
+
 const GestaoUsuarios = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<UserRow[]>([]);
