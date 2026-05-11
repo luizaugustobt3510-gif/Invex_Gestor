@@ -219,20 +219,43 @@ const GestaoUsuarios = () => {
     setModulesUser(u);
     // Load company modules for user's company
     if (u.company_id) {
-      const { data } = await supabase
-        .from('company_modules')
-        .select('module_key, is_active')
-        .eq('company_id', u.company_id);
+      const [companyRes, extraRes] = await Promise.all([
+        supabase.from('company_modules').select('module_key, is_active').eq('company_id', u.company_id),
+        supabase.from('user_module_permissions').select('module_key, is_active').eq('company_id', u.company_id).eq('user_id', u.user_id),
+      ]);
       const state: Record<string, boolean> = {};
       ALL_MODULES.forEach(m => { state[m.key] = true; });
-      (data || []).forEach(d => { state[d.module_key] = d.is_active; });
+      (companyRes.data || []).forEach(d => { state[d.module_key] = d.is_active; });
       setUserModules(state);
+
+      const extras: Record<string, boolean> = {};
+      (extraRes.data || []).forEach(d => { extras[d.module_key] = d.is_active; });
+      setExtraModules(extras);
     } else {
       const state: Record<string, boolean> = {};
       ALL_MODULES.forEach(m => { state[m.key] = true; });
       setUserModules(state);
+      setExtraModules({});
     }
     setModulesOpen(true);
+  };
+
+  const toggleExtraModule = async (moduleKey: string, active: boolean) => {
+    if (!modulesUser?.company_id) return;
+    setExtraModules(prev => ({ ...prev, [moduleKey]: active }));
+    try {
+      const { error } = await supabase
+        .from('user_module_permissions')
+        .upsert(
+          { user_id: modulesUser.user_id, company_id: modulesUser.company_id, module_key: moduleKey, is_active: active },
+          { onConflict: 'user_id,company_id,module_key' }
+        );
+      if (error) throw error;
+      toast({ title: active ? 'Módulo concedido' : 'Módulo revogado', description: 'Atualizado com sucesso.' });
+    } catch (e: any) {
+      setExtraModules(prev => ({ ...prev, [moduleKey]: !active }));
+      toast({ title: 'Erro', description: e.message || 'Não foi possível atualizar.', variant: 'destructive' });
+    }
   };
 
   const toggleModule = async (moduleKey: string, active: boolean) => {
