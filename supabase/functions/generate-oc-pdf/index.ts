@@ -62,11 +62,25 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Role check: only super_admin and admin_empresa can generate
-    if (
-      userRole.role !== "super_admin" &&
-      userRole.role !== "admin_empresa"
-    ) {
+    // Permission check: super_admin, primary logistics roles, OR users with the
+    // 'logistica' module granted via user_module_permissions can generate OCs.
+    // admin_empresa is management-only and needs an explicit module grant.
+    const logisticsRoles = ["super_admin", "logistica", "usuario_almox", "solicitante"];
+    let canGenerate = logisticsRoles.includes(userRole.role);
+
+    if (!canGenerate) {
+      const { data: grant } = await supabase
+        .from("user_module_permissions")
+        .select("is_active")
+        .eq("user_id", userId)
+        .eq("company_id", userRole.company_id)
+        .eq("module_key", "logistica")
+        .eq("is_active", true)
+        .maybeSingle();
+      canGenerate = !!grant;
+    }
+
+    if (!canGenerate) {
       return new Response(
         JSON.stringify({ error: "Sem permissão para gerar Ordem de Compra" }),
         {
