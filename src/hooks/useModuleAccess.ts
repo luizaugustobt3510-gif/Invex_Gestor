@@ -91,9 +91,9 @@ export function useModuleAccess() {
         // First check parent module
         if (!canAccessModule(parentKey)) return false;
         // Then check the submodule itself
-        const companyActive = state.companyModules[moduleKey] ?? false;
+        const companyActive = state.companyModules[moduleKey] ?? true;
         if (!companyActive) return false;
-        const userActive = state.userModules[moduleKey] ?? false;
+        const userActive = state.userModules[moduleKey] ?? true;
         return userActive;
       }
 
