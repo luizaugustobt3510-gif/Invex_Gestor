@@ -1,112 +1,105 @@
-## Objetivo
+# Invex Fitness — Refatoração do Módulo Academia
 
-Reformular o controle de acesso para que:
+Transformar o atual módulo Academia (gestão de alunos/mensalidades) em **Invex Fitness**: um app pessoal de treinos com IA, gamificação e acompanhamento de evolução física. Cada usuário tem login próprio, vinculado à empresa "Invex Fitness".
 
-1. **Cada usuário tem 1 role principal + módulos extras concedidos**. Se a empresa concedeu um módulo a ele (via `user_module_permissions.is_active = true`), ele tem CRUD completo naquele módulo, mesmo que seu role principal seja outro.
-2. **Admin Empresa = gerência apenas**. Ele administra empresa, usuários, módulos, planos, setores e configurações. Para operar em RH/Financeiro/Logística/etc., precisa do role correspondente OU de módulo concedido — igual a qualquer outro usuário.
-3. **Isolamento total entre empresas** continua via `is_company_member` em todas as RLS.
+---
 
-## Mudanças no Banco
+## 1. Escopo e abordagem
 
-### 1. Nova função helper
+Dado o tamanho da entrega, proponho fazer em **3 fases** (cada uma aprovada antes da próxima):
 
-```sql
-public.user_can_write_module(_user_id uuid, _company_id uuid, _module_key text) returns boolean
-```
+### Fase 1 — Fundação (esta entrega)
+- Renomear módulo `academia` → `invex_fitness` na sidebar e rotas
+- Remover telas antigas (Alunos, Mensalidades, Dashboard Academia financeiro)
+- Criar nova empresa "Invex Fitness" + role `fitness_user`
+- Estrutura de banco completa (perfis, treinos, exercícios, medidas, conquistas, amigos, XP)
+- Tela de login dedicada e onboarding (escolha de avatar + nome do mascote)
+- Dashboard principal futurista (dark, neon, animado) com avatar, nível, XP, streak
+- Cadastro manual de usuário pelo admin (vincula à empresa Invex Fitness)
+- Tema dark cyberpunk/Tesla isolado do resto do app (só dentro de `/fitness/*`)
 
-Retorna `true` se:
-- é `super_admin`, OU
-- é membro da empresa E (tem o role principal do módulo OU tem `user_module_permissions(is_active=true)` para esse módulo)
-- E o módulo está ativo na empresa (`company_modules.is_active = true`)
+### Fase 2 — Treinos e Acompanhamento
+- Fichas de treino, exercícios com GIF/vídeo, cronômetro flutuante
+- Registro de carga/reps, histórico, gráficos de evolução
+- Medidas corporais, peso, IMC, fotos de evolução, água, sono, humor
+- Modo Academia (botões grandes) + Modo Foco
+- IA: progressão de carga, frases motivacionais, resumo semanal
 
-Mapeamento role→módulo:
-- `logistica` → logistica; `usuario_almox`, `solicitante` → logistica
-- `rh`, `visualizador` → rh
-- `financeiro` → financeiro
-- `manutencao` → manutencao
-- `vendas` → vendas (se existir)
+### Fase 3 — Social, Gamificação completa e IA Coach
+- Sistema completo de conquistas/medalhas/títulos
+- Amigos, ranking, desafios mensais, curtidas
+- Coach IA conversacional (chat)
+- Relatórios automáticos, detecção de desânimo
+- Avatar 3D reagindo à evolução
 
-### 2. Refatorar RLS (INSERT/UPDATE/DELETE) das tabelas operacionais
+---
 
-Substituir padrão atual:
-```
-is_company_admin(uid, company_id) OR (is_company_member(...) AND has_role(uid, 'X'))
-```
-Por:
-```
-user_can_write_module(uid, company_id, '<modulo>')
-```
+## 2. O que entra na Fase 1 (esta entrega)
 
-Tabelas afetadas (separadas por módulo):
+### Backend (migração SQL)
+- Criar empresa **Invex Fitness** + módulo `invex_fitness` ativo
+- Novo enum role: `fitness_user`
+- Tabelas:
+  - `fitness_profiles` — user_id, nome, foto_url, avatar_id (1-4), mascote_nome, nivel, xp, streak_dias, peso_atual, altura, meta_peso, criado em
+  - `fitness_workouts` — placeholder (estrutura básica para Fase 2)
+  - `fitness_measurements` — placeholder
+  - `fitness_achievements` — id, codigo, nome, descricao, icone, xp_recompensa
+  - `fitness_user_achievements` — user_id, achievement_id, conquistado_em
+  - `fitness_friends` — placeholder
+- RLS: cada usuário vê só os próprios dados; admin da empresa Invex Fitness vê todos
+- Bucket de storage `fitness-photos` (privado, isolado por user_id)
+- 4 avatares iniciais cadastrados (2 femininos cute, 2 masculinos cute) gerados via IA
+- Seed de ~10 conquistas iniciais
 
-```text
-RH (gestão de pessoas):
-  employees, employee_asos, employee_certificates, employee_occurrences,
-  employee_terminations, employee_trainings, employee_vacations,
-  benefits, benefits_monthly, employee_benefits, development_plans
+### Frontend
+- Rotas novas em `/fitness/*` (substitui `/academia/*`):
+  - `/fitness` — Dashboard principal
+  - `/fitness/onboarding` — escolher avatar + nome do mascote (1ª vez)
+  - `/fitness/perfil` — editar foto, nome, metas
+  - `/fitness/treinos` — placeholder "Em breve"
+  - `/fitness/evolucao` — placeholder "Em breve"
+  - `/fitness/conquistas` — lista de medalhas
+- **Layout próprio** `FitnessLayout` (dark, sem sidebar do app principal) — bottom nav mobile-first
+- Componentes novos:
+  - `AvatarMascote` — exibe avatar escolhido + balão de fala animado com mensagens
+  - `XPBar`, `StreakFlame`, `LevelBadge`
+  - `FuturisticCard` (glassmorphism, glow neon)
+- Tela de login dedicada `/fitness/login` (visual diferente, neon)
+- Cadastro de usuário fitness via Gestão de Usuários (admin escolhe role `fitness_user` + empresa Invex Fitness)
+- Tokens de design dark/neon adicionados ao `index.css` com prefixo `--fitness-*` (não afeta resto do app)
+- Frases motivacionais via Lovable AI (edge function `fitness-coach-message`) — gera 1 mensagem contextual ao abrir o dashboard
 
-Financeiro:
-  financial_entries, financial_categories
+### Remoções
+- Apagar `src/pages/academia/Alunos.tsx`, `Mensalidades.tsx`, `DashboardAcademia.tsx`
+- Tirar rotas de academia de `App.tsx`
+- Remover item "Academia" antigo da sidebar
+- Tabelas `academy_students` e `academy_payments`: **manter** no banco para não perder dados, mas sem UI (deletar em fase posterior se confirmado)
 
-Logística:
-  materials, movements, sectors, suppliers, purchase_orders, purchase_order_items,
-  requests, request_items, conciliacao_log, contagem_fisica, curva_abc_data
+---
 
-Manutenção:
-  maintenance_records, maintenance_attachments, maintenance_history,
-  maintenance_service_orders
+## 3. Detalhes técnicos
 
-Academia:
-  academy_students, academy_payments
+**Stack mantido**: React + Tailwind + shadcn + Supabase. Animações com `framer-motion` (adicionar). Sons sutis via `<audio>` HTML5 com toggle global.
 
-Vendas:
-  sales, sale_items (se existirem)
-```
+**Avatares**: 4 PNGs gerados (premium quality) em `src/assets/fitness-avatars/`:
+- `mei.png` — fem, cabelo rosa, estilo anime fofo
+- `luna.png` — fem, esportiva, cyberpunk soft
+- `kai.png` — masc, jovem, vibe streetwear
+- `jax.png` — masc, robô-mascote estilo Jarvis
 
-SELECT continua com `is_company_member` (todo mundo da empresa lê — UI faz o gating de exibição).
+**Tema dark isolado**: `<FitnessLayout>` aplica `data-theme="fitness-dark"` no wrapper; CSS escopado com `[data-theme="fitness-dark"]`.
 
-### 3. Manter `is_company_admin` apenas nas tabelas de gestão
+**IA**: edge function `fitness-coach-message` chama Lovable AI (`google/gemini-3-flash-preview`) com contexto do usuário (último treino, streak, dia da semana) e retorna 1 frase curta.
 
-```text
-companies, user_roles, company_modules, company_plans, user_module_permissions,
-audit_log, system_config (se houver)
-```
+**Mobile-first**: bottom navigation, botões mínimos 48px, viewport 100dvh.
 
-Admin Empresa NÃO ganha mais CRUD automático em RH/Financeiro/etc.
+---
 
-### 4. Garantir isolamento entre empresas
+## 4. Perguntas para liberar
 
-- Reforçar que toda política tem `is_company_member(uid, company_id)` no `USING`/`WITH CHECK`.
-- `super_admin` continua com bypass via política `ALL`.
+1. **Empresa "Invex Fitness"**: crio uma nova empresa no banco automaticamente, ou você vai criar manualmente pelo SuperAdmin?
+2. **Usuários fitness**: vão usar o login normal do app (mesma tela `/login`) ou quer uma URL/tela separada `/fitness/login`?
+3. **Avatares**: posso gerar os 4 com IA (estilo anime cute) ou prefere que eu use ícones/ilustrações vetoriais?
+4. **Fase 1 OK?** Ou prefere outra divisão (ex.: tudo de uma vez, mesmo levando bem mais tempo e ficando com menos polimento por área)?
 
-## Mudanças no Frontend
-
-### 1. `useModuleAccess` hook
-Atualizar para considerar módulo concedido como "pode escrever". Hoje provavelmente esconde botões com base só em role; passar a usar `hasModuleAccess(moduleKey)` para liberar ações.
-
-### 2. Sidebar (`AppSidebar.tsx`)
-Já filtra por `moduleKey`. Garantir que itens aparecem se o usuário tem o módulo concedido, independente do role.
-
-### 3. Telas de criar/editar
-Remover checks tipo `if (role !== 'rh') return null` e substituir por `if (!canAccessModule('rh')) return null`.
-
-### 4. Gestão de Usuários (`GestaoUsuarios.tsx`)
-- Admin Empresa só vê/edita usuários da própria empresa (já é assim via RLS).
-- UI deixa claro: "Role principal" + "Módulos extras concedidos" (checkboxes).
-- Ao marcar módulo extra, escreve em `user_module_permissions(is_active=true)`.
-
-## O que NÃO muda
-
-- Estrutura de tabelas (sem ALTER TABLE em colunas existentes).
-- Fluxos de Logística/Estoque (regra do projeto: não quebrar).
-- Super admin e isolamento por `company_id`.
-- Login, signup, reset de senha.
-
-## Riscos & Validação
-
-- **Risco principal**: Admin Empresa que hoje opera em RH/Financeiro perde acesso. Mitigação: documentar e, se necessário, conceder os módulos a ele via `user_module_permissions` na própria migração para os admins existentes.
-- Vou rodar a migração primeiro e pedir sua confirmação antes de mexer no frontend.
-
-## Próximo passo
-
-Crio a migração SQL e te apresento para aprovar. Depois ajusto frontend (`useModuleAccess`, telas de gestão de usuários, gates de UI).
+Após suas respostas, sigo direto com a migração + código da Fase 1.
