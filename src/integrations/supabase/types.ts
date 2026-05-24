@@ -1109,6 +1109,354 @@ export type Database = {
           },
         ]
       }
+      fitness_achievements: {
+        Row: {
+          codigo: string
+          created_at: string
+          descricao: string
+          icone: string
+          id: string
+          nome: string
+          raridade: string
+          xp_recompensa: number
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          descricao?: string
+          icone?: string
+          id?: string
+          nome: string
+          raridade?: string
+          xp_recompensa?: number
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          descricao?: string
+          icone?: string
+          id?: string
+          nome?: string
+          raridade?: string
+          xp_recompensa?: number
+        }
+        Relationships: []
+      }
+      fitness_friends: {
+        Row: {
+          created_at: string
+          friend_user_id: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_user_id: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_user_id?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fitness_measurements: {
+        Row: {
+          braco: number | null
+          cintura: number | null
+          coxa: number | null
+          created_at: string
+          data: string
+          foto_url: string | null
+          id: string
+          observacoes: string | null
+          panturrilha: number | null
+          peitoral: number | null
+          percentual_gordura: number | null
+          peso: number | null
+          quadril: number | null
+          user_id: string
+        }
+        Insert: {
+          braco?: number | null
+          cintura?: number | null
+          coxa?: number | null
+          created_at?: string
+          data?: string
+          foto_url?: string | null
+          id?: string
+          observacoes?: string | null
+          panturrilha?: number | null
+          peitoral?: number | null
+          percentual_gordura?: number | null
+          peso?: number | null
+          quadril?: number | null
+          user_id: string
+        }
+        Update: {
+          braco?: number | null
+          cintura?: number | null
+          coxa?: number | null
+          created_at?: string
+          data?: string
+          foto_url?: string | null
+          id?: string
+          observacoes?: string | null
+          panturrilha?: number | null
+          peitoral?: number | null
+          percentual_gordura?: number | null
+          peso?: number | null
+          quadril?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fitness_profiles: {
+        Row: {
+          agua_data: string | null
+          agua_hoje_ml: number | null
+          agua_meta_ml: number | null
+          altura: number | null
+          avatar_id: string
+          company_id: string
+          created_at: string
+          foto_url: string | null
+          humor: string | null
+          id: string
+          last_workout_date: string | null
+          mascote_nome: string
+          meta_freq_semanal: number | null
+          meta_peso: number | null
+          nivel: number
+          nome: string
+          onboarding_completo: boolean
+          peso_atual: number | null
+          sono_horas: number | null
+          streak_dias: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          agua_data?: string | null
+          agua_hoje_ml?: number | null
+          agua_meta_ml?: number | null
+          altura?: number | null
+          avatar_id?: string
+          company_id: string
+          created_at?: string
+          foto_url?: string | null
+          humor?: string | null
+          id?: string
+          last_workout_date?: string | null
+          mascote_nome?: string
+          meta_freq_semanal?: number | null
+          meta_peso?: number | null
+          nivel?: number
+          nome?: string
+          onboarding_completo?: boolean
+          peso_atual?: number | null
+          sono_horas?: number | null
+          streak_dias?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          agua_data?: string | null
+          agua_hoje_ml?: number | null
+          agua_meta_ml?: number | null
+          altura?: number | null
+          avatar_id?: string
+          company_id?: string
+          created_at?: string
+          foto_url?: string | null
+          humor?: string | null
+          id?: string
+          last_workout_date?: string | null
+          mascote_nome?: string
+          meta_freq_semanal?: number | null
+          meta_peso?: number | null
+          nivel?: number
+          nome?: string
+          onboarding_completo?: boolean
+          peso_atual?: number | null
+          sono_horas?: number | null
+          streak_dias?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      fitness_user_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fitness_user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "fitness_achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fitness_workout_exercises: {
+        Row: {
+          carga_kg: number | null
+          created_at: string
+          descanso_seg: number | null
+          id: string
+          midia_url: string | null
+          nome: string
+          observacoes: string | null
+          ordem: number
+          repeticoes: string
+          series: number
+          user_id: string
+          workout_id: string
+        }
+        Insert: {
+          carga_kg?: number | null
+          created_at?: string
+          descanso_seg?: number | null
+          id?: string
+          midia_url?: string | null
+          nome: string
+          observacoes?: string | null
+          ordem?: number
+          repeticoes?: string
+          series?: number
+          user_id: string
+          workout_id: string
+        }
+        Update: {
+          carga_kg?: number | null
+          created_at?: string
+          descanso_seg?: number | null
+          id?: string
+          midia_url?: string | null
+          nome?: string
+          observacoes?: string | null
+          ordem?: number
+          repeticoes?: string
+          series?: number
+          user_id?: string
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fitness_workout_exercises_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "fitness_workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fitness_workout_logs: {
+        Row: {
+          created_at: string
+          data_treino: string
+          duracao_min: number | null
+          exercicios: Json | null
+          id: string
+          observacoes: string | null
+          user_id: string
+          workout_id: string | null
+          xp_ganho: number | null
+        }
+        Insert: {
+          created_at?: string
+          data_treino?: string
+          duracao_min?: number | null
+          exercicios?: Json | null
+          id?: string
+          observacoes?: string | null
+          user_id: string
+          workout_id?: string | null
+          xp_ganho?: number | null
+        }
+        Update: {
+          created_at?: string
+          data_treino?: string
+          duracao_min?: number | null
+          exercicios?: Json | null
+          id?: string
+          observacoes?: string | null
+          user_id?: string
+          workout_id?: string | null
+          xp_ganho?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fitness_workout_logs_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "fitness_workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fitness_workouts: {
+        Row: {
+          ativo: boolean
+          cor: string | null
+          created_at: string
+          dias_semana: number[] | null
+          grupo_muscular: string | null
+          id: string
+          nome: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          cor?: string | null
+          created_at?: string
+          dias_semana?: number[] | null
+          grupo_muscular?: string | null
+          id?: string
+          nome: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          cor?: string | null
+          created_at?: string
+          dias_semana?: number[] | null
+          grupo_muscular?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       hr_appointments: {
         Row: {
           company_id: string
@@ -2639,6 +2987,7 @@ export type Database = {
         | "financeiro"
         | "visualizador"
         | "manutencao"
+        | "fitness_user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2776,6 +3125,7 @@ export const Constants = {
         "financeiro",
         "visualizador",
         "manutencao",
+        "fitness_user",
       ],
     },
   },
