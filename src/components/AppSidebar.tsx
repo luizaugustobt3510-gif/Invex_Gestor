@@ -142,17 +142,15 @@ const logisticsGroups: MenuGroup[] = [
   },
 ];
 
-// ─── ACADEMIA ───
+// ─── INVEX FITNESS (app pessoal — link rápido) ───
 const academiaGroups: MenuGroup[] = [
   {
-    label: 'Academia',
+    label: 'Invex Fitness',
     icon: <Dumbbell className="w-4 h-4" />,
-    allowedRoles: ['admin', 'logistica'],
-    moduleKey: 'academia',
+    allowedRoles: ['admin', 'superadm', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao'],
+    moduleKey: 'invex_fitness',
     items: [
-      { path: '/academia', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
-      { path: '/academia/alunos', label: 'Alunos', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
-      { path: '/academia/mensalidades', label: 'Mensalidades', icon: <DollarSign className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      { path: '/fitness', label: 'Abrir App Fitness', icon: <Dumbbell className="w-4 h-4" />, allowedRoles: ['admin', 'superadm', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao'] },
     ],
   },
 ];
