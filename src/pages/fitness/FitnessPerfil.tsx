@@ -26,8 +26,8 @@ const FitnessPerfil = () => {
       const path = `${user.id}/profile-${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from('fitness-photos').upload(path, file, { upsert: true });
       if (error) throw error;
-      const { data } = supabase.storage.from('fitness-photos').createSignedUrl(path, 60 * 60 * 24 * 365);
-      const signed = (await data).data?.signedUrl;
+      const { data: signedData } = await supabase.storage.from('fitness-photos').createSignedUrl(path, 60 * 60 * 24 * 365);
+      const signed = signedData?.signedUrl;
       await update({ foto_url: signed || path });
       toast.success('Foto atualizada!');
     } catch (e: any) {

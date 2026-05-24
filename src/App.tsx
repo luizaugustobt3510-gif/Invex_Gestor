@@ -54,9 +54,13 @@ import ImportarFuncionarios from "./pages/rh/ImportarFuncionarios";
 import Turnover from "./pages/rh/Turnover";
 import GestaoUsuarios from "./pages/GestaoUsuarios";
 import ConferenciaTemperatura from "./pages/logistica/ConferenciaTemperatura";
-import DashboardAcademia from "./pages/academia/DashboardAcademia";
-import Alunos from "./pages/academia/Alunos";
-import Mensalidades from "./pages/academia/Mensalidades";
+import FitnessLogin from "./pages/fitness/FitnessLogin";
+import FitnessOnboarding from "./pages/fitness/FitnessOnboarding";
+import FitnessDashboard from "./pages/fitness/FitnessDashboard";
+import FitnessPerfil from "./pages/fitness/FitnessPerfil";
+import FitnessTreinos from "./pages/fitness/FitnessTreinos";
+import FitnessEvolucao from "./pages/fitness/FitnessEvolucao";
+import FitnessConquistas from "./pages/fitness/FitnessConquistas";
 import DashboardFinanceiro from "./pages/financeiro/DashboardFinanceiro";
 import Lancamentos from "./pages/financeiro/Lancamentos";
 import FluxoCaixa from "./pages/financeiro/FluxoCaixa";
@@ -162,10 +166,17 @@ const App = () => (
             <Route path="/rh/turnover" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh" submoduleKey="rh.turnover"><Turnover /></RoleProtectedRoute>} />
             <Route path="/rh/importar-funcionarios" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']} moduleKey="rh" submoduleKey="rh.dashboard"><ImportarFuncionarios /></RoleProtectedRoute>} />
 
-            {/* === ACADEMIA === */}
-            <Route path="/academia" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="academia"><DashboardAcademia /></RoleProtectedRoute>} />
-            <Route path="/academia/alunos" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="academia"><Alunos /></RoleProtectedRoute>} />
-            <Route path="/academia/mensalidades" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="academia"><Mensalidades /></RoleProtectedRoute>} />
+            {/* === INVEX FITNESS === */}
+            <Route path="/fitness/login" element={<FitnessLogin />} />
+            <Route path="/academia" element={<Navigate to="/fitness" replace />} />
+            <Route path="/academia/*" element={<Navigate to="/fitness" replace />} />
+            <Route path="/fitness" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><FitnessDashboard /></RoleProtectedRoute>} />
+            <Route path="/fitness/onboarding" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><FitnessOnboarding /></RoleProtectedRoute>} />
+            <Route path="/fitness/perfil" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><FitnessPerfil /></RoleProtectedRoute>} />
+            <Route path="/fitness/treinos" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><FitnessTreinos /></RoleProtectedRoute>} />
+            <Route path="/fitness/evolucao" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><FitnessEvolucao /></RoleProtectedRoute>} />
+            <Route path="/fitness/conquistas" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><FitnessConquistas /></RoleProtectedRoute>} />
+            
             
             {/* === FINANCEIRO === */}
             <Route path="/financeiro" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro" submoduleKey="financeiro.dashboard"><DashboardFinanceiro /></RoleProtectedRoute>} />
