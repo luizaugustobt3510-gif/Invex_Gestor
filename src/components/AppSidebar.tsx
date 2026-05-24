@@ -1,24 +1,75 @@
-import { useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth, UserRole } from '@/contexts/AuthContext';
-import { useModuleAccess } from '@/hooks/useModuleAccess';
+import { useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth, UserRole } from "@/contexts/AuthContext";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 import {
-  LayoutDashboard, Package, PackagePlus, RefreshCw, TrendingUp, FileText,
-  FileSpreadsheet, Building2, Building, List, Send, ClipboardList, Inbox,
-  UserPlus, LogOut, ChevronDown, QrCode, History, ScanLine, ClipboardCheck,
-  Puzzle, CreditCard, Settings, ScrollText, Download, Shield, User,
-  AlertTriangle, Users, Calendar, HeartPulse, GraduationCap, Clock, Star,
-  BarChart3, Thermometer, Target, UserMinus, Dumbbell, DollarSign, Wallet,
-  BarChart2, Receipt, ShoppingCart, Truck, Wrench, Heart, Gift, Calculator,
-} from 'lucide-react';
-import { InvexLogo } from '@/components/InvexLogo';
+  LayoutDashboard,
+  Package,
+  PackagePlus,
+  RefreshCw,
+  TrendingUp,
+  FileText,
+  FileSpreadsheet,
+  Building2,
+  Building,
+  List,
+  Send,
+  ClipboardList,
+  Inbox,
+  UserPlus,
+  LogOut,
+  ChevronDown,
+  QrCode,
+  History,
+  ScanLine,
+  ClipboardCheck,
+  Puzzle,
+  CreditCard,
+  Settings,
+  ScrollText,
+  Download,
+  Shield,
+  User,
+  AlertTriangle,
+  Users,
+  Calendar,
+  HeartPulse,
+  GraduationCap,
+  Clock,
+  Star,
+  BarChart3,
+  Thermometer,
+  Target,
+  UserMinus,
+  Dumbbell,
+  DollarSign,
+  Wallet,
+  BarChart2,
+  Receipt,
+  ShoppingCart,
+  Truck,
+  Wrench,
+  Heart,
+  Gift,
+  Calculator,
+} from "lucide-react";
+import { InvexLogo } from "@/components/InvexLogo";
 import {
-  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
-  SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton,
-  SidebarMenuItem, SidebarSeparator, useSidebar,
-} from '@/components/ui/sidebar';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { cn } from '@/lib/utils';
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarSeparator,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 
 interface MenuItem {
   path: string;
@@ -36,11 +87,11 @@ interface MenuGroup {
   moduleKey?: string;
 }
 
-const SIDEBAR_SCROLL_KEY = 'invex:sidebar-scroll-top';
+const SIDEBAR_SCROLL_KEY = "invex:sidebar-scroll-top";
 let persistedSidebarScrollTop = 0;
 
 const getStoredSidebarScrollTop = () => {
-  if (typeof window === 'undefined') return persistedSidebarScrollTop;
+  if (typeof window === "undefined") return persistedSidebarScrollTop;
   const stored = window.sessionStorage.getItem(SIDEBAR_SCROLL_KEY);
   return stored ? Number(stored) || 0 : persistedSidebarScrollTop;
 };
@@ -48,96 +99,217 @@ const getStoredSidebarScrollTop = () => {
 // ─── LOGÍSTICA ───
 const logisticsGroups: MenuGroup[] = [
   {
-    label: 'Logística',
+    label: "Logística",
     icon: <Package className="w-4 h-4" />,
-    allowedRoles: ['admin', 'logistica', 'usuario almox'],
-    moduleKey: 'logistica',
+    allowedRoles: ["admin", "logistica", "usuario almox"],
+    moduleKey: "logistica",
     items: [
-      { path: '/logistica/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.dashboard' },
+      {
+        path: "/logistica/dashboard",
+        label: "Dashboard",
+        icon: <LayoutDashboard className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox"],
+        submoduleKey: "logistica.dashboard",
+      },
     ],
   },
   {
-    label: 'Estoque',
+    label: "Estoque",
     icon: <Package className="w-4 h-4" />,
-    allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'],
-    moduleKey: 'logistica',
+    allowedRoles: ["admin", "logistica", "usuario almox", "solicitante"],
+    moduleKey: "logistica",
     items: [
-      { path: '/cadastrar-material', label: 'Cadastrar Material', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'], submoduleKey: 'logistica.estoque' },
-      { path: '/atualizar-estoque', label: 'Atualizar Estoque', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'], submoduleKey: 'logistica.estoque' },
-      { path: '/itens-criticos', label: 'Itens Críticos', icon: <AlertTriangle className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.estoque' },
-      { path: '/reposicao', label: 'Reposição', icon: <RefreshCw className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.estoque' },
-      { path: '/qr-scanner', label: 'Escanear QR Code', icon: <ScanLine className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.estoque' },
-      { path: '/gerar-qrcode', label: 'Gerar QR Code', icon: <QrCode className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.estoque' },
-      { path: '/historico-movimentacoes', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.estoque' },
-      { path: '/importar-planilha', label: 'Importar Planilha', icon: <FileSpreadsheet className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.estoque' },
-      { path: '/recontagem', label: 'Recontagem', icon: <ClipboardCheck className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.estoque' },
+      {
+        path: "/cadastrar-material",
+        label: "Cadastrar Material",
+        icon: <PackagePlus className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+        submoduleKey: "logistica.estoque",
+      },
+      {
+        path: "/atualizar-estoque",
+        label: "Atualizar Estoque",
+        icon: <RefreshCw className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+        submoduleKey: "logistica.estoque",
+      },
+      {
+        path: "/itens-criticos",
+        label: "Itens Críticos",
+        icon: <AlertTriangle className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox"],
+        submoduleKey: "logistica.estoque",
+      },
+      {
+        path: "/reposicao",
+        label: "Reposição",
+        icon: <RefreshCw className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox"],
+        submoduleKey: "logistica.estoque",
+      },
+      {
+        path: "/qr-scanner",
+        label: "Escanear QR Code",
+        icon: <ScanLine className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox"],
+        submoduleKey: "logistica.estoque",
+      },
+      {
+        path: "/gerar-qrcode",
+        label: "Gerar QR Code",
+        icon: <QrCode className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox"],
+        submoduleKey: "logistica.estoque",
+      },
+      {
+        path: "/historico-movimentacoes",
+        label: "Histórico",
+        icon: <History className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox"],
+        submoduleKey: "logistica.estoque",
+      },
+      {
+        path: "/importar-planilha",
+        label: "Importar Planilha",
+        icon: <FileSpreadsheet className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox"],
+        submoduleKey: "logistica.estoque",
+      },
+      {
+        path: "/recontagem",
+        label: "Recontagem",
+        icon: <ClipboardCheck className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox"],
+        submoduleKey: "logistica.estoque",
+      },
     ],
   },
   {
-    label: 'Ordens de Compra',
+    label: "Ordens de Compra",
     icon: <FileText className="w-4 h-4" />,
-    allowedRoles: ['admin', 'logistica'],
-    moduleKey: 'logistica',
+    allowedRoles: ["admin", "logistica"],
+    moduleKey: "logistica",
     items: [
-      { path: '/gerar-oc', label: 'Gerar OC', icon: <FileText className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'], submoduleKey: 'logistica.ordem_compra' },
-      { path: '/gerenciar-oc', label: 'Gerenciar OC', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'], submoduleKey: 'logistica.ordem_compra' },
+      {
+        path: "/gerar-oc",
+        label: "Gerar OC",
+        icon: <FileText className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+        submoduleKey: "logistica.ordem_compra",
+      },
+      {
+        path: "/gerenciar-oc",
+        label: "Gerenciar OC",
+        icon: <ClipboardList className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+        submoduleKey: "logistica.ordem_compra",
+      },
     ],
   },
   {
-    label: 'Conciliação',
+    label: "Conciliação",
     icon: <ClipboardList className="w-4 h-4" />,
-    allowedRoles: ['admin', 'logistica'],
-    moduleKey: 'logistica',
+    allowedRoles: ["admin", "logistica"],
+    moduleKey: "logistica",
     items: [
-      { path: '/conciliacao', label: 'Conciliar', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'], submoduleKey: 'logistica.conciliacao_estoque' },
+      {
+        path: "/conciliacao",
+        label: "Conciliar",
+        icon: <ClipboardList className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+        submoduleKey: "logistica.conciliacao_estoque",
+      },
     ],
   },
   {
-    label: 'Solicitações',
+    label: "Solicitações",
     icon: <Inbox className="w-4 h-4" />,
-    allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'],
-    moduleKey: 'logistica',
+    allowedRoles: ["admin", "logistica", "usuario almox", "solicitante"],
+    moduleKey: "logistica",
     items: [
-      { path: '/solicitar-material', label: 'Solicitar Material', icon: <Send className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'], submoduleKey: 'logistica.solicitacoes' },
-      { path: '/listar-solicitacoes', label: 'Solicitações', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox', 'solicitante'], submoduleKey: 'logistica.solicitacoes' },
+      {
+        path: "/solicitar-material",
+        label: "Solicitar Material",
+        icon: <Send className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox", "solicitante"],
+        submoduleKey: "logistica.solicitacoes",
+      },
+      {
+        path: "/listar-solicitacoes",
+        label: "Solicitações",
+        icon: <ClipboardList className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox", "solicitante"],
+        submoduleKey: "logistica.solicitacoes",
+      },
     ],
   },
   {
-    label: 'Fornecedores',
+    label: "Fornecedores",
     icon: <Truck className="w-4 h-4" />,
-    allowedRoles: ['admin', 'logistica'],
-    moduleKey: 'logistica',
+    allowedRoles: ["admin", "logistica"],
+    moduleKey: "logistica",
     items: [
-      { path: '/fornecedores', label: 'Gestão de Fornecedores', icon: <Truck className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      {
+        path: "/fornecedores",
+        label: "Gestão de Fornecedores",
+        icon: <Truck className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+      },
     ],
   },
   {
-    label: 'Curva ABC',
+    label: "Curva ABC",
     icon: <TrendingUp className="w-4 h-4" />,
-    allowedRoles: ['admin', 'logistica'],
-    moduleKey: 'logistica',
+    allowedRoles: ["admin", "logistica"],
+    moduleKey: "logistica",
     items: [
-      { path: '/curva-abc', label: 'Curva ABC Inteligente', icon: <TrendingUp className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
-      { path: '/estoque-inteligente', label: 'Mín/Máx Inteligente', icon: <Target className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      {
+        path: "/curva-abc",
+        label: "Curva ABC Inteligente",
+        icon: <TrendingUp className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+      },
+      {
+        path: "/estoque-inteligente",
+        label: "Mín/Máx Inteligente",
+        icon: <Target className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+      },
     ],
   },
   {
-    label: 'Setores',
+    label: "Setores",
     icon: <Building2 className="w-4 h-4" />,
-    allowedRoles: ['admin', 'logistica'],
-    moduleKey: 'logistica',
+    allowedRoles: ["admin", "logistica"],
+    moduleKey: "logistica",
     items: [
-      { path: '/criar-setor', label: 'Cadastrar Setor', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
-      { path: '/listar-setores', label: 'Listar Setores', icon: <List className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
+      {
+        path: "/criar-setor",
+        label: "Cadastrar Setor",
+        icon: <PackagePlus className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+      },
+      {
+        path: "/listar-setores",
+        label: "Listar Setores",
+        icon: <List className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+      },
     ],
   },
   {
-    label: 'Conferência',
+    label: "Conferência",
     icon: <Thermometer className="w-4 h-4" />,
-    allowedRoles: ['admin', 'logistica', 'usuario almox'],
-    moduleKey: 'logistica',
+    allowedRoles: ["admin", "logistica", "usuario almox"],
+    moduleKey: "logistica",
     items: [
-      { path: '/conferencia-temperatura', label: 'Controle Temperatura', icon: <Thermometer className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'usuario almox'], submoduleKey: 'logistica.conferencia' },
+      {
+        path: "/conferencia-temperatura",
+        label: "Controle Temperatura",
+        icon: <Thermometer className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox"],
+        submoduleKey: "logistica.conferencia",
+      },
     ],
   },
 ];
@@ -145,12 +317,37 @@ const logisticsGroups: MenuGroup[] = [
 // ─── INVEX FITNESS (app pessoal — link rápido) ───
 const academiaGroups: MenuGroup[] = [
   {
-    label: 'Invex Fitness',
+    label: "Invex Fitness",
     icon: <Dumbbell className="w-4 h-4" />,
-    allowedRoles: ['admin', 'superadm', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao'],
-    moduleKey: 'invex_fitness',
+    allowedRoles: [
+      "admin",
+      "superadm",
+      "usuario almox",
+      "solicitante",
+      "logistica",
+      "rh",
+      "financeiro",
+      "visualizador",
+      "manutencao",
+    ],
+    moduleKey: "banana_tropical",
     items: [
-      { path: '/fitness', label: 'Abrir App Fitness', icon: <Dumbbell className="w-4 h-4" />, allowedRoles: ['admin', 'superadm', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao'] },
+      {
+        path: "/fitness",
+        label: "Abrir App Fitness",
+        icon: <Dumbbell className="w-4 h-4" />,
+        allowedRoles: [
+          "admin",
+          "superadm",
+          "usuario almox",
+          "solicitante",
+          "logistica",
+          "rh",
+          "financeiro",
+          "visualizador",
+          "manutencao",
+        ],
+      },
     ],
   },
 ];
@@ -158,15 +355,35 @@ const academiaGroups: MenuGroup[] = [
 // ─── VENDAS ───
 const vendasGroups: MenuGroup[] = [
   {
-    label: 'Vendas',
+    label: "Vendas",
     icon: <ShoppingCart className="w-4 h-4" />,
-    allowedRoles: ['admin', 'logistica', 'financeiro'],
-    moduleKey: 'vendas',
+    allowedRoles: ["admin", "logistica", "financeiro"],
+    moduleKey: "vendas",
     items: [
-      { path: '/vendas', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'financeiro'] },
-      { path: '/vendas/pdv', label: 'PDV', icon: <ShoppingCart className="w-4 h-4" />, allowedRoles: ['admin', 'logistica'] },
-      { path: '/vendas/historico', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'financeiro'] },
-      { path: '/vendas/relatorios', label: 'Relatórios', icon: <BarChart2 className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'financeiro'] },
+      {
+        path: "/vendas",
+        label: "Dashboard",
+        icon: <LayoutDashboard className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "financeiro"],
+      },
+      {
+        path: "/vendas/pdv",
+        label: "PDV",
+        icon: <ShoppingCart className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+      },
+      {
+        path: "/vendas/historico",
+        label: "Histórico",
+        icon: <History className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "financeiro"],
+      },
+      {
+        path: "/vendas/relatorios",
+        label: "Relatórios",
+        icon: <BarChart2 className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "financeiro"],
+      },
     ],
   },
 ];
@@ -174,90 +391,198 @@ const vendasGroups: MenuGroup[] = [
 // ─── FINANCEIRO ───
 const financeiroGroups: MenuGroup[] = [
   {
-    label: 'Financeiro',
+    label: "Financeiro",
     icon: <Wallet className="w-4 h-4" />,
-    allowedRoles: ['admin', 'financeiro', 'logistica'],
-    moduleKey: 'financeiro',
+    allowedRoles: ["admin", "financeiro", "logistica"],
+    moduleKey: "financeiro",
     items: [
-      { path: '/financeiro', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'financeiro', 'logistica'], submoduleKey: 'financeiro.dashboard' },
-      { path: '/financeiro/lancamentos', label: 'Lançamentos', icon: <Receipt className="w-4 h-4" />, allowedRoles: ['admin', 'financeiro', 'logistica'], submoduleKey: 'financeiro.lancamentos' },
-      { path: '/financeiro/fluxo-caixa', label: 'Fluxo de Caixa', icon: <DollarSign className="w-4 h-4" />, allowedRoles: ['admin', 'financeiro', 'logistica'], submoduleKey: 'financeiro.fluxo_caixa' },
-      { path: '/financeiro/relatorios', label: 'Relatórios', icon: <BarChart2 className="w-4 h-4" />, allowedRoles: ['admin', 'financeiro'], submoduleKey: 'financeiro.relatorios' },
+      {
+        path: "/financeiro",
+        label: "Dashboard",
+        icon: <LayoutDashboard className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro", "logistica"],
+        submoduleKey: "financeiro.dashboard",
+      },
+      {
+        path: "/financeiro/lancamentos",
+        label: "Lançamentos",
+        icon: <Receipt className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro", "logistica"],
+        submoduleKey: "financeiro.lancamentos",
+      },
+      {
+        path: "/financeiro/fluxo-caixa",
+        label: "Fluxo de Caixa",
+        icon: <DollarSign className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro", "logistica"],
+        submoduleKey: "financeiro.fluxo_caixa",
+      },
+      {
+        path: "/financeiro/relatorios",
+        label: "Relatórios",
+        icon: <BarChart2 className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro"],
+        submoduleKey: "financeiro.relatorios",
+      },
     ],
   },
 ];
 
 // ─── GESTÃO DE PESSOAS (RH) ───
-const rhModuleKey = 'rh';
+const rhModuleKey = "rh";
 const rhGroups: MenuGroup[] = [
   {
-    label: 'Visão Geral',
+    label: "Visão Geral",
     icon: <LayoutDashboard className="w-4 h-4" />,
-    allowedRoles: ['admin', 'rh', 'visualizador'],
-    moduleKey: 'rh',
+    allowedRoles: ["admin", "rh", "visualizador"],
+    moduleKey: "rh",
     items: [
-      { path: '/rh', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.dashboard' },
-      { path: '/rh/painel-diario', label: 'Painel Diário', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.dashboard' },
+      {
+        path: "/rh",
+        label: "Dashboard",
+        icon: <LayoutDashboard className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "visualizador"],
+        submoduleKey: "rh.dashboard",
+      },
+      {
+        path: "/rh/painel-diario",
+        label: "Painel Diário",
+        icon: <Calendar className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "visualizador"],
+        submoduleKey: "rh.dashboard",
+      },
     ],
   },
   {
-    label: 'Colaboradores',
+    label: "Colaboradores",
     icon: <Users className="w-4 h-4" />,
-    allowedRoles: ['admin', 'rh', 'visualizador'],
-    moduleKey: 'rh',
+    allowedRoles: ["admin", "rh", "visualizador"],
+    moduleKey: "rh",
     items: [
-      { path: '/rh/colaboradores', label: 'Colaboradores', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.dashboard' },
-      { path: '/rh/importar-funcionarios', label: 'Importar Funcionários', icon: <FileText className="w-4 h-4" />, allowedRoles: ['admin', 'rh'], submoduleKey: 'rh.dashboard' },
+      {
+        path: "/rh/colaboradores",
+        label: "Colaboradores",
+        icon: <Users className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "visualizador"],
+        submoduleKey: "rh.dashboard",
+      },
+      {
+        path: "/rh/importar-funcionarios",
+        label: "Importar Funcionários",
+        icon: <FileText className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh"],
+        submoduleKey: "rh.dashboard",
+      },
     ],
   },
   {
-    label: 'Movimentação',
+    label: "Movimentação",
     icon: <UserMinus className="w-4 h-4" />,
-    allowedRoles: ['admin', 'rh', 'visualizador'],
-    moduleKey: 'rh',
+    allowedRoles: ["admin", "rh", "visualizador"],
+    moduleKey: "rh",
     items: [
-      { path: '/rh/desligamentos', label: 'Desligamentos', icon: <UserMinus className="w-4 h-4" />, allowedRoles: ['admin', 'rh'], submoduleKey: 'rh.desligamentos' },
-      { path: '/rh/turnover', label: 'Turnover', icon: <TrendingUp className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.turnover' },
-      { path: '/rh/ocorrencias', label: 'Ocorrências', icon: <AlertTriangle className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.ocorrencias' },
+      {
+        path: "/rh/desligamentos",
+        label: "Desligamentos",
+        icon: <UserMinus className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh"],
+        submoduleKey: "rh.desligamentos",
+      },
+      {
+        path: "/rh/turnover",
+        label: "Turnover",
+        icon: <TrendingUp className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "visualizador"],
+        submoduleKey: "rh.turnover",
+      },
+      {
+        path: "/rh/ocorrencias",
+        label: "Ocorrências",
+        icon: <AlertTriangle className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "visualizador"],
+        submoduleKey: "rh.ocorrencias",
+      },
     ],
   },
   {
-    label: 'Saúde & Segurança',
+    label: "Saúde & Segurança",
     icon: <HeartPulse className="w-4 h-4" />,
-    allowedRoles: ['admin', 'rh', 'visualizador'],
-    moduleKey: 'rh',
+    allowedRoles: ["admin", "rh", "visualizador"],
+    moduleKey: "rh",
     items: [
-      { path: '/rh/atestados', label: 'Atestados', icon: <FileText className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.atestados' },
-      { path: '/rh/aso', label: 'ASO', icon: <HeartPulse className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.aso' },
+      {
+        path: "/rh/atestados",
+        label: "Atestados",
+        icon: <FileText className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "visualizador"],
+        submoduleKey: "rh.atestados",
+      },
+      {
+        path: "/rh/aso",
+        label: "ASO",
+        icon: <HeartPulse className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "visualizador"],
+        submoduleKey: "rh.aso",
+      },
     ],
   },
   {
-    label: 'Tempo & Jornada',
+    label: "Tempo & Jornada",
     icon: <Clock className="w-4 h-4" />,
-    allowedRoles: ['admin', 'rh', 'visualizador'],
-    moduleKey: 'rh',
+    allowedRoles: ["admin", "rh", "visualizador"],
+    moduleKey: "rh",
     items: [
-      { path: '/rh/ferias', label: 'Férias', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.ferias' },
-      { path: '/rh/banco-de-horas', label: 'Banco de Horas', icon: <Clock className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.dashboard' },
+      {
+        path: "/rh/ferias",
+        label: "Férias",
+        icon: <Calendar className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "visualizador"],
+        submoduleKey: "rh.ferias",
+      },
+      {
+        path: "/rh/banco-de-horas",
+        label: "Banco de Horas",
+        icon: <Clock className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "visualizador"],
+        submoduleKey: "rh.dashboard",
+      },
     ],
   },
   {
-    label: 'Desenvolvimento',
+    label: "Desenvolvimento",
     icon: <GraduationCap className="w-4 h-4" />,
-    allowedRoles: ['admin', 'rh', 'visualizador'],
-    moduleKey: 'rh',
+    allowedRoles: ["admin", "rh", "visualizador"],
+    moduleKey: "rh",
     items: [
-      { path: '/rh/treinamentos', label: 'Treinamentos', icon: <GraduationCap className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.treinamentos' },
-      { path: '/rh/avaliacoes', label: 'Avaliações', icon: <Star className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.avaliacoes' },
+      {
+        path: "/rh/treinamentos",
+        label: "Treinamentos",
+        icon: <GraduationCap className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "visualizador"],
+        submoduleKey: "rh.treinamentos",
+      },
+      {
+        path: "/rh/avaliacoes",
+        label: "Avaliações",
+        icon: <Star className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "visualizador"],
+        submoduleKey: "rh.avaliacoes",
+      },
     ],
   },
   {
-    label: 'Análises',
+    label: "Análises",
     icon: <BarChart3 className="w-4 h-4" />,
-    allowedRoles: ['admin', 'rh', 'visualizador'],
-    moduleKey: 'rh',
+    allowedRoles: ["admin", "rh", "visualizador"],
+    moduleKey: "rh",
     items: [
-      { path: '/rh/analises', label: 'Análises e Indicadores', icon: <BarChart3 className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'visualizador'], submoduleKey: 'rh.analises_indicadores' },
+      {
+        path: "/rh/analises",
+        label: "Análises e Indicadores",
+        icon: <BarChart3 className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "visualizador"],
+        submoduleKey: "rh.analises_indicadores",
+      },
     ],
   },
 ];
@@ -265,15 +590,39 @@ const rhGroups: MenuGroup[] = [
 // ─── MANUTENÇÃO ───
 const manutencaoGroups: MenuGroup[] = [
   {
-    label: 'Manutenção',
+    label: "Manutenção",
     icon: <Wrench className="w-4 h-4" />,
-    allowedRoles: ['admin', 'logistica', 'manutencao'],
-    moduleKey: 'manutencao',
+    allowedRoles: ["admin", "logistica", "manutencao"],
+    moduleKey: "manutencao",
     items: [
-      { path: '/manutencao', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'manutencao'], submoduleKey: 'manutencao.dashboard' },
-      { path: '/manutencao/cadastro', label: 'Cadastrar Manutenção', icon: <PackagePlus className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'manutencao'], submoduleKey: 'manutencao.cadastro' },
-      { path: '/manutencao/listagem', label: 'Listagem', icon: <List className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'manutencao', 'solicitante', 'visualizador'], submoduleKey: 'manutencao.listagem' },
-      { path: '/manutencao/solicitacao-os', label: 'Solicitação de OS', icon: <ClipboardList className="w-4 h-4" />, allowedRoles: ['admin', 'logistica', 'manutencao', 'solicitante'], submoduleKey: 'manutencao.os' },
+      {
+        path: "/manutencao",
+        label: "Dashboard",
+        icon: <LayoutDashboard className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "manutencao"],
+        submoduleKey: "manutencao.dashboard",
+      },
+      {
+        path: "/manutencao/cadastro",
+        label: "Cadastrar Manutenção",
+        icon: <PackagePlus className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "manutencao"],
+        submoduleKey: "manutencao.cadastro",
+      },
+      {
+        path: "/manutencao/listagem",
+        label: "Listagem",
+        icon: <List className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "manutencao", "solicitante", "visualizador"],
+        submoduleKey: "manutencao.listagem",
+      },
+      {
+        path: "/manutencao/solicitacao-os",
+        label: "Solicitação de OS",
+        icon: <ClipboardList className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "manutencao", "solicitante"],
+        submoduleKey: "manutencao.os",
+      },
     ],
   },
 ];
@@ -281,14 +630,34 @@ const manutencaoGroups: MenuGroup[] = [
 // ─── BENEFÍCIOS ───
 const beneficiosGroups: MenuGroup[] = [
   {
-    label: 'Benefícios',
+    label: "Benefícios",
     icon: <Gift className="w-4 h-4" />,
-    allowedRoles: ['admin', 'rh', 'financeiro', 'visualizador'],
+    allowedRoles: ["admin", "rh", "financeiro", "visualizador"],
     items: [
-      { path: '/beneficios', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro', 'visualizador'] },
-      { path: '/beneficios/cadastro', label: 'Catálogo', icon: <Heart className="w-4 h-4" />, allowedRoles: ['admin', 'rh'] },
-      { path: '/beneficios/vinculo', label: 'Vínculos', icon: <Users className="w-4 h-4" />, allowedRoles: ['admin', 'rh'] },
-      { path: '/beneficios/controle-mensal', label: 'Controle Mensal', icon: <Calendar className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
+      {
+        path: "/beneficios",
+        label: "Dashboard",
+        icon: <LayoutDashboard className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "financeiro", "visualizador"],
+      },
+      {
+        path: "/beneficios/cadastro",
+        label: "Catálogo",
+        icon: <Heart className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh"],
+      },
+      {
+        path: "/beneficios/vinculo",
+        label: "Vínculos",
+        icon: <Users className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh"],
+      },
+      {
+        path: "/beneficios/controle-mensal",
+        label: "Controle Mensal",
+        icon: <Calendar className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "financeiro"],
+      },
     ],
   },
 ];
@@ -296,39 +665,84 @@ const beneficiosGroups: MenuGroup[] = [
 // ─── FOLHA DE PAGAMENTO ───
 const folhaGroups: MenuGroup[] = [
   {
-    label: 'Folha de Pagamento',
+    label: "Folha de Pagamento",
     icon: <Receipt className="w-4 h-4" />,
-    allowedRoles: ['admin', 'rh', 'financeiro'],
+    allowedRoles: ["admin", "rh", "financeiro"],
     items: [
-      { path: '/folha', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
-      { path: '/folha/simulacao', label: 'Nova Simulação', icon: <Calculator className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
-      { path: '/folha/configuracao', label: 'Configuração', icon: <Settings className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
-      { path: '/folha/historico', label: 'Histórico', icon: <History className="w-4 h-4" />, allowedRoles: ['admin', 'rh', 'financeiro'] },
+      {
+        path: "/folha",
+        label: "Dashboard",
+        icon: <LayoutDashboard className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "financeiro"],
+      },
+      {
+        path: "/folha/simulacao",
+        label: "Nova Simulação",
+        icon: <Calculator className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "financeiro"],
+      },
+      {
+        path: "/folha/configuracao",
+        label: "Configuração",
+        icon: <Settings className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "financeiro"],
+      },
+      {
+        path: "/folha/historico",
+        label: "Histórico",
+        icon: <History className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "financeiro"],
+      },
     ],
   },
 ];
 
 const adminGroups: MenuGroup[] = [
   {
-    label: 'Administração',
+    label: "Administração",
     icon: <UserPlus className="w-4 h-4" />,
-    allowedRoles: ['admin'],
+    allowedRoles: ["admin"],
     items: [
-      { path: '/criar-usuario', label: 'Criar Usuário', icon: <UserPlus className="w-4 h-4" />, allowedRoles: ['admin'] },
-      { path: '/instalar-app', label: 'Instalar App', icon: <Download className="w-4 h-4" />, allowedRoles: ['admin'] },
+      {
+        path: "/criar-usuario",
+        label: "Criar Usuário",
+        icon: <UserPlus className="w-4 h-4" />,
+        allowedRoles: ["admin"],
+      },
+      { path: "/instalar-app", label: "Instalar App", icon: <Download className="w-4 h-4" />, allowedRoles: ["admin"] },
     ],
   },
   {
-    label: 'Sistema (SuperAdmin)',
+    label: "Sistema (SuperAdmin)",
     icon: <Shield className="w-4 h-4" />,
-    allowedRoles: ['superadm'],
+    allowedRoles: ["superadm"],
     items: [
-      { path: '/gestao-empresas', label: 'Empresas', icon: <Building className="w-4 h-4" />, allowedRoles: ['superadm'] },
-      { path: '/gestao-usuarios', label: 'Usuários', icon: <Users className="w-4 h-4" />, allowedRoles: ['superadm'] },
-      { path: '/gestao-modulos', label: 'Módulos', icon: <Puzzle className="w-4 h-4" />, allowedRoles: ['superadm'] },
-      { path: '/gestao-planos', label: 'Planos e Limites', icon: <CreditCard className="w-4 h-4" />, allowedRoles: ['superadm'] },
-      { path: '/config-sistema', label: 'Configurações', icon: <Settings className="w-4 h-4" />, allowedRoles: ['superadm'] },
-      { path: '/logs-auditoria', label: 'Logs / Auditoria', icon: <ScrollText className="w-4 h-4" />, allowedRoles: ['superadm'] },
+      {
+        path: "/gestao-empresas",
+        label: "Empresas",
+        icon: <Building className="w-4 h-4" />,
+        allowedRoles: ["superadm"],
+      },
+      { path: "/gestao-usuarios", label: "Usuários", icon: <Users className="w-4 h-4" />, allowedRoles: ["superadm"] },
+      { path: "/gestao-modulos", label: "Módulos", icon: <Puzzle className="w-4 h-4" />, allowedRoles: ["superadm"] },
+      {
+        path: "/gestao-planos",
+        label: "Planos e Limites",
+        icon: <CreditCard className="w-4 h-4" />,
+        allowedRoles: ["superadm"],
+      },
+      {
+        path: "/config-sistema",
+        label: "Configurações",
+        icon: <Settings className="w-4 h-4" />,
+        allowedRoles: ["superadm"],
+      },
+      {
+        path: "/logs-auditoria",
+        label: "Logs / Auditoria",
+        icon: <ScrollText className="w-4 h-4" />,
+        allowedRoles: ["superadm"],
+      },
     ],
   },
 ];
@@ -339,7 +753,7 @@ export function AppSidebar() {
   const { user, logout, hasPermission } = useAuth();
   const { canAccessModule } = useModuleAccess();
   const { state } = useSidebar();
-  const isCollapsed = state === 'collapsed';
+  const isCollapsed = state === "collapsed";
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollPos = useRef<number>(getStoredSidebarScrollTop());
 
@@ -347,7 +761,7 @@ export function AppSidebar() {
     const nextScrollTop = scrollRef.current?.scrollTop ?? scrollPos.current;
     scrollPos.current = nextScrollTop;
     persistedSidebarScrollTop = nextScrollTop;
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(nextScrollTop));
     }
   };
@@ -364,8 +778,8 @@ export function AppSidebar() {
     if (!el) return;
     restoreSidebarScroll();
     const onScroll = saveSidebarScroll;
-    el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -382,15 +796,15 @@ export function AppSidebar() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const isActive = (path: string) => location.pathname === path;
-  const isSuperAdmin = user?.role === 'superadm';
+  const isSuperAdmin = user?.role === "superadm";
 
   // Filter items by role AND submodule access
   const filterItems = (items: MenuItem[]): MenuItem[] => {
-    return items.filter(item => {
+    return items.filter((item) => {
       if (!hasPermission(item.allowedRoles)) return false;
       if (item.submoduleKey && !canAccessModule(item.submoduleKey)) return false;
       return true;
@@ -400,16 +814,16 @@ export function AppSidebar() {
   // Filter groups by role AND module access, then filter items within
   const filterGroups = (groups: MenuGroup[]): MenuGroup[] => {
     return groups
-      .filter(group => {
+      .filter((group) => {
         if (!hasPermission(group.allowedRoles)) return false;
         if (group.moduleKey && !canAccessModule(group.moduleKey)) return false;
         return true;
       })
-      .map(group => ({
+      .map((group) => ({
         ...group,
         items: filterItems(group.items),
       }))
-      .filter(group => group.items.length > 0);
+      .filter((group) => group.items.length > 0);
   };
 
   const visibleLogistics = !isSuperAdmin ? filterGroups(logisticsGroups) : [];
@@ -418,19 +832,21 @@ export function AppSidebar() {
   const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
   const visibleManutencao = !isSuperAdmin ? filterGroups(manutencaoGroups) : [];
   const visibleBeneficios = !isSuperAdmin ? filterGroups(beneficiosGroups) : [];
-  const canSeeFolha = user?.email?.toLowerCase() === 'teste@invex.com';
+  const canSeeFolha = user?.email?.toLowerCase() === "teste@invex.com";
   const visibleFolha = !isSuperAdmin && canSeeFolha ? filterGroups(folhaGroups) : [];
   const visibleAdmin = filterGroups(adminGroups);
 
   // RH menu: filter groups using same logic as other modules
-  const showRHMenu = !isSuperAdmin && hasPermission(['admin', 'rh', 'visualizador']) && canAccessModule(rhModuleKey);
+  const showRHMenu = !isSuperAdmin && hasPermission(["admin", "rh", "visualizador"]) && canAccessModule(rhModuleKey);
   const visibleRHGroups = showRHMenu ? filterGroups(rhGroups) : [];
 
-  const showDashboard = !isSuperAdmin && hasPermission(['admin', 'logistica', 'usuario almox', 'solicitante', 'financeiro', 'rh', 'visualizador']);
+  const showDashboard =
+    !isSuperAdmin &&
+    hasPermission(["admin", "logistica", "usuario almox", "solicitante", "financeiro", "rh", "visualizador"]);
 
   const renderGroup = (group: MenuGroup) => {
     if (group.items.length === 0) return null;
-    const isGroupActive = group.items.some(item => isActive(item.path));
+    const isGroupActive = group.items.some((item) => isActive(item.path));
 
     return (
       <Collapsible key={group.label} defaultOpen={isGroupActive} className="group/collapsible">
@@ -457,7 +873,7 @@ export function AppSidebar() {
                         "w-full justify-start gap-3 pl-6 text-sm transition-colors",
                         isActive(item.path)
                           ? "bg-primary/10 text-primary font-medium"
-                          : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+                          : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
                       )}
                     >
                       {item.icon}
@@ -476,7 +892,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigatePreservingScroll('/')}>
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigatePreservingScroll("/")}>
           <InvexLogo size="sm" />
         </div>
       </SidebarHeader>
@@ -488,16 +904,16 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  onClick={() => navigatePreservingScroll('/')}
-                  isActive={isActive('/')}
+                  onClick={() => navigatePreservingScroll("/")}
+                  isActive={isActive("/")}
                   tooltip={isSuperAdmin ? "Painel SuperAdmin" : "Dashboard"}
                   className={cn(
                     "w-full justify-start gap-3 font-medium transition-colors",
-                    isActive('/') && "bg-primary/10 text-primary"
+                    isActive("/") && "bg-primary/10 text-primary",
                   )}
                 >
                   {isSuperAdmin ? <Shield className="w-4 h-4" /> : <LayoutDashboard className="w-4 h-4" />}
-                  <span>{isSuperAdmin ? 'Painel SuperAdmin' : 'Dashboard'}</span>
+                  <span>{isSuperAdmin ? "Painel SuperAdmin" : "Dashboard"}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -521,7 +937,7 @@ export function AppSidebar() {
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 {visibleRHGroups.map((group) => {
-                  const isGroupActive = group.items.some(item => isActive(item.path));
+                  const isGroupActive = group.items.some((item) => isActive(item.path));
                   return (
                     <Collapsible key={group.label} defaultOpen={isGroupActive} className="group/collapsible">
                       <CollapsibleTrigger asChild>
@@ -548,7 +964,7 @@ export function AppSidebar() {
                                   "w-full justify-start gap-3 pl-8 py-2 text-sm transition-colors",
                                   isActive(item.path)
                                     ? "bg-primary/10 text-primary font-medium"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
                                 )}
                               >
                                 {item.icon}
@@ -625,12 +1041,12 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => navigatePreservingScroll('/meu-perfil')}
+              onClick={() => navigatePreservingScroll("/meu-perfil")}
               tooltip="Meu Perfil"
               className="text-muted-foreground hover:text-foreground"
             >
               <User className="w-4 h-4" />
-              <span className="truncate">{user?.nome || 'Perfil'}</span>
+              <span className="truncate">{user?.nome || "Perfil"}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
