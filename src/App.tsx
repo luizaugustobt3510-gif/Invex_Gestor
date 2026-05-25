@@ -166,16 +166,17 @@ const App = () => (
             <Route path="/rh/turnover" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh" submoduleKey="rh.turnover"><Turnover /></RoleProtectedRoute>} />
             <Route path="/rh/importar-funcionarios" element={<RoleProtectedRoute allowedRoles={['admin', 'rh']} moduleKey="rh" submoduleKey="rh.dashboard"><ImportarFuncionarios /></RoleProtectedRoute>} />
 
-            {/* === INVEX FITNESS === */}
+            {/* === INVEX FITNESS — exclusivo empresa Invex Fitness === */}
             <Route path="/fitness/login" element={<FitnessLogin />} />
             <Route path="/academia" element={<Navigate to="/fitness" replace />} />
             <Route path="/academia/*" element={<Navigate to="/fitness" replace />} />
-            <Route path="/fitness" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><FitnessDashboard /></RoleProtectedRoute>} />
-            <Route path="/fitness/onboarding" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><FitnessOnboarding /></RoleProtectedRoute>} />
-            <Route path="/fitness/perfil" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><FitnessPerfil /></RoleProtectedRoute>} />
-            <Route path="/fitness/treinos" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><FitnessTreinos /></RoleProtectedRoute>} />
-            <Route path="/fitness/evolucao" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><FitnessEvolucao /></RoleProtectedRoute>} />
-            <Route path="/fitness/conquistas" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><FitnessConquistas /></RoleProtectedRoute>} />
+            <Route path="/fitness" element={<FitnessProtectedRoute><FitnessDashboard /></FitnessProtectedRoute>} />
+            <Route path="/fitness/onboarding" element={<FitnessProtectedRoute><FitnessOnboarding /></FitnessProtectedRoute>} />
+            <Route path="/fitness/perfil" element={<FitnessProtectedRoute><FitnessPerfil /></FitnessProtectedRoute>} />
+            <Route path="/fitness/treinos" element={<FitnessProtectedRoute><FitnessTreinos /></FitnessProtectedRoute>} />
+            <Route path="/fitness/evolucao" element={<FitnessProtectedRoute><FitnessEvolucao /></FitnessProtectedRoute>} />
+            <Route path="/fitness/conquistas" element={<FitnessProtectedRoute><FitnessConquistas /></FitnessProtectedRoute>} />
+
             
             
             {/* === FINANCEIRO === */}
