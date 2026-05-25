@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Dumbbell, History, Trophy, User, LogOut } from 'lucide-react';
+import { Home, Dumbbell, TrendingUp, Apple, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -9,8 +9,8 @@ interface Props { children: ReactNode; hideNav?: boolean }
 const navItems = [
   { to: '/fitness', icon: Home, label: 'Início' },
   { to: '/fitness/treinos', icon: Dumbbell, label: 'Treinos' },
-  { to: '/fitness/conquistas', icon: Trophy, label: 'Conquistas' },
-  { to: '/fitness/historico', icon: History, label: 'Histórico' },
+  { to: '/fitness/evolucao', icon: TrendingUp, label: 'Evolução' },
+  { to: '/fitness/alimentacao', icon: Apple, label: 'Alimentação' },
   { to: '/fitness/perfil', icon: User, label: 'Perfil' },
 ];
 
@@ -25,7 +25,6 @@ export const FitnessLayout = ({ children, hideNav }: Props) => {
           'radial-gradient(ellipse at top, rgba(34,211,238,0.12), transparent 60%), radial-gradient(ellipse at bottom, rgba(232,121,249,0.10), transparent 60%), #06070d',
       }}
     >
-      {/* grid background */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[0.06]"
@@ -36,12 +35,14 @@ export const FitnessLayout = ({ children, hideNav }: Props) => {
         }}
       />
       <div className="relative z-10 pb-24">
-        <div className="max-w-3xl mx-auto px-4 pt-6">{children}</div>
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 pt-5 sm:pt-6">{children}</div>
       </div>
 
       {!hideNav && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-cyan-500/20"
-          style={{ background: 'rgba(10, 12, 20, 0.95)' }}>
+        <nav
+          className="fixed bottom-0 left-0 right-0 z-50 border-t border-cyan-500/20"
+          style={{ background: 'rgba(10, 12, 20, 0.95)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
           <div className="max-w-3xl mx-auto grid grid-cols-5">
             {navItems.map(({ to, icon: Icon, label }) => (
               <NavLink
@@ -50,7 +51,7 @@ export const FitnessLayout = ({ children, hideNav }: Props) => {
                 end={to === '/fitness'}
                 className={({ isActive }) =>
                   cn(
-                    'flex flex-col items-center justify-center gap-1 py-3 text-[11px] min-h-[60px]',
+                    'flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] sm:text-[11px] min-h-[58px]',
                     isActive ? 'text-cyan-300' : 'text-slate-400'
                   )
                 }
@@ -58,7 +59,7 @@ export const FitnessLayout = ({ children, hideNav }: Props) => {
                 {({ isActive }) => (
                   <>
                     <Icon className={cn('w-5 h-5', isActive && 'drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]')} />
-                    <span>{label}</span>
+                    <span className="leading-tight truncate max-w-[64px]">{label}</span>
                   </>
                 )}
               </NavLink>
@@ -69,7 +70,7 @@ export const FitnessLayout = ({ children, hideNav }: Props) => {
 
       <button
         onClick={() => { logout(); navigate('/fitness/login'); }}
-        className="fixed top-4 right-4 z-40 p-2 rounded-full bg-slate-900/60 border border-slate-700/50 text-slate-400 hover:text-rose-400 transition"
+        className="fixed top-3 right-3 z-40 p-2 rounded-full bg-slate-900/60 border border-slate-700/50 text-slate-400 hover:text-rose-400 transition"
         aria-label="Sair"
       >
         <LogOut className="w-4 h-4" />
