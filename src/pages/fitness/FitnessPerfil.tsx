@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
 import { FitnessCard } from '@/components/fitness/FitnessCard';
 import { AvatarMascote } from '@/components/fitness/AvatarMascote';
 import { FITNESS_AVATARS } from './avatars';
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
 import { supabase } from '@/integrations/supabase/client';
-import { Camera, Save } from 'lucide-react';
+import { Camera, Save, History, Trophy, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface FormState {
