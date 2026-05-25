@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Dumbbell, TrendingUp, Trophy, User, LogOut } from 'lucide-react';
+import { Home, Dumbbell, History, Trophy, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -9,7 +9,7 @@ interface Props { children: ReactNode; hideNav?: boolean }
 const navItems = [
   { to: '/fitness', icon: Home, label: 'Início' },
   { to: '/fitness/treinos', icon: Dumbbell, label: 'Treinos' },
-  { to: '/fitness/evolucao', icon: TrendingUp, label: 'Evolução' },
+  { to: '/fitness/historico', icon: History, label: 'Histórico' },
   { to: '/fitness/conquistas', icon: Trophy, label: 'Conquistas' },
   { to: '/fitness/perfil', icon: User, label: 'Perfil' },
 ];

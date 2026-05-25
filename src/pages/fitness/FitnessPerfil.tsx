@@ -16,6 +16,7 @@ interface FormState {
   altura: string;
   meta_peso: string;
   meta_freq_semanal: string;
+  meta_sono_horas: string;
 }
 
 const FitnessPerfil = () => {
@@ -35,6 +36,7 @@ const FitnessPerfil = () => {
         altura: profile.altura != null ? String(profile.altura) : '',
         meta_peso: profile.meta_peso != null ? String(profile.meta_peso) : '',
         meta_freq_semanal: profile.meta_freq_semanal != null ? String(profile.meta_freq_semanal) : '',
+        meta_sono_horas: profile.meta_sono_horas != null ? String(profile.meta_sono_horas) : '8',
       });
     }
   }, [profile?.id]);
@@ -63,6 +65,7 @@ const FitnessPerfil = () => {
         altura: parseNum(form.altura),
         meta_peso: parseNum(form.meta_peso),
         meta_freq_semanal: form.meta_freq_semanal ? Math.round(parseNum(form.meta_freq_semanal) || 0) : null,
+        meta_sono_horas: parseNum(form.meta_sono_horas),
       });
       if (r?.error) throw r.error;
       toast.success('Perfil salvo!');
@@ -157,6 +160,7 @@ const FitnessPerfil = () => {
           <Field label="Altura (cm)" value={form.altura} onChange={v => setField('altura', v)} />
           <Field label="Meta de peso (kg)" value={form.meta_peso} onChange={v => setField('meta_peso', v)} />
           <Field label="Treinos/semana" value={form.meta_freq_semanal} onChange={v => setField('meta_freq_semanal', v)} step="1" />
+          <Field label="Meta de sono (h)" value={form.meta_sono_horas} onChange={v => setField('meta_sono_horas', v)} step="0.5" />
         </div>
       </FitnessCard>
 
