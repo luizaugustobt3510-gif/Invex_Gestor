@@ -180,6 +180,7 @@ const App = () => (
             <Route path="/fitness/evolucao" element={<FitnessProtectedRoute><FitnessEvolucao /></FitnessProtectedRoute>} />
             <Route path="/fitness/historico" element={<FitnessProtectedRoute><FitnessHistorico /></FitnessProtectedRoute>} />
             <Route path="/fitness/conquistas" element={<FitnessProtectedRoute><FitnessConquistas /></FitnessProtectedRoute>} />
+            <Route path="/fitness/alimentacao" element={<FitnessProtectedRoute><FitnessAlimentacao /></FitnessProtectedRoute>} />
 
             
             
