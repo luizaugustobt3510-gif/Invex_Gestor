@@ -40,8 +40,8 @@ export const FitnessLayout = ({ children, hideNav }: Props) => {
       </div>
 
       {!hideNav && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-cyan-500/20 backdrop-blur-xl"
-          style={{ background: 'rgba(10, 12, 20, 0.85)' }}>
+        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-cyan-500/20"
+          style={{ background: 'rgba(10, 12, 20, 0.95)' }}>
           <div className="max-w-3xl mx-auto grid grid-cols-5">
             {navItems.map(({ to, icon: Icon, label }) => (
               <NavLink
@@ -50,8 +50,8 @@ export const FitnessLayout = ({ children, hideNav }: Props) => {
                 end={to === '/fitness'}
                 className={({ isActive }) =>
                   cn(
-                    'flex flex-col items-center justify-center gap-1 py-3 text-[11px] transition-all min-h-[60px]',
-                    isActive ? 'text-cyan-300' : 'text-slate-400 hover:text-slate-200'
+                    'flex flex-col items-center justify-center gap-1 py-3 text-[11px] min-h-[60px]',
+                    isActive ? 'text-cyan-300' : 'text-slate-400'
                   )
                 }
               >
