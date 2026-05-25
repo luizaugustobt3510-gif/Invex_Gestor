@@ -51,6 +51,7 @@ const CriarUsuario = () => {
         'visualizador': 'visualizador',
         'rh': 'rh',
         'financeiro': 'financeiro',
+        'fitness': 'fitness_user',
         // SuperAdmin only
         'superadm': 'super_admin',
       };
