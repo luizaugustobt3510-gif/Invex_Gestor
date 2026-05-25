@@ -9,8 +9,8 @@ interface Props { children: ReactNode; hideNav?: boolean }
 const navItems = [
   { to: '/fitness', icon: Home, label: 'Início' },
   { to: '/fitness/treinos', icon: Dumbbell, label: 'Treinos' },
-  { to: '/fitness/historico', icon: History, label: 'Histórico' },
   { to: '/fitness/conquistas', icon: Trophy, label: 'Conquistas' },
+  { to: '/fitness/historico', icon: History, label: 'Histórico' },
   { to: '/fitness/perfil', icon: User, label: 'Perfil' },
 ];
 
