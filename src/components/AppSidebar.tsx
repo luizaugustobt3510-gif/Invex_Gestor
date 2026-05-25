@@ -314,23 +314,23 @@ const logisticsGroups: MenuGroup[] = [
   },
 ];
 
-// ─── INVEX FITNESS (app pessoal — link rápido) ───
+// ─── INVEX FITNESS (app pessoal — link rápido, só p/ empresa Invex Fitness) ───
 const academiaGroups: MenuGroup[] = [
   {
     label: "Invex Fitness",
     icon: <Dumbbell className="w-4 h-4" />,
-    allowedRoles: ["convidado"],
-    moduleKey: "banana_tropical",
+    allowedRoles: ["admin", "usuario almox", "solicitante", "logistica", "rh", "financeiro", "visualizador", "manutencao"],
     items: [
       {
         path: "/fitness",
         label: "Abrir App Fitness",
         icon: <Dumbbell className="w-4 h-4" />,
-        allowedRoles: ["convidado"],
+        allowedRoles: ["admin", "usuario almox", "solicitante", "logistica", "rh", "financeiro", "visualizador", "manutencao"],
       },
     ],
   },
 ];
+
 
 // ─── VENDAS ───
 const vendasGroups: MenuGroup[] = [
@@ -807,7 +807,8 @@ export function AppSidebar() {
   };
 
   const visibleLogistics = !isSuperAdmin ? filterGroups(logisticsGroups) : [];
-  const visibleAcademia = !isSuperAdmin ? filterGroups(academiaGroups) : [];
+  const isFitnessCompany = user?.companyId === "f54ebd25-21cc-43e8-888f-ffbbed1d4b7f";
+  const visibleAcademia = !isSuperAdmin && isFitnessCompany ? filterGroups(academiaGroups) : [];
   const visibleVendas = !isSuperAdmin ? filterGroups(vendasGroups) : [];
   const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
   const visibleManutencao = !isSuperAdmin ? filterGroups(manutencaoGroups) : [];
