@@ -1,7 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Flame, Droplet, Moon, Smile, Dumbbell, Plus, Minus } from 'lucide-react';
+import { Flame, Droplet, Moon, Smile, Dumbbell, Plus, Minus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
 import { AvatarMascote } from '@/components/fitness/AvatarMascote';
 import { XPBar } from '@/components/fitness/XPBar';
@@ -14,27 +13,35 @@ const HUMORES = ['😄', '🙂', '😐', '😞', '😤'];
 const FitnessDashboard = () => {
   const navigate = useNavigate();
   const { profile, loading, update } = useFitnessProfile();
-  const [mensagem, setMensagem] = useState<string>('');
+  const [tips, setTips] = useState<string[]>([]);
+  const [tipIdx, setTipIdx] = useState(0);
+  const [sonoLocal, setSonoLocal] = useState<string>('');
+  const sonoDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (profile && !profile.onboarding_completo) navigate('/fitness/onboarding', { replace: true });
   }, [profile, navigate]);
 
-  // Mensagem do coach IA
+  useEffect(() => {
+    if (profile) setSonoLocal(profile.sono_horas != null ? String(profile.sono_horas) : '');
+  }, [profile?.id]);
+
+  // Monta as dicas locais + tenta enriquecer com IA
   useEffect(() => {
     if (!profile) return;
     const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
     const hoje = diasSemana[new Date().getDay()];
-    const localMsgs = [
+    const base = [
       `Bom dia, ${profile.nome.split(' ')[0]}! Hoje é ${hoje}. Bora treinar?`,
       profile.streak_dias >= 3
         ? `🔥 Você está há ${profile.streak_dias} dias seguidos! Não pare agora.`
         : 'Vamos começar uma nova sequência de treinos hoje!',
       'Lembre-se de beber água ao longo do dia 💧',
+      'Pequenos passos diários geram grandes resultados 💪',
     ];
-    setMensagem(localMsgs[Math.floor(Math.random() * localMsgs.length)]);
+    setTips(base);
+    setTipIdx(0);
 
-    // Tentar IA (fallback silencioso)
     (async () => {
       try {
         const { data } = await supabase.functions.invoke('fitness-coach-message', {
@@ -46,7 +53,7 @@ const FitnessDashboard = () => {
             diaSemana: hoje,
           },
         });
-        if (data?.mensagem) setMensagem(data.mensagem);
+        if (data?.mensagem) setTips(prev => [data.mensagem, ...prev]);
       } catch { /* ignore */ }
     })();
   }, [profile?.id]);
@@ -74,33 +81,72 @@ const FitnessDashboard = () => {
 
   const setHumor = async (h: string) => update({ humor: h });
 
+  const onSonoChange = (v: string) => {
+    setSonoLocal(v);
+    if (sonoDebounce.current) clearTimeout(sonoDebounce.current);
+    sonoDebounce.current = setTimeout(() => {
+      const n = v ? parseFloat(v) : null;
+      update({ sono_horas: Number.isFinite(n as number) ? (n as number) : null });
+    }, 800);
+  };
+
   const aguaMeta = profile.agua_meta_ml || 2500;
   const aguaPct = Math.min(100, (aguaResetada / aguaMeta) * 100);
 
+  const prevTip = () => setTipIdx(i => (i - 1 + tips.length) % tips.length);
+  const nextTip = () => setTipIdx(i => (i + 1) % tips.length);
+
   return (
     <FitnessLayout>
-      {/* Saudação + Mascote */}
-      <div className="flex flex-col items-center mt-2 mb-6">
+      {/* Mascote */}
+      <div className="flex flex-col items-center mt-2 mb-4">
         <AvatarMascote
           avatarId={profile.avatar_id}
           mascoteNome={profile.mascote_nome}
-          mensagem={mensagem}
+          mensagem={tips[tipIdx]}
           size="md"
         />
+        {tips.length > 1 && (
+          <div className="flex items-center gap-2 mt-2">
+            <button
+              onClick={prevTip}
+              className="w-8 h-8 rounded-full bg-slate-800/70 border border-cyan-500/30 flex items-center justify-center text-cyan-300 active:scale-95"
+              aria-label="Anterior"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <div className="flex gap-1.5">
+              {tips.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setTipIdx(i)}
+                  className={`h-2 rounded-full transition-all ${
+                    i === tipIdx ? 'w-6 bg-cyan-400' : 'w-2 bg-slate-600'
+                  }`}
+                  aria-label={`Dica ${i + 1}`}
+                />
+              ))}
+            </div>
+            <button
+              onClick={nextTip}
+              className="w-8 h-8 rounded-full bg-slate-800/70 border border-cyan-500/30 flex items-center justify-center text-cyan-300 active:scale-95"
+              aria-label="Próxima"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Header com nome */}
       <div className="text-center mb-4">
         <p className="text-[11px] uppercase tracking-widest text-cyan-300/70">Bem-vindo de volta</p>
         <h1 className="text-2xl font-black mt-0.5">{profile.nome}</h1>
       </div>
 
-      {/* XP Bar */}
       <FitnessCard className="mb-4">
         <XPBar xp={profile.xp} />
       </FitnessCard>
 
-      {/* Stats em grid */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <FitnessCard glow="fuchsia">
           <div className="flex items-center gap-3">
@@ -129,7 +175,6 @@ const FitnessDashboard = () => {
         </FitnessCard>
       </div>
 
-      {/* Água */}
       <FitnessCard className="mb-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -139,23 +184,21 @@ const FitnessDashboard = () => {
           <span className="text-xs text-slate-400">{aguaResetada}/{aguaMeta} ml</span>
         </div>
         <div className="h-2 rounded-full bg-slate-800/60 overflow-hidden mb-3">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${aguaPct}%` }}
-            className="h-full"
-            style={{ background: 'linear-gradient(90deg, #22d3ee, #67e8f9)' }}
+          <div
+            className="h-full transition-all duration-300"
+            style={{ width: `${aguaPct}%`, background: 'linear-gradient(90deg, #22d3ee, #67e8f9)' }}
           />
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => updateAgua(-250)}
-            className="flex-1 h-10 rounded-lg bg-slate-800/60 border border-slate-700 hover:bg-slate-800 flex items-center justify-center"
+            className="flex-1 h-10 rounded-lg bg-slate-800/60 border border-slate-700 flex items-center justify-center active:scale-95"
           >
             <Minus className="w-4 h-4" />
           </button>
           <button
             onClick={() => updateAgua(250)}
-            className="flex-[2] h-10 rounded-lg flex items-center justify-center gap-2 font-semibold text-slate-900"
+            className="flex-[2] h-10 rounded-lg flex items-center justify-center gap-2 font-semibold text-slate-900 active:scale-95"
             style={{ background: 'linear-gradient(90deg, #22d3ee, #06b6d4)' }}
           >
             <Plus className="w-4 h-4" /> 250 ml
@@ -163,7 +206,6 @@ const FitnessDashboard = () => {
         </div>
       </FitnessCard>
 
-      {/* Humor */}
       <FitnessCard className="mb-4">
         <div className="flex items-center gap-2 mb-3">
           <Smile className="w-4 h-4 text-fuchsia-300" />
@@ -174,10 +216,10 @@ const FitnessDashboard = () => {
             <button
               key={h}
               onClick={() => setHumor(h)}
-              className={`h-12 rounded-xl text-2xl transition ${
+              className={`h-12 rounded-xl text-2xl ${
                 profile.humor === h
                   ? 'bg-fuchsia-500/20 border-2 border-fuchsia-400'
-                  : 'bg-slate-800/40 border border-slate-700 hover:bg-slate-800'
+                  : 'bg-slate-800/40 border border-slate-700'
               }`}
             >
               {h}
@@ -186,19 +228,17 @@ const FitnessDashboard = () => {
         </div>
       </FitnessCard>
 
-      {/* CTA principal */}
       <button
         onClick={() => navigate('/fitness/treinos')}
-        className="w-full h-14 rounded-2xl font-black text-slate-900 text-base flex items-center justify-center gap-2 mb-4 active:scale-[0.98] transition"
+        className="w-full h-14 rounded-2xl font-black text-slate-900 text-base flex items-center justify-center gap-2 mb-4 active:scale-[0.98]"
         style={{
           background: 'linear-gradient(90deg, #22d3ee, #e879f9)',
-          boxShadow: '0 8px 32px rgba(34,211,238,0.3)',
+          boxShadow: '0 8px 24px rgba(34,211,238,0.25)',
         }}
       >
         <Dumbbell className="w-5 h-5" /> Iniciar Treino
       </button>
 
-      {/* Sono */}
       <FitnessCard className="mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -210,10 +250,10 @@ const FitnessDashboard = () => {
             step="0.5"
             min="0"
             max="14"
-            value={profile.sono_horas || ''}
-            onChange={e => update({ sono_horas: parseFloat(e.target.value) || null })}
+            value={sonoLocal}
+            onChange={e => onSonoChange(e.target.value)}
             placeholder="0h"
-            className="w-20 h-9 rounded-lg bg-slate-800/60 border border-slate-700 px-3 text-right text-sm focus:outline-none focus:border-indigo-400 text-base"
+            className="w-20 h-9 rounded-lg bg-slate-800/60 border border-slate-700 px-3 text-right focus:outline-none focus:border-indigo-400 text-base"
           />
         </div>
       </FitnessCard>
