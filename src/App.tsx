@@ -102,7 +102,7 @@ const App = () => (
             
             {/* Home — all authenticated roles */}
             <Route path="/" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox', 'manutencao']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox', 'manutencao', 'fitness']}>
                 <Index />
               </RoleProtectedRoute>
             } />
