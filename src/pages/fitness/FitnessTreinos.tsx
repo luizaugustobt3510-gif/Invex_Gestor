@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
 import { useFitnessDailyLog } from '@/hooks/useFitnessDailyLog';
-import { Plus, Dumbbell, Play, Trash2, Check, Pause, X, Timer, ChevronRight, Pencil } from 'lucide-react';
+import { Plus, Dumbbell, Play, Trash2, Check, Pause, X, Timer, ChevronRight, Pencil, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface Workout {
@@ -29,6 +30,7 @@ interface Exercise {
 const GRUPOS = ['Peito', 'Costas', 'Pernas', 'Ombros', 'Braços', 'Abdômen', 'Full body', 'Cardio'];
 
 const FitnessTreinos = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, update } = useFitnessProfile();
   const { upsertToday } = useFitnessDailyLog();
@@ -134,6 +136,22 @@ const FitnessTreinos = () => {
           <Plus className="w-4 h-4" /> Ficha
         </button>
       </div>
+
+      <button
+        onClick={() => navigate('/fitness/gerar-treino')}
+        className="w-full mb-4 rounded-2xl p-3 flex items-center gap-3 active:scale-[0.99] border border-fuchsia-500/30"
+        style={{ background: 'linear-gradient(90deg, rgba(34,211,238,0.12), rgba(232,121,249,0.18))' }}
+      >
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: 'linear-gradient(135deg, #22d3ee, #e879f9)' }}>
+          <Sparkles className="w-5 h-5 text-slate-900" />
+        </div>
+        <div className="flex-1 text-left">
+          <p className="text-sm font-bold text-white">Geração Inteligente</p>
+          <p className="text-[11px] text-slate-300">IA monta sua ficha · ou crie na raça</p>
+        </div>
+        <ChevronRight className="w-5 h-5 text-fuchsia-300" />
+      </button>
 
       {loading ? (
         <p className="text-center text-cyan-300 py-10">Carregando...</p>
