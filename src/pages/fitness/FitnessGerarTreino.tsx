@@ -43,9 +43,9 @@ const FitnessGerarTreino = () => {
 
   const [form, setForm] = useState({
     idade: '',
-    sexo: profile?.sexo || '',
-    peso: profile?.peso_kg ? String(profile.peso_kg) : '',
-    altura: profile?.altura_cm ? String(profile.altura_cm) : '',
+    sexo: '',
+    peso: profile?.peso_atual ? String(profile.peso_atual) : '',
+    altura: profile?.altura ? String(profile.altura) : '',
     objetivo: 'hipertrofia',
     nivel: 'iniciante',
     dias_por_semana: 3,
