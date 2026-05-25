@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
 import { FitnessCard } from '@/components/fitness/FitnessCard';
 import { AvatarMascote } from '@/components/fitness/AvatarMascote';
 import { FITNESS_AVATARS } from './avatars';
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
 import { supabase } from '@/integrations/supabase/client';
-import { Camera, Save } from 'lucide-react';
+import { Camera, Save, History, Trophy, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface FormState {
@@ -98,6 +99,34 @@ const FitnessPerfil = () => {
   return (
     <FitnessLayout>
       <h1 className="text-2xl font-black mb-4">Meu Perfil</h1>
+
+      <div className="grid grid-cols-2 gap-2.5 mb-4">
+        <Link to="/fitness/historico" className="block">
+          <FitnessCard className="!p-3 flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center">
+              <History className="w-4 h-4" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">Histórico</p>
+              <p className="text-[10px] text-slate-400">Diário e comparativo</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-500" />
+          </FitnessCard>
+        </Link>
+        <Link to="/fitness/conquistas" className="block">
+          <FitnessCard className="!p-3 flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-lg bg-fuchsia-500/20 text-fuchsia-300 flex items-center justify-center">
+              <Trophy className="w-4 h-4" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">Conquistas</p>
+              <p className="text-[10px] text-slate-400">Medalhas e XP</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-500" />
+          </FitnessCard>
+        </Link>
+      </div>
+
 
       <FitnessCard className="mb-4 flex flex-col items-center text-center">
         <div className="relative">

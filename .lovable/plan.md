@@ -18,12 +18,12 @@ Dado o tamanho da entrega, proponho fazer em **3 fases** (cada uma aprovada ante
 - Cadastro manual de usuário pelo admin (vincula à empresa Invex Fitness)
 - Tema dark cyberpunk/Tesla isolado do resto do app (só dentro de `/fitness/*`)
 
-### Fase 2 — Treinos e Acompanhamento
-- Fichas de treino, exercícios com GIF/vídeo, cronômetro flutuante
-- Registro de carga/reps, histórico, gráficos de evolução
-- Medidas corporais, peso, IMC, fotos de evolução, água, sono, humor
-- Modo Academia (botões grandes) + Modo Foco
-- IA: progressão de carga, frases motivacionais, resumo semanal
+### Fase 2 — Treinos e Acompanhamento ✅ (em andamento)
+- ✅ Fichas de treino com exercícios (séries, reps, carga, descanso)
+- ✅ Sessão de treino com cronômetro, descanso, marcação por exercício, XP e streak
+- ✅ Medidas corporais (peso, cintura, etc.), IMC e gráfico de evolução de peso
+- ✅ Aba "Alimentação" placeholder (próxima fase)
+- ⏳ Fotos de evolução, modo academia, IA de progressão de carga
 
 ### Fase 3 — Social, Gamificação completa e IA Coach
 - Sistema completo de conquistas/medalhas/títulos
