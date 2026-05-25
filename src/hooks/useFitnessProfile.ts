@@ -22,6 +22,7 @@ export interface FitnessProfile {
   agua_hoje_ml: number | null;
   agua_data: string | null;
   sono_horas: number | null;
+  meta_sono_horas: number | null;
   humor: string | null;
   onboarding_completo: boolean;
 }
