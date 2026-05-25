@@ -63,6 +63,11 @@ const FitnessDashboard = () => {
     const metaAgua = profile.agua_meta_ml || 2500;
 
     const arr: string[] = [];
+    const lembretes: string[] = [];
+    if (sono == null) lembretes.push(`${nome}, não esqueça de registrar seu sono hoje 😴`);
+    if (!humor) lembretes.push('Como você está se sentindo hoje? Marca aí pra mim 💬');
+    if (agua < metaAgua * 0.3) lembretes.push(`Já bebeu água hoje? Meta: ${metaAgua}ml 💧`);
+    arr.push(...lembretes);
     arr.push(`Bom dia, ${nome}! Hoje é ${hoje}. Bora treinar?`);
 
     if (profile.streak_dias >= 3) {
