@@ -61,6 +61,7 @@ import FitnessPerfil from "./pages/fitness/FitnessPerfil";
 import FitnessTreinos from "./pages/fitness/FitnessTreinos";
 import FitnessEvolucao from "./pages/fitness/FitnessEvolucao";
 import FitnessConquistas from "./pages/fitness/FitnessConquistas";
+import { FitnessProtectedRoute } from "./components/FitnessProtectedRoute";
 import DashboardFinanceiro from "./pages/financeiro/DashboardFinanceiro";
 import Lancamentos from "./pages/financeiro/Lancamentos";
 import FluxoCaixa from "./pages/financeiro/FluxoCaixa";
