@@ -1142,6 +1142,48 @@ export type Database = {
         }
         Relationships: []
       }
+      fitness_daily_logs: {
+        Row: {
+          agua_ml: number | null
+          company_id: string
+          created_at: string
+          data: string
+          humor: string | null
+          id: string
+          peso: number | null
+          sono_horas: number | null
+          treino_feito: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agua_ml?: number | null
+          company_id: string
+          created_at?: string
+          data?: string
+          humor?: string | null
+          id?: string
+          peso?: number | null
+          sono_horas?: number | null
+          treino_feito?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agua_ml?: number | null
+          company_id?: string
+          created_at?: string
+          data?: string
+          humor?: string | null
+          id?: string
+          peso?: number | null
+          sono_horas?: number | null
+          treino_feito?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       fitness_friends: {
         Row: {
           created_at: string
@@ -1233,6 +1275,7 @@ export type Database = {
           mascote_nome: string
           meta_freq_semanal: number | null
           meta_peso: number | null
+          meta_sono_horas: number | null
           nivel: number
           nome: string
           onboarding_completo: boolean
@@ -1258,6 +1301,7 @@ export type Database = {
           mascote_nome?: string
           meta_freq_semanal?: number | null
           meta_peso?: number | null
+          meta_sono_horas?: number | null
           nivel?: number
           nome?: string
           onboarding_completo?: boolean
@@ -1283,6 +1327,7 @@ export type Database = {
           mascote_nome?: string
           meta_freq_semanal?: number | null
           meta_peso?: number | null
+          meta_sono_horas?: number | null
           nivel?: number
           nome?: string
           onboarding_completo?: boolean
