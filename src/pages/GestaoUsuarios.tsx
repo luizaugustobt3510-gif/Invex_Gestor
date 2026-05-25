@@ -38,6 +38,7 @@ const roleLabels: Record<string, string> = {
   usuario_almox: 'Almoxarifado',
   solicitante: 'Solicitante',
   visualizador: 'Convidado',
+  fitness_user: 'Invex Fitness',
 };
 
 const USER_PERMISSIONS_BY_ROLE: Record<string, { key: string; label: string }[]> = {
