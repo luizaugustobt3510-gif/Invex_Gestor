@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
 import { useFitnessDailyLog } from '@/hooks/useFitnessDailyLog';
-import { Plus, Dumbbell, Play, Trash2, Check, Pause, X, Timer, ChevronRight, Pencil } from 'lucide-react';
+import { Plus, Dumbbell, Play, Trash2, Check, Pause, X, Timer, ChevronRight, Pencil, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface Workout {

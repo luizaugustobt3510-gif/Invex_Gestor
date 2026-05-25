@@ -63,6 +63,7 @@ import FitnessEvolucao from "./pages/fitness/FitnessEvolucao";
 import FitnessHistorico from "./pages/fitness/FitnessHistorico";
 import FitnessConquistas from "./pages/fitness/FitnessConquistas";
 import FitnessAlimentacao from "./pages/fitness/FitnessAlimentacao";
+import FitnessGerarTreino from "./pages/fitness/FitnessGerarTreino";
 import { FitnessProtectedRoute } from "./components/FitnessProtectedRoute";
 import DashboardFinanceiro from "./pages/financeiro/DashboardFinanceiro";
 import Lancamentos from "./pages/financeiro/Lancamentos";
@@ -181,6 +182,7 @@ const App = () => (
             <Route path="/fitness/historico" element={<FitnessProtectedRoute><FitnessHistorico /></FitnessProtectedRoute>} />
             <Route path="/fitness/conquistas" element={<FitnessProtectedRoute><FitnessConquistas /></FitnessProtectedRoute>} />
             <Route path="/fitness/alimentacao" element={<FitnessProtectedRoute><FitnessAlimentacao /></FitnessProtectedRoute>} />
+            <Route path="/fitness/gerar-treino" element={<FitnessProtectedRoute><FitnessGerarTreino /></FitnessProtectedRoute>} />
 
             
             
