@@ -34,6 +34,7 @@ interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
   hasPermission: (allowedRoles: UserRole[]) => boolean;
+  setAfkBlocked: (blocked: boolean) => void;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
