@@ -54,6 +54,25 @@ const FitnessGerarTreino = () => {
     limitacoes: '',
   });
 
+  // Sincroniza com perfil quando carrega
+  useEffect(() => {
+    if (profile) {
+      setForm(f => ({
+        ...f,
+        peso: f.peso || (profile.peso_atual ? String(profile.peso_atual) : ''),
+        altura: f.altura || (profile.altura ? String(profile.altura) : ''),
+      }));
+    }
+  }, [profile?.id]);
+
+  const imc = (() => {
+    const p = parseFloat(form.peso);
+    const a = parseFloat(form.altura);
+    if (!p || !a) return null;
+    const m = a > 3 ? a / 100 : a; // se mandar em metros
+    return p / (m * m);
+  })();
+
   const [plano, setPlano] = useState<Plano | null>(null);
 
   const gerarIA = async () => {
@@ -65,6 +84,7 @@ const FitnessGerarTreino = () => {
           sexo: form.sexo,
           peso: form.peso ? parseFloat(form.peso) : undefined,
           altura: form.altura ? parseFloat(form.altura) : undefined,
+          imc: imc ? Number(imc.toFixed(1)) : undefined,
           objetivo: form.objetivo,
           nivel: form.nivel,
           dias_por_semana: form.dias_por_semana,
