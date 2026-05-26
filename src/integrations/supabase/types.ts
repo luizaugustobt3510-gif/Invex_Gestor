@@ -1371,44 +1371,59 @@ export type Database = {
       }
       fitness_workout_exercises: {
         Row: {
+          calorias: number | null
           carga_kg: number | null
           created_at: string
           descanso_seg: number | null
+          distancia_km: number | null
+          duracao_min: number | null
           id: string
+          intensidade: string | null
           midia_url: string | null
           nome: string
           observacoes: string | null
           ordem: number
           repeticoes: string
           series: number
+          tipo: string
           user_id: string
           workout_id: string
         }
         Insert: {
+          calorias?: number | null
           carga_kg?: number | null
           created_at?: string
           descanso_seg?: number | null
+          distancia_km?: number | null
+          duracao_min?: number | null
           id?: string
+          intensidade?: string | null
           midia_url?: string | null
           nome: string
           observacoes?: string | null
           ordem?: number
           repeticoes?: string
           series?: number
+          tipo?: string
           user_id: string
           workout_id: string
         }
         Update: {
+          calorias?: number | null
           carga_kg?: number | null
           created_at?: string
           descanso_seg?: number | null
+          distancia_km?: number | null
+          duracao_min?: number | null
           id?: string
+          intensidade?: string | null
           midia_url?: string | null
           nome?: string
           observacoes?: string | null
           ordem?: number
           repeticoes?: string
           series?: number
+          tipo?: string
           user_id?: string
           workout_id?: string
         }
@@ -1472,6 +1487,7 @@ export type Database = {
           cor: string | null
           created_at: string
           dias_semana: number[] | null
+          expires_at: string | null
           grupo_muscular: string | null
           id: string
           nome: string
@@ -1483,6 +1499,7 @@ export type Database = {
           cor?: string | null
           created_at?: string
           dias_semana?: number[] | null
+          expires_at?: string | null
           grupo_muscular?: string | null
           id?: string
           nome: string
@@ -1494,6 +1511,7 @@ export type Database = {
           cor?: string | null
           created_at?: string
           dias_semana?: number[] | null
+          expires_at?: string | null
           grupo_muscular?: string | null
           id?: string
           nome?: string

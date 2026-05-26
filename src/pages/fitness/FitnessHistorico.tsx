@@ -1,10 +1,12 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
 import { FitnessCard } from '@/components/fitness/FitnessCard';
 import { AvatarMascote } from '@/components/fitness/AvatarMascote';
 import { useFitnessDailyLog } from '@/hooks/useFitnessDailyLog';
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
-import { Moon, Smile, Droplet, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Moon, Smile, Droplet, TrendingUp, TrendingDown, Minus, Dumbbell, Trash2, Pencil, Check, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 const last7 = (history: any[]) => history.slice(0, 7);
 const prev7 = (history: any[]) => history.slice(7, 14);
@@ -14,6 +16,45 @@ const avg = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr
 const FitnessHistorico = () => {
   const { profile, loading: lp } = useFitnessProfile();
   const { history, loading: lh } = useFitnessDailyLog();
+  const [logs, setLogs] = useState<any[]>([]);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editDur, setEditDur] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user: au } } = await supabase.auth.getUser();
+      if (!au) return;
+      const { data } = await supabase
+        .from('fitness_workout_logs')
+        .select('*, fitness_workouts(nome, cor)')
+        .eq('user_id', au.id)
+        .order('data_treino', { ascending: false })
+        .limit(30);
+      setLogs(data || []);
+    })();
+  }, []);
+
+  const podeEditar = (data: string) => {
+    const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+    const d = new Date(data + 'T00:00');
+    const diff = (hoje.getTime() - d.getTime()) / (24 * 60 * 60 * 1000);
+    return diff <= 1;
+  };
+
+  const excluirLog = async (id: string) => {
+    if (!confirm('Excluir este treino do histórico?')) return;
+    await supabase.from('fitness_workout_logs').delete().eq('id', id);
+    setLogs(prev => prev.filter(l => l.id !== id));
+    toast.success('Treino removido');
+  };
+
+  const salvarEdicao = async (id: string) => {
+    const dur = parseInt(editDur) || 0;
+    await supabase.from('fitness_workout_logs').update({ duracao_min: dur }).eq('id', id);
+    setLogs(prev => prev.map(l => l.id === id ? { ...l, duracao_min: dur } : l));
+    setEditing(null);
+    toast.success('Atualizado');
+  };
 
   const stats = useMemo(() => {
     const a = last7(history);
@@ -175,6 +216,83 @@ const FitnessHistorico = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </FitnessCard>
+
+      <FitnessCard className="mb-4">
+        <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <Dumbbell className="w-4 h-4 text-cyan-300" /> Treinos realizados
+        </h2>
+        {logs.length === 0 ? (
+          <p className="text-xs text-slate-400 text-center py-4">Nenhum treino registrado ainda.</p>
+        ) : (
+          <div className="space-y-2">
+            {logs.map(l => {
+              const editavel = podeEditar(l.data_treino);
+              const feitos = Array.isArray(l.exercicios) ? l.exercicios.filter((e: any) => e.feito).length : 0;
+              const total = Array.isArray(l.exercicios) ? l.exercicios.length : 0;
+              const cor = l.fitness_workouts?.cor || '#22d3ee';
+              return (
+                <div key={l.id} className="rounded-lg border border-slate-800/60 bg-slate-900/30 p-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-10 rounded-full" style={{ background: cor }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{l.fitness_workouts?.nome || 'Treino'}</p>
+                      <p className="text-[11px] text-slate-400">
+                        {new Date(l.data_treino + 'T00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                        {' · '}
+                        {editing === l.id ? (
+                          <>
+                            <input value={editDur} onChange={e => setEditDur(e.target.value.replace(/\D/g, ''))}
+                              className="w-12 h-6 px-1 rounded bg-slate-800 border border-slate-700 text-center inline-block" />
+                            <span className="ml-1">min</span>
+                          </>
+                        ) : (
+                          <>{l.duracao_min}min</>
+                        )}
+                        {' · '}{feitos}/{total} ex · +{l.xp_ganho} XP
+                      </p>
+                    </div>
+                    {editavel && (
+                      editing === l.id ? (
+                        <>
+                          <button onClick={() => salvarEdicao(l.id)} className="p-1.5 text-emerald-400"><Check className="w-4 h-4" /></button>
+                          <button onClick={() => setEditing(null)} className="p-1.5 text-slate-500"><X className="w-4 h-4" /></button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => { setEditing(l.id); setEditDur(String(l.duracao_min || 0)); }} className="p-1.5 text-slate-400 hover:text-cyan-300">
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => excluirLog(l.id)} className="p-1.5 text-slate-400 hover:text-rose-400">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      )
+                    )}
+                  </div>
+                  {Array.isArray(l.exercicios) && l.exercicios.length > 0 && (
+                    <div className="mt-2 pl-4 text-[11px] text-slate-400 space-y-0.5">
+                      {l.exercicios.slice(0, 5).map((e: any, i: number) => (
+                        <div key={i} className="flex items-center gap-1.5">
+                          <span className={e.feito ? 'text-emerald-400' : e.pulado ? 'text-amber-400' : 'text-slate-500'}>
+                            {e.feito ? '✓' : e.pulado ? '⤳' : '·'}
+                          </span>
+                          <span className="truncate flex-1">{e.nome}</span>
+                          {e.tipo === 'cardio'
+                            ? <span className="text-slate-500">{e.duracao_min}min {e.distancia_km ? `· ${e.distancia_km}km` : ''}</span>
+                            : e.tipo === 'alongamento'
+                              ? <span className="text-slate-500">{e.duracao_min}min</span>
+                              : <span className="text-slate-500">{e.series}x{e.reps}{e.carga ? ` · ${e.carga}kg` : ''}</span>}
+                        </div>
+                      ))}
+                      {l.exercicios.length > 5 && <span className="text-slate-600">+{l.exercicios.length - 5} mais...</span>}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </FitnessCard>

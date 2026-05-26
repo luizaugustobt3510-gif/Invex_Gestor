@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
 import { FitnessCard } from '@/components/fitness/FitnessCard';
@@ -54,6 +54,25 @@ const FitnessGerarTreino = () => {
     limitacoes: '',
   });
 
+  // Sincroniza com perfil quando carrega
+  useEffect(() => {
+    if (profile) {
+      setForm(f => ({
+        ...f,
+        peso: f.peso || (profile.peso_atual ? String(profile.peso_atual) : ''),
+        altura: f.altura || (profile.altura ? String(profile.altura) : ''),
+      }));
+    }
+  }, [profile?.id]);
+
+  const imc = (() => {
+    const p = parseFloat(form.peso);
+    const a = parseFloat(form.altura);
+    if (!p || !a) return null;
+    const m = a > 3 ? a / 100 : a; // se mandar em metros
+    return p / (m * m);
+  })();
+
   const [plano, setPlano] = useState<Plano | null>(null);
 
   const gerarIA = async () => {
@@ -65,6 +84,7 @@ const FitnessGerarTreino = () => {
           sexo: form.sexo,
           peso: form.peso ? parseFloat(form.peso) : undefined,
           altura: form.altura ? parseFloat(form.altura) : undefined,
+          imc: imc ? Number(imc.toFixed(1)) : undefined,
           objetivo: form.objetivo,
           nivel: form.nivel,
           dias_por_semana: form.dias_por_semana,
@@ -333,6 +353,12 @@ const FitnessGerarTreino = () => {
               className="w-full h-11 px-3 rounded-lg bg-slate-800/60 border border-slate-700 text-base focus:border-cyan-400 focus:outline-none" />
           </Field>
         </div>
+        {imc && (
+          <div className="mt-3 rounded-lg bg-cyan-500/10 border border-cyan-400/30 px-3 py-2 text-xs flex items-center justify-between">
+            <span className="text-slate-300">IMC calculado</span>
+            <span className="font-bold text-cyan-300">{imc.toFixed(1)} <span className="text-[10px] text-slate-400">({imc < 18.5 ? 'baixo' : imc < 25 ? 'normal' : imc < 30 ? 'sobrepeso' : 'obesidade'})</span></span>
+          </div>
+        )}
       </FitnessCard>
 
       <FitnessCard className="mb-3">
