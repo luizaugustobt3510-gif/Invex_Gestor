@@ -353,6 +353,12 @@ const FitnessGerarTreino = () => {
               className="w-full h-11 px-3 rounded-lg bg-slate-800/60 border border-slate-700 text-base focus:border-cyan-400 focus:outline-none" />
           </Field>
         </div>
+        {imc && (
+          <div className="mt-3 rounded-lg bg-cyan-500/10 border border-cyan-400/30 px-3 py-2 text-xs flex items-center justify-between">
+            <span className="text-slate-300">IMC calculado</span>
+            <span className="font-bold text-cyan-300">{imc.toFixed(1)} <span className="text-[10px] text-slate-400">({imc < 18.5 ? 'baixo' : imc < 25 ? 'normal' : imc < 30 ? 'sobrepeso' : 'obesidade'})</span></span>
+          </div>
+        )}
       </FitnessCard>
 
       <FitnessCard className="mb-3">
