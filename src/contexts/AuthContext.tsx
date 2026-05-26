@@ -69,6 +69,7 @@ async function loadUserProfile(supabaseUser: SupabaseUser): Promise<User | null>
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [afkBlocked, setAfkBlocked] = useState(false);
   const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const INACTIVITY_TIMEOUT = 20 * 60 * 1000; // 20 minutos
 
@@ -77,9 +78,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   }, []);
 
-  // Inactivity auto-logout
+  // Inactivity auto-logout (desabilitado durante treino ativo)
   useEffect(() => {
-    if (!user) return;
+    if (!user || afkBlocked) {
+      if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+      return;
+    }
 
     const resetTimer = () => {
       if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
@@ -96,7 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
       events.forEach(e => window.removeEventListener(e, resetTimer));
     };
-  }, [user, performLogout]);
+  }, [user, afkBlocked, performLogout]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
