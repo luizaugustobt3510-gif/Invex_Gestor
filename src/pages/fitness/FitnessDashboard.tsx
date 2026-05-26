@@ -229,24 +229,26 @@ const FitnessDashboard = () => {
         <div className="flex items-center gap-2 mb-3">
           <Smile className="w-4 h-4 text-fuchsia-300" />
           <span className="text-sm font-semibold">Como você está hoje?</span>
+          {log?.humor && <span className="ml-auto text-[10px] text-emerald-400">✓ registrado · reseta amanhã</span>}
         </div>
-        <div className="grid grid-cols-5 gap-2">
-          {HUMORES.map(h => (
-            <button
-              key={h}
-              onClick={() => setHumor(h)}
-              className={`h-12 rounded-xl text-2xl transition-all ${
-                log?.humor === h
-                  ? 'bg-fuchsia-500/20 border-2 border-fuchsia-400 scale-105'
-                  : 'bg-slate-800/40 border border-slate-700'
-              }`}
-            >
-              {h}
-            </button>
-          ))}
-        </div>
-        {log?.humor && (
-          <p className="text-xs text-fuchsia-200 mt-3 text-center">{humorMsg[log.humor]}</p>
+        {log?.humor ? (
+          <div className="rounded-xl bg-fuchsia-500/10 border border-fuchsia-400/30 p-4 text-center">
+            <div className="text-4xl mb-1">{log.humor}</div>
+            <p className="text-xs text-fuchsia-200">{humorMsg[log.humor]}</p>
+            <p className="text-[10px] text-slate-500 mt-2">Veja a evolução no histórico</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-5 gap-2">
+            {HUMORES.map(h => (
+              <button
+                key={h}
+                onClick={() => setHumor(h)}
+                className="h-12 rounded-xl text-2xl transition-all bg-slate-800/40 border border-slate-700 active:scale-95"
+              >
+                {h}
+              </button>
+            ))}
+          </div>
         )}
       </FitnessCard>
 
@@ -259,14 +261,21 @@ const FitnessDashboard = () => {
               <p className="text-[10px] text-slate-500">meta: {metaSono}h</p>
             </div>
           </div>
-          <input
-            type="text"
-            inputMode="decimal"
-            value={sonoLocal}
-            onChange={e => onSonoChange(e.target.value.replace(/[^0-9.,]/g, ''))}
-            placeholder="0"
-            className="w-20 h-10 rounded-lg bg-slate-800/60 border border-slate-700 px-3 text-right focus:outline-none focus:border-indigo-400 text-base"
-          />
+          {log?.sono_horas != null ? (
+            <div className="text-right">
+              <p className="text-xl font-black text-indigo-300">{log.sono_horas}h</p>
+              <p className="text-[10px] text-emerald-400">✓ reseta amanhã</p>
+            </div>
+          ) : (
+            <input
+              type="text"
+              inputMode="decimal"
+              value={sonoLocal}
+              onChange={e => onSonoChange(e.target.value.replace(/[^0-9.,]/g, ''))}
+              placeholder="0"
+              className="w-20 h-10 rounded-lg bg-slate-800/60 border border-slate-700 px-3 text-right focus:outline-none focus:border-indigo-400 text-base"
+            />
+          )}
         </div>
         {sonoStatus && (
           <div className={`flex items-center gap-1.5 mt-2 text-xs ${sonoStatus.color}`}>
