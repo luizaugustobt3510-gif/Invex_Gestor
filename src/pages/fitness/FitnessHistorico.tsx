@@ -16,6 +16,45 @@ const avg = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr
 const FitnessHistorico = () => {
   const { profile, loading: lp } = useFitnessProfile();
   const { history, loading: lh } = useFitnessDailyLog();
+  const [logs, setLogs] = useState<any[]>([]);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editDur, setEditDur] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user: au } } = await supabase.auth.getUser();
+      if (!au) return;
+      const { data } = await supabase
+        .from('fitness_workout_logs')
+        .select('*, fitness_workouts(nome, cor)')
+        .eq('user_id', au.id)
+        .order('data_treino', { ascending: false })
+        .limit(30);
+      setLogs(data || []);
+    })();
+  }, []);
+
+  const podeEditar = (data: string) => {
+    const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+    const d = new Date(data + 'T00:00');
+    const diff = (hoje.getTime() - d.getTime()) / (24 * 60 * 60 * 1000);
+    return diff <= 1;
+  };
+
+  const excluirLog = async (id: string) => {
+    if (!confirm('Excluir este treino do histórico?')) return;
+    await supabase.from('fitness_workout_logs').delete().eq('id', id);
+    setLogs(prev => prev.filter(l => l.id !== id));
+    toast.success('Treino removido');
+  };
+
+  const salvarEdicao = async (id: string) => {
+    const dur = parseInt(editDur) || 0;
+    await supabase.from('fitness_workout_logs').update({ duracao_min: dur }).eq('id', id);
+    setLogs(prev => prev.map(l => l.id === id ? { ...l, duracao_min: dur } : l));
+    setEditing(null);
+    toast.success('Atualizado');
+  };
 
   const stats = useMemo(() => {
     const a = last7(history);
