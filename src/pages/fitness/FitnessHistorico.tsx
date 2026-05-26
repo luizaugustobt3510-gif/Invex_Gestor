@@ -1,10 +1,12 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
 import { FitnessCard } from '@/components/fitness/FitnessCard';
 import { AvatarMascote } from '@/components/fitness/AvatarMascote';
 import { useFitnessDailyLog } from '@/hooks/useFitnessDailyLog';
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
-import { Moon, Smile, Droplet, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Moon, Smile, Droplet, TrendingUp, TrendingDown, Minus, Dumbbell, Trash2, Pencil, Check, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 const last7 = (history: any[]) => history.slice(0, 7);
 const prev7 = (history: any[]) => history.slice(7, 14);
