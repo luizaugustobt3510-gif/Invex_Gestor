@@ -219,6 +219,83 @@ const FitnessHistorico = () => {
           </div>
         )}
       </FitnessCard>
+
+      <FitnessCard className="mb-4">
+        <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <Dumbbell className="w-4 h-4 text-cyan-300" /> Treinos realizados
+        </h2>
+        {logs.length === 0 ? (
+          <p className="text-xs text-slate-400 text-center py-4">Nenhum treino registrado ainda.</p>
+        ) : (
+          <div className="space-y-2">
+            {logs.map(l => {
+              const editavel = podeEditar(l.data_treino);
+              const feitos = Array.isArray(l.exercicios) ? l.exercicios.filter((e: any) => e.feito).length : 0;
+              const total = Array.isArray(l.exercicios) ? l.exercicios.length : 0;
+              const cor = l.fitness_workouts?.cor || '#22d3ee';
+              return (
+                <div key={l.id} className="rounded-lg border border-slate-800/60 bg-slate-900/30 p-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-10 rounded-full" style={{ background: cor }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{l.fitness_workouts?.nome || 'Treino'}</p>
+                      <p className="text-[11px] text-slate-400">
+                        {new Date(l.data_treino + 'T00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                        {' · '}
+                        {editing === l.id ? (
+                          <>
+                            <input value={editDur} onChange={e => setEditDur(e.target.value.replace(/\D/g, ''))}
+                              className="w-12 h-6 px-1 rounded bg-slate-800 border border-slate-700 text-center inline-block" />
+                            <span className="ml-1">min</span>
+                          </>
+                        ) : (
+                          <>{l.duracao_min}min</>
+                        )}
+                        {' · '}{feitos}/{total} ex · +{l.xp_ganho} XP
+                      </p>
+                    </div>
+                    {editavel && (
+                      editing === l.id ? (
+                        <>
+                          <button onClick={() => salvarEdicao(l.id)} className="p-1.5 text-emerald-400"><Check className="w-4 h-4" /></button>
+                          <button onClick={() => setEditing(null)} className="p-1.5 text-slate-500"><X className="w-4 h-4" /></button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => { setEditing(l.id); setEditDur(String(l.duracao_min || 0)); }} className="p-1.5 text-slate-400 hover:text-cyan-300">
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => excluirLog(l.id)} className="p-1.5 text-slate-400 hover:text-rose-400">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      )
+                    )}
+                  </div>
+                  {Array.isArray(l.exercicios) && l.exercicios.length > 0 && (
+                    <div className="mt-2 pl-4 text-[11px] text-slate-400 space-y-0.5">
+                      {l.exercicios.slice(0, 5).map((e: any, i: number) => (
+                        <div key={i} className="flex items-center gap-1.5">
+                          <span className={e.feito ? 'text-emerald-400' : e.pulado ? 'text-amber-400' : 'text-slate-500'}>
+                            {e.feito ? '✓' : e.pulado ? '⤳' : '·'}
+                          </span>
+                          <span className="truncate flex-1">{e.nome}</span>
+                          {e.tipo === 'cardio'
+                            ? <span className="text-slate-500">{e.duracao_min}min {e.distancia_km ? `· ${e.distancia_km}km` : ''}</span>
+                            : e.tipo === 'alongamento'
+                              ? <span className="text-slate-500">{e.duracao_min}min</span>
+                              : <span className="text-slate-500">{e.series}x{e.reps}{e.carga ? ` · ${e.carga}kg` : ''}</span>}
+                        </div>
+                      ))}
+                      {l.exercicios.length > 5 && <span className="text-slate-600">+{l.exercicios.length - 5} mais...</span>}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </FitnessCard>
     </FitnessLayout>
   );
 };
