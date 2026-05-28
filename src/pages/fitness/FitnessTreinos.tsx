@@ -672,9 +672,23 @@ const SessaoTreino = ({
     patch({ exercises: updated, currentIndex: next >= 0 ? next : session.currentIndex });
   };
 
+  // "Próximo": marca o ATUAL como feito (verde) e avança
   const proximoEx = () => {
-    const next = exs.findIndex((e, i) => i > session.currentIndex && !e.feito && !e.pulado);
-    if (next >= 0) patch({ currentIndex: next });
+    const atual = exs[session.currentIndex];
+    if (!atual) return;
+    const updated = exs.map(e =>
+      e.id === atual.id ? { ...e, feito: true, pulado: false } : e
+    );
+    let restEnd: number | null = session.restEndsAt || null;
+    if (atual.tipo === 'musculacao' && atual.descanso_seg) {
+      restEnd = Date.now() + atual.descanso_seg * 1000;
+    }
+    const next = updated.findIndex((e, i) => i > session.currentIndex && !e.feito && !e.pulado);
+    patch({
+      exercises: updated,
+      currentIndex: next >= 0 ? next : session.currentIndex,
+      restEndsAt: restEnd,
+    });
   };
 
   const moveEx = (idx: number, dir: -1 | 1) => {
@@ -741,18 +755,36 @@ const SessaoTreino = ({
       )}
 
       <div className="flex gap-2 mb-3">
-        <button onClick={proximoEx} className="flex-1 h-10 rounded-lg bg-cyan-500/15 border border-cyan-400/40 text-cyan-200 text-xs font-bold flex items-center justify-center gap-1.5">
-          <SkipForward className="w-3.5 h-3.5" /> Próximo
+        <button
+          onClick={proximoEx}
+          className="flex-1 h-10 rounded-lg bg-emerald-500/15 border border-emerald-400/50 text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95"
+        >
+          <Check className="w-3.5 h-3.5" /> Próximo (concluir atual)
         </button>
       </div>
 
       <div className="space-y-2 mb-4">
         {exs.map((ex, i) => {
           const isCurrent = i === session.currentIndex && !ex.feito && !ex.pulado;
+          // ESTADOS VISUAIS:
+          // - feito (clicou "Próximo" ou marcou): VERDE
+          // - pulado: AMARELO
+          // - atual: ring ciano
+          const stateClass = ex.feito
+            ? 'bg-emerald-500/10 border-emerald-400/40 opacity-90'
+            : ex.pulado
+              ? 'bg-amber-500/10 border-amber-400/50 opacity-90'
+              : isCurrent
+                ? 'ring-2 ring-cyan-400/60'
+                : '';
+          const cargaAtualNum = ex.cargaReal ? parseFloat(ex.cargaReal.replace(',', '.')) : NaN;
+          const delta = (Number.isFinite(cargaAtualNum) && ex.cargaUltima != null)
+            ? cargaAtualNum - ex.cargaUltima
+            : null;
           return (
             <FitnessCard
               key={ex.id}
-              className={`!p-3 transition-all ${ex.feito ? 'opacity-60' : ex.pulado ? 'opacity-40' : ''} ${isCurrent ? 'ring-2 ring-cyan-400/60' : ''}`}
+              className={`!p-3 transition-all ${stateClass}`}
             >
               <div className="flex items-center gap-2">
                 <div className="flex flex-col gap-0.5">
@@ -768,10 +800,16 @@ const SessaoTreino = ({
                   className={`w-9 h-9 rounded-full shrink-0 flex items-center justify-center border-2 ${
                     ex.feito
                       ? 'bg-emerald-400 border-emerald-300 text-slate-900'
-                      : 'border-slate-600 text-slate-400'
+                      : ex.pulado
+                        ? 'bg-amber-400 border-amber-300 text-slate-900'
+                        : 'border-slate-600 text-slate-400'
                   }`}
                 >
-                  {ex.feito ? <Check className="w-4 h-4" /> : <span className="text-xs font-bold">{i + 1}</span>}
+                  {ex.feito
+                    ? <Check className="w-4 h-4" />
+                    : ex.pulado
+                      ? <SkipForward className="w-4 h-4" />
+                      : <span className="text-xs font-bold">{i + 1}</span>}
                 </button>
                 <div className="flex-1 min-w-0">
                   <p className={`font-semibold text-sm truncate ${ex.feito ? 'line-through' : ''}`}>{ex.nome}</p>
@@ -783,19 +821,31 @@ const SessaoTreino = ({
                   </p>
                 </div>
                 {ex.tipo === 'musculacao' && (
-                  <div className="flex items-center gap-1">
-                    <input
-                      inputMode="decimal"
-                      value={ex.cargaReal || ''}
-                      onChange={e => setCargaReal(ex.id, e.target.value)}
-                      className="w-14 h-9 rounded-lg bg-slate-800/60 border border-slate-700 text-right text-sm px-2 focus:outline-none focus:border-cyan-400"
-                      placeholder="kg"
-                    />
-                    <span className="text-[10px] text-slate-500">kg</span>
+                  <div className="flex flex-col items-end gap-0.5">
+                    <div className="flex items-center gap-1">
+                      <input
+                        inputMode="decimal"
+                        value={ex.cargaReal || ''}
+                        onChange={e => setCargaReal(ex.id, e.target.value)}
+                        className="w-14 h-9 rounded-lg bg-slate-800/60 border border-slate-700 text-right text-sm px-2 focus:outline-none focus:border-cyan-400"
+                        placeholder="kg"
+                      />
+                      <span className="text-[10px] text-slate-500">kg</span>
+                    </div>
+                    {ex.cargaUltima != null && (
+                      <span className="text-[9px] text-slate-500">
+                        ant: {ex.cargaUltima}kg
+                        {delta != null && delta !== 0 && (
+                          <span className={delta > 0 ? ' text-emerald-400 font-bold' : ' text-rose-400 font-bold'}>
+                            {' '}({delta > 0 ? '+' : ''}{delta.toFixed(1)})
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </div>
                 )}
                 {!ex.feito && !ex.pulado && (
-                  <button onClick={() => pularEx(ex.id)} className="p-1.5 text-slate-500 hover:text-amber-300" title="Pular">
+                  <button onClick={() => pularEx(ex.id)} className="p-1.5 text-amber-400 hover:text-amber-300" title="Pular">
                     <SkipForward className="w-3.5 h-3.5" />
                   </button>
                 )}
