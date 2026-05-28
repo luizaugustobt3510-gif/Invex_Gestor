@@ -18,6 +18,8 @@ export interface ActiveSessionExercise {
   feito: boolean;
   pulado?: boolean;
   cargaReal?: string;
+  /** Carga registrada na sessão imediatamente anterior do mesmo exercício */
+  cargaUltima?: number | null;
 }
 
 export interface ActiveSession {
