@@ -140,3 +140,40 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* ============= Invex Fitness — tema claro opcional ============= */
+.fitness-theme.fitness-light {
+  color: #0f172a !important;
+}
+.fitness-theme.fitness-light .bg-slate-900\/70,
+.fitness-theme.fitness-light .bg-slate-900\/60,
+.fitness-theme.fitness-light .bg-slate-900\/30 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+.fitness-theme.fitness-light .bg-slate-800\/60,
+.fitness-theme.fitness-light .bg-slate-800\/40,
+.fitness-theme.fitness-light .bg-slate-800\/80 {
+  background-color: rgba(241, 245, 249, 0.95) !important;
+}
+.fitness-theme.fitness-light .text-white { color: #0f172a !important; }
+.fitness-theme.fitness-light .text-slate-200,
+.fitness-theme.fitness-light .text-slate-300 { color: #1e293b !important; }
+.fitness-theme.fitness-light .text-slate-400 { color: #475569 !important; }
+.fitness-theme.fitness-light .text-slate-500 { color: #64748b !important; }
+.fitness-theme.fitness-light .text-slate-600 { color: #94a3b8 !important; }
+.fitness-theme.fitness-light .border-slate-700,
+.fitness-theme.fitness-light .border-slate-700\/40,
+.fitness-theme.fitness-light .border-slate-700\/50,
+.fitness-theme.fitness-light .border-slate-800\/60 {
+  border-color: #e2e8f0 !important;
+}
+.fitness-theme.fitness-light .border-cyan-500\/20,
+.fitness-theme.fitness-light .border-cyan-500\/25 {
+  border-color: rgba(8, 145, 178, 0.25) !important;
+}
+.fitness-theme.fitness-light .text-cyan-300 { color: #0891b2 !important; }
+.fitness-theme.fitness-light .text-fuchsia-300 { color: #c026d3 !important; }
+.fitness-theme.fitness-light .text-indigo-300 { color: #4f46e5 !important; }
+.fitness-theme.fitness-light .text-amber-300 { color: #d97706 !important; }
+
