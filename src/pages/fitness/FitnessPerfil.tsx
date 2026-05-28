@@ -102,6 +102,31 @@ const FitnessPerfil = () => {
     <FitnessLayout>
       <h1 className="text-2xl font-black mb-4">Meu Perfil</h1>
 
+      <FitnessCard className="mb-4 !p-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold">Tema do app</span>
+          <div className="flex gap-1 p-1 rounded-xl bg-slate-800/60 border border-slate-700">
+            <button
+              onClick={() => setTheme('light')}
+              className={`h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+                theme === 'light' ? 'bg-white text-slate-900' : 'text-slate-400'
+              }`}
+            >
+              <Sun className="w-3.5 h-3.5" /> Claro
+            </button>
+            <button
+              onClick={() => setTheme('dark')}
+              className={`h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+                theme === 'dark' ? 'bg-slate-900 text-cyan-300' : 'text-slate-400'
+              }`}
+            >
+              <Moon className="w-3.5 h-3.5" /> Escuro
+            </button>
+          </div>
+        </div>
+      </FitnessCard>
+
+
       <div className="grid grid-cols-2 gap-2.5 mb-4">
         <Link to="/fitness/historico" className="block">
           <FitnessCard className="!p-3 flex items-center gap-2.5">
