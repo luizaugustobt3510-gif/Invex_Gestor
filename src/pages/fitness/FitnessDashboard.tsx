@@ -285,6 +285,8 @@ const FitnessDashboard = () => {
           </div>
         )}
       </FitnessCard>
+      <RemindersCard />
+
 
       <button
         onClick={() => navigate('/fitness/treinos')}
