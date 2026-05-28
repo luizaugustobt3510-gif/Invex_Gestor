@@ -23,6 +23,7 @@ interface FormState {
 
 const FitnessPerfil = () => {
   const { profile, update, loading } = useFitnessProfile();
+  const { theme, setTheme } = useFitnessTheme();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
