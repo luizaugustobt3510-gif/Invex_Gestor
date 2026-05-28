@@ -129,10 +129,31 @@ const FitnessTreinos = () => {
       toast.error('Adicione exercícios à ficha antes de treinar.');
       return;
     }
+
+    // Busca último log dessa ficha para mostrar comparativo de carga
+    const { data: ultimoLog } = await supabase
+      .from('fitness_workout_logs')
+      .select('exercicios, data_treino')
+      .eq('user_id', au.id)
+      .eq('workout_id', workoutId)
+      .order('data_treino', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const ultimasCargas = new Map<string, number>();
+    if (ultimoLog?.exercicios && Array.isArray(ultimoLog.exercicios)) {
+      for (const e of ultimoLog.exercicios as any[]) {
+        if (e?.nome && e?.carga) {
+          const n = parseFloat(String(e.carga).replace(',', '.'));
+          if (Number.isFinite(n) && n > 0) ultimasCargas.set(e.nome, n);
+        }
+      }
+    }
+
     const newSession: ActiveSession = {
       workoutId,
       workoutNome: w.nome,
-      startedAt: 0, // será definido após countdown
+      startedAt: 0,
       pausedAt: null,
       pausedAcc: 0,
       currentIndex: 0,
@@ -151,6 +172,7 @@ const FitnessTreinos = () => {
         ordem: i,
         feito: false,
         cargaReal: e.carga_kg != null ? String(e.carga_kg) : '',
+        cargaUltima: ultimasCargas.get(e.nome) ?? null,
       })),
       userId: au.id,
     };
@@ -171,6 +193,7 @@ const FitnessTreinos = () => {
       exercicios: session.exercises.map(e => ({
         nome: e.nome, tipo: e.tipo, feito: !!e.feito, pulado: !!e.pulado,
         series: e.series, reps: e.repeticoes, carga: e.cargaReal,
+        carga_anterior: e.cargaUltima ?? null,
         duracao_min: e.duracao_min, distancia_km: e.distancia_km,
         calorias: e.calorias, intensidade: e.intensidade,
       })),
@@ -178,13 +201,21 @@ const FitnessTreinos = () => {
     });
     await upsertToday({ treino_feito: true });
     if (profile) {
-      const hoje = new Date().toISOString().slice(0, 10);
-      const wasYesterday = profile.last_workout_date &&
-        new Date(profile.last_workout_date).getTime() >= Date.now() - 36 * 60 * 60 * 1000;
+      const hojeStr = new Date().toISOString().slice(0, 10);
+      const ontemStr = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      let novoStreak: number;
+      if (profile.last_workout_date === hojeStr) {
+        // já treinou hoje — mantém streak
+        novoStreak = profile.streak_dias || 1;
+      } else if (profile.last_workout_date === ontemStr) {
+        novoStreak = (profile.streak_dias || 0) + 1;
+      } else {
+        novoStreak = 1;
+      }
       await update({
         xp: (profile.xp || 0) + xp,
-        last_workout_date: hoje,
-        streak_dias: wasYesterday ? (profile.streak_dias || 0) + 1 : 1,
+        last_workout_date: hojeStr,
+        streak_dias: novoStreak,
       });
     }
     toast.success(`Treino salvo! +${xp} XP 🔥`);
