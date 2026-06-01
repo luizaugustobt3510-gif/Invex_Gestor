@@ -89,6 +89,9 @@ import DashboardFolha from "./pages/folha/DashboardFolha";
 import ConfiguracaoFolha from "./pages/folha/ConfiguracaoFolha";
 import SimulacaoFolha from "./pages/folha/SimulacaoFolha";
 import HistoricoFolha from "./pages/folha/HistoricoFolha";
+import Changelog from "./pages/Changelog";
+import GestaoChangelog from "./pages/GestaoChangelog";
+import { ChangelogModal } from "./components/ChangelogModal";
 const queryClient = new QueryClient();
 
 const App = () => (
