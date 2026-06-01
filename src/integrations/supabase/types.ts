@@ -2739,6 +2739,48 @@ export type Database = {
         }
         Relationships: []
       }
+      system_updates: {
+        Row: {
+          correcoes: Json
+          created_at: string
+          created_by: string | null
+          data_atualizacao: string
+          descricao: string
+          id: string
+          novas_funcionalidades: Json
+          status: string
+          titulo: string
+          updated_at: string
+          versao: string
+        }
+        Insert: {
+          correcoes?: Json
+          created_at?: string
+          created_by?: string | null
+          data_atualizacao?: string
+          descricao?: string
+          id?: string
+          novas_funcionalidades?: Json
+          status?: string
+          titulo: string
+          updated_at?: string
+          versao: string
+        }
+        Update: {
+          correcoes?: Json
+          created_at?: string
+          created_by?: string | null
+          data_atualizacao?: string
+          descricao?: string
+          id?: string
+          novas_funcionalidades?: Json
+          status?: string
+          titulo?: string
+          updated_at?: string
+          versao?: string
+        }
+        Relationships: []
+      }
       temperature_records: {
         Row: {
           company_id: string
@@ -2991,6 +3033,35 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_update_views: {
+        Row: {
+          id: string
+          update_id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          update_id: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          update_id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_update_views_update_id_fkey"
+            columns: ["update_id"]
+            isOneToOne: false
+            referencedRelation: "system_updates"
             referencedColumns: ["id"]
           },
         ]
