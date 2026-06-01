@@ -217,8 +217,12 @@ const App = () => (
             <Route path="/folha/simulacao" element={<EmailRestrictedRoute allowedEmails={['teste@invex.com']}><RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><SimulacaoFolha /></RoleProtectedRoute></EmailRestrictedRoute>} />
             <Route path="/folha/historico" element={<EmailRestrictedRoute allowedEmails={['teste@invex.com']}><RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><HistoricoFolha /></RoleProtectedRoute></EmailRestrictedRoute>} />
 
+            <Route path="/changelog" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox', 'manutencao', 'fitness']}><Changelog /></RoleProtectedRoute>} />
+            <Route path="/gestao-changelog" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoChangelog /></RoleProtectedRoute>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <ChangelogModal />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
