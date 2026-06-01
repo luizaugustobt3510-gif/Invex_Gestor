@@ -723,6 +723,12 @@ const adminGroups: MenuGroup[] = [
         icon: <ScrollText className="w-4 h-4" />,
         allowedRoles: ["superadm"],
       },
+      {
+        path: "/gestao-changelog",
+        label: "Novidades / Changelog",
+        icon: <ScrollText className="w-4 h-4" />,
+        allowedRoles: ["superadm"],
+      },
     ],
   },
 ];
