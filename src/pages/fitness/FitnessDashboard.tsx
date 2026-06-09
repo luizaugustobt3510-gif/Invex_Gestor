@@ -5,7 +5,7 @@ import { FitnessLayout } from '@/components/fitness/FitnessLayout';
 import { DialogBalloons } from '@/components/fitness/DialogBalloons';
 import { XPBar } from '@/components/fitness/XPBar';
 import { FitnessCard } from '@/components/fitness/FitnessCard';
-import { RemindersCard } from '@/components/fitness/RemindersCard';
+
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
 import { useFitnessDailyLog } from '@/hooks/useFitnessDailyLog';
 import { supabase } from '@/integrations/supabase/client';
