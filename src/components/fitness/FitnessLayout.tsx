@@ -59,7 +59,7 @@ export const FitnessLayout = ({ children, hideNav }: Props) => {
           className={cn('fixed bottom-0 left-0 right-0 z-50 border-t', navBorder)}
           style={{ background: navBg, paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
-          <div className="max-w-3xl mx-auto grid grid-cols-6">
+          <div className="max-w-3xl mx-auto grid grid-cols-7">
             {navItems.map(({ to, icon: Icon, label }) => (
               <NavLink
                 key={to}
