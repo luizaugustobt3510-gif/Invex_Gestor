@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Dumbbell, TrendingUp, Apple, User, LogOut, History } from 'lucide-react';
+import { Home, Dumbbell, TrendingUp, Apple, User, LogOut, History, Flame } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFitnessTheme } from '@/hooks/useFitnessTheme';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,8 @@ const navItems = [
   { to: '/fitness/treinos', icon: Dumbbell, label: 'Treinos' },
   { to: '/fitness/historico', icon: History, label: 'Histórico' },
   { to: '/fitness/evolucao', icon: TrendingUp, label: 'Evolução' },
-  { to: '/fitness/alimentacao', icon: Apple, label: 'Comida' },
+  { to: '/fitness/alimentacao', icon: Apple, label: 'Alimentação' },
+  { to: '/fitness/emagrecimento', icon: Flame, label: 'Emagrecer' },
   { to: '/fitness/perfil', icon: User, label: 'Perfil' },
 ];
 
@@ -58,7 +59,7 @@ export const FitnessLayout = ({ children, hideNav }: Props) => {
           className={cn('fixed bottom-0 left-0 right-0 z-50 border-t', navBorder)}
           style={{ background: navBg, paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
-          <div className="max-w-3xl mx-auto grid grid-cols-6">
+          <div className="max-w-3xl mx-auto grid grid-cols-7">
             {navItems.map(({ to, icon: Icon, label }) => (
               <NavLink
                 key={to}
@@ -74,7 +75,7 @@ export const FitnessLayout = ({ children, hideNav }: Props) => {
                 {({ isActive }) => (
                   <>
                     <Icon className={cn('w-4 h-4 sm:w-5 sm:h-5', isActive && 'drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]')} />
-                    <span className="leading-tight truncate max-w-[56px]">{label}</span>
+                    <span className="leading-tight truncate max-w-[52px]">{label}</span>
                   </>
                 )}
               </NavLink>
