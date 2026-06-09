@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Dumbbell, TrendingUp, Apple, User, LogOut, History } from 'lucide-react';
+import { Home, Dumbbell, TrendingUp, Apple, User, LogOut, History, Flame } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFitnessTheme } from '@/hooks/useFitnessTheme';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,8 @@ const navItems = [
   { to: '/fitness/treinos', icon: Dumbbell, label: 'Treinos' },
   { to: '/fitness/historico', icon: History, label: 'Histórico' },
   { to: '/fitness/evolucao', icon: TrendingUp, label: 'Evolução' },
-  { to: '/fitness/alimentacao', icon: Apple, label: 'Comida' },
+  { to: '/fitness/alimentacao', icon: Apple, label: 'Alimentação' },
+  { to: '/fitness/emagrecimento', icon: Flame, label: 'Emagrecer' },
   { to: '/fitness/perfil', icon: User, label: 'Perfil' },
 ];
 
