@@ -1184,6 +1184,42 @@ export type Database = {
         }
         Relationships: []
       }
+      fitness_emagrecimento_logs: {
+        Row: {
+          calorias: number
+          carboidratos: number
+          created_at: string
+          fibras: number
+          gorduras: number
+          id: string
+          peso: number
+          proteinas: number
+          user_id: string
+        }
+        Insert: {
+          calorias: number
+          carboidratos: number
+          created_at?: string
+          fibras: number
+          gorduras: number
+          id?: string
+          peso: number
+          proteinas: number
+          user_id: string
+        }
+        Update: {
+          calorias?: number
+          carboidratos?: number
+          created_at?: string
+          fibras?: number
+          gorduras?: number
+          id?: string
+          peso?: number
+          proteinas?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       fitness_friends: {
         Row: {
           created_at: string
