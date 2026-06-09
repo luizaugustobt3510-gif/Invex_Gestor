@@ -285,7 +285,8 @@ const FitnessDashboard = () => {
           </div>
         )}
       </FitnessCard>
-      <RemindersCard />
+
+
 
 
       <button
