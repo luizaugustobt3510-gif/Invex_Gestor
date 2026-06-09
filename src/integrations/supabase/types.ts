@@ -1244,6 +1244,51 @@ export type Database = {
         }
         Relationships: []
       }
+      fitness_meal_logs: {
+        Row: {
+          alimento: string
+          calorias: number
+          carboidratos: number
+          created_at: string
+          fibras: number
+          gorduras: number
+          id: string
+          log_date: string
+          proteinas: number
+          quantidade_g: number
+          refeicao: string
+          user_id: string
+        }
+        Insert: {
+          alimento: string
+          calorias?: number
+          carboidratos?: number
+          created_at?: string
+          fibras?: number
+          gorduras?: number
+          id?: string
+          log_date?: string
+          proteinas?: number
+          quantidade_g?: number
+          refeicao: string
+          user_id: string
+        }
+        Update: {
+          alimento?: string
+          calorias?: number
+          carboidratos?: number
+          created_at?: string
+          fibras?: number
+          gorduras?: number
+          id?: string
+          log_date?: string
+          proteinas?: number
+          quantidade_g?: number
+          refeicao?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       fitness_measurements: {
         Row: {
           braco: number | null
