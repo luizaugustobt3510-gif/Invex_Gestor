@@ -75,7 +75,7 @@ export const FitnessLayout = ({ children, hideNav }: Props) => {
                 {({ isActive }) => (
                   <>
                     <Icon className={cn('w-4 h-4 sm:w-5 sm:h-5', isActive && 'drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]')} />
-                    <span className="leading-tight truncate max-w-[56px]">{label}</span>
+                    <span className="leading-tight truncate max-w-[52px]">{label}</span>
                   </>
                 )}
               </NavLink>
