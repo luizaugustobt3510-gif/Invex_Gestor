@@ -1,14 +1,18 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Flame, Droplet, Moon, Smile, Dumbbell, Plus, Minus } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Flame, Droplet, Moon, Smile, Dumbbell, Plus, Minus, Gauge, ChevronRight } from 'lucide-react';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
 import { DialogBalloons } from '@/components/fitness/DialogBalloons';
 import { XPBar } from '@/components/fitness/XPBar';
 import { FitnessCard } from '@/components/fitness/FitnessCard';
+import { Speedometer } from '@/components/fitness/Speedometer';
 
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
 import { useFitnessDailyLog } from '@/hooks/useFitnessDailyLog';
+import { useFitnessTodayMeals } from '@/hooks/useFitnessTodayMeals';
+import { useFitnessAchievementsAutoUnlock } from '@/hooks/useFitnessAchievementsAutoUnlock';
 import { supabase } from '@/integrations/supabase/client';
+
 
 const HUMORES = ['😄', '🙂', '😐', '😞', '😤'];
 
@@ -16,9 +20,12 @@ const FitnessDashboard = () => {
   const navigate = useNavigate();
   const { profile, loading } = useFitnessProfile();
   const { log, upsertToday, loading: lLog } = useFitnessDailyLog();
+  const { totals: mealTotals, meta: mealMeta } = useFitnessTodayMeals();
+  useFitnessAchievementsAutoUnlock();
   const [aiMsg, setAiMsg] = useState<string | null>(null);
   const [sonoLocal, setSonoLocal] = useState<string>('');
   const sonoDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 
   useEffect(() => {
     if (profile && !profile.onboarding_completo) navigate('/fitness/onboarding', { replace: true });
@@ -194,6 +201,37 @@ const FitnessDashboard = () => {
           </div>
         </FitnessCard>
       </div>
+
+      {/* Mini velocímetro de aderência alimentar */}
+      <Link to="/fitness/emagrecimento" className="block mb-4">
+        <FitnessCard glow="fuchsia">
+          <div className="flex items-center gap-3">
+            <div className="shrink-0">
+              <Speedometer
+                value={mealTotals.calorias}
+                max={mealMeta?.calorias || 1}
+                size="sm"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <Gauge className="w-3.5 h-3.5 text-cyan-300" />
+                <span className="text-xs font-bold text-slate-200">Meta diária</span>
+              </div>
+              <p className="text-base font-black">
+                {Math.round(mealTotals.calorias)}
+                <span className="text-[10px] text-slate-500 font-normal"> / {mealMeta?.calorias || '—'} kcal</span>
+              </p>
+              <p className="text-[10px] text-slate-400 truncate">
+                {mealMeta ? `${mealTotals.refeicoes} item(ns) hoje` : 'Calcule sua meta no Processo de Emagrecimento'}
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
+          </div>
+        </FitnessCard>
+      </Link>
+
+
 
       <FitnessCard className="mb-4">
         <div className="flex items-center justify-between mb-3">
