@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
 import { FitnessCard } from '@/components/fitness/FitnessCard';
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
+import { useFitnessTodayMeals } from '@/hooks/useFitnessTodayMeals';
+import { Speedometer } from '@/components/fitness/Speedometer';
 import { supabase } from '@/integrations/supabase/client';
 import { Flame, Save, RefreshCw, Info, Trash2, Gauge } from 'lucide-react';
 import { toast } from 'sonner';
+
 
 interface LogRow {
   id: string;
@@ -91,10 +94,13 @@ const MacroBar = ({ data }: { data: { proteinas: number; carboidratos: number; g
 
 const FitnessEmagrecimento = () => {
   const { profile, update, loading } = useFitnessProfile();
+  const { totals: mealTotals } = useFitnessTodayMeals();
   const [pesoInput, setPesoInput] = useState('');
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [saving, setSaving] = useState(false);
-  const [adherence, setAdherence] = useState(0); // calorias consumidas hoje (manual)
+  const adherence = Math.round(mealTotals.calorias);
+
+
 
   useEffect(() => {
     if (profile?.peso_atual != null && !pesoInput) {
@@ -228,17 +234,12 @@ const FitnessEmagrecimento = () => {
               </div>
               <span className="text-[10px] text-slate-500">{adherence} / {result.calorias} kcal</span>
             </div>
-            <Speedometer value={adherence} max={result.calorias} label="kcal consumidas hoje" />
-            <input
-              type="range"
-              min={0}
-              max={result.calorias}
-              value={adherence}
-              onChange={e => setAdherence(Number(e.target.value))}
-              className="w-full mt-2 accent-cyan-400"
-            />
-            <p className="text-[10px] text-slate-500 mt-1 text-center">Arraste para registrar quantas kcal você consumiu hoje</p>
+            <Speedometer value={adherence} max={result.calorias} label="kcal consumidas hoje (automático da Alimentação)" />
+            <p className="text-[10px] text-slate-500 mt-1 text-center">
+              Sincronizado com seus registros na aba Alimentação · {mealTotals.refeicoes} item(ns) hoje
+            </p>
           </FitnessCard>
+
 
           {/* Aviso */}
           <div className="mb-4 flex gap-2 text-xs text-amber-200/90 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-2">
