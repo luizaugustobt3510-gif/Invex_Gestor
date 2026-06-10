@@ -144,36 +144,85 @@ All colors MUST be HSL.
 /* ============= Invex Fitness — tema claro opcional ============= */
 .fitness-theme.fitness-light {
   color: #0f172a !important;
+  background: #f8fafc !important;
 }
+/* Superfícies (cards / inputs) */
 .fitness-theme.fitness-light .bg-slate-900\/70,
 .fitness-theme.fitness-light .bg-slate-900\/60,
+.fitness-theme.fitness-light .bg-slate-900\/50,
+.fitness-theme.fitness-light .bg-slate-900\/40,
 .fitness-theme.fitness-light .bg-slate-900\/30 {
-  background-color: rgba(255, 255, 255, 0.92) !important;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
+.fitness-theme.fitness-light .bg-slate-800\/80,
+.fitness-theme.fitness-light .bg-slate-800\/70,
 .fitness-theme.fitness-light .bg-slate-800\/60,
-.fitness-theme.fitness-light .bg-slate-800\/40,
-.fitness-theme.fitness-light .bg-slate-800\/80 {
-  background-color: rgba(241, 245, 249, 0.95) !important;
+.fitness-theme.fitness-light .bg-slate-800\/40 {
+  background-color: #f1f5f9 !important;
 }
-.fitness-theme.fitness-light .text-white { color: #0f172a !important; }
+/* Textos */
+.fitness-theme.fitness-light .text-white,
+.fitness-theme.fitness-light .text-slate-100,
 .fitness-theme.fitness-light .text-slate-200,
-.fitness-theme.fitness-light .text-slate-300 { color: #1e293b !important; }
+.fitness-theme.fitness-light .text-slate-300 { color: #0f172a !important; }
 .fitness-theme.fitness-light .text-slate-400 { color: #475569 !important; }
 .fitness-theme.fitness-light .text-slate-500 { color: #64748b !important; }
 .fitness-theme.fitness-light .text-slate-600 { color: #94a3b8 !important; }
+/* Bordas */
 .fitness-theme.fitness-light .border-slate-700,
 .fitness-theme.fitness-light .border-slate-700\/40,
 .fitness-theme.fitness-light .border-slate-700\/50,
+.fitness-theme.fitness-light .border-slate-700\/60,
+.fitness-theme.fitness-light .border-slate-800,
 .fitness-theme.fitness-light .border-slate-800\/60 {
   border-color: #e2e8f0 !important;
 }
 .fitness-theme.fitness-light .border-cyan-500\/20,
-.fitness-theme.fitness-light .border-cyan-500\/25 {
-  border-color: rgba(8, 145, 178, 0.25) !important;
+.fitness-theme.fitness-light .border-cyan-500\/25,
+.fitness-theme.fitness-light .border-cyan-500\/30,
+.fitness-theme.fitness-light .border-cyan-400\/40,
+.fitness-theme.fitness-light .border-cyan-400\/60 {
+  border-color: #67e8f9 !important;
 }
-.fitness-theme.fitness-light .text-cyan-300 { color: #0891b2 !important; }
-.fitness-theme.fitness-light .text-fuchsia-300 { color: #c026d3 !important; }
-.fitness-theme.fitness-light .text-indigo-300 { color: #4f46e5 !important; }
-.fitness-theme.fitness-light .text-amber-300 { color: #d97706 !important; }
+/* Neons → tons mais escuros e legíveis em fundo claro */
+.fitness-theme.fitness-light .text-cyan-300,
+.fitness-theme.fitness-light .text-cyan-200,
+.fitness-theme.fitness-light .text-cyan-100 { color: #0e7490 !important; }
+.fitness-theme.fitness-light .text-fuchsia-300,
+.fitness-theme.fitness-light .text-fuchsia-200,
+.fitness-theme.fitness-light .text-fuchsia-100 { color: #a21caf !important; }
+.fitness-theme.fitness-light .text-indigo-300 { color: #4338ca !important; }
+.fitness-theme.fitness-light .text-amber-300,
+.fitness-theme.fitness-light .text-amber-200 { color: #b45309 !important; }
+.fitness-theme.fitness-light .text-emerald-300,
+.fitness-theme.fitness-light .text-emerald-200,
+.fitness-theme.fitness-light .text-emerald-400 { color: #047857 !important; }
+.fitness-theme.fitness-light .text-rose-300,
+.fitness-theme.fitness-light .text-rose-400 { color: #be123c !important; }
+.fitness-theme.fitness-light .text-pink-300 { color: #be185d !important; }
+.fitness-theme.fitness-light .text-orange-300,
+.fitness-theme.fitness-light .text-orange-400 { color: #c2410c !important; }
+/* Reduzir intensidade dos fundos translúcidos coloridos */
+.fitness-theme.fitness-light .bg-cyan-500\/5,
+.fitness-theme.fitness-light .bg-cyan-500\/10,
+.fitness-theme.fitness-light .bg-cyan-500\/15,
+.fitness-theme.fitness-light .bg-cyan-500\/20 { background-color: rgba(8, 145, 178, 0.08) !important; }
+.fitness-theme.fitness-light .bg-fuchsia-500\/10,
+.fitness-theme.fitness-light .bg-fuchsia-500\/15 { background-color: rgba(162, 28, 175, 0.08) !important; }
+.fitness-theme.fitness-light .bg-rose-500\/10 { background-color: rgba(190, 18, 60, 0.08) !important; }
+.fitness-theme.fitness-light .bg-amber-500\/10 { background-color: rgba(180, 83, 9, 0.08) !important; }
+.fitness-theme.fitness-light .bg-orange-500\/20 { background-color: rgba(194, 65, 12, 0.12) !important; }
+.fitness-theme.fitness-light .bg-indigo-500\/20 { background-color: rgba(67, 56, 202, 0.10) !important; }
+.fitness-theme.fitness-light .bg-emerald-500\/20 { background-color: rgba(4, 120, 87, 0.10) !important; }
+/* Atenuar brilhos exagerados nos cards e botões com gradiente */
+.fitness-theme.fitness-light [class*="from-cyan-500"],
+.fitness-theme.fitness-light [class*="to-fuchsia-500"] {
+  filter: saturate(0.85) brightness(0.95);
+}
+.fitness-theme.fitness-light .shadow-glow,
+.fitness-theme.fitness-light [style*="box-shadow"] {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+}
+
 
