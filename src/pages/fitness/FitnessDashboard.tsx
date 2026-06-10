@@ -1,14 +1,18 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Flame, Droplet, Moon, Smile, Dumbbell, Plus, Minus } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Flame, Droplet, Moon, Smile, Dumbbell, Plus, Minus, Gauge, ChevronRight } from 'lucide-react';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
 import { DialogBalloons } from '@/components/fitness/DialogBalloons';
 import { XPBar } from '@/components/fitness/XPBar';
 import { FitnessCard } from '@/components/fitness/FitnessCard';
+import { Speedometer } from '@/components/fitness/Speedometer';
 
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
 import { useFitnessDailyLog } from '@/hooks/useFitnessDailyLog';
+import { useFitnessTodayMeals } from '@/hooks/useFitnessTodayMeals';
+import { useFitnessAchievementsAutoUnlock } from '@/hooks/useFitnessAchievementsAutoUnlock';
 import { supabase } from '@/integrations/supabase/client';
+
 
 const HUMORES = ['😄', '🙂', '😐', '😞', '😤'];
 
@@ -16,9 +20,12 @@ const FitnessDashboard = () => {
   const navigate = useNavigate();
   const { profile, loading } = useFitnessProfile();
   const { log, upsertToday, loading: lLog } = useFitnessDailyLog();
+  const { totals: mealTotals, meta: mealMeta } = useFitnessTodayMeals();
+  useFitnessAchievementsAutoUnlock();
   const [aiMsg, setAiMsg] = useState<string | null>(null);
   const [sonoLocal, setSonoLocal] = useState<string>('');
   const sonoDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 
   useEffect(() => {
     if (profile && !profile.onboarding_completo) navigate('/fitness/onboarding', { replace: true });
