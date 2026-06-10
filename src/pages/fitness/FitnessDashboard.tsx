@@ -202,6 +202,37 @@ const FitnessDashboard = () => {
         </FitnessCard>
       </div>
 
+      {/* Mini velocímetro de aderência alimentar */}
+      <Link to="/fitness/emagrecimento" className="block mb-4">
+        <FitnessCard glow="fuchsia">
+          <div className="flex items-center gap-3">
+            <div className="shrink-0">
+              <Speedometer
+                value={mealTotals.calorias}
+                max={mealMeta?.calorias || 1}
+                size="sm"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <Gauge className="w-3.5 h-3.5 text-cyan-300" />
+                <span className="text-xs font-bold text-slate-200">Meta diária</span>
+              </div>
+              <p className="text-base font-black">
+                {Math.round(mealTotals.calorias)}
+                <span className="text-[10px] text-slate-500 font-normal"> / {mealMeta?.calorias || '—'} kcal</span>
+              </p>
+              <p className="text-[10px] text-slate-400 truncate">
+                {mealMeta ? `${mealTotals.refeicoes} item(ns) hoje` : 'Calcule sua meta no Processo de Emagrecimento'}
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
+          </div>
+        </FitnessCard>
+      </Link>
+
+
+
       <FitnessCard className="mb-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
