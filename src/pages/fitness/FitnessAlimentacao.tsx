@@ -76,6 +76,35 @@ const FOODS: Food[] = [
   { nome: 'Whey Protein (1 scoop ~30g)', kcal: 120, prot: 24, carb: 3, gord: 1.5, fibra: 0 },
   { nome: 'Azeite de oliva', kcal: 884, prot: 0, carb: 0, gord: 100, fibra: 0 },
   { nome: 'Castanha do Pará', kcal: 656, prot: 14, carb: 12, gord: 66, fibra: 7.5 },
+
+  // Bebidas / chás
+  { nome: 'Chá sem açúcar', kcal: 1, prot: 0, carb: 0.2, gord: 0, fibra: 0 },
+  { nome: 'Chá com açúcar', kcal: 30, prot: 0, carb: 7.5, gord: 0, fibra: 0 },
+  { nome: 'Chá verde', kcal: 1, prot: 0, carb: 0.2, gord: 0, fibra: 0 },
+  { nome: 'Chá mate gelado', kcal: 25, prot: 0, carb: 6.2, gord: 0, fibra: 0 },
+  { nome: 'Suco de laranja natural', kcal: 45, prot: 0.7, carb: 10, gord: 0.2, fibra: 0.2 },
+  { nome: 'Refrigerante', kcal: 42, prot: 0, carb: 10.6, gord: 0, fibra: 0 },
+  { nome: 'Cerveja', kcal: 43, prot: 0.5, carb: 3.6, gord: 0, fibra: 0 },
+
+  // Fast food / menos saudáveis
+  { nome: 'Pizza mussarela (fatia)', kcal: 266, prot: 11, carb: 33, gord: 10, fibra: 2 },
+  { nome: 'Pizza calabresa (fatia)', kcal: 290, prot: 12, carb: 30, gord: 13, fibra: 2 },
+  { nome: 'Pizza portuguesa (fatia)', kcal: 280, prot: 13, carb: 30, gord: 12, fibra: 2 },
+  { nome: 'Hambúrguer caseiro', kcal: 295, prot: 17, carb: 24, gord: 14, fibra: 1.2 },
+  { nome: 'Hambúrguer fast-food (Big)', kcal: 540, prot: 25, carb: 45, gord: 28, fibra: 3 },
+  { nome: 'Cheeseburguer', kcal: 310, prot: 16, carb: 27, gord: 14, fibra: 1.5 },
+  { nome: 'X-tudo', kcal: 480, prot: 22, carb: 38, gord: 26, fibra: 2 },
+  { nome: 'Batata frita', kcal: 312, prot: 3.4, carb: 41, gord: 15, fibra: 3.8 },
+  { nome: 'Batata frita (porção média 150g)', kcal: 468, prot: 5, carb: 62, gord: 22, fibra: 5.5 },
+  { nome: 'Nuggets de frango', kcal: 296, prot: 15, carb: 19, gord: 19, fibra: 0.8 },
+  { nome: 'Cachorro-quente', kcal: 247, prot: 10, carb: 18, gord: 15, fibra: 1.2 },
+  { nome: 'Coxinha', kcal: 270, prot: 8, carb: 28, gord: 14, fibra: 1 },
+  { nome: 'Pastel de carne (frito)', kcal: 320, prot: 9, carb: 30, gord: 18, fibra: 1.2 },
+  { nome: 'Salgadinho de pacote', kcal: 530, prot: 6, carb: 55, gord: 32, fibra: 3 },
+  { nome: 'Chocolate ao leite', kcal: 535, prot: 7, carb: 59, gord: 30, fibra: 3.4 },
+  { nome: 'Sorvete cremoso', kcal: 207, prot: 3.5, carb: 24, gord: 11, fibra: 0.7 },
+  { nome: 'Brigadeiro (unidade ~20g)', kcal: 85, prot: 1, carb: 13, gord: 3, fibra: 0.2 },
+  { nome: 'Bolacha recheada', kcal: 480, prot: 5, carb: 70, gord: 20, fibra: 1.5 },
 ];
 
 

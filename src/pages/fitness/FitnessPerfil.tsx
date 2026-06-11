@@ -7,7 +7,7 @@ import { FITNESS_AVATARS } from './avatars';
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
 import { useFitnessTheme } from '@/hooks/useFitnessTheme';
 import { supabase } from '@/integrations/supabase/client';
-import { Camera, Save, History, Trophy, ChevronRight, Sun, Moon } from 'lucide-react';
+import { Camera, Save, History, Trophy, ChevronRight, Sun, Moon, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface FormState {
@@ -103,12 +103,12 @@ const FitnessPerfil = () => {
       <h1 className="text-2xl font-black mb-4">Meu Perfil</h1>
 
       <FitnessCard className="mb-4 !p-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <span className="text-sm font-semibold">Tema do app</span>
           <div className="flex gap-1 p-1 rounded-xl bg-slate-800/60 border border-slate-700">
             <button
               onClick={() => setTheme('light')}
-              className={`h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+              className={`h-8 px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
                 theme === 'light' ? 'bg-white text-slate-900' : 'text-slate-400'
               }`}
             >
@@ -116,15 +116,25 @@ const FitnessPerfil = () => {
             </button>
             <button
               onClick={() => setTheme('dark')}
-              className={`h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+              className={`h-8 px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
                 theme === 'dark' ? 'bg-slate-900 text-cyan-300' : 'text-slate-400'
               }`}
             >
               <Moon className="w-3.5 h-3.5" /> Escuro
             </button>
+            <button
+              onClick={() => setTheme('neon')}
+              className={`h-8 px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+                theme === 'neon' ? 'text-slate-900' : 'text-slate-400'
+              }`}
+              style={theme === 'neon' ? { background: 'linear-gradient(90deg, #5eead4, #c084fc)' } : undefined}
+            >
+              <Sparkles className="w-3.5 h-3.5" /> Neon
+            </button>
           </div>
         </div>
       </FitnessCard>
+
 
 
       <div className="grid grid-cols-2 gap-2.5 mb-4">

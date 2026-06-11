@@ -20,27 +20,36 @@ const navItems = [
 export const FitnessLayout = ({ children, hideNav }: Props) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const { isLight } = useFitnessTheme();
+  const { theme, isLight, isNeon } = useFitnessTheme();
 
   const bgStyle = isLight
     ? {
         background:
           'radial-gradient(ellipse at top, rgba(34,211,238,0.10), transparent 60%), radial-gradient(ellipse at bottom, rgba(232,121,249,0.06), transparent 60%), #f8fafc',
       }
+    : isNeon
+    ? {
+        background:
+          'radial-gradient(ellipse at top, rgba(167,139,250,0.20), transparent 60%), radial-gradient(ellipse at bottom, rgba(94,234,212,0.16), transparent 60%), #1a1530',
+      }
     : {
         background:
           'radial-gradient(ellipse at top, rgba(34,211,238,0.12), transparent 60%), radial-gradient(ellipse at bottom, rgba(232,121,249,0.10), transparent 60%), #06070d',
       };
 
-  const navBg = isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(10, 12, 20, 0.95)';
-  const navBorder = isLight ? 'border-cyan-500/15' : 'border-cyan-500/20';
-  const inactive = isLight ? 'text-slate-500' : 'text-slate-400';
+  const navBg = isLight ? 'rgba(255, 255, 255, 0.95)' : isNeon ? 'rgba(26, 21, 48, 0.92)' : 'rgba(10, 12, 20, 0.95)';
+  const navBorder = isLight ? 'border-cyan-500/15' : isNeon ? 'border-violet-400/25' : 'border-cyan-500/20';
+  const inactive = isLight ? 'text-slate-500' : isNeon ? 'text-violet-200/70' : 'text-slate-400';
+
+  const themeClass = isLight ? 'fitness-light text-slate-900' : isNeon ? 'fitness-neon text-violet-50' : 'text-white';
 
   return (
     <div
-      className={cn('fitness-theme min-h-[100dvh] relative overflow-x-hidden', isLight ? 'fitness-light text-slate-900' : 'text-white')}
+      className={cn('fitness-theme min-h-[100dvh] relative overflow-x-hidden', themeClass)}
+      data-fitness-theme={theme}
       style={bgStyle}
     >
+
       <div
         aria-hidden
         className={cn('pointer-events-none absolute inset-0', isLight ? 'opacity-[0.04]' : 'opacity-[0.06]')}

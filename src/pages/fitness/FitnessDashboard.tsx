@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
+import type { RexAnim } from '@/components/fitness/DialogBalloons';
 import { useNavigate, Link } from 'react-router-dom';
 import { Flame, Droplet, Moon, Smile, Dumbbell, Plus, Minus, Gauge, ChevronRight } from 'lucide-react';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
@@ -25,6 +26,16 @@ const FitnessDashboard = () => {
   const [aiMsg, setAiMsg] = useState<string | null>(null);
   const [sonoLocal, setSonoLocal] = useState<string>('');
   const sonoDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [rexAnim, setRexAnim] = useState<RexAnim>('idle');
+  const rexTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastWaterDoneRef = useRef(false);
+  const lastCalorieDoneRef = useRef(false);
+
+  const triggerRexAnim = (a: RexAnim, ms = 3500) => {
+    setRexAnim(a);
+    if (rexTimer.current) clearTimeout(rexTimer.current);
+    rexTimer.current = setTimeout(() => setRexAnim('idle'), ms);
+  };
 
 
   useEffect(() => {
@@ -105,6 +116,29 @@ const FitnessDashboard = () => {
     return arr;
   }, [profile, log, aiMsg]);
 
+  // Animações REX: comemorar quando bater água; dançar quando bater calorias
+  const aguaAtual = log?.agua_ml || 0;
+  const aguaMetaAtual = profile?.agua_meta_ml || 2500;
+  const aguaCompleta = aguaMetaAtual > 0 && aguaAtual >= aguaMetaAtual;
+  const calCompleta = !!mealMeta && mealMeta.calorias > 0 && mealTotals.calorias >= mealMeta.calorias;
+
+  useEffect(() => {
+    if (aguaCompleta && !lastWaterDoneRef.current) {
+      lastWaterDoneRef.current = true;
+      if (profile?.avatar_id === 'rex') triggerRexAnim('celebrate', 4000);
+    }
+    if (!aguaCompleta) lastWaterDoneRef.current = false;
+  }, [aguaCompleta, profile?.avatar_id]);
+
+  useEffect(() => {
+    if (calCompleta && !lastCalorieDoneRef.current) {
+      lastCalorieDoneRef.current = true;
+      if (profile?.avatar_id === 'rex') triggerRexAnim('dance', 4000);
+    }
+    if (!calCompleta) lastCalorieDoneRef.current = false;
+  }, [calCompleta, profile?.avatar_id]);
+
+
   if (loading || lLog || !profile) {
     return (
       <FitnessLayout hideNav>
@@ -162,6 +196,7 @@ const FitnessDashboard = () => {
           mascoteNome={profile.mascote_nome}
           mensagens={mensagens}
           intervaloMs={20000}
+          rexAnim={rexAnim}
         />
       </div>
 
@@ -328,7 +363,14 @@ const FitnessDashboard = () => {
 
 
       <button
-        onClick={() => navigate('/fitness/treinos')}
+        onClick={() => {
+          if (profile.avatar_id === 'rex') {
+            triggerRexAnim('exercise', 1200);
+            setTimeout(() => navigate('/fitness/treinos'), 900);
+          } else {
+            navigate('/fitness/treinos');
+          }
+        }}
         className="w-full h-14 rounded-2xl font-black text-slate-900 text-base flex items-center justify-center gap-2 mb-4 active:scale-[0.98]"
         style={{
           background: 'linear-gradient(90deg, #22d3ee, #e879f9)',
