@@ -116,6 +116,29 @@ const FitnessDashboard = () => {
     return arr;
   }, [profile, log, aiMsg]);
 
+  // Animações REX: comemorar quando bater água; dançar quando bater calorias
+  const aguaAtual = log?.agua_ml || 0;
+  const aguaMetaAtual = profile?.agua_meta_ml || 2500;
+  const aguaCompleta = aguaMetaAtual > 0 && aguaAtual >= aguaMetaAtual;
+  const calCompleta = !!mealMeta && mealMeta.calorias > 0 && mealTotals.calorias >= mealMeta.calorias;
+
+  useEffect(() => {
+    if (aguaCompleta && !lastWaterDoneRef.current) {
+      lastWaterDoneRef.current = true;
+      if (profile?.avatar_id === 'rex') triggerRexAnim('celebrate', 4000);
+    }
+    if (!aguaCompleta) lastWaterDoneRef.current = false;
+  }, [aguaCompleta, profile?.avatar_id]);
+
+  useEffect(() => {
+    if (calCompleta && !lastCalorieDoneRef.current) {
+      lastCalorieDoneRef.current = true;
+      if (profile?.avatar_id === 'rex') triggerRexAnim('dance', 4000);
+    }
+    if (!calCompleta) lastCalorieDoneRef.current = false;
+  }, [calCompleta, profile?.avatar_id]);
+
+
   if (loading || lLog || !profile) {
     return (
       <FitnessLayout hideNav>
