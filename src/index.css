@@ -225,4 +225,124 @@ All colors MUST be HSL.
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
 }
 
+/* Garantir contraste nos balões/lembretes do avatar em tema claro */
+.fitness-theme.fitness-light .dialog-balloon {
+  background: linear-gradient(135deg, rgba(8,145,178,0.10), rgba(162,28,175,0.08)) !important;
+  border-color: rgba(8,145,178,0.45) !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.10) !important;
+}
+.fitness-theme.fitness-light .dialog-balloon-tag {
+  color: #0e7490 !important;
+}
+
+/* ============= Invex Fitness — tema Neon (cores leves) ============= */
+.fitness-theme.fitness-neon {
+  color: #f5f3ff !important;
+  background: #1a1530 !important;
+}
+.fitness-theme.fitness-neon .bg-slate-900\/70,
+.fitness-theme.fitness-neon .bg-slate-900\/60,
+.fitness-theme.fitness-neon .bg-slate-900\/50,
+.fitness-theme.fitness-neon .bg-slate-900\/40,
+.fitness-theme.fitness-neon .bg-slate-900\/30 {
+  background-color: rgba(45, 35, 78, 0.75) !important;
+  box-shadow: 0 1px 2px rgba(167, 139, 250, 0.08);
+}
+.fitness-theme.fitness-neon .bg-slate-800\/80,
+.fitness-theme.fitness-neon .bg-slate-800\/70,
+.fitness-theme.fitness-neon .bg-slate-800\/60,
+.fitness-theme.fitness-neon .bg-slate-800\/40 {
+  background-color: rgba(58, 45, 100, 0.65) !important;
+}
+.fitness-theme.fitness-neon .text-white,
+.fitness-theme.fitness-neon .text-slate-100,
+.fitness-theme.fitness-neon .text-slate-200,
+.fitness-theme.fitness-neon .text-slate-300 { color: #f5f3ff !important; }
+.fitness-theme.fitness-neon .text-slate-400 { color: #c4b5fd !important; }
+.fitness-theme.fitness-neon .text-slate-500 { color: #a78bfa !important; }
+.fitness-theme.fitness-neon .text-slate-600 { color: #8b7fb8 !important; }
+.fitness-theme.fitness-neon .border-slate-700,
+.fitness-theme.fitness-neon .border-slate-700\/40,
+.fitness-theme.fitness-neon .border-slate-700\/50,
+.fitness-theme.fitness-neon .border-slate-700\/60,
+.fitness-theme.fitness-neon .border-slate-800,
+.fitness-theme.fitness-neon .border-slate-800\/60 {
+  border-color: rgba(167, 139, 250, 0.25) !important;
+}
+.fitness-theme.fitness-neon .border-cyan-500\/20,
+.fitness-theme.fitness-neon .border-cyan-500\/25,
+.fitness-theme.fitness-neon .border-cyan-500\/30,
+.fitness-theme.fitness-neon .border-cyan-400\/40,
+.fitness-theme.fitness-neon .border-cyan-400\/60 {
+  border-color: rgba(94, 234, 212, 0.50) !important;
+}
+.fitness-theme.fitness-neon .text-cyan-300,
+.fitness-theme.fitness-neon .text-cyan-200,
+.fitness-theme.fitness-neon .text-cyan-100 { color: #99f6e4 !important; }
+.fitness-theme.fitness-neon .text-fuchsia-300,
+.fitness-theme.fitness-neon .text-fuchsia-200,
+.fitness-theme.fitness-neon .text-fuchsia-100 { color: #f5d0fe !important; }
+.fitness-theme.fitness-neon .text-indigo-300 { color: #c7d2fe !important; }
+.fitness-theme.fitness-neon .text-amber-300,
+.fitness-theme.fitness-neon .text-amber-200 { color: #fde68a !important; }
+.fitness-theme.fitness-neon .text-emerald-300,
+.fitness-theme.fitness-neon .text-emerald-200,
+.fitness-theme.fitness-neon .text-emerald-400 { color: #a7f3d0 !important; }
+.fitness-theme.fitness-neon .text-rose-300,
+.fitness-theme.fitness-neon .text-rose-400 { color: #fecdd3 !important; }
+.fitness-theme.fitness-neon .text-pink-300 { color: #fbcfe8 !important; }
+.fitness-theme.fitness-neon .text-orange-300,
+.fitness-theme.fitness-neon .text-orange-400 { color: #fed7aa !important; }
+.fitness-theme.fitness-neon .bg-cyan-500\/5,
+.fitness-theme.fitness-neon .bg-cyan-500\/10,
+.fitness-theme.fitness-neon .bg-cyan-500\/15,
+.fitness-theme.fitness-neon .bg-cyan-500\/20 { background-color: rgba(94, 234, 212, 0.14) !important; }
+.fitness-theme.fitness-neon .bg-fuchsia-500\/10,
+.fitness-theme.fitness-neon .bg-fuchsia-500\/15 { background-color: rgba(232, 121, 249, 0.16) !important; }
+.fitness-theme.fitness-neon .bg-rose-500\/10 { background-color: rgba(251, 113, 133, 0.14) !important; }
+.fitness-theme.fitness-neon .bg-amber-500\/10 { background-color: rgba(253, 230, 138, 0.14) !important; }
+.fitness-theme.fitness-neon .bg-orange-500\/20 { background-color: rgba(254, 215, 170, 0.18) !important; }
+.fitness-theme.fitness-neon .bg-indigo-500\/20 { background-color: rgba(199, 210, 254, 0.16) !important; }
+.fitness-theme.fitness-neon .bg-emerald-500\/20 { background-color: rgba(167, 243, 208, 0.16) !important; }
+.fitness-theme.fitness-neon [class*="from-cyan-500"],
+.fitness-theme.fitness-neon [class*="to-fuchsia-500"] {
+  filter: saturate(0.9) brightness(1.02);
+}
+.fitness-theme.fitness-neon .dialog-balloon {
+  background: linear-gradient(135deg, rgba(94,234,212,0.20), rgba(232,121,249,0.16)) !important;
+  border-color: rgba(94,234,212,0.55) !important;
+  color: #f5f3ff !important;
+}
+.fitness-theme.fitness-neon .dialog-balloon-tag {
+  color: #99f6e4 !important;
+}
+
+/* ============= Animações do avatar REX ============= */
+@keyframes rex-exercise {
+  0%, 100% { transform: translateY(0) scale(1); }
+  25% { transform: translateY(-6px) scale(1.04); }
+  50% { transform: translateY(2px) scale(0.96); }
+  75% { transform: translateY(-4px) scale(1.02); }
+}
+@keyframes rex-celebrate {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  20% { transform: translateY(-14px) rotate(-6deg) scale(1.08); }
+  40% { transform: translateY(-4px) rotate(6deg) scale(1.05); }
+  60% { transform: translateY(-12px) rotate(-4deg) scale(1.08); }
+  80% { transform: translateY(-2px) rotate(3deg) scale(1.04); }
+}
+@keyframes rex-dance {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  20% { transform: translateX(-6px) rotate(-8deg); }
+  40% { transform: translateX(6px) rotate(8deg); }
+  60% { transform: translateX(-5px) rotate(-6deg); }
+  80% { transform: translateX(5px) rotate(6deg); }
+}
+.rex-anim-exercise { animation: rex-exercise 0.7s ease-in-out infinite; transform-origin: center bottom; }
+.rex-anim-celebrate { animation: rex-celebrate 1.2s ease-in-out infinite; transform-origin: center bottom; }
+.rex-anim-dance { animation: rex-dance 0.9s ease-in-out infinite; transform-origin: center bottom; }
+
+
+
 
