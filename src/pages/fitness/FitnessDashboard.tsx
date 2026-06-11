@@ -363,7 +363,14 @@ const FitnessDashboard = () => {
 
 
       <button
-        onClick={() => navigate('/fitness/treinos')}
+        onClick={() => {
+          if (profile.avatar_id === 'rex') {
+            triggerRexAnim('exercise', 1200);
+            setTimeout(() => navigate('/fitness/treinos'), 900);
+          } else {
+            navigate('/fitness/treinos');
+          }
+        }}
         className="w-full h-14 rounded-2xl font-black text-slate-900 text-base flex items-center justify-center gap-2 mb-4 active:scale-[0.98]"
         style={{
           background: 'linear-gradient(90deg, #22d3ee, #e879f9)',
