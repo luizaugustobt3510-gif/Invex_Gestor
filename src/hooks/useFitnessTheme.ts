@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 
 const KEY = 'fitness_theme';
-export type FitnessTheme = 'dark' | 'light';
+export type FitnessTheme = 'dark' | 'light' | 'neon';
 
 const read = (): FitnessTheme => {
   if (typeof window === 'undefined') return 'dark';
   const v = localStorage.getItem(KEY);
-  return v === 'light' ? 'light' : 'dark';
+  if (v === 'light') return 'light';
+  if (v === 'neon') return 'neon';
+  return 'dark';
 };
 
 export function useFitnessTheme() {
@@ -28,5 +30,5 @@ export function useFitnessTheme() {
     };
   }, []);
 
-  return { theme, setTheme, isLight: theme === 'light' };
+  return { theme, setTheme, isLight: theme === 'light', isNeon: theme === 'neon' };
 }
