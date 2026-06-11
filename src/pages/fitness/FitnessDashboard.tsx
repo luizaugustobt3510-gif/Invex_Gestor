@@ -26,6 +26,16 @@ const FitnessDashboard = () => {
   const [aiMsg, setAiMsg] = useState<string | null>(null);
   const [sonoLocal, setSonoLocal] = useState<string>('');
   const sonoDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [rexAnim, setRexAnim] = useState<RexAnim>('idle');
+  const rexTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastWaterDoneRef = useRef(false);
+  const lastCalorieDoneRef = useRef(false);
+
+  const triggerRexAnim = (a: RexAnim, ms = 3500) => {
+    setRexAnim(a);
+    if (rexTimer.current) clearTimeout(rexTimer.current);
+    rexTimer.current = setTimeout(() => setRexAnim('idle'), ms);
+  };
 
 
   useEffect(() => {
