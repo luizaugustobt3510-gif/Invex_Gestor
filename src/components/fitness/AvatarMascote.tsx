@@ -16,14 +16,14 @@ export const AvatarMascote = ({ avatarId, mascoteNome, mensagem, size = 'md' }: 
     <div className="relative flex flex-col items-center">
       {mensagem && (
         <div
-          className="mb-3 max-w-[260px] px-4 py-2.5 rounded-2xl rounded-bl-sm text-sm font-medium"
+          className="dialog-balloon mb-3 max-w-[260px] px-4 py-2.5 rounded-2xl rounded-bl-sm text-sm font-medium"
           style={{
             background: 'linear-gradient(135deg, rgba(34,211,238,0.18), rgba(232,121,249,0.12))',
             border: '1px solid rgba(34,211,238,0.35)',
             color: '#e0f2fe',
           }}
         >
-          <span className="block text-[10px] uppercase tracking-widest text-cyan-300/80 mb-0.5">
+          <span className="dialog-balloon-tag block text-[10px] uppercase tracking-widest text-cyan-300/80 mb-0.5">
             {mascoteNome}
           </span>
           {mensagem}
