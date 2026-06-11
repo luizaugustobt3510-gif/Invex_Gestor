@@ -196,6 +196,7 @@ const FitnessDashboard = () => {
           mascoteNome={profile.mascote_nome}
           mensagens={mensagens}
           intervaloMs={20000}
+          rexAnim={rexAnim}
         />
       </div>
 
