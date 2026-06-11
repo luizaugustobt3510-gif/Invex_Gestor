@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
+import type { RexAnim } from '@/components/fitness/DialogBalloons';
 import { useNavigate, Link } from 'react-router-dom';
 import { Flame, Droplet, Moon, Smile, Dumbbell, Plus, Minus, Gauge, ChevronRight } from 'lucide-react';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
