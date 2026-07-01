@@ -12,6 +12,8 @@ import { Building, Edit, RefreshCw, Plus, Users, ShieldCheck, ShieldOff, Trash2 
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { COMPANY_TYPES, COMPANY_TYPE_LABELS, COMPANY_TYPE_TEMPLATES, type CompanyType } from '@/config/companyTypeTemplates';
+import { MODULES_CATALOG } from '@/config/modules';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Company {
   id: string;
