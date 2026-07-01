@@ -171,6 +171,7 @@ const GestaoEmpresas = () => {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>CNPJ</TableHead>
+                    <TableHead>Tipo</TableHead>
                     <TableHead className="text-center">Usuários</TableHead>
                     <TableHead className="text-center">Status</TableHead>
                     <TableHead>Criada em</TableHead>
@@ -182,6 +183,7 @@ const GestaoEmpresas = () => {
                     <TableRow key={c.id}>
                       <TableCell className="font-medium">{c.name}</TableCell>
                       <TableCell className="font-mono text-sm">{c.cnpj || '-'}</TableCell>
+                      <TableCell><Badge variant="outline">{COMPANY_TYPE_LABELS[c.company_type || 'personalizado']}</Badge></TableCell>
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-1">
                           <Users className="w-3.5 h-3.5 text-muted-foreground" />
@@ -233,6 +235,18 @@ const GestaoEmpresas = () => {
               <Label>CNPJ (opcional)</Label>
               <Input value={newCnpj} onChange={e => setNewCnpj(e.target.value)} placeholder="00.000.000/0000-00" />
             </div>
+            <div className="space-y-2">
+              <Label>Tipo de Empresa</Label>
+              <Select value={newType} onValueChange={(v) => setNewType(v as CompanyType)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {COMPANY_TYPES.map(t => <SelectItem key={t} value={t}>{COMPANY_TYPE_LABELS[t]}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Define os módulos sugeridos inicialmente. Poderá ser alterado depois.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setNewDialog(false)}>Cancelar</Button>
@@ -256,6 +270,18 @@ const GestaoEmpresas = () => {
               <div className="space-y-2">
                 <Label>CNPJ</Label>
                 <Input value={editCompany.cnpj || ''} onChange={e => setEditCompany({ ...editCompany, cnpj: e.target.value || null })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Tipo de Empresa</Label>
+                <Select
+                  value={editCompany.company_type || 'personalizado'}
+                  onValueChange={(v) => setEditCompany({ ...editCompany, company_type: v as CompanyType })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {COMPANY_TYPES.map(t => <SelectItem key={t} value={t}>{COMPANY_TYPE_LABELS[t]}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           )}
