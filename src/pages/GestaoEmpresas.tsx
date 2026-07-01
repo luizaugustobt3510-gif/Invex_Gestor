@@ -38,6 +38,15 @@ const GestaoEmpresas = () => {
   const [deleteDialog, setDeleteDialog] = useState<Company | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [newModules, setNewModules] = useState<Record<string, boolean>>({});
+
+  // Sync module selection when type changes
+  useEffect(() => {
+    const suggested = COMPANY_TYPE_TEMPLATES[newType] || [];
+    const map: Record<string, boolean> = {};
+    MODULES_CATALOG.filter(m => !m.core).forEach(m => { map[m.key] = suggested.includes(m.key); });
+    setNewModules(map);
+  }, [newType, newDialog]);
 
   const fetchCompanies = async () => {
     setLoading(true);
