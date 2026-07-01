@@ -44,6 +44,8 @@ export const MODULES_CATALOG: ModuleDef[] = [
       { key: 'logistica.ordem_compra', label: 'Ordens de Compra' },
       { key: 'logistica.conciliacao_estoque', label: 'Conciliação de Estoque' },
       { key: 'logistica.solicitacoes', label: 'Solicitações' },
+      { key: 'logistica.fornecedores', label: 'Fornecedores' },
+      { key: 'logistica.curva_abc', label: 'Curva ABC' },
       { key: 'logistica.conferencia', label: 'Conferência de Temperatura' },
     ],
   },
