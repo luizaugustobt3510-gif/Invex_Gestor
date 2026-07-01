@@ -64,6 +64,7 @@ export const MODULES_CATALOG: ModuleDef[] = [
       { key: 'rh.treinamentos', label: 'Treinamentos' },
       { key: 'rh.avaliacoes', label: 'Avaliações' },
       { key: 'rh.ocorrencias', label: 'Ocorrências' },
+      { key: 'rh.beneficios', label: 'Benefícios' },
       { key: 'rh.analises_indicadores', label: 'Análises e Indicadores' },
     ],
   },
