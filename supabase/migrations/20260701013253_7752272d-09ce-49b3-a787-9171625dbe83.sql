@@ -1,0 +1,3 @@
+CREATE POLICY "Company admins manage own modules insert" ON public.company_modules FOR INSERT TO authenticated WITH CHECK (public.is_company_admin(auth.uid(), company_id));
+CREATE POLICY "Company admins manage own modules update" ON public.company_modules FOR UPDATE TO authenticated USING (public.is_company_admin(auth.uid(), company_id)) WITH CHECK (public.is_company_admin(auth.uid(), company_id));
+CREATE POLICY "Company admins manage own modules delete" ON public.company_modules FOR DELETE TO authenticated USING (public.is_company_admin(auth.uid(), company_id));
