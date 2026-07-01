@@ -8,17 +8,10 @@ interface ModuleAccessState {
   loading: boolean;
 }
 
-// Maps sidebar module groups to company_modules keys
-const MODULE_KEY_MAP: Record<string, string> = {
-  logistica: "logistica",
-  rh: "rh_module",
-  academia: "academia",
-  financeiro: "financeiro_module",
-  vendas: "vendas",
-  compras: "compras",
-  relatorios: "relatorios",
-  manutencao: "manutencao",
-};
+// Sidebar module keys mirror the MODULES_CATALOG keys 1:1 (see src/config/modules.ts).
+// company_modules.module_key stores the same value written by ModulosEmpresa,
+// so we use identity mapping and keep this object only for legacy aliases.
+const MODULE_KEY_MAP: Record<string, string> = {};
 
 export function useModuleAccess() {
   const { user } = useAuth();
