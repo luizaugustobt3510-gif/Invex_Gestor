@@ -80,16 +80,16 @@ const GestaoEmpresas = () => {
         .single();
       if (error) throw error;
 
-      // Pre-ativar módulos do template (aditivo, is_active=true)
-      const suggested = COMPANY_TYPE_TEMPLATES[newType] || [];
-      if (data?.id && suggested.length > 0) {
+      // Ativar módulos escolhidos manualmente pelo super admin
+      const selected = Object.entries(newModules).filter(([, v]) => v).map(([k]) => k);
+      if (data?.id && selected.length > 0) {
         await supabase.from('company_modules').upsert(
-          suggested.map((key) => ({ company_id: data.id, module_key: key, is_active: true })),
+          selected.map((key) => ({ company_id: data.id, module_key: key, is_active: true })),
           { onConflict: 'company_id,module_key' },
         );
       }
 
-      toast({ title: 'Empresa criada!', description: suggested.length ? `${suggested.length} módulo(s) do template ativados.` : undefined });
+      toast({ title: 'Empresa criada!', description: selected.length ? `${selected.length} módulo(s) ativados.` : 'Nenhum módulo ativado.' });
       setNewDialog(false);
       setNewName('');
       setNewCnpj('');
