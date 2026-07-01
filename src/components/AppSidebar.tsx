@@ -1117,6 +1117,16 @@ export function AppSidebar() {
           </>
         )}
 
+        {/* Clínica (Prontuário + Agenda) */}
+        {visibleClinica.length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            {visibleClinica.map(renderGroup)}
+          </>
+        )}
+
+
+
         {/* Manutenção */}
         {visibleManutencao.length > 0 && (
           <>
