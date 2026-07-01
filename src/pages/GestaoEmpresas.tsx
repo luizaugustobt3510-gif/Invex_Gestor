@@ -12,6 +12,8 @@ import { Building, Edit, RefreshCw, Plus, Users, ShieldCheck, ShieldOff, Trash2 
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { COMPANY_TYPES, COMPANY_TYPE_LABELS, COMPANY_TYPE_TEMPLATES, type CompanyType } from '@/config/companyTypeTemplates';
+import { MODULES_CATALOG } from '@/config/modules';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Company {
   id: string;
@@ -36,6 +38,15 @@ const GestaoEmpresas = () => {
   const [deleteDialog, setDeleteDialog] = useState<Company | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [newModules, setNewModules] = useState<Record<string, boolean>>({});
+
+  // Sync module selection when type changes
+  useEffect(() => {
+    const suggested = COMPANY_TYPE_TEMPLATES[newType] || [];
+    const map: Record<string, boolean> = {};
+    MODULES_CATALOG.filter(m => !m.core).forEach(m => { map[m.key] = suggested.includes(m.key); });
+    setNewModules(map);
+  }, [newType, newDialog]);
 
   const fetchCompanies = async () => {
     setLoading(true);
@@ -69,16 +80,16 @@ const GestaoEmpresas = () => {
         .single();
       if (error) throw error;
 
-      // Pre-ativar módulos do template (aditivo, is_active=true)
-      const suggested = COMPANY_TYPE_TEMPLATES[newType] || [];
-      if (data?.id && suggested.length > 0) {
+      // Ativar módulos escolhidos manualmente pelo super admin
+      const selected = Object.entries(newModules).filter(([, v]) => v).map(([k]) => k);
+      if (data?.id && selected.length > 0) {
         await supabase.from('company_modules').upsert(
-          suggested.map((key) => ({ company_id: data.id, module_key: key, is_active: true })),
+          selected.map((key) => ({ company_id: data.id, module_key: key, is_active: true })),
           { onConflict: 'company_id,module_key' },
         );
       }
 
-      toast({ title: 'Empresa criada!', description: suggested.length ? `${suggested.length} módulo(s) do template ativados.` : undefined });
+      toast({ title: 'Empresa criada!', description: selected.length ? `${selected.length} módulo(s) ativados.` : 'Nenhum módulo ativado.' });
       setNewDialog(false);
       setNewName('');
       setNewCnpj('');
@@ -244,7 +255,27 @@ const GestaoEmpresas = () => {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Define os módulos sugeridos inicialmente. Poderá ser alterado depois.
+                Marca automaticamente os módulos sugeridos. Ajuste abaixo o que quiser.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Módulos ativados na criação</Label>
+              <div className="max-h-56 overflow-y-auto border rounded-md p-3 space-y-2">
+                {MODULES_CATALOG.filter(m => !m.core).map(m => (
+                  <label key={m.key} className="flex items-start gap-2 text-sm cursor-pointer">
+                    <Checkbox
+                      checked={!!newModules[m.key]}
+                      onCheckedChange={(v) => setNewModules(prev => ({ ...prev, [m.key]: !!v }))}
+                    />
+                    <div>
+                      <div className="font-medium">{m.label}</div>
+                      <div className="text-xs text-muted-foreground">{m.description}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Só os módulos marcados aqui ficarão disponíveis para os usuários dessa empresa.
               </p>
             </div>
           </div>
