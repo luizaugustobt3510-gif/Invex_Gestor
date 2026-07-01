@@ -97,7 +97,7 @@ const FluxoCaixa = () => {
           <CardContent>
             <ChartContainer config={{}} className="h-[250px] w-full">
               <ResponsiveContainer>
-                <AreaChart data={data}>
+                <AreaChart data={data as any[]}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey={xKey} />
                   <YAxis />

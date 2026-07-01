@@ -29,6 +29,7 @@ import Recontagem from "./pages/Recontagem";
 import InstalarApp from "./pages/InstalarApp";
 import GestaoEmpresas from "./pages/GestaoEmpresas";
 import GestaoModulos from "./pages/GestaoModulos";
+import ModulosEmpresa from "./pages/ModulosEmpresa";
 import GestaoPlanos from "./pages/GestaoPlanos";
 import ConfigSistema from "./pages/ConfigSistema";
 import LogsAuditoria from "./pages/LogsAuditoria";
@@ -154,6 +155,9 @@ const App = () => (
 
             {/* === PERFIL === */}
             <Route path="/meu-perfil" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><MeuPerfil /></RoleProtectedRoute>} />
+
+            {/* === MÓDULOS DA EMPRESA (admin da empresa) === */}
+            <Route path="/configuracoes/modulos-empresa" element={<RoleProtectedRoute allowedRoles={['admin']}><ModulosEmpresa /></RoleProtectedRoute>} />
 
             {/* === GESTÃO DE PESSOAS === */}
             <Route path="/rh" element={<RoleProtectedRoute allowedRoles={['admin', 'rh', 'visualizador']} moduleKey="rh" submoduleKey="rh.dashboard"><DashboardRH /></RoleProtectedRoute>} />
