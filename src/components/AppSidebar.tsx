@@ -34,6 +34,7 @@ import {
   Users,
   Calendar,
   HeartPulse,
+  Stethoscope,
   GraduationCap,
   Clock,
   Star,
