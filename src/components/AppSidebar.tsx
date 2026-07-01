@@ -254,6 +254,7 @@ const logisticsGroups: MenuGroup[] = [
         label: "Gestão de Fornecedores",
         icon: <Truck className="w-4 h-4" />,
         allowedRoles: ["admin", "logistica"],
+        submoduleKey: "logistica.fornecedores",
       },
     ],
   },
@@ -268,12 +269,14 @@ const logisticsGroups: MenuGroup[] = [
         label: "Curva ABC Inteligente",
         icon: <TrendingUp className="w-4 h-4" />,
         allowedRoles: ["admin", "logistica"],
+        submoduleKey: "logistica.curva_abc",
       },
       {
         path: "/estoque-inteligente",
         label: "Mín/Máx Inteligente",
         icon: <Target className="w-4 h-4" />,
         allowedRoles: ["admin", "logistica"],
+        submoduleKey: "logistica.curva_abc",
       },
     ],
   },
@@ -551,6 +554,42 @@ const rhGroups: MenuGroup[] = [
     ],
   },
   {
+    label: "Benefícios",
+    icon: <Gift className="w-4 h-4" />,
+    allowedRoles: ["admin", "rh", "financeiro", "visualizador"],
+    moduleKey: "rh",
+    items: [
+      {
+        path: "/beneficios",
+        label: "Dashboard",
+        icon: <LayoutDashboard className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "financeiro", "visualizador"],
+        submoduleKey: "rh.beneficios",
+      },
+      {
+        path: "/beneficios/cadastro",
+        label: "Catálogo",
+        icon: <Heart className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh"],
+        submoduleKey: "rh.beneficios",
+      },
+      {
+        path: "/beneficios/vinculo",
+        label: "Vínculos",
+        icon: <Users className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh"],
+        submoduleKey: "rh.beneficios",
+      },
+      {
+        path: "/beneficios/controle-mensal",
+        label: "Controle Mensal",
+        icon: <Calendar className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "financeiro"],
+        submoduleKey: "rh.beneficios",
+      },
+    ],
+  },
+  {
     label: "Análises",
     icon: <BarChart3 className="w-4 h-4" />,
     allowedRoles: ["admin", "rh", "visualizador"],
@@ -824,7 +863,7 @@ export function AppSidebar() {
   const visibleVendas = !isSuperAdmin ? filterGroups(vendasGroups) : [];
   const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
   const visibleManutencao = !isSuperAdmin ? filterGroups(manutencaoGroups) : [];
-  const visibleBeneficios = !isSuperAdmin ? filterGroups(beneficiosGroups) : [];
+  const visibleBeneficios: MenuGroup[] = [];
   const canSeeFolha = user?.email?.toLowerCase() === "teste@invex.com";
   const visibleFolha = !isSuperAdmin && canSeeFolha ? filterGroups(folhaGroups) : [];
   const visibleAdmin = filterGroups(adminGroups);
@@ -914,8 +953,60 @@ export function AppSidebar() {
           </>
         )}
 
-        {/* Logistics groups */}
-        {visibleLogistics.map(renderGroup)}
+        {/* Logística - parent group with collapsible subgroups */}
+        {visibleLogistics.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <div className="flex items-center gap-2">
+                <Package className="w-4 h-4" />
+                <span>Logística</span>
+              </div>
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              {visibleLogistics.map((group) => {
+                const isGroupActive = group.items.some((item) => isActive(item.path));
+                return (
+                  <Collapsible key={group.label} defaultOpen={isGroupActive} className="group/collapsible">
+                    <CollapsibleTrigger asChild>
+                      <button
+                        type="button"
+                        className="w-full flex items-center justify-between px-2 py-2 text-sm font-semibold text-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          {group.icon}
+                          <span>{group.label}</span>
+                        </div>
+                        <ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenu>
+                        {group.items.map((item) => (
+                          <SidebarMenuItem key={item.path}>
+                            <SidebarMenuButton
+                              onClick={() => navigatePreservingScroll(item.path)}
+                              isActive={isActive(item.path)}
+                              tooltip={item.label}
+                              className={cn(
+                                "w-full justify-start gap-3 pl-8 py-2 text-sm transition-colors",
+                                isActive(item.path)
+                                  ? "bg-primary/10 text-primary font-medium"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
+                              )}
+                            >
+                              {item.icon}
+                              <span>{item.label}</span>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })}
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Gestão de Pessoas (RH) - parent group with collapsible subgroups */}
         {visibleRHGroups.length > 0 && (
