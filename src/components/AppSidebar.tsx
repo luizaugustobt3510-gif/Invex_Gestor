@@ -863,7 +863,7 @@ export function AppSidebar() {
   const visibleVendas = !isSuperAdmin ? filterGroups(vendasGroups) : [];
   const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
   const visibleManutencao = !isSuperAdmin ? filterGroups(manutencaoGroups) : [];
-  const visibleBeneficios = !isSuperAdmin ? filterGroups(beneficiosGroups) : [];
+  const visibleBeneficios: MenuGroup[] = [];
   const canSeeFolha = user?.email?.toLowerCase() === "teste@invex.com";
   const visibleFolha = !isSuperAdmin && canSeeFolha ? filterGroups(folhaGroups) : [];
   const visibleAdmin = filterGroups(adminGroups);
