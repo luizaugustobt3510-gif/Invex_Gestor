@@ -97,13 +97,20 @@ const ModulosEmpresa = () => {
 
   const saveCompanyType = async (type: CompanyType) => {
     if (!user?.companyId) return;
+    const previous = companyType;
     setCompanyType(type);
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('companies')
       .update({ company_type: type } as any)
-      .eq('id', user.companyId);
-    if (error) {
-      toast({ title: 'Erro ao salvar tipo de empresa', variant: 'destructive' });
+      .eq('id', user.companyId)
+      .select('id');
+    if (error || !data || data.length === 0) {
+      setCompanyType(previous);
+      toast({
+        title: 'Erro ao salvar tipo de empresa',
+        description: error?.message || 'Você não tem permissão para alterar o tipo desta empresa.',
+        variant: 'destructive',
+      });
     } else {
       toast({ title: `Tipo definido: ${COMPANY_TYPE_LABELS[type]}` });
     }
