@@ -255,7 +255,27 @@ const GestaoEmpresas = () => {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Define os módulos sugeridos inicialmente. Poderá ser alterado depois.
+                Marca automaticamente os módulos sugeridos. Ajuste abaixo o que quiser.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Módulos ativados na criação</Label>
+              <div className="max-h-56 overflow-y-auto border rounded-md p-3 space-y-2">
+                {MODULES_CATALOG.filter(m => !m.core).map(m => (
+                  <label key={m.key} className="flex items-start gap-2 text-sm cursor-pointer">
+                    <Checkbox
+                      checked={!!newModules[m.key]}
+                      onCheckedChange={(v) => setNewModules(prev => ({ ...prev, [m.key]: !!v }))}
+                    />
+                    <div>
+                      <div className="font-medium">{m.label}</div>
+                      <div className="text-xs text-muted-foreground">{m.description}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Só os módulos marcados aqui ficarão disponíveis para os usuários dessa empresa.
               </p>
             </div>
           </div>
