@@ -22,7 +22,7 @@ interface Patient {
   gender: string | null; address: string | null; notes: string | null;
 }
 
-interface Record {
+interface MRecord {
   id: string;
   record_date: string;
   record_time: string;
@@ -46,7 +46,7 @@ export default function PacienteProntuario() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [patient, setPatient] = useState<Patient | null>(null);
-  const [records, setRecords] = useState<Record[]>([]);
+  const [records, setRecords] = useState<MRecord[]>([]);
   const [attachments, setAttachments] = useState<Record<string, Attachment[]> | any>({});
   const [loading, setLoading] = useState(true);
 
@@ -55,7 +55,7 @@ export default function PacienteProntuario() {
   const [searchDate, setSearchDate] = useState('');
 
   const [dlgOpen, setDlgOpen] = useState(false);
-  const [editing, setEditing] = useState<Record | null>(null);
+  const [editing, setEditing] = useState<MRecord | null>(null);
   const [form, setForm] = useState({
     record_date: new Date().toISOString().slice(0, 10),
     record_time: new Date().toTimeString().slice(0, 5),
@@ -75,7 +75,7 @@ export default function PacienteProntuario() {
       supabase.from('medical_records').select('*').eq('patient_id', id).order('record_date', { ascending: false }).order('record_time', { ascending: false }),
     ]);
     setPatient((p as Patient) || null);
-    setRecords((rs as Record[]) || []);
+    setRecords((rs as MRecord[]) || []);
 
     if (rs && rs.length) {
       const ids = rs.map((r: any) => r.id);
@@ -108,7 +108,7 @@ export default function PacienteProntuario() {
     setDlgOpen(true);
   };
 
-  const openEdit = (r: Record) => {
+  const openEdit = (r: MRecord) => {
     setEditing(r);
     setForm({
       record_date: r.record_date,
@@ -184,7 +184,7 @@ export default function PacienteProntuario() {
     load();
   };
 
-  const remove = async (r: Record) => {
+  const remove = async (r: MRecord) => {
     if (!confirm('Excluir este registro e todos os anexos?')) return;
     // Remove attachment files
     const atts = attachments[r.id] || [];
