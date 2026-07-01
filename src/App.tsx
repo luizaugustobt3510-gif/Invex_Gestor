@@ -196,6 +196,12 @@ const App = () => (
             <Route path="/fitness/gerar-treino" element={<FitnessProtectedRoute><FitnessGerarTreino /></FitnessProtectedRoute>} />
             <Route path="/fitness/emagrecimento" element={<FitnessProtectedRoute><FitnessEmagrecimento /></FitnessProtectedRoute>} />
 
+            {/* === CLÍNICA (Prontuário + Agenda) === */}
+            <Route path="/clinica/pacientes" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'rh', 'visualizador']} moduleKey="prontuario"><Pacientes /></RoleProtectedRoute>} />
+            <Route path="/clinica/pacientes/:id" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'rh', 'visualizador']} moduleKey="prontuario"><PacienteProntuario /></RoleProtectedRoute>} />
+            <Route path="/clinica/agenda" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'rh', 'visualizador']} moduleKey="agenda"><Agenda /></RoleProtectedRoute>} />
+
+
             
             
             {/* === FINANCEIRO === */}
