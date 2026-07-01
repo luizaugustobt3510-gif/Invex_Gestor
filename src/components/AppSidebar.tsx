@@ -886,6 +886,7 @@ export function AppSidebar() {
   const visibleLogistics = !isSuperAdmin ? filterGroups(logisticsGroups) : [];
   const isFitnessCompany = user?.companyId === "f54ebd25-21cc-43e8-888f-ffbbed1d4b7f";
   const visibleAcademia = !isSuperAdmin && isFitnessCompany ? filterGroups(academiaGroups) : [];
+  const visibleClinica = !isSuperAdmin ? filterGroups(clinicaGroups) : [];
   const visibleVendas = !isSuperAdmin ? filterGroups(vendasGroups) : [];
   const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
   const visibleManutencao = !isSuperAdmin ? filterGroups(manutencaoGroups) : [];
