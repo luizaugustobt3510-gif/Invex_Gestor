@@ -265,6 +265,7 @@ export type Database = {
       companies: {
         Row: {
           cnpj: string | null
+          company_type: string
           created_at: string
           id: string
           name: string
@@ -273,6 +274,7 @@ export type Database = {
         }
         Insert: {
           cnpj?: string | null
+          company_type?: string
           created_at?: string
           id?: string
           name: string
@@ -281,6 +283,7 @@ export type Database = {
         }
         Update: {
           cnpj?: string | null
+          company_type?: string
           created_at?: string
           id?: string
           name?: string
@@ -358,6 +361,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "company_plans_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_settings: {
+        Row: {
+          company_id: string
+          created_at: string
+          settings: Json
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          settings?: Json
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          settings?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_settings_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: true
             referencedRelation: "companies"
