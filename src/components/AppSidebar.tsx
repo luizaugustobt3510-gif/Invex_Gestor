@@ -34,6 +34,7 @@ import {
   Users,
   Calendar,
   HeartPulse,
+  Stethoscope,
   GraduationCap,
   Clock,
   Star,
@@ -329,6 +330,31 @@ const academiaGroups: MenuGroup[] = [
         label: "Abrir App Fitness",
         icon: <Dumbbell className="w-4 h-4" />,
         allowedRoles: ["admin", "usuario almox", "solicitante", "logistica", "rh", "financeiro", "visualizador", "manutencao"],
+      },
+    ],
+  },
+];
+
+// ─── CLÍNICA (Prontuário + Agenda) ───
+const clinicaGroups: MenuGroup[] = [
+  {
+    label: "Clínica",
+    icon: <Stethoscope className="w-4 h-4" />,
+    allowedRoles: ["admin", "clinica", "rh", "visualizador"],
+    items: [
+      {
+        path: "/clinica/pacientes",
+        label: "Pacientes / Prontuário",
+        icon: <Stethoscope className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica", "rh", "visualizador"],
+        submoduleKey: "prontuario",
+      },
+      {
+        path: "/clinica/agenda",
+        label: "Agenda",
+        icon: <Calendar className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica", "rh", "visualizador"],
+        submoduleKey: "agenda",
       },
     ],
   },
@@ -860,6 +886,7 @@ export function AppSidebar() {
   const visibleLogistics = !isSuperAdmin ? filterGroups(logisticsGroups) : [];
   const isFitnessCompany = user?.companyId === "f54ebd25-21cc-43e8-888f-ffbbed1d4b7f";
   const visibleAcademia = !isSuperAdmin && isFitnessCompany ? filterGroups(academiaGroups) : [];
+  const visibleClinica = !isSuperAdmin ? filterGroups(clinicaGroups) : [];
   const visibleVendas = !isSuperAdmin ? filterGroups(vendasGroups) : [];
   const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
   const visibleManutencao = !isSuperAdmin ? filterGroups(manutencaoGroups) : [];
@@ -1089,6 +1116,16 @@ export function AppSidebar() {
             {visibleAcademia.map(renderGroup)}
           </>
         )}
+
+        {/* Clínica (Prontuário + Agenda) */}
+        {visibleClinica.length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            {visibleClinica.map(renderGroup)}
+          </>
+        )}
+
+
 
         {/* Manutenção */}
         {visibleManutencao.length > 0 && (

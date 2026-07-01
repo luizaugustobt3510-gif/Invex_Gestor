@@ -52,6 +52,7 @@ const CriarUsuario = () => {
         'rh': 'rh',
         'financeiro': 'financeiro',
         'fitness': 'fitness_user',
+        'clinica': 'clinica',
         // SuperAdmin only
         'superadm': 'super_admin',
       };
@@ -127,6 +128,7 @@ const CriarUsuario = () => {
                   <SelectItem value="solicitante">Solicitante</SelectItem>
                   <SelectItem value="visualizador">Convidado (somente leitura)</SelectItem>
                   <SelectItem value="fitness">Invex Fitness</SelectItem>
+                  <SelectItem value="clinica">Clínica (Prontuário/Agenda)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

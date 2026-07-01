@@ -38,7 +38,7 @@ export const COMPANY_TYPES: CompanyType[] = [
 /** Módulos pré-ativos por tipo de empresa (module_key de MODULES_CATALOG). */
 export const COMPANY_TYPE_TEMPLATES: Record<CompanyType, string[]> = {
   comercial: ['logistica', 'vendas', 'financeiro', 'rh', 'relatorios'],
-  clinica: ['rh', 'agenda', 'clinica', 'financeiro', 'relatorios'],
+  clinica: ['rh', 'agenda', 'prontuario', 'clinica', 'financeiro', 'relatorios'],
   industria: ['logistica', 'manutencao', 'rh', 'financeiro', 'relatorios'],
   prestadora: ['agenda', 'ordem_servico', 'financeiro', 'rh', 'relatorios'],
   distribuidora: ['logistica', 'vendas', 'financeiro', 'relatorios'],

@@ -67,6 +67,9 @@ import FitnessAlimentacao from "./pages/fitness/FitnessAlimentacao";
 import FitnessGerarTreino from "./pages/fitness/FitnessGerarTreino";
 import FitnessEmagrecimento from "./pages/fitness/FitnessEmagrecimento";
 import { FitnessProtectedRoute } from "./components/FitnessProtectedRoute";
+import Pacientes from "./pages/clinica/Pacientes";
+import PacienteProntuario from "./pages/clinica/PacienteProntuario";
+import Agenda from "./pages/clinica/Agenda";
 import DashboardFinanceiro from "./pages/financeiro/DashboardFinanceiro";
 import Lancamentos from "./pages/financeiro/Lancamentos";
 import FluxoCaixa from "./pages/financeiro/FluxoCaixa";
@@ -110,7 +113,7 @@ const App = () => (
             
             {/* Home — all authenticated roles */}
             <Route path="/" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox', 'manutencao', 'fitness']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox', 'manutencao', 'fitness', 'clinica']}>
                 <Index />
               </RoleProtectedRoute>
             } />
@@ -193,6 +196,12 @@ const App = () => (
             <Route path="/fitness/gerar-treino" element={<FitnessProtectedRoute><FitnessGerarTreino /></FitnessProtectedRoute>} />
             <Route path="/fitness/emagrecimento" element={<FitnessProtectedRoute><FitnessEmagrecimento /></FitnessProtectedRoute>} />
 
+            {/* === CLÍNICA (Prontuário + Agenda) === */}
+            <Route path="/clinica/pacientes" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'rh', 'visualizador']} moduleKey="prontuario"><Pacientes /></RoleProtectedRoute>} />
+            <Route path="/clinica/pacientes/:id" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'rh', 'visualizador']} moduleKey="prontuario"><PacienteProntuario /></RoleProtectedRoute>} />
+            <Route path="/clinica/agenda" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'rh', 'visualizador']} moduleKey="agenda"><Agenda /></RoleProtectedRoute>} />
+
+
             
             
             {/* === FINANCEIRO === */}
@@ -223,7 +232,7 @@ const App = () => (
             <Route path="/folha/simulacao" element={<EmailRestrictedRoute allowedEmails={['teste@invex.com']}><RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><SimulacaoFolha /></RoleProtectedRoute></EmailRestrictedRoute>} />
             <Route path="/folha/historico" element={<EmailRestrictedRoute allowedEmails={['teste@invex.com']}><RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><HistoricoFolha /></RoleProtectedRoute></EmailRestrictedRoute>} />
 
-            <Route path="/changelog" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox', 'manutencao', 'fitness']}><Changelog /></RoleProtectedRoute>} />
+            <Route path="/changelog" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox', 'manutencao', 'fitness', 'clinica']}><Changelog /></RoleProtectedRoute>} />
             <Route path="/gestao-changelog" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoChangelog /></RoleProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />

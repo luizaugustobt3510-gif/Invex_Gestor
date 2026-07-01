@@ -110,8 +110,19 @@ export const MODULES_CATALOG: ModuleDef[] = [
   {
     key: 'agenda',
     label: 'Agenda',
-    description: 'Agendamentos, calendário compartilhado (em desenvolvimento).',
+    description: 'Agendamentos de atendimentos para pacientes e profissionais.',
+    route: '/clinica/agenda',
     submodules: [],
+  },
+  {
+    key: 'prontuario',
+    label: 'Prontuário',
+    description: 'Histórico clínico dos pacientes: evoluções, anexos e atendimentos.',
+    route: '/clinica/pacientes',
+    submodules: [
+      { key: 'prontuario.pacientes', label: 'Pacientes' },
+      { key: 'prontuario.registros', label: 'Registros de Prontuário' },
+    ],
   },
   {
     key: 'clinica',

@@ -262,6 +262,65 @@ export type Database = {
         }
         Relationships: []
       }
+      clinic_appointments: {
+        Row: {
+          attendance_type: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          duration_minutes: number
+          id: string
+          notes: string | null
+          patient_id: string | null
+          professional_name: string | null
+          professional_user_id: string | null
+          scheduled_at: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          attendance_type?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          professional_name?: string | null
+          professional_user_id?: string | null
+          scheduled_at: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          attendance_type?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          professional_name?: string | null
+          professional_user_id?: string | null
+          scheduled_at?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           cnpj: string | null
@@ -2040,6 +2099,109 @@ export type Database = {
           },
         ]
       }
+      medical_record_attachments: {
+        Row: {
+          company_id: string
+          created_at: string
+          file_name: string
+          file_path: string
+          id: string
+          mime_type: string | null
+          record_id: string
+          size_bytes: number | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          file_name: string
+          file_path: string
+          id?: string
+          mime_type?: string | null
+          record_id: string
+          size_bytes?: number | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          mime_type?: string | null
+          record_id?: string
+          size_bytes?: number | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_record_attachments_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_records: {
+        Row: {
+          attendance_type: string | null
+          clinical_evolution: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          observations: string | null
+          patient_id: string
+          professional_name: string | null
+          professional_user_id: string | null
+          record_date: string
+          record_time: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          attendance_type?: string | null
+          clinical_evolution?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          observations?: string | null
+          patient_id: string
+          professional_name?: string | null
+          professional_user_id?: string | null
+          record_date?: string
+          record_time?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          attendance_type?: string | null
+          clinical_evolution?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          observations?: string | null
+          patient_id?: string
+          professional_name?: string | null
+          professional_user_id?: string | null
+          record_date?: string
+          record_time?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       movimentacoes_importadas: {
         Row: {
           company_id: string
@@ -2090,6 +2252,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      patients: {
+        Row: {
+          address: string | null
+          birth_date: string | null
+          company_id: string
+          cpf: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          gender: string | null
+          id: string
+          is_active: boolean
+          nome: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          address?: string | null
+          birth_date?: string | null
+          company_id: string
+          cpf?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          gender?: string | null
+          id?: string
+          is_active?: boolean
+          nome: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string | null
+          company_id?: string
+          cpf?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          gender?: string | null
+          id?: string
+          is_active?: boolean
+          nome?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       payroll_config: {
         Row: {
@@ -3235,6 +3451,7 @@ export type Database = {
         | "visualizador"
         | "manutencao"
         | "fitness_user"
+        | "clinica"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3373,6 +3590,7 @@ export const Constants = {
         "visualizador",
         "manutencao",
         "fitness_user",
+        "clinica",
       ],
     },
   },
