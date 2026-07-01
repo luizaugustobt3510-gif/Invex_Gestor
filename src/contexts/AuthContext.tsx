@@ -3,10 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 // DB roles from app_role enum
-type DbRole = 'super_admin' | 'admin_empresa' | 'usuario_almox' | 'solicitante' | 'logistica' | 'rh' | 'financeiro' | 'visualizador' | 'manutencao' | 'fitness_user';
+type DbRole = 'super_admin' | 'admin_empresa' | 'usuario_almox' | 'solicitante' | 'logistica' | 'rh' | 'financeiro' | 'visualizador' | 'manutencao' | 'fitness_user' | 'clinica';
 
 // UI roles used throughout the app
-export type UserRole = 'superadm' | 'admin' | 'usuario almox' | 'solicitante' | 'logistica' | 'rh' | 'financeiro' | 'visualizador' | 'manutencao' | 'fitness';
+export type UserRole = 'superadm' | 'admin' | 'usuario almox' | 'solicitante' | 'logistica' | 'rh' | 'financeiro' | 'visualizador' | 'manutencao' | 'fitness' | 'clinica';
 
 const dbToUiRole: Record<DbRole, UserRole> = {
   super_admin: 'superadm',
@@ -19,6 +19,7 @@ const dbToUiRole: Record<DbRole, UserRole> = {
   visualizador: 'visualizador',
   manutencao: 'manutencao',
   fitness_user: 'fitness',
+  clinica: 'clinica',
 };
 
 interface User {
