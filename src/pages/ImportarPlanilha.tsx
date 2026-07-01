@@ -176,7 +176,7 @@ const ImportarPlanilha = () => {
               continue;
             }
 
-            const { error } = await supabase.from('materials').update(changes).eq('id', existingId);
+            const { error } = await supabase.from('materials').update(changes as any).eq('id', existingId);
             if (error) throw error;
             updated++;
           } else {

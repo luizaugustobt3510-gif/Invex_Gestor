@@ -113,7 +113,7 @@ const SolicitacaoOS = () => {
       updates.data_conclusao = new Date().toISOString();
     }
 
-    await supabase.from('maintenance_service_orders').update(updates).eq('id', order.id);
+    await supabase.from('maintenance_service_orders').update(updates as any).eq('id', order.id);
     setOrders(prev => prev.map(o => o.id === order.id ? { ...o, ...updates } : o));
     toast({ title: `Status atualizado para ${statusLabel[newStatus]}` });
   };

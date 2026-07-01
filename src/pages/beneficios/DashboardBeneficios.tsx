@@ -141,7 +141,7 @@ export default function DashboardBeneficios() {
               ) : (
                 <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
-                    <Pie data={byType} dataKey="value" nameKey="name" outerRadius={80} label={(e: { name: string; value: number }) => `${e.name}`}>
+                    <Pie data={byType} dataKey="value" nameKey="name" outerRadius={80} label={((e: any) => `${e.name}`) as any}>
                       {byType.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Pie>
                     <Tooltip formatter={(v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
