@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Building, Edit, RefreshCw, Plus, Users, ShieldCheck, ShieldOff, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { COMPANY_TYPES, COMPANY_TYPE_LABELS, COMPANY_TYPE_TEMPLATES, type CompanyType } from '@/config/companyTypeTemplates';
 
 interface Company {
   id: string;
@@ -17,6 +19,7 @@ interface Company {
   cnpj: string | null;
   status: string;
   created_at: string;
+  company_type?: CompanyType;
   user_count?: number;
 }
 
@@ -28,6 +31,7 @@ const GestaoEmpresas = () => {
   const [newDialog, setNewDialog] = useState(false);
   const [newName, setNewName] = useState('');
   const [newCnpj, setNewCnpj] = useState('');
+  const [newType, setNewType] = useState<CompanyType>('personalizado');
   const [saving, setSaving] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<Company | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -46,6 +50,7 @@ const GestaoEmpresas = () => {
     setCompanies((companiesData || []).map(c => ({
       ...c,
       status: (c as any).status || 'ativa',
+      company_type: ((c as any).company_type as CompanyType) || 'personalizado',
       user_count: countMap[c.id] || 0,
     })));
     setLoading(false);
@@ -57,12 +62,27 @@ const GestaoEmpresas = () => {
     if (!newName.trim()) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from('companies').insert({ name: newName.trim(), cnpj: newCnpj.trim() || null });
+      const { data, error } = await supabase
+        .from('companies')
+        .insert({ name: newName.trim(), cnpj: newCnpj.trim() || null, company_type: newType } as any)
+        .select('id')
+        .single();
       if (error) throw error;
-      toast({ title: 'Empresa criada!' });
+
+      // Pre-ativar módulos do template (aditivo, is_active=true)
+      const suggested = COMPANY_TYPE_TEMPLATES[newType] || [];
+      if (data?.id && suggested.length > 0) {
+        await supabase.from('company_modules').upsert(
+          suggested.map((key) => ({ company_id: data.id, module_key: key, is_active: true })),
+          { onConflict: 'company_id,module_key' },
+        );
+      }
+
+      toast({ title: 'Empresa criada!', description: suggested.length ? `${suggested.length} módulo(s) do template ativados.` : undefined });
       setNewDialog(false);
       setNewName('');
       setNewCnpj('');
+      setNewType('personalizado');
       fetchCompanies();
     } catch {
       toast({ title: 'Erro', description: 'Erro ao criar empresa.', variant: 'destructive' });
@@ -76,7 +96,12 @@ const GestaoEmpresas = () => {
     setSaving(true);
     try {
       const { error } = await supabase.from('companies')
-        .update({ name: editCompany.name, cnpj: editCompany.cnpj, status: editCompany.status })
+        .update({
+          name: editCompany.name,
+          cnpj: editCompany.cnpj,
+          status: editCompany.status,
+          company_type: editCompany.company_type || 'personalizado',
+        } as any)
         .eq('id', editCompany.id);
       if (error) throw error;
       toast({ title: 'Empresa atualizada!' });
