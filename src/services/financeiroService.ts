@@ -57,7 +57,8 @@ export const financeiroService = {
   },
 
   async updateEntry(id: string, updates: Record<string, unknown>) {
-    return supabase.from('financial_entries').update(updates).eq('id', id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return supabase.from('financial_entries').update(updates as any).eq('id', id);
   },
 
   async deleteEntry(id: string) {
