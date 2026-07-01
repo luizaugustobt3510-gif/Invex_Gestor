@@ -335,6 +335,31 @@ const academiaGroups: MenuGroup[] = [
   },
 ];
 
+// ─── CLÍNICA (Prontuário + Agenda) ───
+const clinicaGroups: MenuGroup[] = [
+  {
+    label: "Clínica",
+    icon: <Stethoscope className="w-4 h-4" />,
+    allowedRoles: ["admin", "clinica", "rh", "visualizador"],
+    items: [
+      {
+        path: "/clinica/pacientes",
+        label: "Pacientes / Prontuário",
+        icon: <Stethoscope className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica", "rh", "visualizador"],
+        submoduleKey: "prontuario",
+      },
+      {
+        path: "/clinica/agenda",
+        label: "Agenda",
+        icon: <Calendar className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica", "rh", "visualizador"],
+        submoduleKey: "agenda",
+      },
+    ],
+  },
+];
+
 
 // ─── VENDAS ───
 const vendasGroups: MenuGroup[] = [
