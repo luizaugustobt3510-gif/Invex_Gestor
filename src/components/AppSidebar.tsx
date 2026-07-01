@@ -554,6 +554,42 @@ const rhGroups: MenuGroup[] = [
     ],
   },
   {
+    label: "Benefícios",
+    icon: <Gift className="w-4 h-4" />,
+    allowedRoles: ["admin", "rh", "financeiro", "visualizador"],
+    moduleKey: "rh",
+    items: [
+      {
+        path: "/beneficios",
+        label: "Dashboard",
+        icon: <LayoutDashboard className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "financeiro", "visualizador"],
+        submoduleKey: "rh.beneficios",
+      },
+      {
+        path: "/beneficios/cadastro",
+        label: "Catálogo",
+        icon: <Heart className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh"],
+        submoduleKey: "rh.beneficios",
+      },
+      {
+        path: "/beneficios/vinculo",
+        label: "Vínculos",
+        icon: <Users className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh"],
+        submoduleKey: "rh.beneficios",
+      },
+      {
+        path: "/beneficios/controle-mensal",
+        label: "Controle Mensal",
+        icon: <Calendar className="w-4 h-4" />,
+        allowedRoles: ["admin", "rh", "financeiro"],
+        submoduleKey: "rh.beneficios",
+      },
+    ],
+  },
+  {
     label: "Análises",
     icon: <BarChart3 className="w-4 h-4" />,
     allowedRoles: ["admin", "rh", "visualizador"],
