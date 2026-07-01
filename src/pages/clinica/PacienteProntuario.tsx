@@ -47,7 +47,7 @@ export default function PacienteProntuario() {
   const { user } = useAuth();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [records, setRecords] = useState<MRecord[]>([]);
-  const [attachments, setAttachments] = useState<Record<string, Attachment[]> | any>({});
+  const [attachments, setAttachments] = useState<{ [recordId: string]: Attachment[] }>({});
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState('');
