@@ -953,8 +953,60 @@ export function AppSidebar() {
           </>
         )}
 
-        {/* Logistics groups */}
-        {visibleLogistics.map(renderGroup)}
+        {/* Logística - parent group with collapsible subgroups */}
+        {visibleLogistics.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <div className="flex items-center gap-2">
+                <Package className="w-4 h-4" />
+                <span>Logística</span>
+              </div>
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              {visibleLogistics.map((group) => {
+                const isGroupActive = group.items.some((item) => isActive(item.path));
+                return (
+                  <Collapsible key={group.label} defaultOpen={isGroupActive} className="group/collapsible">
+                    <CollapsibleTrigger asChild>
+                      <button
+                        type="button"
+                        className="w-full flex items-center justify-between px-2 py-2 text-sm font-semibold text-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          {group.icon}
+                          <span>{group.label}</span>
+                        </div>
+                        <ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenu>
+                        {group.items.map((item) => (
+                          <SidebarMenuItem key={item.path}>
+                            <SidebarMenuButton
+                              onClick={() => navigatePreservingScroll(item.path)}
+                              isActive={isActive(item.path)}
+                              tooltip={item.label}
+                              className={cn(
+                                "w-full justify-start gap-3 pl-8 py-2 text-sm transition-colors",
+                                isActive(item.path)
+                                  ? "bg-primary/10 text-primary font-medium"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
+                              )}
+                            >
+                              {item.icon}
+                              <span>{item.label}</span>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })}
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Gestão de Pessoas (RH) - parent group with collapsible subgroups */}
         {visibleRHGroups.length > 0 && (
