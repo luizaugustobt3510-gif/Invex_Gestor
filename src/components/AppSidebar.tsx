@@ -757,8 +757,14 @@ const adminGroups: MenuGroup[] = [
       { path: "/instalar-app", label: "Instalar App", icon: <Download className="w-4 h-4" />, allowedRoles: ["admin"] },
       {
         path: "/configuracoes/modulos-empresa",
-        label: "Módulos do Sistema",
+        label: "Módulos da Empresa",
         icon: <Puzzle className="w-4 h-4" />,
+        allowedRoles: ["admin"],
+      },
+      {
+        path: "/configuracoes/perfis",
+        label: "Gestão de Perfis",
+        icon: <Shield className="w-4 h-4" />,
         allowedRoles: ["admin"],
       },
     ],
@@ -776,6 +782,7 @@ const adminGroups: MenuGroup[] = [
       },
       { path: "/gestao-usuarios", label: "Usuários", icon: <Users className="w-4 h-4" />, allowedRoles: ["superadm"] },
       { path: "/gestao-modulos", label: "Módulos", icon: <Puzzle className="w-4 h-4" />, allowedRoles: ["superadm"] },
+      { path: "/configuracoes/perfis", label: "Perfis × Módulos", icon: <Shield className="w-4 h-4" />, allowedRoles: ["superadm"] },
       {
         path: "/gestao-planos",
         label: "Planos e Limites",

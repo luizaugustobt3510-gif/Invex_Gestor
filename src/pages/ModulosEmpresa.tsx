@@ -163,7 +163,7 @@ const ModulosEmpresa = () => {
           <CardContent className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
               <div className="space-y-2">
-                <Label>Tipo de Empresa</Label>
+                <Label>Tipo de Empresa (apenas sugestão)</Label>
                 <Select value={companyType} onValueChange={(v) => saveCompanyType(v as CompanyType)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -173,7 +173,8 @@ const ModulosEmpresa = () => {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  O tipo apenas sugere um conjunto inicial de módulos. Você pode ativar/desativar qualquer módulo abaixo.
+                  O tipo de empresa é apenas um rótulo. Nenhum módulo é ativado/desativado automaticamente ao trocar.
+                  Use o botão "Aplicar template" para ativar a sugestão inicial (nunca desativa nada).
                 </p>
               </div>
               <Button
@@ -187,10 +188,11 @@ const ModulosEmpresa = () => {
               </Button>
             </div>
 
-            <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
-              Desativar um módulo apenas oculta menus e bloqueia o acesso. Nenhum dado é apagado —
-              basta reativar para recuperar tudo.
+            <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground space-y-1">
+              <p>• Ativar/desativar um módulo apenas mostra ou oculta funcionalidades — nenhum dado é apagado.</p>
+              <p>• Permissões por perfil são configuradas em <strong>Gestão de Perfis</strong>.</p>
             </div>
+
 
             {loading ? (
               <div className="flex items-center justify-center py-8 text-muted-foreground">
