@@ -42,7 +42,7 @@ const MANAGEABLE_ROLES: DbRole[] = [
   'visualizador', 'manutencao', 'fitness_user', 'clinica',
 ];
 
-interface Company { id: string; nome: string }
+interface Company { id: string; name: string }
 interface Row { role: DbRole; module_key: string; is_active: boolean }
 
 const GestaoPerfis = () => {
@@ -59,9 +59,9 @@ const GestaoPerfis = () => {
   useEffect(() => {
     const bootstrap = async () => {
       if (isSuperAdmin) {
-        const { data } = await supabase.from('companies').select('id, nome').order('nome');
-        setCompanies(data || []);
-        if (data && data.length > 0) setCompanyId(data[0].id);
+        const { data } = await supabase.from('companies').select('id, name').order('name');
+        setCompanies((data as Company[]) || []);
+        if (data && data.length > 0) setCompanyId((data[0] as Company).id);
       } else if (user?.companyId) {
         setCompanyId(user.companyId);
       }
@@ -136,7 +136,7 @@ const GestaoPerfis = () => {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {companies.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
