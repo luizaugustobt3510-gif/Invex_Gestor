@@ -2716,6 +2716,44 @@ export type Database = {
           },
         ]
       }
+      role_module_permissions: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          module_key: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          module_key: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          module_key?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_module_permissions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saldo_sistema_importado: {
         Row: {
           company_id: string
@@ -3430,6 +3468,10 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      role_has_module: {
+        Args: { _company_id: string; _module_key: string; _user_id: string }
+        Returns: boolean
+      }
       user_can_write_module: {
         Args: { _company_id: string; _module_key: string; _user_id: string }
         Returns: boolean
