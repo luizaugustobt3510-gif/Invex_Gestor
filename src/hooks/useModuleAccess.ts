@@ -5,48 +5,66 @@ import { useAuth } from "@/contexts/AuthContext";
 interface ModuleAccessState {
   companyModules: Record<string, boolean>;
   userModules: Record<string, boolean>;
+  roleModules: Record<string, boolean>;
   loading: boolean;
 }
 
-// Sidebar module keys mirror the MODULES_CATALOG keys 1:1 (see src/config/modules.ts).
-// company_modules.module_key stores the same value written by ModulosEmpresa,
-// so we use identity mapping and keep this object only for legacy aliases.
+// Sidebar module keys mirror the MODULES_CATALOG keys 1:1.
 const MODULE_KEY_MAP: Record<string, string> = {};
+
+// UI role → DB role (mirrors AuthContext).
+const uiToDbRole: Record<string, string> = {
+  superadm: "super_admin",
+  admin: "admin_empresa",
+  "usuario almox": "usuario_almox",
+  solicitante: "solicitante",
+  logistica: "logistica",
+  rh: "rh",
+  financeiro: "financeiro",
+  visualizador: "visualizador",
+  manutencao: "manutencao",
+  fitness: "fitness_user",
+  clinica: "clinica",
+};
 
 export function useModuleAccess() {
   const { user } = useAuth();
   const [state, setState] = useState<ModuleAccessState>({
     companyModules: {},
     userModules: {},
+    roleModules: {},
     loading: true,
   });
 
   const fetchModuleAccess = useCallback(async () => {
     if (!user?.companyId) {
-      setState({ companyModules: {}, userModules: {}, loading: false });
+      setState({ companyModules: {}, userModules: {}, roleModules: {}, loading: false });
       return;
     }
 
-    // SuperAdmin sees everything
-    if (user.role === "superadm") {
-      setState({ companyModules: {}, userModules: {}, loading: false });
+    // SuperAdmin and admin da empresa não têm restrição pela matriz
+    if (user.role === "superadm" || user.role === "admin") {
+      setState({ companyModules: {}, userModules: {}, roleModules: {}, loading: false });
       return;
     }
 
     try {
-      // Get current auth user id
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
+      const { data: { user: authUser } } = await supabase.auth.getUser();
       const userId = authUser?.id || "";
+      const dbRole = uiToDbRole[user.role] || user.role;
 
-      const [companyRes, userRes] = await Promise.all([
+      const [companyRes, userRes, roleRes] = await Promise.all([
         supabase.from("company_modules").select("module_key, is_active").eq("company_id", user.companyId),
         supabase
           .from("user_module_permissions")
           .select("module_key, is_active")
           .eq("company_id", user.companyId)
           .eq("user_id", userId),
+        supabase
+          .from("role_module_permissions")
+          .select("module_key, is_active")
+          .eq("company_id", user.companyId)
+          .eq("role", dbRole as any),
       ]);
 
       const companyModules: Record<string, boolean> = {};
@@ -59,9 +77,14 @@ export function useModuleAccess() {
         userModules[m.module_key] = m.is_active;
       });
 
-      setState({ companyModules, userModules, loading: false });
+      const roleModules: Record<string, boolean> = {};
+      (roleRes.data || []).forEach((m) => {
+        roleModules[m.module_key] = m.is_active;
+      });
+
+      setState({ companyModules, userModules, roleModules, loading: false });
     } catch {
-      setState({ companyModules: {}, userModules: {}, loading: false });
+      setState({ companyModules: {}, userModules: {}, roleModules: {}, loading: false });
     }
   }, [user?.companyId, user?.role]);
 
@@ -69,21 +92,14 @@ export function useModuleAccess() {
     fetchModuleAccess();
   }, [fetchModuleAccess]);
 
-  /**
-   * Check if a module (or submodule) is accessible.
-   * Supports composite keys like "logistica.estoque" — checks parent module first,
-   * then the submodule key.
-   */
   const canAccessModule = useCallback(
     (moduleKey: string): boolean => {
-      if (user?.role === "superadm") return true;
+      if (user?.role === "superadm" || user?.role === "admin") return true;
 
-      // Handle composite submodule keys (e.g., "logistica.estoque")
+      // Composite submodule keys (e.g., "logistica.estoque")
       if (moduleKey.includes(".")) {
         const [parentKey] = moduleKey.split(".");
-        // First check parent module
         if (!canAccessModule(parentKey)) return false;
-        // Then check the submodule itself
         const companyActive = state.companyModules[moduleKey] ?? true;
         if (!companyActive) return false;
         const userActive = state.userModules[moduleKey] ?? true;
@@ -92,15 +108,16 @@ export function useModuleAccess() {
 
       const dbKey = MODULE_KEY_MAP[moduleKey] || moduleKey;
 
-      // Company level: if there's a record, use it; otherwise default to true
       const companyActive = state.companyModules[dbKey] ?? true;
       if (!companyActive) return false;
 
-      // User level: if there's a record, use it; otherwise default to true
+      // Role matrix: default true if no row (backwards compat).
+      const roleActive = state.roleModules[dbKey] ?? true;
       const userActive = state.userModules[dbKey] ?? true;
-      return userActive;
+      // User-level override wins over role.
+      return roleActive ? userActive : userActive === true && state.userModules[dbKey] === true;
     },
-    [user?.role, state.companyModules, state.userModules],
+    [user?.role, state.companyModules, state.userModules, state.roleModules],
   );
 
   return { canAccessModule, loading: state.loading, refetch: fetchModuleAccess };
