@@ -156,6 +156,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (data.user) {
         const profile = await loadUserProfile(data.user);
+
+        // Subscription block check (skip super admin)
+        if (profile && profile.role !== 'superadm' && profile.companyId) {
+          try {
+            const { data: statusData } = await supabase.rpc('evaluate_subscription_status', {
+              _company_id: profile.companyId,
+            });
+            if (statusData === 'bloqueada') {
+              await supabase.auth.signOut();
+              return {
+                success: false,
+                message: 'Assinatura da empresa vencida. Entre em contato com o administrador para regularizar o acesso.',
+              };
+            }
+          } catch { /* silent — do not block login on RPC error */ }
+        }
+
         setUser(profile);
         return { success: true, message: `Bem-vindo, ${profile?.nome || 'Usuário'}!` };
       }
