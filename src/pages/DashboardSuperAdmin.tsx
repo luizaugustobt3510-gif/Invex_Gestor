@@ -5,34 +5,69 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { Building, Users, CreditCard, Puzzle, Settings, ScrollText, Shield, Plus, RefreshCw } from 'lucide-react';
+import { Building, Users, CreditCard, Puzzle, Settings, ScrollText, Shield, RefreshCw, AlertTriangle, Ban, CalendarClock, TrendingUp, TrendingDown } from 'lucide-react';
+
+const currency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const daysUntil = (iso: string) => {
+  const d = new Date(iso + 'T00:00:00'); const t = new Date(); t.setHours(0, 0, 0, 0);
+  return Math.floor((d.getTime() - t.getTime()) / (1000 * 60 * 60 * 24));
+};
 
 const DashboardSuperAdmin = () => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ companies: 0, activeCompanies: 0, users: 0, plans: 0 });
+  const [stats, setStats] = useState({
+    companies: 0, activeCompanies: 0, users: 0, plans: 0,
+    subActive: 0, subOverdue: 0, subBlocked: 0, dueSoon: 0,
+    revenueForecast: 0, revenueOverdue: 0,
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const [companiesRes, rolesRes, plansRes] = await Promise.all([
-          supabase.from('companies').select('id, status'),
+          supabase.from('companies').select('id, status, subscription_status, monthly_fee, next_due_date'),
           supabase.from('user_roles').select('id'),
           supabase.from('company_plans').select('id, is_active'),
         ]);
 
-        const companies = companiesRes.data || [];
+        const companies = (companiesRes.data || []) as any[];
+        // Re-evaluate statuses to keep dashboard accurate
+        await Promise.all(companies.map(c =>
+          supabase.rpc('evaluate_subscription_status', { _company_id: c.id })
+        ));
+        const { data: refreshed } = await supabase
+          .from('companies')
+          .select('id, status, subscription_status, monthly_fee, next_due_date');
+        const list = (refreshed || companies) as any[];
+
+        let subActive = 0, subOverdue = 0, subBlocked = 0, dueSoon = 0;
+        let revenueForecast = 0, revenueOverdue = 0;
+        list.forEach(c => {
+          const fee = Number(c.monthly_fee) || 0;
+          revenueForecast += fee;
+          if (c.subscription_status === 'ativa') subActive++;
+          if (c.subscription_status === 'em_atraso') { subOverdue++; revenueOverdue += fee; }
+          if (c.subscription_status === 'bloqueada') { subBlocked++; revenueOverdue += fee; }
+          if (c.next_due_date) {
+            const d = daysUntil(c.next_due_date);
+            if (d >= 0 && d <= 7) dueSoon++;
+          }
+        });
+
         setStats({
-          companies: companies.length,
-          activeCompanies: companies.filter(c => c.status === 'ativa').length,
+          companies: list.length,
+          activeCompanies: list.filter(c => c.status === 'ativa').length,
           users: (rolesRes.data || []).length,
           plans: (plansRes.data || []).filter(p => p.is_active).length,
+          subActive, subOverdue, subBlocked, dueSoon, revenueForecast, revenueOverdue,
         });
       } catch { /* silent */ }
       setLoading(false);
     };
     fetchStats();
   }, []);
+
 
   const sections = [
     {
