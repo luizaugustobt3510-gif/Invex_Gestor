@@ -323,30 +323,48 @@ export type Database = {
       }
       companies: {
         Row: {
+          auto_block: boolean
           cnpj: string | null
           company_type: string
           created_at: string
+          grace_days: number
           id: string
+          monthly_fee: number
           name: string
+          next_due_date: string | null
+          plan_type: string
           status: string
+          subscription_status: string
           updated_at: string
         }
         Insert: {
+          auto_block?: boolean
           cnpj?: string | null
           company_type?: string
           created_at?: string
+          grace_days?: number
           id?: string
+          monthly_fee?: number
           name: string
+          next_due_date?: string | null
+          plan_type?: string
           status?: string
+          subscription_status?: string
           updated_at?: string
         }
         Update: {
+          auto_block?: boolean
           cnpj?: string | null
           company_type?: string
           created_at?: string
+          grace_days?: number
           id?: string
+          monthly_fee?: number
           name?: string
+          next_due_date?: string | null
+          plan_type?: string
           status?: string
+          subscription_status?: string
           updated_at?: string
         }
         Relationships: []
@@ -2987,6 +3005,53 @@ export type Database = {
           },
         ]
       }
+      subscription_payments: {
+        Row: {
+          amount: number
+          company_id: string
+          created_at: string
+          due_date: string
+          id: string
+          notes: string | null
+          payment_date: string | null
+          registered_by: string | null
+          registered_by_name: string | null
+          status: string
+        }
+        Insert: {
+          amount?: number
+          company_id: string
+          created_at?: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          registered_by?: string | null
+          registered_by_name?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          company_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          registered_by?: string | null
+          registered_by_name?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_evaluations: {
         Row: {
           avaliador_id: string
@@ -3439,6 +3504,10 @@ export type Database = {
     }
     Functions: {
       check_setup_needed: { Args: never; Returns: boolean }
+      evaluate_subscription_status: {
+        Args: { _company_id: string }
+        Returns: string
+      }
       get_user_company_id: { Args: { _user_id: string }; Returns: string }
       get_user_role: {
         Args: { _company_id: string; _user_id: string }
@@ -3468,6 +3537,15 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      register_subscription_payment: {
+        Args: {
+          _amount: number
+          _company_id: string
+          _notes?: string
+          _payment_date: string
+        }
+        Returns: string
+      }
       role_has_module: {
         Args: { _company_id: string; _module_key: string; _user_id: string }
         Returns: boolean
