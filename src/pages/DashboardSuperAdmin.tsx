@@ -181,6 +181,68 @@ const DashboardSuperAdmin = () => {
           </Card>
         </div>
 
+        {/* Subscription Indicators */}
+        <div>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Controle de Assinaturas</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Ativas</span>
+                  <div className="p-2 rounded-lg bg-success/10"><Shield className="w-4 h-4 text-success" /></div>
+                </div>
+                <p className="text-2xl font-bold text-foreground">{loading ? '...' : stats.subActive}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Em atraso</span>
+                  <div className="p-2 rounded-lg bg-warning/10"><AlertTriangle className="w-4 h-4 text-warning" /></div>
+                </div>
+                <p className="text-2xl font-bold text-warning">{loading ? '...' : stats.subOverdue}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Bloqueadas</span>
+                  <div className="p-2 rounded-lg bg-destructive/10"><Ban className="w-4 h-4 text-destructive" /></div>
+                </div>
+                <p className="text-2xl font-bold text-destructive">{loading ? '...' : stats.subBlocked}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Vencem em 7d</span>
+                  <div className="p-2 rounded-lg bg-primary/10"><CalendarClock className="w-4 h-4 text-primary" /></div>
+                </div>
+                <p className="text-2xl font-bold text-foreground">{loading ? '...' : stats.dueSoon}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Receita prevista</span>
+                  <div className="p-2 rounded-lg bg-success/10"><TrendingUp className="w-4 h-4 text-success" /></div>
+                </div>
+                <p className="text-lg font-bold text-foreground">{loading ? '...' : currency(stats.revenueForecast)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Em atraso (R$)</span>
+                  <div className="p-2 rounded-lg bg-destructive/10"><TrendingDown className="w-4 h-4 text-destructive" /></div>
+                </div>
+                <p className="text-lg font-bold text-destructive">{loading ? '...' : currency(stats.revenueOverdue)}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+
         {/* Section Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {sections.map(section => (
