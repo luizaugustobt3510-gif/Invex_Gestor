@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,33 +8,43 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserPlus, Save } from 'lucide-react';
+import { UserPlus, Send } from 'lucide-react';
 
 const CriarUsuario = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'superadm';
   const [loading, setLoading] = useState(false);
-  
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
+
   const [formData, setFormData] = useState({
     email: '',
-    senha: '',
     nome: '',
+    cargo: '',
     autenticacao: '',
+    company_id: '',
   });
+
+  useEffect(() => {
+    if (!isSuperAdmin) return;
+    (async () => {
+      const { data } = await supabase.from('companies').select('id, name').order('name');
+      setCompanies(data || []);
+    })();
+  }, [isSuperAdmin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const email = formData.email?.trim().toLowerCase() || '';
-    const senha = formData.senha?.trim() || '';
     const nome = formData.nome?.trim() || '';
+    const cargo = formData.cargo?.trim() || '';
     const autenticacao = formData.autenticacao || '';
 
-    if (!nome) { toast({ title: 'Campo obrigatório', description: 'Informe o nome.', variant: 'destructive' }); return; }
-    if (!email) { toast({ title: 'Campo obrigatório', description: 'Informe o e-mail.', variant: 'destructive' }); return; }
-    if (!senha) { toast({ title: 'Campo obrigatório', description: 'Informe a senha.', variant: 'destructive' }); return; }
-    if (!autenticacao) { toast({ title: 'Campo obrigatório', description: 'Selecione o perfil.', variant: 'destructive' }); return; }
+    if (!nome) return toast({ title: 'Campo obrigatório', description: 'Informe o nome.', variant: 'destructive' });
+    if (!email) return toast({ title: 'Campo obrigatório', description: 'Informe o e-mail.', variant: 'destructive' });
+    if (!autenticacao) return toast({ title: 'Campo obrigatório', description: 'Selecione o perfil.', variant: 'destructive' });
+    if (isSuperAdmin && !formData.company_id) return toast({ title: 'Campo obrigatório', description: 'Selecione a empresa.', variant: 'destructive' });
 
     setLoading(true);
     try {
@@ -42,7 +52,6 @@ const CriarUsuario = () => {
       const token = sessionData?.session?.access_token;
       if (!token) throw new Error('Sessão expirada');
 
-      // Map UI role to DB role
       const roleMap: Record<string, string> = {
         'admin': 'admin_empresa',
         'logistica': 'logistica',
@@ -53,34 +62,28 @@ const CriarUsuario = () => {
         'financeiro': 'financeiro',
         'fitness': 'fitness_user',
         'clinica': 'clinica',
-        // SuperAdmin only
         'superadm': 'super_admin',
       };
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/setup-user`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-user`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({
-            email,
-            password: senha,
-            nome,
+            email, nome, cargo,
             role: roleMap[autenticacao] || 'solicitante',
+            company_id: isSuperAdmin ? formData.company_id : undefined,
+            redirect_to: `${window.location.origin}/accept-invite`,
           }),
         }
       );
-
       const result = await response.json();
-
-      if (result.ok || result.success) {
-        toast({ title: 'Sucesso!', description: result.msg || 'Usuário criado com sucesso.' });
-        setFormData({ email: '', senha: '', nome: '', autenticacao: '' });
+      if (result.ok) {
+        toast({ title: 'Convite enviado!', description: result.msg });
+        setFormData({ email: '', nome: '', cargo: '', autenticacao: '', company_id: '' });
       } else {
-        toast({ title: 'Erro', description: result.error || result.msg || 'Erro ao criar usuário.', variant: 'destructive' });
+        toast({ title: 'Erro', description: result.error || 'Erro ao enviar convite.', variant: 'destructive' });
       }
     } catch (err: any) {
       toast({ title: 'Erro', description: err?.message || 'Erro ao conectar.', variant: 'destructive' });
@@ -95,35 +98,47 @@ const CriarUsuario = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <UserPlus className="w-5 h-5" />
-            Criar Usuário
+            Convidar Usuário
           </CardTitle>
+          <p className="text-xs text-muted-foreground pt-1">
+            O usuário receberá um e-mail para confirmar identidade e definir a própria senha.
+          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="nome">Nome *</Label>
-              <Input id="nome" value={formData.nome} onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))} placeholder="Nome completo" />
+              <Input id="nome" value={formData.nome} onChange={(e) => setFormData(p => ({ ...p, nome: e.target.value }))} placeholder="Nome completo" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail *</Label>
-              <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))} placeholder="email@exemplo.com" />
+              <Label htmlFor="email">E-mail real *</Label>
+              <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData(p => ({ ...p, email: e.target.value }))} placeholder="usuario@empresa.com" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="senha">Senha *</Label>
-              <Input id="senha" type="password" value={formData.senha} onChange={(e) => setFormData(prev => ({ ...prev, senha: e.target.value }))} placeholder="Senha de acesso" />
+              <Label htmlFor="cargo">Cargo</Label>
+              <Input id="cargo" value={formData.cargo} onChange={(e) => setFormData(p => ({ ...p, cargo: e.target.value }))} placeholder="Ex: Analista, Coordenador" />
             </div>
+            {isSuperAdmin && (
+              <div className="space-y-2">
+                <Label>Empresa *</Label>
+                <Select value={formData.company_id} onValueChange={(v) => setFormData(p => ({ ...p, company_id: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione a empresa" /></SelectTrigger>
+                  <SelectContent>
+                    {companies.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Perfil do Usuário *</Label>
-              <Select value={formData.autenticacao} onValueChange={(v) => setFormData(prev => ({ ...prev, autenticacao: v }))}>
+              <Select value={formData.autenticacao} onValueChange={(v) => setFormData(p => ({ ...p, autenticacao: v }))}>
                 <SelectTrigger><SelectValue placeholder="Selecione o perfil" /></SelectTrigger>
                 <SelectContent>
-                  {isSuperAdmin && (
-                    <SelectItem value="superadm">Super Administrador</SelectItem>
-                  )}
+                  {isSuperAdmin && <SelectItem value="superadm">Super Administrador</SelectItem>}
                   <SelectItem value="admin">Administrador</SelectItem>
                   <SelectItem value="logistica">Logística</SelectItem>
                   <SelectItem value="usuario almox">Almoxarifado</SelectItem>
-                  <SelectItem value="rh">RH</SelectItem>
+                  <SelectItem value="rh">Gestão de Pessoas</SelectItem>
                   <SelectItem value="financeiro">Financeiro</SelectItem>
                   <SelectItem value="solicitante">Solicitante</SelectItem>
                   <SelectItem value="visualizador">Convidado (somente leitura)</SelectItem>
@@ -133,8 +148,8 @@ const CriarUsuario = () => {
               </Select>
             </div>
             <Button type="submit" className="w-full gap-2" disabled={loading}>
-              <Save className="w-4 h-4" />
-              {loading ? 'Criando...' : 'Criar Usuário'}
+              <Send className="w-4 h-4" />
+              {loading ? 'Enviando convite...' : 'Enviar convite'}
             </Button>
           </form>
         </CardContent>
