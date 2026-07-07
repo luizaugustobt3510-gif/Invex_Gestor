@@ -111,6 +111,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/accept-invite" element={<AcceptInvite />} />
             <Route path="/demo" element={<DemoMode />} />
             
             {/* Home — all authenticated roles */}
