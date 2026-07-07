@@ -323,6 +323,7 @@ export type Database = {
       }
       companies: {
         Row: {
+          auth_methods: Json
           auto_block: boolean
           cnpj: string | null
           company_type: string
@@ -338,6 +339,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auth_methods?: Json
           auto_block?: boolean
           cnpj?: string | null
           company_type?: string
@@ -353,6 +355,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auth_methods?: Json
           auto_block?: boolean
           cnpj?: string | null
           company_type?: string
@@ -2594,29 +2597,59 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accepted_invite_at: string | null
+          cargo: string | null
           company_id: string | null
           created_at: string
+          created_by: string | null
           email: string
+          email_verified: boolean
           id: string
+          invite_expires_at: string | null
+          invite_token: string | null
+          invited_at: string | null
+          last_login: string | null
           nome: string
+          provider: string
+          provider_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          accepted_invite_at?: string | null
+          cargo?: string | null
           company_id?: string | null
           created_at?: string
+          created_by?: string | null
           email: string
+          email_verified?: boolean
           id?: string
+          invite_expires_at?: string | null
+          invite_token?: string | null
+          invited_at?: string | null
+          last_login?: string | null
           nome: string
+          provider?: string
+          provider_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          accepted_invite_at?: string | null
+          cargo?: string | null
           company_id?: string | null
           created_at?: string
+          created_by?: string | null
           email?: string
+          email_verified?: boolean
           id?: string
+          invite_expires_at?: string | null
+          invite_token?: string | null
+          invited_at?: string | null
+          last_login?: string | null
           nome?: string
+          provider?: string
+          provider_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -3508,6 +3541,7 @@ export type Database = {
         Args: { _company_id: string }
         Returns: string
       }
+      get_auth_methods_for_email: { Args: { _email: string }; Returns: Json }
       get_user_company_id: { Args: { _user_id: string }; Returns: string }
       get_user_role: {
         Args: { _company_id: string; _user_id: string }
