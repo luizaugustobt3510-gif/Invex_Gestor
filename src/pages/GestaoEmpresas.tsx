@@ -360,6 +360,13 @@ const GestaoEmpresas = () => {
                             <Button variant="ghost" size="sm" title="Histórico financeiro" onClick={() => openHistory(c)}>
                               <History className="w-4 h-4" />
                             </Button>
+                            <Button variant="ghost" size="sm" title="Métodos de autenticação" onClick={() => {
+                              const m = (c as any).auth_methods || { email: true, google: false, microsoft: false };
+                              setAuthMethods({ email: !!m.email, google: !!m.google, microsoft: !!m.microsoft });
+                              setAuthDialog(c);
+                            }}>
+                              <KeyRound className="w-4 h-4 text-primary" />
+                            </Button>
                             <Button variant="ghost" size="sm" title={c.status === 'ativa' ? 'Desativar' : 'Ativar'} onClick={() => toggleStatus(c)}>
                               {c.status === 'ativa' ? <ShieldOff className="w-4 h-4 text-destructive" /> : <ShieldCheck className="w-4 h-4 text-primary" />}
                             </Button>
