@@ -648,6 +648,65 @@ const GestaoEmpresas = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Auth Methods Dialog */}
+      <Dialog open={!!authDialog} onOpenChange={(v) => !v && setAuthDialog(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="w-5 h-5" />
+              Métodos de autenticação
+            </DialogTitle>
+            <DialogDescription>
+              Escolha como os usuários de <strong>{authDialog?.name}</strong> podem entrar. Ao menos um método precisa estar ativo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <div className="text-sm font-medium">E-mail + senha</div>
+                <div className="text-xs text-muted-foreground">Login tradicional com senha definida pelo usuário</div>
+              </div>
+              <Switch checked={authMethods.email} onCheckedChange={(v) => setAuthMethods(p => ({ ...p, email: v }))} />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <div className="text-sm font-medium">Google</div>
+                <div className="text-xs text-muted-foreground">Entrar com conta Google (OAuth gerenciado)</div>
+              </div>
+              <Switch checked={authMethods.google} onCheckedChange={(v) => setAuthMethods(p => ({ ...p, google: v }))} />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3 opacity-70">
+              <div>
+                <div className="text-sm font-medium">Microsoft <Badge variant="outline" className="ml-1 text-[10px]">em breve</Badge></div>
+                <div className="text-xs text-muted-foreground">Microsoft Entra ID — integração em preparação</div>
+              </div>
+              <Switch checked={authMethods.microsoft} disabled onCheckedChange={(v) => setAuthMethods(p => ({ ...p, microsoft: v }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAuthDialog(null)}>Cancelar</Button>
+            <Button
+              disabled={savingAuth || (!authMethods.email && !authMethods.google && !authMethods.microsoft)}
+              onClick={async () => {
+                if (!authDialog) return;
+                setSavingAuth(true);
+                const { error } = await supabase
+                  .from('companies')
+                  .update({ auth_methods: authMethods } as any)
+                  .eq('id', authDialog.id);
+                setSavingAuth(false);
+                if (error) toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+                else {
+                  toast({ title: 'Métodos atualizados' });
+                  setCompanies(cs => cs.map(x => x.id === authDialog.id ? ({ ...x, auth_methods: authMethods } as any) : x));
+                  setAuthDialog(null);
+                }
+              }}
+            >{savingAuth ? 'Salvando...' : 'Salvar'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };
