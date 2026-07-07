@@ -93,6 +93,10 @@ const GestaoEmpresas = () => {
   const [paying, setPaying] = useState(false);
   const [historyDialog, setHistoryDialog] = useState<Company | null>(null);
   const [historyRecords, setHistoryRecords] = useState<PaymentRecord[]>([]);
+  // Auth methods per company
+  const [authDialog, setAuthDialog] = useState<Company | null>(null);
+  const [authMethods, setAuthMethods] = useState<{ email: boolean; google: boolean; microsoft: boolean }>({ email: true, google: false, microsoft: false });
+  const [savingAuth, setSavingAuth] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
   useEffect(() => {
