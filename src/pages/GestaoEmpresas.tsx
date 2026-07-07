@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Building, Edit, RefreshCw, Plus, Users, ShieldCheck, ShieldOff, Trash2, DollarSign, History } from 'lucide-react';
+import { Building, Edit, RefreshCw, Plus, Users, ShieldCheck, ShieldOff, Trash2, DollarSign, History, KeyRound } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { COMPANY_TYPES, COMPANY_TYPE_LABELS, COMPANY_TYPE_TEMPLATES, type CompanyType } from '@/config/companyTypeTemplates';
@@ -93,6 +93,10 @@ const GestaoEmpresas = () => {
   const [paying, setPaying] = useState(false);
   const [historyDialog, setHistoryDialog] = useState<Company | null>(null);
   const [historyRecords, setHistoryRecords] = useState<PaymentRecord[]>([]);
+  // Auth methods per company
+  const [authDialog, setAuthDialog] = useState<Company | null>(null);
+  const [authMethods, setAuthMethods] = useState<{ email: boolean; google: boolean; microsoft: boolean }>({ email: true, google: false, microsoft: false });
+  const [savingAuth, setSavingAuth] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
   useEffect(() => {
@@ -355,6 +359,13 @@ const GestaoEmpresas = () => {
                             </Button>
                             <Button variant="ghost" size="sm" title="Histórico financeiro" onClick={() => openHistory(c)}>
                               <History className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" title="Métodos de autenticação" onClick={() => {
+                              const m = (c as any).auth_methods || { email: true, google: false, microsoft: false };
+                              setAuthMethods({ email: !!m.email, google: !!m.google, microsoft: !!m.microsoft });
+                              setAuthDialog(c);
+                            }}>
+                              <KeyRound className="w-4 h-4 text-primary" />
                             </Button>
                             <Button variant="ghost" size="sm" title={c.status === 'ativa' ? 'Desativar' : 'Ativar'} onClick={() => toggleStatus(c)}>
                               {c.status === 'ativa' ? <ShieldOff className="w-4 h-4 text-destructive" /> : <ShieldCheck className="w-4 h-4 text-primary" />}
@@ -634,6 +645,65 @@ const GestaoEmpresas = () => {
             <Button variant="destructive" onClick={handleDeleteCompany} disabled={deleteConfirmText !== deleteDialog?.name || deleting}>
               {deleting ? 'Excluindo...' : 'Excluir Permanentemente'}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Auth Methods Dialog */}
+      <Dialog open={!!authDialog} onOpenChange={(v) => !v && setAuthDialog(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="w-5 h-5" />
+              Métodos de autenticação
+            </DialogTitle>
+            <DialogDescription>
+              Escolha como os usuários de <strong>{authDialog?.name}</strong> podem entrar. Ao menos um método precisa estar ativo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <div className="text-sm font-medium">E-mail + senha</div>
+                <div className="text-xs text-muted-foreground">Login tradicional com senha definida pelo usuário</div>
+              </div>
+              <Switch checked={authMethods.email} onCheckedChange={(v) => setAuthMethods(p => ({ ...p, email: v }))} />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <div className="text-sm font-medium">Google</div>
+                <div className="text-xs text-muted-foreground">Entrar com conta Google (OAuth gerenciado)</div>
+              </div>
+              <Switch checked={authMethods.google} onCheckedChange={(v) => setAuthMethods(p => ({ ...p, google: v }))} />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3 opacity-70">
+              <div>
+                <div className="text-sm font-medium">Microsoft <Badge variant="outline" className="ml-1 text-[10px]">em breve</Badge></div>
+                <div className="text-xs text-muted-foreground">Microsoft Entra ID — integração em preparação</div>
+              </div>
+              <Switch checked={authMethods.microsoft} disabled onCheckedChange={(v) => setAuthMethods(p => ({ ...p, microsoft: v }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAuthDialog(null)}>Cancelar</Button>
+            <Button
+              disabled={savingAuth || (!authMethods.email && !authMethods.google && !authMethods.microsoft)}
+              onClick={async () => {
+                if (!authDialog) return;
+                setSavingAuth(true);
+                const { error } = await supabase
+                  .from('companies')
+                  .update({ auth_methods: authMethods } as any)
+                  .eq('id', authDialog.id);
+                setSavingAuth(false);
+                if (error) toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+                else {
+                  toast({ title: 'Métodos atualizados' });
+                  setCompanies(cs => cs.map(x => x.id === authDialog.id ? ({ ...x, auth_methods: authMethods } as any) : x));
+                  setAuthDialog(null);
+                }
+              }}
+            >{savingAuth ? 'Salvando...' : 'Salvar'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -8,6 +8,7 @@ import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
 import { EmailRestrictedRoute } from "./components/EmailRestrictedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import AcceptInvite from "./pages/AcceptInvite";
 import CadastrarMaterial from "./pages/CadastrarMaterial";
 import GerarOC from "./pages/GerarOC";
 import AtualizarEstoque from "./pages/AtualizarEstoque";
@@ -110,6 +111,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/accept-invite" element={<AcceptInvite />} />
             <Route path="/demo" element={<DemoMode />} />
             
             {/* Home — all authenticated roles */}
