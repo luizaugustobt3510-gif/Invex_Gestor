@@ -72,6 +72,8 @@ import { FitnessProtectedRoute } from "./components/FitnessProtectedRoute";
 import Pacientes from "./pages/clinica/Pacientes";
 import PacienteProntuario from "./pages/clinica/PacienteProntuario";
 import Agenda from "./pages/clinica/Agenda";
+import AnamneseModelos from "./pages/clinica/AnamneseModelos";
+import NovaAnamnese from "./pages/clinica/NovaAnamnese";
 import DashboardFinanceiro from "./pages/financeiro/DashboardFinanceiro";
 import Lancamentos from "./pages/financeiro/Lancamentos";
 import FluxoCaixa from "./pages/financeiro/FluxoCaixa";
@@ -204,6 +206,10 @@ const App = () => (
             <Route path="/clinica/pacientes" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'rh', 'visualizador']} moduleKey="prontuario"><Pacientes /></RoleProtectedRoute>} />
             <Route path="/clinica/pacientes/:id" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'rh', 'visualizador']} moduleKey="prontuario"><PacienteProntuario /></RoleProtectedRoute>} />
             <Route path="/clinica/agenda" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'rh', 'visualizador']} moduleKey="agenda"><Agenda /></RoleProtectedRoute>} />
+            <Route path="/clinica/anamnese/modelos" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica']} moduleKey="anamnese"><AnamneseModelos /></RoleProtectedRoute>} />
+            <Route path="/clinica/anamnese/nova" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica']} moduleKey="anamnese"><NovaAnamnese /></RoleProtectedRoute>} />
+            <Route path="/clinica/anamnese/nova/:patientId" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica']} moduleKey="anamnese"><NovaAnamnese /></RoleProtectedRoute>} />
+
 
 
             

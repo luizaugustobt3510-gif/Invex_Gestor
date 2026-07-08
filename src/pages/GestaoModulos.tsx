@@ -81,11 +81,19 @@ const MODULE_STRUCTURE: ModuleConfig[] = [
       { key: 'manutencao.os', label: 'Ordens de Serviço' },
     ],
   },
+  {
+    key: 'anamnese',
+    label: 'Anamnese Digital',
+    description: 'Exclusivo para empresas do tipo Clínica. Inicia desativado.',
+    submodules: [],
+    clinicaOnly: true,
+  } as any,
 ];
 
 interface Company {
   id: string;
   name: string;
+  company_type?: string | null;
 }
 
 interface ModuleState {
@@ -100,10 +108,15 @@ const GestaoModulos = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const currentCompany = companies.find(c => c.id === selectedCompany);
+  const isClinica = (currentCompany?.company_type || '').toLowerCase() === 'clinica';
+
+  const visibleModules = MODULE_STRUCTURE.filter((m: any) => !m.clinicaOnly || isClinica);
+
   useEffect(() => {
     const fetchCompanies = async () => {
-      const { data } = await supabase.from('companies').select('id, name').order('name');
-      setCompanies(data || []);
+      const { data } = await supabase.from('companies').select('id, name, company_type').order('name');
+      setCompanies((data || []) as any);
     };
     fetchCompanies();
   }, []);
@@ -118,9 +131,9 @@ const GestaoModulos = () => {
         .eq('company_id', selectedCompany);
 
       const state: ModuleState = {};
-      // Default all modules and submodules to active
+      // Default all modules and submodules to active — except opt-in modules like 'anamnese'
       MODULE_STRUCTURE.forEach(m => {
-        state[m.key] = true;
+        state[m.key] = m.key === 'anamnese' ? false : true;
         m.submodules.forEach(s => { state[s.key] = true; });
       });
       // Override with DB values
@@ -176,7 +189,7 @@ const GestaoModulos = () => {
 
             {selectedCompany && !loading && (
               <div className="space-y-4">
-                {MODULE_STRUCTURE.map(mod => {
+                {visibleModules.map(mod => {
                   const isParentActive = modules[mod.key] ?? true;
                   return (
                     <Collapsible key={mod.key} defaultOpen={false} className="group/mod">
