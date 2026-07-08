@@ -125,6 +125,13 @@ export const MODULES_CATALOG: ModuleDef[] = [
     ],
   },
   {
+    key: 'anamnese',
+    label: 'Anamnese Digital',
+    description: 'Anamneses digitais, modelos personalizáveis e PDFs vinculados ao prontuário. Exclusivo para clínicas — ativado pelo Super Admin.',
+    route: '/clinica/anamnese/nova',
+    submodules: [],
+  },
+  {
     key: 'clinica',
     label: 'Clínica',
     description: 'Prontuários, atendimentos, prescrições (em desenvolvimento).',
