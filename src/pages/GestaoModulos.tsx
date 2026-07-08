@@ -189,7 +189,7 @@ const GestaoModulos = () => {
 
             {selectedCompany && !loading && (
               <div className="space-y-4">
-                {MODULE_STRUCTURE.map(mod => {
+                {visibleModules.map(mod => {
                   const isParentActive = modules[mod.key] ?? true;
                   return (
                     <Collapsible key={mod.key} defaultOpen={false} className="group/mod">
