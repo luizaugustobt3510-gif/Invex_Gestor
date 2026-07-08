@@ -358,6 +358,26 @@ const clinicaGroups: MenuGroup[] = [
       },
     ],
   },
+  {
+    label: "Anamnese Digital",
+    icon: <ClipboardList className="w-4 h-4" />,
+    allowedRoles: ["admin", "clinica"],
+    moduleKey: "anamnese",
+    items: [
+      {
+        path: "/clinica/anamnese/nova",
+        label: "Nova Anamnese",
+        icon: <FileText className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica"],
+      },
+      {
+        path: "/clinica/anamnese/modelos",
+        label: "Modelos",
+        icon: <ClipboardList className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica"],
+      },
+    ],
+  },
 ];
 
 
