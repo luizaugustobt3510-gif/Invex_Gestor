@@ -85,18 +85,30 @@ const Login = () => {
     }
   };
 
-  if (checkingSetup || needsSetup) {
+  if (checkingSetup) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+          <p className="text-sm text-muted-foreground">Verificando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (needsSetup) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-md text-center space-y-3">
+          <h1 className="text-xl font-semibold text-foreground">Configuração inicial pendente</h1>
           <p className="text-sm text-muted-foreground">
-            {needsSetup ? 'Configurando o sistema...' : 'Verificando...'}
+            O sistema ainda não possui uma empresa cadastrada. Peça ao operador para criar o administrador inicial manualmente no painel do backend.
           </p>
         </div>
       </div>
     );
   }
+
 
   const showOAuth = methods.google || methods.microsoft;
 
