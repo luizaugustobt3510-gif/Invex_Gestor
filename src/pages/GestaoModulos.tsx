@@ -93,6 +93,7 @@ const MODULE_STRUCTURE: ModuleConfig[] = [
 interface Company {
   id: string;
   name: string;
+  company_type?: string | null;
 }
 
 interface ModuleState {
@@ -107,10 +108,15 @@ const GestaoModulos = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const currentCompany = companies.find(c => c.id === selectedCompany);
+  const isClinica = (currentCompany?.company_type || '').toLowerCase() === 'clinica';
+
+  const visibleModules = MODULE_STRUCTURE.filter((m: any) => !m.clinicaOnly || isClinica);
+
   useEffect(() => {
     const fetchCompanies = async () => {
-      const { data } = await supabase.from('companies').select('id, name').order('name');
-      setCompanies(data || []);
+      const { data } = await supabase.from('companies').select('id, name, company_type').order('name');
+      setCompanies((data || []) as any);
     };
     fetchCompanies();
   }, []);
