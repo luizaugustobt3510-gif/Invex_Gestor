@@ -299,70 +299,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Initial setup (legacy path)
-    if (!company_name || !company_cnpj) {
-      return new Response(
-        JSON.stringify({ error: "Dados incompletos para setup inicial. Informe company_name e company_cnpj." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const { data: company, error: companyError } = await supabase
-      .from("companies")
-      .insert({ name: company_name, cnpj: company_cnpj })
-      .select("id")
-      .single();
-
-    if (companyError || !company) {
-      return new Response(
-        JSON.stringify({ error: "Erro ao criar empresa: " + (companyError?.message || "desconhecido") }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const { data: { users: existingSetupUsers } } = await supabase.auth.admin.listUsers();
-    const setupUserExists = existingSetupUsers?.find(u => u.email?.toLowerCase() === email.toLowerCase());
-    
-    if (setupUserExists) {
-      await supabase.from("companies").delete().eq("id", company.id);
-      return new Response(
-        JSON.stringify({ error: "Um usuário com este e-mail já está cadastrado." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const { data: authData, error: createError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { nome },
-    });
-
-    if (createError) {
-      await supabase.from("companies").delete().eq("id", company.id);
-      return new Response(
-        JSON.stringify({ error: createError.message }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    await supabase
-      .from("profiles")
-      .update({ company_id: company.id })
-      .eq("user_id", authData.user.id);
-
-    await supabase.from("user_roles").insert({
-      user_id: authData.user.id,
-      role: "super_admin",
-      company_id: company.id,
-    });
-
+    // Initial setup legacy path removed: initial super_admin must be created
+    // manually via the Supabase dashboard to avoid unauthenticated bootstrap.
     return new Response(
-      JSON.stringify({
-        ok: true,
-        msg: `Setup completo! Empresa "${company_name}" e administrador ${email} criados.`,
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: "Setup inicial não disponível. Configure o administrador inicial manualmente." }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
     return new Response(
@@ -371,3 +312,4 @@ Deno.serve(async (req) => {
     );
   }
 });
+
