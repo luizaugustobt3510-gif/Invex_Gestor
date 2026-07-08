@@ -131,9 +131,9 @@ const GestaoModulos = () => {
         .eq('company_id', selectedCompany);
 
       const state: ModuleState = {};
-      // Default all modules and submodules to active
+      // Default all modules and submodules to active — except opt-in modules like 'anamnese'
       MODULE_STRUCTURE.forEach(m => {
-        state[m.key] = true;
+        state[m.key] = m.key === 'anamnese' ? false : true;
         m.submodules.forEach(s => { state[s.key] = true; });
       });
       // Override with DB values
