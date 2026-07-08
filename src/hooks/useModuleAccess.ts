@@ -42,9 +42,20 @@ export function useModuleAccess() {
       return;
     }
 
-    // SuperAdmin and admin da empresa não têm restrição pela matriz
+    // SuperAdmin and admin da empresa mostly bypass the matrix, but we still need
+    // company_modules to enforce opt-in modules (e.g., 'anamnese').
     if (user.role === "superadm" || user.role === "admin") {
-      setState({ companyModules: {}, userModules: {}, roleModules: {}, loading: false });
+      try {
+        const { data } = await supabase
+          .from("company_modules")
+          .select("module_key, is_active")
+          .eq("company_id", user.companyId);
+        const companyModules: Record<string, boolean> = {};
+        (data || []).forEach((m) => { companyModules[m.module_key] = m.is_active; });
+        setState({ companyModules, userModules: {}, roleModules: {}, loading: false });
+      } catch {
+        setState({ companyModules: {}, userModules: {}, roleModules: {}, loading: false });
+      }
       return;
     }
 
