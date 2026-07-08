@@ -34,22 +34,6 @@ const Login = () => {
     checkSetup();
   }, []);
 
-  useEffect(() => {
-    if (!needsSetup || checkingSetup) return;
-    const runAutoSetup = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/setup-user`,
-          { method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'auto_setup_master' }) }
-        );
-        const result = await response.json();
-        if (result.ok) toast.success('Sistema configurado! Faça login.');
-        setNeedsSetup(false);
-      } catch { setNeedsSetup(false); }
-    };
-    runAutoSetup();
-  }, [needsSetup, checkingSetup]);
 
   // When the user types an email, look up which auth methods that email's company allows.
   // If no match, show default (email only) so we never leak whether email exists.
@@ -101,18 +85,30 @@ const Login = () => {
     }
   };
 
-  if (checkingSetup || needsSetup) {
+  if (checkingSetup) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+          <p className="text-sm text-muted-foreground">Verificando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (needsSetup) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-md text-center space-y-3">
+          <h1 className="text-xl font-semibold text-foreground">Configuração inicial pendente</h1>
           <p className="text-sm text-muted-foreground">
-            {needsSetup ? 'Configurando o sistema...' : 'Verificando...'}
+            O sistema ainda não possui uma empresa cadastrada. Peça ao operador para criar o administrador inicial manualmente no painel do backend.
           </p>
         </div>
       </div>
     );
   }
+
 
   const showOAuth = methods.google || methods.microsoft;
 
