@@ -136,6 +136,120 @@ export type Database = {
           },
         ]
       }
+      anamnese_templates: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          exam_type: string
+          id: string
+          is_active: boolean
+          name: string
+          questions: Json
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          exam_type: string
+          id?: string
+          is_active?: boolean
+          name: string
+          questions?: Json
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          exam_type?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          questions?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anamnese_templates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      anamneses: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          exam_type: string
+          id: string
+          observations: string | null
+          patient_id: string
+          pdf_path: string | null
+          responses: Json
+          template_id: string | null
+          template_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          exam_type: string
+          id?: string
+          observations?: string | null
+          patient_id: string
+          pdf_path?: string | null
+          responses?: Json
+          template_id?: string | null
+          template_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          exam_type?: string
+          id?: string
+          observations?: string | null
+          patient_id?: string
+          pdf_path?: string | null
+          responses?: Json
+          template_id?: string | null
+          template_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anamneses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anamneses_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anamneses_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "anamnese_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
