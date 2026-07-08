@@ -11,10 +11,12 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Search, Paperclip, Trash2, Pencil, Download, FileText } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Paperclip, Trash2, Pencil, Download, FileText, ClipboardList } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { toast } from 'sonner';
+import { Link as RouterLink } from 'react-router-dom';
 
 interface Patient {
   id: string; company_id: string; nome: string; cpf: string | null;
