@@ -72,6 +72,8 @@ import { FitnessProtectedRoute } from "./components/FitnessProtectedRoute";
 import Pacientes from "./pages/clinica/Pacientes";
 import PacienteProntuario from "./pages/clinica/PacienteProntuario";
 import Agenda from "./pages/clinica/Agenda";
+import AnamneseModelos from "./pages/clinica/AnamneseModelos";
+import NovaAnamnese from "./pages/clinica/NovaAnamnese";
 import DashboardFinanceiro from "./pages/financeiro/DashboardFinanceiro";
 import Lancamentos from "./pages/financeiro/Lancamentos";
 import FluxoCaixa from "./pages/financeiro/FluxoCaixa";
