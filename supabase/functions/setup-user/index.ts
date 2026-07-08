@@ -22,107 +22,16 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
-    // ==================== AUTO SETUP MASTER ====================
+    // ==================== AUTO SETUP MASTER (DISABLED) ====================
+    // Removed: hardcoded credentials backdoor. Initial setup must be done
+    // manually via the Supabase dashboard by an operator.
     if (action === "auto_setup_master") {
-      // Check if any company exists
-      const { count } = await supabase
-        .from("companies")
-        .select("id", { count: "exact", head: true });
-
-      if (count && count > 0) {
-        return new Response(
-          JSON.stringify({ ok: false, msg: "Setup já foi realizado." }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Check if user already exists in auth
-      const { data: { users: existingUsers } } = await supabase.auth.admin.listUsers();
-      const userExists = existingUsers?.find(u => u.email?.toLowerCase() === PROTECTED_EMAIL);
-
-      if (userExists) {
-        // User exists but no company - create company and link
-        const { data: company, error: companyError } = await supabase
-          .from("companies")
-          .insert({ name: "MASTER", cnpj: "00.000.000/0001-00" })
-          .select("id")
-          .single();
-
-        if (companyError || !company) {
-          return new Response(
-            JSON.stringify({ error: "Erro ao criar empresa MASTER." }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-
-        await supabase.from("profiles").update({ company_id: company.id }).eq("user_id", userExists.id);
-        
-        // Check if role exists
-        const { data: existingRole } = await supabase
-          .from("user_roles")
-          .select("id")
-          .eq("user_id", userExists.id)
-          .single();
-
-        if (!existingRole) {
-          await supabase.from("user_roles").insert({
-            user_id: userExists.id,
-            role: "super_admin",
-            company_id: company.id,
-          });
-        } else {
-          await supabase.from("user_roles").update({ company_id: company.id, role: "super_admin" }).eq("user_id", userExists.id);
-        }
-
-        return new Response(
-          JSON.stringify({ ok: true, msg: "Setup MASTER concluído." }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Create company MASTER
-      const { data: company, error: companyError } = await supabase
-        .from("companies")
-        .insert({ name: "MASTER", cnpj: "00.000.000/0001-00" })
-        .select("id")
-        .single();
-
-      if (companyError || !company) {
-        return new Response(
-          JSON.stringify({ error: "Erro ao criar empresa MASTER." }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Create auth user
-      const { data: authData, error: createError } = await supabase.auth.admin.createUser({
-        email: PROTECTED_EMAIL,
-        password: "353510",
-        email_confirm: true,
-        user_metadata: { nome: "Luiz - Admin Master" },
-      });
-
-      if (createError) {
-        await supabase.from("companies").delete().eq("id", company.id);
-        return new Response(
-          JSON.stringify({ error: "Erro ao criar usuário: " + createError.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      await supabase.from("profiles").update({ company_id: company.id }).eq("user_id", authData.user.id);
-
-      await supabase.from("user_roles").insert({
-        user_id: authData.user.id,
-        role: "super_admin",
-        company_id: company.id,
-      });
-
       return new Response(
-        JSON.stringify({ ok: true, msg: "Setup MASTER concluído com sucesso!" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ ok: false, error: "Auto setup desativado. Configure o administrador inicial manualmente." }),
+        { status: 410, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
 
     // ==================== DELETE USER ACTION ====================
     if (action === "delete_user") {
