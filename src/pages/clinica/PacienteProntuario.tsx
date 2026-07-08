@@ -346,6 +346,53 @@ export default function PacienteProntuario() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {hasAnamnese && (
+            <TabsContent value="anamneses" className="space-y-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="flex items-center gap-2"><ClipboardList className="w-4 h-4" /> Anamneses do paciente</CardTitle>
+                  <Button asChild className="gap-2">
+                    <RouterLink to={`/clinica/anamnese/nova?patient=${id}`}>
+                      <Plus className="w-4 h-4" /> Nova anamnese
+                    </RouterLink>
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {anamneses.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8">Nenhuma anamnese registrada.</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {anamneses.map(a => (
+                        <div key={a.id} className="flex items-center justify-between border rounded-lg px-3 py-2">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary">{new Date(a.created_at).toLocaleString('pt-BR')}</Badge>
+                              <Badge>{a.exam_type}</Badge>
+                              {a.template_name && <span className="text-xs text-muted-foreground">Modelo: {a.template_name}</span>}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              ID: {a.id.substring(0, 8).toUpperCase()}
+                              {a.created_by_name && <> · Por: {a.created_by_name}</>}
+                            </div>
+                          </div>
+                          {a.pdf_path && (
+                            <Button size="sm" variant="outline" onClick={async () => {
+                              const { data } = await supabase.storage.from('anamnese-pdfs').createSignedUrl(a.pdf_path!, 3600);
+                              if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+                              else toast.error('Não foi possível abrir o PDF');
+                            }}>
+                              <Download className="w-3.5 h-3.5 mr-1" /> PDF
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
 
         <Dialog open={dlgOpen} onOpenChange={setDlgOpen}>
