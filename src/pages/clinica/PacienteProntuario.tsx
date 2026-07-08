@@ -259,6 +259,7 @@ export default function PacienteProntuario() {
           <TabsList>
             <TabsTrigger value="ficha">Ficha</TabsTrigger>
             <TabsTrigger value="prontuario">📄 Prontuário</TabsTrigger>
+            {hasAnamnese && <TabsTrigger value="anamneses">Anamneses</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="ficha">
