@@ -248,6 +248,15 @@ Deno.serve(async (req) => {
       const companyId = callerRole.role === "super_admin" ? (requestedCompanyId || callerRole.company_id) : callerRole.company_id;
       const role = body.role || "solicitante";
 
+      // Privilege escalation guard: only super_admin can grant super_admin or admin_empresa
+      if ((role === "super_admin" || role === "admin_empresa") && callerRole.role !== "super_admin") {
+        return new Response(
+          JSON.stringify({ error: "Sem permissão para conceder este cargo." }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+
       // Check if user already exists
       const { data: { users: existingUsers } } = await supabase.auth.admin.listUsers();
       const userExists = existingUsers?.find(u => u.email?.toLowerCase() === email.toLowerCase());
