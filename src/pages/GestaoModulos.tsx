@@ -81,6 +81,13 @@ const MODULE_STRUCTURE: ModuleConfig[] = [
       { key: 'manutencao.os', label: 'Ordens de Serviço' },
     ],
   },
+  {
+    key: 'anamnese',
+    label: 'Anamnese Digital',
+    description: 'Exclusivo para empresas do tipo Clínica. Inicia desativado.',
+    submodules: [],
+    clinicaOnly: true,
+  } as any,
 ];
 
 interface Company {
