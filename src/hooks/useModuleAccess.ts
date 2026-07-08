@@ -94,7 +94,14 @@ export function useModuleAccess() {
 
   const canAccessModule = useCallback(
     (moduleKey: string): boolean => {
-      if (user?.role === "superadm" || user?.role === "admin") return true;
+      // 'anamnese' is opt-in — must be explicitly activated by Super Admin per company.
+      // superadm bypasses this too? No: super_admin is the one who activates, they still see
+      // the toggle in GestaoModulos regardless. Preview/access to the module UI requires activation.
+      const OPT_IN = new Set(['anamnese']);
+      const isOptIn = OPT_IN.has(moduleKey.split('.')[0]);
+
+      if (user?.role === "superadm" && !isOptIn) return true;
+      if (user?.role === "admin" && !isOptIn) return true;
 
       // Composite submodule keys (e.g., "logistica.estoque")
       if (moduleKey.includes(".")) {
@@ -107,9 +114,13 @@ export function useModuleAccess() {
       }
 
       const dbKey = MODULE_KEY_MAP[moduleKey] || moduleKey;
+      const defaultActive = isOptIn ? false : true;
 
-      const companyActive = state.companyModules[dbKey] ?? true;
+      const companyActive = state.companyModules[dbKey] ?? defaultActive;
       if (!companyActive) return false;
+
+      // For opt-in modules, superadm/admin can access once activated.
+      if (isOptIn && (user?.role === "superadm" || user?.role === "admin")) return true;
 
       // Role matrix: default true if no row (backwards compat).
       const roleActive = state.roleModules[dbKey] ?? true;
