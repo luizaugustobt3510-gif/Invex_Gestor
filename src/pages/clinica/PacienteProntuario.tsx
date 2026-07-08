@@ -44,11 +44,23 @@ interface Attachment {
 
 const ACCEPT = 'application/pdf,image/jpeg,image/png';
 
+interface Anamnese {
+  id: string;
+  created_at: string;
+  exam_type: string;
+  template_name: string | null;
+  created_by_name: string | null;
+  pdf_path: string | null;
+}
+
 export default function PacienteProntuario() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { canAccessModule } = useModuleAccess();
+  const hasAnamnese = canAccessModule('anamnese');
   const [patient, setPatient] = useState<Patient | null>(null);
   const [records, setRecords] = useState<MRecord[]>([]);
+  const [anamneses, setAnamneses] = useState<Anamnese[]>([]);
   const [attachments, setAttachments] = useState<{ [recordId: string]: Attachment[] }>({});
   const [loading, setLoading] = useState(true);
 
