@@ -206,6 +206,10 @@ const App = () => (
             <Route path="/clinica/pacientes" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'rh', 'visualizador']} moduleKey="prontuario"><Pacientes /></RoleProtectedRoute>} />
             <Route path="/clinica/pacientes/:id" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'rh', 'visualizador']} moduleKey="prontuario"><PacienteProntuario /></RoleProtectedRoute>} />
             <Route path="/clinica/agenda" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'rh', 'visualizador']} moduleKey="agenda"><Agenda /></RoleProtectedRoute>} />
+            <Route path="/clinica/anamnese/modelos" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica']} moduleKey="anamnese"><AnamneseModelos /></RoleProtectedRoute>} />
+            <Route path="/clinica/anamnese/nova" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica']} moduleKey="anamnese"><NovaAnamnese /></RoleProtectedRoute>} />
+            <Route path="/clinica/anamnese/nova/:patientId" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica']} moduleKey="anamnese"><NovaAnamnese /></RoleProtectedRoute>} />
+
 
 
             
