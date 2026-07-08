@@ -34,22 +34,6 @@ const Login = () => {
     checkSetup();
   }, []);
 
-  useEffect(() => {
-    if (!needsSetup || checkingSetup) return;
-    const runAutoSetup = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/setup-user`,
-          { method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'auto_setup_master' }) }
-        );
-        const result = await response.json();
-        if (result.ok) toast.success('Sistema configurado! Faça login.');
-        setNeedsSetup(false);
-      } catch { setNeedsSetup(false); }
-    };
-    runAutoSetup();
-  }, [needsSetup, checkingSetup]);
 
   // When the user types an email, look up which auth methods that email's company allows.
   // If no match, show default (email only) so we never leak whether email exists.
