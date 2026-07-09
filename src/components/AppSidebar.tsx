@@ -344,7 +344,7 @@ const clinicaGroups: MenuGroup[] = [
     items: [
       {
         path: "/clinica/pacientes",
-        label: "Pacientes / Prontuário",
+        label: "Pacientes",
         icon: <Stethoscope className="w-4 h-4" />,
         allowedRoles: ["admin", "clinica", "rh", "visualizador"],
         submoduleKey: "prontuario",
