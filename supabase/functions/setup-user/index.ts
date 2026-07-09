@@ -133,6 +133,105 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ==================== UPDATE USER ACTION ====================
+    if (action === "update_user") {
+      const { user_id, email, nome, sexo, data_nascimento, telefone, cargo } = body;
+      if (!user_id) {
+        return new Response(
+          JSON.stringify({ error: "user_id é obrigatório." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(
+          JSON.stringify({ error: "Não autorizado." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user: callerUser }, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !callerUser) {
+        return new Response(
+          JSON.stringify({ error: "Token inválido." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: callerRole } = await supabase
+        .from("user_roles")
+        .select("role, company_id")
+        .eq("user_id", callerUser.id)
+        .single();
+
+      if (!callerRole || (callerRole.role !== "super_admin" && callerRole.role !== "admin_empresa")) {
+        return new Response(
+          JSON.stringify({ error: "Sem permissão para editar usuários." }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (callerRole.role === "admin_empresa") {
+        const { data: targetRole } = await supabase
+          .from("user_roles")
+          .select("company_id")
+          .eq("user_id", user_id)
+          .single();
+        if (!targetRole || targetRole.company_id !== callerRole.company_id) {
+          return new Response(
+            JSON.stringify({ error: "Sem permissão para editar usuário de outra empresa." }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+
+      // Protect master admin email change
+      if (email) {
+        const { data: { user: targetUser } } = await supabase.auth.admin.getUserById(user_id);
+        if (targetUser?.email?.toLowerCase() === PROTECTED_EMAIL && email.toLowerCase() !== PROTECTED_EMAIL) {
+          return new Response(
+            JSON.stringify({ error: "Não é permitido alterar o e-mail da conta master." }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const { error: updErr } = await supabase.auth.admin.updateUserById(user_id, {
+          email: email.toLowerCase(),
+          email_confirm: true,
+        });
+        if (updErr) {
+          return new Response(
+            JSON.stringify({ error: "Erro ao atualizar e-mail: " + updErr.message }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+
+      const profileUpdate: Record<string, unknown> = {};
+      if (email !== undefined) profileUpdate.email = email.toLowerCase();
+      if (nome !== undefined) profileUpdate.nome = nome;
+      if (sexo !== undefined) profileUpdate.sexo = sexo;
+      if (data_nascimento !== undefined) profileUpdate.data_nascimento = data_nascimento || null;
+      if (telefone !== undefined) profileUpdate.telefone = telefone;
+      if (cargo !== undefined) profileUpdate.cargo = cargo;
+
+      if (Object.keys(profileUpdate).length > 0) {
+        const { error: profErr } = await supabase.from("profiles").update(profileUpdate).eq("user_id", user_id);
+        if (profErr) {
+          return new Response(
+            JSON.stringify({ error: "Erro ao atualizar perfil: " + profErr.message }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ ok: true, msg: "Usuário atualizado." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // ==================== BULK DELETE ACTION ====================
     if (action === "bulk_delete_except") {
       const { keep_email } = body;

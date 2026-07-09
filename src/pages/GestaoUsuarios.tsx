@@ -5,12 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Search, MoreVertical, UserPlus, Save, Shield, Building, Puzzle } from 'lucide-react';
+import { Search, MoreVertical, UserPlus, Save, Shield, Building } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,6 +21,10 @@ interface UserRow {
   company_id: string | null;
   company_name?: string;
   created_at: string;
+  sexo?: string | null;
+  data_nascimento?: string | null;
+  telefone?: string | null;
+  cargo?: string | null;
 }
 
 interface Company {
@@ -41,51 +44,6 @@ const roleLabels: Record<string, string> = {
   fitness_user: 'Invex Fitness',
 };
 
-const USER_PERMISSIONS_BY_ROLE: Record<string, { key: string; label: string }[]> = {
-  logistica: [
-    { key: 'estoque', label: 'Estoque (Dashboard)' },
-    { key: 'conferencia', label: 'Conferência de Temperatura' },
-    { key: 'recontagem', label: 'Recontagem' },
-    { key: 'ordens_compra', label: 'Ordens de Compra' },
-    { key: 'importacao_materiais', label: 'Importação de Materiais' },
-    { key: 'importacao_saldo', label: 'Importação de Saldo' },
-    { key: 'conciliacao', label: 'Conciliação' },
-    { key: 'solicitacoes', label: 'Solicitações' },
-  ],
-  rh: [
-    { key: 'colaboradores', label: 'Colaboradores' },
-    { key: 'ferias', label: 'Férias' },
-    { key: 'atestados', label: 'Atestados' },
-    { key: 'treinamentos', label: 'Treinamentos' },
-    { key: 'aso', label: 'ASO' },
-    { key: 'avaliacoes', label: 'Avaliações' },
-    { key: 'banco_horas', label: 'Banco de Horas' },
-    { key: 'indicadores', label: 'Indicadores' },
-  ],
-  financeiro: [
-    { key: 'dashboard_financeiro', label: 'Dashboard Financeiro' },
-    { key: 'relatorios_financeiros', label: 'Relatórios Financeiros' },
-  ],
-};
-
-// For company-level module dialog (kept for backward compat)
-const ALL_MODULES = [
-  { key: 'logistica', label: 'Logística' },
-  { key: 'rh_module', label: 'RH' },
-  { key: 'financeiro_module', label: 'Financeiro' },
-  { key: 'compras', label: 'Compras' },
-  { key: 'relatorios', label: 'Relatórios' },
-];
-
-// Modules that can be GRANTED to a user (full CRUD) regardless of role
-const GRANTABLE_MODULES = [
-  { key: 'logistica', label: 'Logística & Estoque' },
-  { key: 'rh', label: 'Gestão de Pessoas' },
-  { key: 'financeiro', label: 'Financeiro' },
-  { key: 'manutencao', label: 'Manutenção' },
-  { key: 'academia', label: 'Academia' },
-  { key: 'vendas', label: 'Vendas' },
-];
 
 const GestaoUsuarios = () => {
   const { toast } = useToast();
@@ -96,11 +54,14 @@ const GestaoUsuarios = () => {
   const [editUser, setEditUser] = useState<UserRow | null>(null);
   const [editRole, setEditRole] = useState('');
   const [editCompanyId, setEditCompanyId] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editNome, setEditNome] = useState('');
+  const [editSexo, setEditSexo] = useState('');
+  const [editNascimento, setEditNascimento] = useState('');
+  const [editTelefone, setEditTelefone] = useState('');
+  const [editCargo, setEditCargo] = useState('');
   const [editOpen, setEditOpen] = useState(false);
-  const [modulesOpen, setModulesOpen] = useState(false);
-  const [modulesUser, setModulesUser] = useState<UserRow | null>(null);
-  const [userModules, setUserModules] = useState<Record<string, boolean>>({});
-  const [extraModules, setExtraModules] = useState<Record<string, boolean>>({});
+  const [editSaving, setEditSaving] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [formData, setFormData] = useState({ email: '', senha: '', nome: '', role: '', company_id: '' });
@@ -111,16 +72,16 @@ const GestaoUsuarios = () => {
     try {
       const [rolesRes, profilesRes, companiesRes] = await Promise.all([
         supabase.from('user_roles').select('user_id, role, company_id, created_at'),
-        supabase.from('profiles').select('user_id, nome, email, company_id'),
+        supabase.from('profiles').select('user_id, nome, email, company_id, sexo, data_nascimento, telefone, cargo'),
         supabase.from('companies').select('id, name').order('name'),
       ]);
 
       setCompanies(companiesRes.data || []);
       const compMap = new Map((companiesRes.data || []).map(c => [c.id, c.name]));
-      const profMap = new Map((profilesRes.data || []).map(p => [p.user_id, p]));
+      const profMap = new Map((profilesRes.data || []).map((p: any) => [p.user_id, p]));
 
       const merged: UserRow[] = (rolesRes.data || []).map(r => {
-        const prof = profMap.get(r.user_id);
+        const prof: any = profMap.get(r.user_id);
         return {
           user_id: r.user_id,
           nome: prof?.nome || 'Sem nome',
@@ -129,6 +90,10 @@ const GestaoUsuarios = () => {
           company_id: r.company_id,
           company_name: r.company_id ? compMap.get(r.company_id) || '' : 'Global',
           created_at: r.created_at,
+          sexo: prof?.sexo ?? null,
+          data_nascimento: prof?.data_nascimento ?? null,
+          telefone: prof?.telefone ?? null,
+          cargo: prof?.cargo ?? null,
         };
       });
 
@@ -142,17 +107,45 @@ const GestaoUsuarios = () => {
 
   const handleEditSave = async () => {
     if (!editUser || !editRole) return;
+    setEditSaving(true);
     try {
+      // 1. Update role/company via user_roles
       const updates: any = { role: editRole };
       if (editCompanyId) updates.company_id = editCompanyId;
-
       const { error } = await supabase
         .from('user_roles')
         .update(updates)
         .eq('user_id', editUser.user_id);
       if (error) throw error;
 
-      // Update profile company_id too
+      // 2. Update profile fields (+ auth email) via edge function
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error('Sessão expirada');
+
+      const emailChanged = editEmail.trim().toLowerCase() !== (editUser.email || '').toLowerCase();
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/setup-user`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            action: 'update_user',
+            user_id: editUser.user_id,
+            email: emailChanged ? editEmail.trim() : undefined,
+            nome: editNome.trim(),
+            sexo: editSexo || null,
+            data_nascimento: editNascimento || null,
+            telefone: editTelefone || null,
+            cargo: editCargo || null,
+          }),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok || result.error) throw new Error(result.error || 'Erro ao atualizar usuário.');
+
+      // Company on profile
       if (editCompanyId) {
         await supabase.from('profiles').update({ company_id: editCompanyId }).eq('user_id', editUser.user_id);
       }
@@ -165,7 +158,7 @@ const GestaoUsuarios = () => {
           action: 'update_user',
           entity_type: 'user',
           entity_id: editUser.user_id,
-          details: { old_role: editUser.role, new_role: editRole, company_id: editCompanyId, target_email: editUser.email },
+          details: { old_role: editUser.role, new_role: editRole, company_id: editCompanyId, target_email: editEmail },
         });
       }
 
@@ -174,6 +167,8 @@ const GestaoUsuarios = () => {
       loadData();
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' });
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -216,66 +211,8 @@ const GestaoUsuarios = () => {
     }
   };
 
-  const openModulesDialog = async (u: UserRow) => {
-    setModulesUser(u);
-    // Load company modules for user's company
-    if (u.company_id) {
-      const [companyRes, extraRes] = await Promise.all([
-        supabase.from('company_modules').select('module_key, is_active').eq('company_id', u.company_id),
-        supabase.from('user_module_permissions').select('module_key, is_active').eq('company_id', u.company_id).eq('user_id', u.user_id),
-      ]);
-      const state: Record<string, boolean> = {};
-      ALL_MODULES.forEach(m => { state[m.key] = true; });
-      (companyRes.data || []).forEach(d => { state[d.module_key] = d.is_active; });
-      setUserModules(state);
 
-      const extras: Record<string, boolean> = {};
-      (extraRes.data || []).forEach(d => { extras[d.module_key] = d.is_active; });
-      setExtraModules(extras);
-    } else {
-      const state: Record<string, boolean> = {};
-      ALL_MODULES.forEach(m => { state[m.key] = true; });
-      setUserModules(state);
-      setExtraModules({});
-    }
-    setModulesOpen(true);
-  };
 
-  const toggleExtraModule = async (moduleKey: string, active: boolean) => {
-    if (!modulesUser?.company_id) return;
-    setExtraModules(prev => ({ ...prev, [moduleKey]: active }));
-    try {
-      const { error } = await supabase
-        .from('user_module_permissions')
-        .upsert(
-          { user_id: modulesUser.user_id, company_id: modulesUser.company_id, module_key: moduleKey, is_active: active },
-          { onConflict: 'user_id,company_id,module_key' }
-        );
-      if (error) throw error;
-      toast({ title: active ? 'Módulo concedido' : 'Módulo revogado', description: 'Atualizado com sucesso.' });
-    } catch (e: any) {
-      setExtraModules(prev => ({ ...prev, [moduleKey]: !active }));
-      toast({ title: 'Erro', description: e.message || 'Não foi possível atualizar.', variant: 'destructive' });
-    }
-  };
-
-  const toggleModule = async (moduleKey: string, active: boolean) => {
-    if (!modulesUser?.company_id) return;
-    setUserModules(prev => ({ ...prev, [moduleKey]: active }));
-    try {
-      const { error } = await supabase
-        .from('company_modules')
-        .upsert(
-          { company_id: modulesUser.company_id, module_key: moduleKey, is_active: active },
-          { onConflict: 'company_id,module_key' }
-        );
-      if (error) throw error;
-      toast({ title: active ? 'Módulo ativado' : 'Módulo desativado' });
-    } catch {
-      setUserModules(prev => ({ ...prev, [moduleKey]: !active }));
-      toast({ title: 'Erro ao atualizar módulo', variant: 'destructive' });
-    }
-  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -441,12 +378,15 @@ const GestaoUsuarios = () => {
                                 setEditUser(u);
                                 setEditRole(u.role);
                                 setEditCompanyId(u.company_id || '');
+                                setEditEmail(u.email || '');
+                                setEditNome(u.nome || '');
+                                setEditSexo(u.sexo || '');
+                                setEditNascimento(u.data_nascimento || '');
+                                setEditTelefone(u.telefone || '');
+                                setEditCargo(u.cargo || '');
                                 setEditOpen(true);
                               }}>
-                                Editar perfil / empresa
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => openModulesDialog(u)}>
-                                <Puzzle className="w-4 h-4 mr-2" /> Módulos de acesso
+                                Editar usuário
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-destructive"
@@ -475,10 +415,43 @@ const GestaoUsuarios = () => {
 
         {/* Edit User Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Editar Usuário — {editUser?.nome}</DialogTitle></DialogHeader>
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">{editUser?.email}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Nome</Label>
+                  <Input value={editNome} onChange={e => setEditNome(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>E-mail</Label>
+                  <Input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Sexo</Label>
+                  <Select value={editSexo} onValueChange={setEditSexo}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="masculino">Masculino</SelectItem>
+                      <SelectItem value="feminino">Feminino</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                      <SelectItem value="nao_informar">Prefere não informar</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Data de nascimento</Label>
+                  <Input type="date" value={editNascimento} onChange={e => setEditNascimento(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Telefone</Label>
+                  <Input value={editTelefone} onChange={e => setEditTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Cargo</Label>
+                  <Input value={editCargo} onChange={e => setEditCargo(e.target.value)} />
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label>Empresa</Label>
                 <Select value={editCompanyId} onValueChange={setEditCompanyId}>
@@ -501,68 +474,12 @@ const GestaoUsuarios = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleEditSave} className="w-full">Salvar Alterações</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* User Permissions Dialog */}
-        <Dialog open={modulesOpen} onOpenChange={setModulesOpen}>
-          <DialogContent className="max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Puzzle className="w-5 h-5" /> Permissões — {modulesUser?.nome}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-1">
-              {!modulesUser?.company_id ? (
-                <p className="text-sm text-muted-foreground">Usuário sem empresa vinculada. Vincule primeiro.</p>
-              ) : (
-                <>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Perfil: <Badge variant="outline">{roleLabels[modulesUser.role] || modulesUser.role}</Badge>
-                    — Ative ou desative funções específicas para este usuário.
-                  </p>
-                  {(() => {
-                    const roleKey = modulesUser.role === 'usuario_almox' ? 'logistica' : modulesUser.role;
-                    const perms = USER_PERMISSIONS_BY_ROLE[roleKey];
-                    if (!perms || perms.length === 0) {
-                      return (
-                        <p className="text-sm text-muted-foreground py-4 text-center">
-                          Este perfil não possui permissões granulares configuráveis.
-                        </p>
-                      );
-                    }
-                    return perms.map(mod => (
-                      <div key={mod.key} className="flex items-center justify-between rounded-lg border p-3">
-                        <span className="text-sm font-medium">{mod.label}</span>
-                        <Switch
-                          checked={userModules[mod.key] ?? true}
-                          onCheckedChange={(checked) => toggleModule(mod.key, checked)}
-                        />
-                      </div>
-                    ));
-                  })()}
-
-                  <div className="mt-6 pt-4 border-t">
-                    <h4 className="text-sm font-semibold mb-2">Módulos extras concedidos</h4>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Conceda acesso completo (ler/criar/editar/excluir) a outros módulos além do perfil principal deste usuário.
-                    </p>
-                    <div className="space-y-2">
-                      {GRANTABLE_MODULES.map(mod => (
-                        <div key={mod.key} className="flex items-center justify-between rounded-lg border p-3">
-                          <span className="text-sm font-medium">{mod.label}</span>
-                          <Switch
-                            checked={extraModules[mod.key] ?? false}
-                            onCheckedChange={(checked) => toggleExtraModule(mod.key, checked)}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
+              <p className="text-xs text-muted-foreground">
+                As permissões por módulo são configuradas em Perfis × Módulos.
+              </p>
+              <Button onClick={handleEditSave} className="w-full" disabled={editSaving}>
+                {editSaving ? 'Salvando...' : 'Salvar Alterações'}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
