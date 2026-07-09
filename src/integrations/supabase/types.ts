@@ -2716,6 +2716,7 @@ export type Database = {
           company_id: string | null
           created_at: string
           created_by: string | null
+          data_nascimento: string | null
           email: string
           email_verified: boolean
           id: string
@@ -2726,6 +2727,8 @@ export type Database = {
           nome: string
           provider: string
           provider_id: string | null
+          sexo: string | null
+          telefone: string | null
           updated_at: string
           user_id: string
         }
@@ -2735,6 +2738,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           created_by?: string | null
+          data_nascimento?: string | null
           email: string
           email_verified?: boolean
           id?: string
@@ -2745,6 +2749,8 @@ export type Database = {
           nome: string
           provider?: string
           provider_id?: string | null
+          sexo?: string | null
+          telefone?: string | null
           updated_at?: string
           user_id: string
         }
@@ -2754,6 +2760,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           created_by?: string | null
+          data_nascimento?: string | null
           email?: string
           email_verified?: boolean
           id?: string
@@ -2764,6 +2771,8 @@ export type Database = {
           nome?: string
           provider?: string
           provider_id?: string | null
+          sexo?: string | null
+          telefone?: string | null
           updated_at?: string
           user_id?: string
         }
