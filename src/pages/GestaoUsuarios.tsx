@@ -22,6 +22,10 @@ interface UserRow {
   company_id: string | null;
   company_name?: string;
   created_at: string;
+  sexo?: string | null;
+  data_nascimento?: string | null;
+  telefone?: string | null;
+  cargo?: string | null;
 }
 
 interface Company {
