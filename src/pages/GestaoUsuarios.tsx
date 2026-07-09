@@ -427,10 +427,43 @@ const GestaoUsuarios = () => {
 
         {/* Edit User Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Editar Usuário — {editUser?.nome}</DialogTitle></DialogHeader>
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">{editUser?.email}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Nome</Label>
+                  <Input value={editNome} onChange={e => setEditNome(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>E-mail</Label>
+                  <Input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Sexo</Label>
+                  <Select value={editSexo} onValueChange={setEditSexo}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="masculino">Masculino</SelectItem>
+                      <SelectItem value="feminino">Feminino</SelectItem>
+                      <SelectItem value="outro">Outro</SelectItem>
+                      <SelectItem value="nao_informar">Prefere não informar</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Data de nascimento</Label>
+                  <Input type="date" value={editNascimento} onChange={e => setEditNascimento(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Telefone</Label>
+                  <Input value={editTelefone} onChange={e => setEditTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Cargo</Label>
+                  <Input value={editCargo} onChange={e => setEditCargo(e.target.value)} />
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label>Empresa</Label>
                 <Select value={editCompanyId} onValueChange={setEditCompanyId}>
@@ -453,68 +486,12 @@ const GestaoUsuarios = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleEditSave} className="w-full">Salvar Alterações</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* User Permissions Dialog */}
-        <Dialog open={modulesOpen} onOpenChange={setModulesOpen}>
-          <DialogContent className="max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Puzzle className="w-5 h-5" /> Permissões — {modulesUser?.nome}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-1">
-              {!modulesUser?.company_id ? (
-                <p className="text-sm text-muted-foreground">Usuário sem empresa vinculada. Vincule primeiro.</p>
-              ) : (
-                <>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Perfil: <Badge variant="outline">{roleLabels[modulesUser.role] || modulesUser.role}</Badge>
-                    — Ative ou desative funções específicas para este usuário.
-                  </p>
-                  {(() => {
-                    const roleKey = modulesUser.role === 'usuario_almox' ? 'logistica' : modulesUser.role;
-                    const perms = USER_PERMISSIONS_BY_ROLE[roleKey];
-                    if (!perms || perms.length === 0) {
-                      return (
-                        <p className="text-sm text-muted-foreground py-4 text-center">
-                          Este perfil não possui permissões granulares configuráveis.
-                        </p>
-                      );
-                    }
-                    return perms.map(mod => (
-                      <div key={mod.key} className="flex items-center justify-between rounded-lg border p-3">
-                        <span className="text-sm font-medium">{mod.label}</span>
-                        <Switch
-                          checked={userModules[mod.key] ?? true}
-                          onCheckedChange={(checked) => toggleModule(mod.key, checked)}
-                        />
-                      </div>
-                    ));
-                  })()}
-
-                  <div className="mt-6 pt-4 border-t">
-                    <h4 className="text-sm font-semibold mb-2">Módulos extras concedidos</h4>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Conceda acesso completo (ler/criar/editar/excluir) a outros módulos além do perfil principal deste usuário.
-                    </p>
-                    <div className="space-y-2">
-                      {GRANTABLE_MODULES.map(mod => (
-                        <div key={mod.key} className="flex items-center justify-between rounded-lg border p-3">
-                          <span className="text-sm font-medium">{mod.label}</span>
-                          <Switch
-                            checked={extraModules[mod.key] ?? false}
-                            onCheckedChange={(checked) => toggleExtraModule(mod.key, checked)}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
+              <p className="text-xs text-muted-foreground">
+                As permissões por módulo são configuradas em Perfis × Módulos.
+              </p>
+              <Button onClick={handleEditSave} className="w-full" disabled={editSaving}>
+                {editSaving ? 'Salvando...' : 'Salvar Alterações'}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
