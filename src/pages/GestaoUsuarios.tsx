@@ -153,17 +153,45 @@ const GestaoUsuarios = () => {
 
   const handleEditSave = async () => {
     if (!editUser || !editRole) return;
+    setEditSaving(true);
     try {
+      // 1. Update role/company via user_roles
       const updates: any = { role: editRole };
       if (editCompanyId) updates.company_id = editCompanyId;
-
       const { error } = await supabase
         .from('user_roles')
         .update(updates)
         .eq('user_id', editUser.user_id);
       if (error) throw error;
 
-      // Update profile company_id too
+      // 2. Update profile fields (+ auth email) via edge function
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error('Sessão expirada');
+
+      const emailChanged = editEmail.trim().toLowerCase() !== (editUser.email || '').toLowerCase();
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/setup-user`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            action: 'update_user',
+            user_id: editUser.user_id,
+            email: emailChanged ? editEmail.trim() : undefined,
+            nome: editNome.trim(),
+            sexo: editSexo || null,
+            data_nascimento: editNascimento || null,
+            telefone: editTelefone || null,
+            cargo: editCargo || null,
+          }),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok || result.error) throw new Error(result.error || 'Erro ao atualizar usuário.');
+
+      // Company on profile
       if (editCompanyId) {
         await supabase.from('profiles').update({ company_id: editCompanyId }).eq('user_id', editUser.user_id);
       }
@@ -176,7 +204,7 @@ const GestaoUsuarios = () => {
           action: 'update_user',
           entity_type: 'user',
           entity_id: editUser.user_id,
-          details: { old_role: editUser.role, new_role: editRole, company_id: editCompanyId, target_email: editUser.email },
+          details: { old_role: editUser.role, new_role: editRole, company_id: editCompanyId, target_email: editEmail },
         });
       }
 
@@ -185,6 +213,8 @@ const GestaoUsuarios = () => {
       loadData();
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' });
+    } finally {
+      setEditSaving(false);
     }
   };
 
