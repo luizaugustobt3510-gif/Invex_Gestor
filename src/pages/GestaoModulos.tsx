@@ -8,87 +8,17 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Puzzle, RefreshCw, ChevronDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { MODULES_CATALOG } from '@/config/modules';
 
-interface ModuleConfig {
-  key: string;
-  label: string;
-  description: string;
-  submodules: { key: string; label: string }[];
-}
+// Módulos opt-in (iniciam desativados por padrão)
+const OPT_IN_MODULES = new Set(['anamnese']);
 
-const MODULE_STRUCTURE: ModuleConfig[] = [
-  {
-    key: 'logistica',
-    label: 'Logística',
-    description: 'Estoque, conferência, ordens de compra, importações',
-    submodules: [
-      { key: 'logistica.dashboard', label: 'Dashboard' },
-      { key: 'logistica.estoque', label: 'Estoque' },
-      { key: 'logistica.ordem_compra', label: 'Ordens de Compra' },
-      { key: 'logistica.conciliacao_estoque', label: 'Conciliação de Estoque' },
-      { key: 'logistica.solicitacoes', label: 'Solicitações' },
-      { key: 'logistica.conferencia', label: 'Conferência de Temperatura' },
-    ],
-  },
-  {
-    key: 'rh_module',
-    label: 'Gestão de Pessoas (RH)',
-    description: 'Gestão de pessoas, férias, ASO, treinamentos',
-    submodules: [
-      { key: 'rh.dashboard', label: 'Dashboard' },
-      { key: 'rh.desligamentos', label: 'Desligamentos' },
-      { key: 'rh.turnover', label: 'Turnover' },
-      { key: 'rh.ferias', label: 'Férias' },
-      { key: 'rh.atestados', label: 'Atestados' },
-      { key: 'rh.aso', label: 'ASO' },
-      { key: 'rh.treinamentos', label: 'Treinamentos' },
-      { key: 'rh.avaliacoes', label: 'Avaliações' },
-      { key: 'rh.ocorrencias', label: 'Ocorrências' },
-      { key: 'rh.analises_indicadores', label: 'Análises e Indicadores' },
-    ],
-  },
-  {
-    key: 'financeiro_module',
-    label: 'Financeiro',
-    description: 'Controle financeiro e orçamentário',
-    submodules: [
-      { key: 'financeiro.dashboard', label: 'Dashboard' },
-      { key: 'financeiro.lancamentos', label: 'Lançamentos' },
-      { key: 'financeiro.fluxo_caixa', label: 'Fluxo de Caixa' },
-      { key: 'financeiro.relatorios', label: 'Relatórios' },
-    ],
-  },
-  {
-    key: 'vendas',
-    label: 'Vendas',
-    description: 'PDV, histórico de vendas, relatórios de vendas',
-    submodules: [],
-  },
-  {
-    key: 'academia',
-    label: 'Academia',
-    description: 'Alunos, mensalidades, controle de pagamentos',
-    submodules: [],
-  },
-  {
-    key: 'manutencao',
-    label: 'Manutenção',
-    description: 'Gestão de manutenção preventiva e corretiva',
-    submodules: [
-      { key: 'manutencao.dashboard', label: 'Dashboard' },
-      { key: 'manutencao.cadastro', label: 'Cadastro de Manutenção' },
-      { key: 'manutencao.listagem', label: 'Listagem' },
-      { key: 'manutencao.os', label: 'Ordens de Serviço' },
-    ],
-  },
-  {
-    key: 'anamnese',
-    label: 'Anamnese Digital',
-    description: 'Exclusivo para empresas do tipo Clínica. Inicia desativado.',
-    submodules: [],
-    clinicaOnly: true,
-  } as any,
-];
+const MODULE_STRUCTURE = MODULES_CATALOG.map((m) => ({
+  key: m.key,
+  label: m.label,
+  description: m.description,
+  submodules: m.submodules,
+}));
 
 interface Company {
   id: string;
@@ -108,10 +38,9 @@ const GestaoModulos = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const currentCompany = companies.find(c => c.id === selectedCompany);
-  const isClinica = (currentCompany?.company_type || '').toLowerCase() === 'clinica';
+  // SuperAdmin vê todos os módulos — sem filtro por tipo de empresa.
+  const visibleModules = MODULE_STRUCTURE;
 
-  const visibleModules = MODULE_STRUCTURE.filter((m: any) => !m.clinicaOnly || isClinica);
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -133,7 +62,7 @@ const GestaoModulos = () => {
       const state: ModuleState = {};
       // Default all modules and submodules to active — except opt-in modules like 'anamnese'
       MODULE_STRUCTURE.forEach(m => {
-        state[m.key] = m.key === 'anamnese' ? false : true;
+        state[m.key] = OPT_IN_MODULES.has(m.key) ? false : true;
         m.submodules.forEach(s => { state[s.key] = true; });
       });
       // Override with DB values
