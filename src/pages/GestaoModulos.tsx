@@ -62,7 +62,7 @@ const GestaoModulos = () => {
       const state: ModuleState = {};
       // Default all modules and submodules to active — except opt-in modules like 'anamnese'
       MODULE_STRUCTURE.forEach(m => {
-        state[m.key] = m.key === 'anamnese' ? false : true;
+        state[m.key] = OPT_IN_MODULES.has(m.key) ? false : true;
         m.submodules.forEach(s => { state[s.key] = true; });
       });
       // Override with DB values
