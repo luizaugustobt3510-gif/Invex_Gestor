@@ -223,66 +223,8 @@ const GestaoUsuarios = () => {
     }
   };
 
-  const openModulesDialog = async (u: UserRow) => {
-    setModulesUser(u);
-    // Load company modules for user's company
-    if (u.company_id) {
-      const [companyRes, extraRes] = await Promise.all([
-        supabase.from('company_modules').select('module_key, is_active').eq('company_id', u.company_id),
-        supabase.from('user_module_permissions').select('module_key, is_active').eq('company_id', u.company_id).eq('user_id', u.user_id),
-      ]);
-      const state: Record<string, boolean> = {};
-      ALL_MODULES.forEach(m => { state[m.key] = true; });
-      (companyRes.data || []).forEach(d => { state[d.module_key] = d.is_active; });
-      setUserModules(state);
 
-      const extras: Record<string, boolean> = {};
-      (extraRes.data || []).forEach(d => { extras[d.module_key] = d.is_active; });
-      setExtraModules(extras);
-    } else {
-      const state: Record<string, boolean> = {};
-      ALL_MODULES.forEach(m => { state[m.key] = true; });
-      setUserModules(state);
-      setExtraModules({});
-    }
-    setModulesOpen(true);
-  };
 
-  const toggleExtraModule = async (moduleKey: string, active: boolean) => {
-    if (!modulesUser?.company_id) return;
-    setExtraModules(prev => ({ ...prev, [moduleKey]: active }));
-    try {
-      const { error } = await supabase
-        .from('user_module_permissions')
-        .upsert(
-          { user_id: modulesUser.user_id, company_id: modulesUser.company_id, module_key: moduleKey, is_active: active },
-          { onConflict: 'user_id,company_id,module_key' }
-        );
-      if (error) throw error;
-      toast({ title: active ? 'Módulo concedido' : 'Módulo revogado', description: 'Atualizado com sucesso.' });
-    } catch (e: any) {
-      setExtraModules(prev => ({ ...prev, [moduleKey]: !active }));
-      toast({ title: 'Erro', description: e.message || 'Não foi possível atualizar.', variant: 'destructive' });
-    }
-  };
-
-  const toggleModule = async (moduleKey: string, active: boolean) => {
-    if (!modulesUser?.company_id) return;
-    setUserModules(prev => ({ ...prev, [moduleKey]: active }));
-    try {
-      const { error } = await supabase
-        .from('company_modules')
-        .upsert(
-          { company_id: modulesUser.company_id, module_key: moduleKey, is_active: active },
-          { onConflict: 'company_id,module_key' }
-        );
-      if (error) throw error;
-      toast({ title: active ? 'Módulo ativado' : 'Módulo desativado' });
-    } catch {
-      setUserModules(prev => ({ ...prev, [moduleKey]: !active }));
-      toast({ title: 'Erro ao atualizar módulo', variant: 'destructive' });
-    }
-  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
