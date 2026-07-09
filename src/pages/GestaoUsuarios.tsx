@@ -44,51 +44,6 @@ const roleLabels: Record<string, string> = {
   fitness_user: 'Invex Fitness',
 };
 
-const USER_PERMISSIONS_BY_ROLE: Record<string, { key: string; label: string }[]> = {
-  logistica: [
-    { key: 'estoque', label: 'Estoque (Dashboard)' },
-    { key: 'conferencia', label: 'Conferência de Temperatura' },
-    { key: 'recontagem', label: 'Recontagem' },
-    { key: 'ordens_compra', label: 'Ordens de Compra' },
-    { key: 'importacao_materiais', label: 'Importação de Materiais' },
-    { key: 'importacao_saldo', label: 'Importação de Saldo' },
-    { key: 'conciliacao', label: 'Conciliação' },
-    { key: 'solicitacoes', label: 'Solicitações' },
-  ],
-  rh: [
-    { key: 'colaboradores', label: 'Colaboradores' },
-    { key: 'ferias', label: 'Férias' },
-    { key: 'atestados', label: 'Atestados' },
-    { key: 'treinamentos', label: 'Treinamentos' },
-    { key: 'aso', label: 'ASO' },
-    { key: 'avaliacoes', label: 'Avaliações' },
-    { key: 'banco_horas', label: 'Banco de Horas' },
-    { key: 'indicadores', label: 'Indicadores' },
-  ],
-  financeiro: [
-    { key: 'dashboard_financeiro', label: 'Dashboard Financeiro' },
-    { key: 'relatorios_financeiros', label: 'Relatórios Financeiros' },
-  ],
-};
-
-// For company-level module dialog (kept for backward compat)
-const ALL_MODULES = [
-  { key: 'logistica', label: 'Logística' },
-  { key: 'rh_module', label: 'RH' },
-  { key: 'financeiro_module', label: 'Financeiro' },
-  { key: 'compras', label: 'Compras' },
-  { key: 'relatorios', label: 'Relatórios' },
-];
-
-// Modules that can be GRANTED to a user (full CRUD) regardless of role
-const GRANTABLE_MODULES = [
-  { key: 'logistica', label: 'Logística & Estoque' },
-  { key: 'rh', label: 'Gestão de Pessoas' },
-  { key: 'financeiro', label: 'Financeiro' },
-  { key: 'manutencao', label: 'Manutenção' },
-  { key: 'academia', label: 'Academia' },
-  { key: 'vendas', label: 'Vendas' },
-];
 
 const GestaoUsuarios = () => {
   const { toast } = useToast();
