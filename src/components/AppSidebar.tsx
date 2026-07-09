@@ -775,18 +775,6 @@ const adminGroups: MenuGroup[] = [
         allowedRoles: ["admin"],
       },
       { path: "/instalar-app", label: "Instalar App", icon: <Download className="w-4 h-4" />, allowedRoles: ["admin"] },
-      {
-        path: "/configuracoes/modulos-empresa",
-        label: "Módulos da Empresa",
-        icon: <Puzzle className="w-4 h-4" />,
-        allowedRoles: ["admin"],
-      },
-      {
-        path: "/configuracoes/perfis",
-        label: "Gestão de Perfis",
-        icon: <Shield className="w-4 h-4" />,
-        allowedRoles: ["admin"],
-      },
     ],
   },
   {
