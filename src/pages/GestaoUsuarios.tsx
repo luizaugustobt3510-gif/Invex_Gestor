@@ -390,12 +390,15 @@ const GestaoUsuarios = () => {
                                 setEditUser(u);
                                 setEditRole(u.role);
                                 setEditCompanyId(u.company_id || '');
+                                setEditEmail(u.email || '');
+                                setEditNome(u.nome || '');
+                                setEditSexo(u.sexo || '');
+                                setEditNascimento(u.data_nascimento || '');
+                                setEditTelefone(u.telefone || '');
+                                setEditCargo(u.cargo || '');
                                 setEditOpen(true);
                               }}>
-                                Editar perfil / empresa
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => openModulesDialog(u)}>
-                                <Puzzle className="w-4 h-4 mr-2" /> Módulos de acesso
+                                Editar usuário
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-destructive"
