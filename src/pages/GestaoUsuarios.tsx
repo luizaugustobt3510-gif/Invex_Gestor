@@ -118,16 +118,16 @@ const GestaoUsuarios = () => {
     try {
       const [rolesRes, profilesRes, companiesRes] = await Promise.all([
         supabase.from('user_roles').select('user_id, role, company_id, created_at'),
-        supabase.from('profiles').select('user_id, nome, email, company_id'),
+        supabase.from('profiles').select('user_id, nome, email, company_id, sexo, data_nascimento, telefone, cargo'),
         supabase.from('companies').select('id, name').order('name'),
       ]);
 
       setCompanies(companiesRes.data || []);
       const compMap = new Map((companiesRes.data || []).map(c => [c.id, c.name]));
-      const profMap = new Map((profilesRes.data || []).map(p => [p.user_id, p]));
+      const profMap = new Map((profilesRes.data || []).map((p: any) => [p.user_id, p]));
 
       const merged: UserRow[] = (rolesRes.data || []).map(r => {
-        const prof = profMap.get(r.user_id);
+        const prof: any = profMap.get(r.user_id);
         return {
           user_id: r.user_id,
           nome: prof?.nome || 'Sem nome',
@@ -136,6 +136,10 @@ const GestaoUsuarios = () => {
           company_id: r.company_id,
           company_name: r.company_id ? compMap.get(r.company_id) || '' : 'Global',
           created_at: r.created_at,
+          sexo: prof?.sexo ?? null,
+          data_nascimento: prof?.data_nascimento ?? null,
+          telefone: prof?.telefone ?? null,
+          cargo: prof?.cargo ?? null,
         };
       });
 
