@@ -25,6 +25,9 @@ const uiToDbRole: Record<string, string> = {
   manutencao: "manutencao",
   fitness: "fitness_user",
   clinica: "clinica",
+  enfermagem: "enfermagem",
+  enfermeiro: "enfermeiro",
+  recepcionista: "recepcionista",
 };
 
 export function useModuleAccess() {

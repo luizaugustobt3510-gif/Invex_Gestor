@@ -34,6 +34,13 @@ export interface ModuleDef {
 
 export const MODULES_CATALOG: ModuleDef[] = [
   {
+    key: 'dashboard',
+    label: 'Dashboard',
+    description: 'Painel inicial consolidado da empresa. Se desativado para um usuário, ele verá atalhos rápidos aos módulos elegíveis.',
+    route: '/',
+    submodules: [],
+  },
+  {
     key: 'logistica',
     label: 'Logística / Estoque',
     description: 'Estoque, conferência, ordens de compra, importações, scanner QR.',
