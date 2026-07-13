@@ -56,6 +56,7 @@ import Desligamentos from "./pages/rh/Desligamentos";
 import ImportarFuncionarios from "./pages/rh/ImportarFuncionarios";
 import Turnover from "./pages/rh/Turnover";
 import GestaoUsuarios from "./pages/GestaoUsuarios";
+import GestaoUsuariosModulos from "./pages/GestaoUsuariosModulos";
 import ConferenciaTemperatura from "./pages/logistica/ConferenciaTemperatura";
 import FitnessLogin from "./pages/fitness/FitnessLogin";
 import FitnessOnboarding from "./pages/fitness/FitnessOnboarding";
@@ -156,6 +157,7 @@ const App = () => (
             <Route path="/listar-empresas" element={<RoleProtectedRoute allowedRoles={['superadm']}><ListarEmpresas /></RoleProtectedRoute>} />
             <Route path="/gestao-empresas" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoEmpresas /></RoleProtectedRoute>} />
             <Route path="/gestao-usuarios" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoUsuarios /></RoleProtectedRoute>} />
+            <Route path="/gestao-usuarios-modulos" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoUsuariosModulos /></RoleProtectedRoute>} />
             <Route path="/gestao-modulos" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoModulos /></RoleProtectedRoute>} />
             <Route path="/gestao-planos" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoPlanos /></RoleProtectedRoute>} />
             <Route path="/config-sistema" element={<RoleProtectedRoute allowedRoles={['superadm']}><ConfigSistema /></RoleProtectedRoute>} />
