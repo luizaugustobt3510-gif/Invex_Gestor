@@ -22,7 +22,7 @@ import { MODULES_CATALOG } from '@/config/modules';
 type DbRole =
   | 'super_admin' | 'admin_empresa' | 'usuario_almox' | 'solicitante'
   | 'logistica' | 'rh' | 'financeiro' | 'visualizador' | 'manutencao'
-  | 'fitness_user' | 'clinica';
+  | 'fitness_user' | 'clinica' | 'enfermagem' | 'enfermeiro' | 'recepcionista';
 
 const ROLE_LABELS: Record<DbRole, string> = {
   super_admin: 'Super Admin',
@@ -36,6 +36,9 @@ const ROLE_LABELS: Record<DbRole, string> = {
   manutencao: 'Manutenção',
   fitness_user: 'Fitness',
   clinica: 'Clínica',
+  enfermagem: 'Enfermagem',
+  enfermeiro: 'Enfermeiro',
+  recepcionista: 'Recepcionista',
 };
 
 const ROLE_DESCRIPTIONS: Record<DbRole, string> = {
@@ -50,11 +53,15 @@ const ROLE_DESCRIPTIONS: Record<DbRole, string> = {
   manutencao: 'Manutenção e ordens de serviço.',
   fitness_user: 'Usuário do módulo Fitness.',
   clinica: 'Prontuário, agenda e atendimentos clínicos.',
+  enfermagem: 'Equipe de enfermagem — apoio clínico e prontuário.',
+  enfermeiro: 'Enfermeiro responsável — prontuário, anamnese e agenda.',
+  recepcionista: 'Recepção — agenda, cadastro de pacientes e atendimento.',
 };
 
 const MANAGEABLE_ROLES: DbRole[] = [
   'usuario_almox', 'solicitante', 'logistica', 'rh', 'financeiro',
   'visualizador', 'manutencao', 'fitness_user', 'clinica',
+  'enfermagem', 'enfermeiro', 'recepcionista',
 ];
 
 interface Company { id: string; name: string }

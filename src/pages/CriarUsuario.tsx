@@ -63,6 +63,10 @@ const CriarUsuario = () => {
         'fitness': 'fitness_user',
         'clinica': 'clinica',
         'superadm': 'super_admin',
+        'manutencao': 'manutencao',
+        'enfermagem': 'enfermagem',
+        'enfermeiro': 'enfermeiro',
+        'recepcionista': 'recepcionista',
       };
 
       const response = await fetch(
@@ -144,6 +148,9 @@ const CriarUsuario = () => {
                   <SelectItem value="visualizador">Convidado (somente leitura)</SelectItem>
                   <SelectItem value="fitness">Invex Fitness</SelectItem>
                   <SelectItem value="clinica">Clínica (Prontuário/Agenda)</SelectItem>
+                  <SelectItem value="enfermagem">Enfermagem</SelectItem>
+                  <SelectItem value="enfermeiro">Enfermeiro</SelectItem>
+                  <SelectItem value="recepcionista">Recepcionista</SelectItem>
                 </SelectContent>
               </Select>
             </div>

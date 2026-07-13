@@ -35,13 +35,18 @@ interface Company {
 const roleLabels: Record<string, string> = {
   super_admin: 'SuperAdmin',
   admin_empresa: 'Admin Empresa',
-  rh: 'RH',
+  rh: 'Gestão de Pessoas',
   logistica: 'Logística',
   financeiro: 'Financeiro',
   usuario_almox: 'Almoxarifado',
   solicitante: 'Solicitante',
   visualizador: 'Convidado',
   fitness_user: 'Invex Fitness',
+  clinica: 'Clínica',
+  manutencao: 'Manutenção',
+  enfermagem: 'Enfermagem',
+  enfermeiro: 'Enfermeiro',
+  recepcionista: 'Recepcionista',
 };
 
 

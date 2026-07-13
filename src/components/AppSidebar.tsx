@@ -791,6 +791,7 @@ const adminGroups: MenuGroup[] = [
       { path: "/gestao-usuarios", label: "Usuários", icon: <Users className="w-4 h-4" />, allowedRoles: ["superadm"] },
       { path: "/gestao-modulos", label: "Módulos", icon: <Puzzle className="w-4 h-4" />, allowedRoles: ["superadm"] },
       { path: "/configuracoes/perfis", label: "Perfis × Módulos", icon: <Shield className="w-4 h-4" />, allowedRoles: ["superadm"] },
+      { path: "/gestao-usuarios-modulos", label: "Usuários × Módulos", icon: <Users className="w-4 h-4" />, allowedRoles: ["superadm"] },
       {
         path: "/gestao-planos",
         label: "Planos e Limites",

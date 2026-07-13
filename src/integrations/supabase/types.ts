@@ -3729,6 +3729,9 @@ export type Database = {
         | "manutencao"
         | "fitness_user"
         | "clinica"
+        | "enfermagem"
+        | "enfermeiro"
+        | "recepcionista"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3868,6 +3871,9 @@ export const Constants = {
         "manutencao",
         "fitness_user",
         "clinica",
+        "enfermagem",
+        "enfermeiro",
+        "recepcionista",
       ],
     },
   },
