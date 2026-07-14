@@ -340,20 +340,20 @@ const clinicaGroups: MenuGroup[] = [
   {
     label: "Clínica",
     icon: <Stethoscope className="w-4 h-4" />,
-    allowedRoles: ["admin", "clinica", "rh", "visualizador"],
+    allowedRoles: ["admin", "clinica", "rh", "visualizador", "enfermagem", "enfermeiro", "recepcionista"],
     items: [
       {
         path: "/clinica/pacientes",
         label: "Pacientes",
         icon: <Stethoscope className="w-4 h-4" />,
-        allowedRoles: ["admin", "clinica", "rh", "visualizador"],
+        allowedRoles: ["admin", "clinica", "rh", "visualizador", "enfermagem", "enfermeiro", "recepcionista"],
         submoduleKey: "prontuario",
       },
       {
         path: "/clinica/agenda",
         label: "Agenda",
         icon: <Calendar className="w-4 h-4" />,
-        allowedRoles: ["admin", "clinica", "rh", "visualizador"],
+        allowedRoles: ["admin", "clinica", "rh", "visualizador", "enfermagem", "enfermeiro", "recepcionista"],
         submoduleKey: "agenda",
       },
     ],
@@ -361,23 +361,24 @@ const clinicaGroups: MenuGroup[] = [
   {
     label: "Anamnese Digital",
     icon: <ClipboardList className="w-4 h-4" />,
-    allowedRoles: ["admin", "clinica"],
+    allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro"],
     moduleKey: "anamnese",
     items: [
       {
         path: "/clinica/anamnese/nova",
         label: "Nova Anamnese",
         icon: <FileText className="w-4 h-4" />,
-        allowedRoles: ["admin", "clinica"],
+        allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro"],
       },
       {
         path: "/clinica/anamnese/modelos",
         label: "Modelos",
         icon: <ClipboardList className="w-4 h-4" />,
-        allowedRoles: ["admin", "clinica"],
+        allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro"],
       },
     ],
   },
+
 ];
 
 
