@@ -435,6 +435,59 @@ export type Database = {
           },
         ]
       }
+      clinical_evolutions: {
+        Row: {
+          company_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          id: string
+          patient_id: string
+          patient_signature: string | null
+          professional_name: string | null
+          professional_signature: string | null
+          signature_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          patient_id: string
+          patient_signature?: string | null
+          professional_name?: string | null
+          professional_signature?: string | null
+          signature_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          patient_id?: string
+          patient_signature?: string | null
+          professional_name?: string | null
+          professional_signature?: string | null
+          signature_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinical_evolutions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           auth_methods: Json
@@ -1218,6 +1271,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      evolution_quick_messages: {
+        Row: {
+          company_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       financial_categories: {
         Row: {
@@ -2398,6 +2484,7 @@ export type Database = {
           created_by: string | null
           email: string | null
           gender: string | null
+          height_cm: number | null
           id: string
           is_active: boolean
           nome: string
@@ -2405,6 +2492,7 @@ export type Database = {
           phone: string | null
           updated_at: string
           updated_by: string | null
+          weight_kg: number | null
         }
         Insert: {
           address?: string | null
@@ -2415,6 +2503,7 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           gender?: string | null
+          height_cm?: number | null
           id?: string
           is_active?: boolean
           nome: string
@@ -2422,6 +2511,7 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           updated_by?: string | null
+          weight_kg?: number | null
         }
         Update: {
           address?: string | null
@@ -2432,6 +2522,7 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           gender?: string | null
+          height_cm?: number | null
           id?: string
           is_active?: boolean
           nome?: string
@@ -2439,6 +2530,7 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           updated_by?: string | null
+          weight_kg?: number | null
         }
         Relationships: []
       }
