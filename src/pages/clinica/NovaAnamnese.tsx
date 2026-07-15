@@ -51,11 +51,13 @@ export default function NovaAnamnese() {
   const [idx, setIdx] = useState(0);
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [patientPopoverOpen, setPatientPopoverOpen] = useState(false);
+
   useEffect(() => {
     if (!user?.companyId) return;
     (async () => {
       const [{ data: pats }, { data: tpls }] = await Promise.all([
-        supabase.from('patients').select('id, nome, cpf, birth_date').eq('company_id', user.companyId).order('nome'),
+        supabase.from('patients').select('id, nome, cpf, birth_date, created_at').eq('company_id', user.companyId).order('nome'),
         supabase.from('anamnese_templates').select('*').eq('company_id', user.companyId).eq('is_active', true).order('name'),
       ]);
       setPatients((pats || []) as any);
@@ -65,6 +67,10 @@ export default function NovaAnamnese() {
 
   const template = useMemo(() => templates.find(t => t.id === templateId), [templates, templateId]);
   const selectedPatient = useMemo(() => patients.find(p => p.id === patientId), [patients, patientId]);
+  const lastPatient = useMemo(() => {
+    if (!patients.length) return null;
+    return [...patients].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))[0];
+  }, [patients]);
 
   useEffect(() => {
     if (template) {
