@@ -7,14 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { downloadPdfFromUrl } from '@/lib/pdfDownload';
 import {
   ArrowLeft, FileText, Loader2, Check, ChevronRight, ChevronLeft,
-  User, ClipboardList, Pencil, CheckCircle2,
+  User, ClipboardList, Pencil, CheckCircle2, ChevronsUpDown, History,
 } from 'lucide-react';
 import type { Question } from './AnamneseModelos';
 
@@ -25,7 +28,7 @@ interface Template {
   questions: Question[];
 }
 
-interface Patient { id: string; nome: string; cpf: string | null; birth_date?: string | null; }
+interface Patient { id: string; nome: string; cpf: string | null; birth_date?: string | null; created_at?: string; }
 
 type Phase = 'setup' | 'questions' | 'review';
 
