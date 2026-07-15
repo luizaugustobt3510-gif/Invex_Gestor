@@ -59,6 +59,7 @@ export default function PacienteProntuario() {
   const { user } = useAuth();
   const { canAccessModule } = useModuleAccess();
   const hasAnamnese = canAccessModule('anamnese');
+  const hasEvolucao = canAccessModule('evolucao');
   const [patient, setPatient] = useState<Patient | null>(null);
   const [records, setRecords] = useState<MRecord[]>([]);
   const [anamneses, setAnamneses] = useState<Anamnese[]>([]);
