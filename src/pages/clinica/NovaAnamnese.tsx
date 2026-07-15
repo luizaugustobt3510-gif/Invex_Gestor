@@ -320,14 +320,59 @@ export default function NovaAnamnese() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <Label>Paciente *</Label>
-                  <Select value={patientId} onValueChange={setPatientId}>
-                    <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Selecione o paciente" /></SelectTrigger>
-                    <SelectContent>
-                      {patients.map(p => (
-                        <SelectItem key={p.id} value={p.id}>{p.nome}{p.cpf ? ` · ${p.cpf}` : ''}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Popover open={patientPopoverOpen} onOpenChange={setPatientPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="h-12 text-base justify-between flex-1 font-normal"
+                        >
+                          <span className="truncate text-left">
+                            {selectedPatient
+                              ? `${selectedPatient.nome}${selectedPatient.cpf ? ` · ${selectedPatient.cpf}` : ''}`
+                              : 'Buscar paciente...'}
+                          </span>
+                          <ChevronsUpDown className="w-4 h-4 opacity-50 shrink-0 ml-2" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                        <Command>
+                          <CommandInput placeholder="Buscar por nome ou CPF..." />
+                          <CommandList>
+                            <CommandEmpty>Nenhum paciente encontrado.</CommandEmpty>
+                            <CommandGroup>
+                              {patients.map(p => (
+                                <CommandItem
+                                  key={p.id}
+                                  value={`${p.nome} ${p.cpf || ''}`}
+                                  onSelect={() => {
+                                    setPatientId(p.id);
+                                    setPatientPopoverOpen(false);
+                                  }}
+                                >
+                                  <Check className={`w-4 h-4 mr-2 ${patientId === p.id ? 'opacity-100' : 'opacity-0'}`} />
+                                  <span className="truncate">{p.nome}{p.cpf ? ` · ${p.cpf}` : ''}</span>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    {lastPatient && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 shrink-0"
+                        title={`Usar último paciente: ${lastPatient.nome}`}
+                        onClick={() => setPatientId(lastPatient.id)}
+                      >
+                        <History className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <Label>Modelo de anamnese *</Label>
