@@ -190,7 +190,7 @@ export default function NovaAnamnese() {
       if ((data as any)?.error) throw new Error((data as any).error);
       toast.success('Anamnese salva com sucesso');
       const pdfUrl = (data as any)?.pdf_url;
-      if (pdfUrl) window.open(pdfUrl, '_blank');
+      if (pdfUrl) await downloadPdfFromUrl(pdfUrl, `anamnese-${(data as any)?.number || 'invex'}.pdf`);
       navigate(`/clinica/pacientes/${patientId}`);
     } catch (e: any) {
       toast.error(e.message || 'Erro ao salvar anamnese');
