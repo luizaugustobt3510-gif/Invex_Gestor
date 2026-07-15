@@ -11,11 +11,12 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Search, Paperclip, Trash2, Pencil, Download, FileText, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Paperclip, Trash2, Pencil, Download, FileText, ClipboardList, Activity } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { toast } from 'sonner';
+import { downloadPdfFromUrl } from '@/lib/pdfDownload';
 import { Link as RouterLink } from 'react-router-dom';
 
 interface Patient {
@@ -58,6 +59,7 @@ export default function PacienteProntuario() {
   const { user } = useAuth();
   const { canAccessModule } = useModuleAccess();
   const hasAnamnese = canAccessModule('anamnese');
+  const hasEvolucao = canAccessModule('evolucao');
   const [patient, setPatient] = useState<Patient | null>(null);
   const [records, setRecords] = useState<MRecord[]>([]);
   const [anamneses, setAnamneses] = useState<Anamnese[]>([]);
@@ -244,14 +246,30 @@ export default function PacienteProntuario() {
   return (
     <MainLayout>
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Button asChild variant="ghost" size="sm"><Link to="/clinica/pacientes"><ArrowLeft className="w-4 h-4 mr-1" /> Voltar</Link></Button>
-          <div>
+          <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold">{patient.nome}</h1>
             <p className="text-sm text-muted-foreground">
               {patient.cpf && <>CPF: {patient.cpf} · </>}
               {patient.phone && <>Tel: {patient.phone}</>}
             </p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {hasAnamnese && (
+              <Button asChild className="gap-2 bg-sky-500 hover:bg-sky-600 text-white">
+                <RouterLink to={`/clinica/anamnese/nova?patient=${patient.id}`}>
+                  <ClipboardList className="w-4 h-4" /> Iniciar Anamnese
+                </RouterLink>
+              </Button>
+            )}
+            {hasEvolucao && (
+              <Button asChild variant="secondary" className="gap-2">
+                <RouterLink to={`/clinica/evolucao/${patient.id}`}>
+                  <Activity className="w-4 h-4" /> Nova Evolução
+                </RouterLink>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -379,7 +397,7 @@ export default function PacienteProntuario() {
                           {a.pdf_path && (
                             <Button size="sm" variant="outline" onClick={async () => {
                               const { data } = await supabase.storage.from('anamnese-pdfs').createSignedUrl(a.pdf_path!, 3600);
-                              if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+                              if (data?.signedUrl) await downloadPdfFromUrl(data.signedUrl, `anamnese-${a.id.slice(0,8)}.pdf`);
                               else toast.error('Não foi possível abrir o PDF');
                             }}>
                               <Download className="w-3.5 h-3.5 mr-1" /> PDF

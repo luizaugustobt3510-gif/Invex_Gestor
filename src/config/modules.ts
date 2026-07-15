@@ -139,6 +139,16 @@ export const MODULES_CATALOG: ModuleDef[] = [
     submodules: [],
   },
   {
+    key: 'evolucao',
+    label: 'Evolução Clínica',
+    description: 'Registro manual de evoluções clínicas com mensagens rápidas configuráveis e assinatura eletrônica/manuscrita do paciente e do profissional.',
+    route: '/clinica/evolucao',
+    submodules: [
+      { key: 'evolucao.registros', label: 'Registros' },
+      { key: 'evolucao.mensagens', label: 'Mensagens Rápidas' },
+    ],
+  },
+  {
     key: 'clinica',
     label: 'Clínica',
     description: 'Prontuários, atendimentos, prescrições (em desenvolvimento).',

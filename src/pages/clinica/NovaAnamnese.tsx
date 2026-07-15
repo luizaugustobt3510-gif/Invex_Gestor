@@ -7,14 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { downloadPdfFromUrl } from '@/lib/pdfDownload';
 import {
   ArrowLeft, FileText, Loader2, Check, ChevronRight, ChevronLeft,
-  User, ClipboardList, Pencil, CheckCircle2,
+  User, ClipboardList, Pencil, CheckCircle2, ChevronsUpDown, History,
 } from 'lucide-react';
 import type { Question } from './AnamneseModelos';
 
@@ -25,7 +28,7 @@ interface Template {
   questions: Question[];
 }
 
-interface Patient { id: string; nome: string; cpf: string | null; birth_date?: string | null; }
+interface Patient { id: string; nome: string; cpf: string | null; birth_date?: string | null; created_at?: string; }
 
 type Phase = 'setup' | 'questions' | 'review';
 
@@ -48,11 +51,13 @@ export default function NovaAnamnese() {
   const [idx, setIdx] = useState(0);
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [patientPopoverOpen, setPatientPopoverOpen] = useState(false);
+
   useEffect(() => {
     if (!user?.companyId) return;
     (async () => {
       const [{ data: pats }, { data: tpls }] = await Promise.all([
-        supabase.from('patients').select('id, nome, cpf, birth_date').eq('company_id', user.companyId).order('nome'),
+        supabase.from('patients').select('id, nome, cpf, birth_date, created_at').eq('company_id', user.companyId).order('nome'),
         supabase.from('anamnese_templates').select('*').eq('company_id', user.companyId).eq('is_active', true).order('name'),
       ]);
       setPatients((pats || []) as any);
@@ -62,6 +67,10 @@ export default function NovaAnamnese() {
 
   const template = useMemo(() => templates.find(t => t.id === templateId), [templates, templateId]);
   const selectedPatient = useMemo(() => patients.find(p => p.id === patientId), [patients, patientId]);
+  const lastPatient = useMemo(() => {
+    if (!patients.length) return null;
+    return [...patients].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))[0];
+  }, [patients]);
 
   useEffect(() => {
     if (template) {
@@ -187,7 +196,7 @@ export default function NovaAnamnese() {
       if ((data as any)?.error) throw new Error((data as any).error);
       toast.success('Anamnese salva com sucesso');
       const pdfUrl = (data as any)?.pdf_url;
-      if (pdfUrl) window.open(pdfUrl, '_blank');
+      if (pdfUrl) await downloadPdfFromUrl(pdfUrl, `anamnese-${(data as any)?.number || 'invex'}.pdf`);
       navigate(`/clinica/pacientes/${patientId}`);
     } catch (e: any) {
       toast.error(e.message || 'Erro ao salvar anamnese');
@@ -311,14 +320,59 @@ export default function NovaAnamnese() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <Label>Paciente *</Label>
-                  <Select value={patientId} onValueChange={setPatientId}>
-                    <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Selecione o paciente" /></SelectTrigger>
-                    <SelectContent>
-                      {patients.map(p => (
-                        <SelectItem key={p.id} value={p.id}>{p.nome}{p.cpf ? ` · ${p.cpf}` : ''}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Popover open={patientPopoverOpen} onOpenChange={setPatientPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="h-12 text-base justify-between flex-1 font-normal"
+                        >
+                          <span className="truncate text-left">
+                            {selectedPatient
+                              ? `${selectedPatient.nome}${selectedPatient.cpf ? ` · ${selectedPatient.cpf}` : ''}`
+                              : 'Buscar paciente...'}
+                          </span>
+                          <ChevronsUpDown className="w-4 h-4 opacity-50 shrink-0 ml-2" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                        <Command>
+                          <CommandInput placeholder="Buscar por nome ou CPF..." />
+                          <CommandList>
+                            <CommandEmpty>Nenhum paciente encontrado.</CommandEmpty>
+                            <CommandGroup>
+                              {patients.map(p => (
+                                <CommandItem
+                                  key={p.id}
+                                  value={`${p.nome} ${p.cpf || ''}`}
+                                  onSelect={() => {
+                                    setPatientId(p.id);
+                                    setPatientPopoverOpen(false);
+                                  }}
+                                >
+                                  <Check className={`w-4 h-4 mr-2 ${patientId === p.id ? 'opacity-100' : 'opacity-0'}`} />
+                                  <span className="truncate">{p.nome}{p.cpf ? ` · ${p.cpf}` : ''}</span>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    {lastPatient && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 shrink-0"
+                        title={`Usar último paciente: ${lastPatient.nome}`}
+                        onClick={() => setPatientId(lastPatient.id)}
+                      >
+                        <History className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <Label>Modelo de anamnese *</Label>
