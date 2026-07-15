@@ -246,14 +246,30 @@ export default function PacienteProntuario() {
   return (
     <MainLayout>
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Button asChild variant="ghost" size="sm"><Link to="/clinica/pacientes"><ArrowLeft className="w-4 h-4 mr-1" /> Voltar</Link></Button>
-          <div>
+          <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold">{patient.nome}</h1>
             <p className="text-sm text-muted-foreground">
               {patient.cpf && <>CPF: {patient.cpf} · </>}
               {patient.phone && <>Tel: {patient.phone}</>}
             </p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {hasAnamnese && (
+              <Button asChild className="gap-2 bg-sky-500 hover:bg-sky-600 text-white">
+                <RouterLink to={`/clinica/anamnese/nova?patient=${patient.id}`}>
+                  <ClipboardList className="w-4 h-4" /> Iniciar Anamnese
+                </RouterLink>
+              </Button>
+            )}
+            {hasEvolucao && (
+              <Button asChild variant="secondary" className="gap-2">
+                <RouterLink to={`/clinica/evolucao/${patient.id}`}>
+                  <Activity className="w-4 h-4" /> Nova Evolução
+                </RouterLink>
+              </Button>
+            )}
           </div>
         </div>
 
