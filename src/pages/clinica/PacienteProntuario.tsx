@@ -397,7 +397,7 @@ export default function PacienteProntuario() {
                           {a.pdf_path && (
                             <Button size="sm" variant="outline" onClick={async () => {
                               const { data } = await supabase.storage.from('anamnese-pdfs').createSignedUrl(a.pdf_path!, 3600);
-                              if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+                              if (data?.signedUrl) await downloadPdfFromUrl(data.signedUrl, `anamnese-${a.id.slice(0,8)}.pdf`);
                               else toast.error('Não foi possível abrir o PDF');
                             }}>
                               <Download className="w-3.5 h-3.5 mr-1" /> PDF
