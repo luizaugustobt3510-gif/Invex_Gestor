@@ -378,7 +378,26 @@ const clinicaGroups: MenuGroup[] = [
       },
     ],
   },
-
+  {
+    label: "Evolução Clínica",
+    icon: <Stethoscope className="w-4 h-4" />,
+    allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro", "recepcionista"],
+    moduleKey: "evolucao",
+    items: [
+      {
+        path: "/clinica/evolucao",
+        label: "Registrar Evolução",
+        icon: <FileText className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro", "recepcionista"],
+      },
+      {
+        path: "/clinica/evolucao/mensagens",
+        label: "Mensagens Rápidas",
+        icon: <ClipboardList className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica"],
+      },
+    ],
+  },
 ];
 
 
