@@ -104,6 +104,8 @@ import HistoricoFolha from "./pages/folha/HistoricoFolha";
 import Changelog from "./pages/Changelog";
 import GestaoChangelog from "./pages/GestaoChangelog";
 import { ChangelogModal } from "./components/ChangelogModal";
+import Assinaturas from "./pages/Assinaturas";
+import Dispensacao from "./pages/Dispensacao";
 const queryClient = new QueryClient();
 
 const App = () => (
