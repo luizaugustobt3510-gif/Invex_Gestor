@@ -843,8 +843,8 @@ const adminGroups: MenuGroup[] = [
 export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, hasPermission } = useAuth();
-  const { canAccessModule } = useModuleAccess();
+  const { user, logout, hasPermission, isLoading } = useAuth();
+  const { canAccessModule, loading: moduleLoading } = useModuleAccess();
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const scrollRef = useRef<HTMLDivElement>(null);
