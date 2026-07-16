@@ -1236,6 +1236,18 @@ export function AppSidebar() {
               <span className="truncate">{user?.nome || "Perfil"}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          {!isSuperAdmin && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => navigatePreservingScroll("/assinaturas")}
+                tooltip="Minhas Assinaturas"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <PenLine className="w-4 h-4" />
+                <span>Assinaturas</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={handleLogout}
