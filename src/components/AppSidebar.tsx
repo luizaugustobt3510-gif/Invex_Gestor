@@ -398,6 +398,20 @@ const clinicaGroups: MenuGroup[] = [
       },
     ],
   },
+  {
+    label: "Dispensação",
+    icon: <ClipboardCheck className="w-4 h-4" />,
+    allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro", "recepcionista", "logistica", "usuario almox"],
+    moduleKey: "dispensacao",
+    items: [
+      {
+        path: "/dispensacao",
+        label: "Dispensar Material",
+        icon: <ClipboardCheck className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro", "recepcionista", "logistica", "usuario almox"],
+      },
+    ],
+  },
 ];
 
 
