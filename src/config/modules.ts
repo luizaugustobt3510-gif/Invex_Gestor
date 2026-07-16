@@ -149,6 +149,20 @@ export const MODULES_CATALOG: ModuleDef[] = [
     ],
   },
   {
+    key: 'assinaturas',
+    label: 'Assinaturas Eletrônicas',
+    description: 'Biblioteca pessoal de assinaturas eletrônicas — desenhe ou envie imagens com nome/CRM abaixo. Reutilize em evoluções e anamneses.',
+    route: '/assinaturas',
+    submodules: [],
+  },
+  {
+    key: 'dispensacao',
+    label: 'Dispensação de Materiais',
+    description: 'Registro de uso de insumos por paciente/atendimento. Não altera o saldo do estoque de logística.',
+    route: '/dispensacao',
+    submodules: [],
+  },
+  {
     key: 'clinica',
     label: 'Clínica',
     description: 'Prontuários, atendimentos, prescrições (em desenvolvimento).',

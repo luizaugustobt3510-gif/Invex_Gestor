@@ -781,6 +781,47 @@ export type Database = {
           },
         ]
       }
+      custom_roles: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          modules: Json
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          modules?: Json
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          modules?: Json
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_roles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       development_plans: {
         Row: {
           company_id: string
@@ -2210,6 +2251,76 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_dispensations: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          material_codigo: string | null
+          material_id: string | null
+          material_nome: string | null
+          observacoes: string | null
+          patient_id: string | null
+          patient_name: string | null
+          quantidade: number
+          unidade: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          material_codigo?: string | null
+          material_id?: string | null
+          material_nome?: string | null
+          observacoes?: string | null
+          patient_id?: string | null
+          patient_name?: string | null
+          quantidade?: number
+          unidade?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          material_codigo?: string | null
+          material_id?: string | null
+          material_nome?: string | null
+          observacoes?: string | null
+          patient_id?: string | null
+          patient_name?: string | null
+          quantidade?: number
+          unidade?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_dispensations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_dispensations_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_dispensations_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]
@@ -3710,6 +3821,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "user_roles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_signatures: {
+        Row: {
+          company_id: string
+          created_at: string
+          credencial: string | null
+          id: string
+          image_url: string
+          is_default: boolean
+          nome: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          credencial?: string | null
+          id?: string
+          image_url: string
+          is_default?: boolean
+          nome: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          credencial?: string | null
+          id?: string
+          image_url?: string
+          is_default?: boolean
+          nome?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_signatures_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"

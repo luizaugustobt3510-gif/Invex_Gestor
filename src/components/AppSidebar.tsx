@@ -53,6 +53,7 @@ import {
   Heart,
   Gift,
   Calculator,
+  PenLine,
 } from "lucide-react";
 import { InvexLogo } from "@/components/InvexLogo";
 import {
@@ -395,6 +396,20 @@ const clinicaGroups: MenuGroup[] = [
         label: "Mensagens Rápidas",
         icon: <ClipboardList className="w-4 h-4" />,
         allowedRoles: ["admin", "clinica"],
+      },
+    ],
+  },
+  {
+    label: "Dispensação",
+    icon: <ClipboardCheck className="w-4 h-4" />,
+    allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro", "recepcionista", "logistica", "usuario almox"],
+    moduleKey: "dispensacao",
+    items: [
+      {
+        path: "/dispensacao",
+        label: "Dispensar Material",
+        icon: <ClipboardCheck className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro", "recepcionista", "logistica", "usuario almox"],
       },
     ],
   },
@@ -843,8 +858,8 @@ const adminGroups: MenuGroup[] = [
 export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, hasPermission } = useAuth();
-  const { canAccessModule } = useModuleAccess();
+  const { user, logout, hasPermission, isLoading } = useAuth();
+  const { canAccessModule, loading: moduleLoading } = useModuleAccess();
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -983,6 +998,22 @@ export function AppSidebar() {
       </Collapsible>
     );
   };
+
+  // Flash-fix: skeleton até auth+módulos carregarem
+  if (isLoading || moduleLoading) {
+    return (
+      <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+        <SidebarHeader className="p-4">
+          <InvexLogo size="sm" />
+        </SidebarHeader>
+        <SidebarContent className="px-2 space-y-2">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-8 rounded-md bg-muted/40 animate-pulse" />
+          ))}
+        </SidebarContent>
+      </Sidebar>
+    );
+  }
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -1206,6 +1237,18 @@ export function AppSidebar() {
               <span className="truncate">{user?.nome || "Perfil"}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          {!isSuperAdmin && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => navigatePreservingScroll("/assinaturas")}
+                tooltip="Minhas Assinaturas"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <PenLine className="w-4 h-4" />
+                <span>Assinaturas</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={handleLogout}
