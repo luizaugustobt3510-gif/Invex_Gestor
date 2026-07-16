@@ -984,6 +984,22 @@ export function AppSidebar() {
     );
   };
 
+  // Flash-fix: skeleton até auth+módulos carregarem
+  if (isLoading || moduleLoading) {
+    return (
+      <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+        <SidebarHeader className="p-4">
+          <InvexLogo size="sm" />
+        </SidebarHeader>
+        <SidebarContent className="px-2 space-y-2">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-8 rounded-md bg-muted/40 animate-pulse" />
+          ))}
+        </SidebarContent>
+      </Sidebar>
+    );
+  }
+
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="p-4">
