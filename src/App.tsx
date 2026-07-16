@@ -121,7 +121,7 @@ const App = () => (
             
             {/* Home — all authenticated roles */}
             <Route path="/" element={
-              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox', 'manutencao', 'fitness', 'clinica']}>
+              <RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox', 'manutencao', 'fitness', 'clinica', 'enfermagem', 'enfermeiro', 'recepcionista']}>
                 <Index />
               </RoleProtectedRoute>
             } />
@@ -166,7 +166,7 @@ const App = () => (
             <Route path="/logs-auditoria" element={<RoleProtectedRoute allowedRoles={['superadm']}><LogsAuditoria /></RoleProtectedRoute>} />
 
             {/* === PERFIL === */}
-            <Route path="/meu-perfil" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao']}><MeuPerfil /></RoleProtectedRoute>} />
+            <Route path="/meu-perfil" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao', 'clinica', 'enfermagem', 'enfermeiro', 'recepcionista']}><MeuPerfil /></RoleProtectedRoute>} />
 
             {/* === MÓDULOS DA EMPRESA (admin da empresa) === */}
             <Route path="/configuracoes/modulos-empresa" element={<RoleProtectedRoute allowedRoles={['superadm']}><ModulosEmpresa /></RoleProtectedRoute>} />
