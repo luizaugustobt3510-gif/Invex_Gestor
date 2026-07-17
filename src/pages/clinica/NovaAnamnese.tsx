@@ -20,6 +20,12 @@ import {
   User, ClipboardList, Pencil, CheckCircle2, ChevronsUpDown, History,
 } from 'lucide-react';
 import type { Question } from './AnamneseModelos';
+import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
+
+// Small local component to bridge ref to inline pad
+function InlineSignaturePad({ refObj }: { refObj: React.MutableRefObject<any> }) {
+  return <SignaturePad ref={refObj as React.Ref<SignaturePadHandle>} height={140} />;
+}
 
 interface Template {
   id: string;
@@ -50,18 +56,35 @@ export default function NovaAnamnese() {
   const [phase, setPhase] = useState<Phase>('setup');
   const [idx, setIdx] = useState(0);
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [signatures, setSignatures] = useState<Array<{ id: string; nome: string; credencial: string | null; image_url: string; is_default: boolean; _signed?: string }>>([]);
+  const [signatureId, setSignatureId] = useState<string>('');
+  const [signOnFly, setSignOnFly] = useState(false);
+  const inlinePadRef = useRef<any>(null);
 
   const [patientPopoverOpen, setPatientPopoverOpen] = useState(false);
 
   useEffect(() => {
     if (!user?.companyId) return;
     (async () => {
-      const [{ data: pats }, { data: tpls }] = await Promise.all([
+      const { data: authUser } = await supabase.auth.getUser();
+      const uid = authUser.user?.id;
+      const [{ data: pats }, { data: tpls }, sigsRes] = await Promise.all([
         supabase.from('patients').select('id, nome, cpf, birth_date, created_at').eq('company_id', user.companyId).order('nome'),
         supabase.from('anamnese_templates').select('*').eq('company_id', user.companyId).eq('is_active', true).order('name'),
+        uid ? supabase.from('user_signatures').select('id, nome, credencial, image_url, is_default').eq('user_id', uid).order('is_default', { ascending: false }) : Promise.resolve({ data: [] as any }),
       ]);
       setPatients((pats || []) as any);
       setTemplates((tpls || []) as any);
+      const sigs = ((sigsRes as any)?.data || []) as any[];
+      // Pre-sign non-http paths
+      const withUrls = await Promise.all(sigs.map(async (s) => {
+        if (!s.image_url || s.image_url.startsWith('http') || s.image_url.startsWith('data:')) return { ...s, _signed: s.image_url };
+        const { data: signed } = await supabase.storage.from('signatures').createSignedUrl(s.image_url, 3600);
+        return { ...s, _signed: signed?.signedUrl || '' };
+      }));
+      setSignatures(withUrls);
+      const def = withUrls.find(s => s.is_default);
+      if (def) setSignatureId(def.id);
     })();
   }, [user?.companyId]);
 
@@ -180,6 +203,27 @@ export default function NovaAnamnese() {
       question: q.text, answer: (answers[q.id] || '').toString(),
     }));
 
+    // Resolve signature
+    let signature_image_url: string | undefined;
+    let signature_source: string | undefined;
+    let signature_name: string | undefined;
+    let signature_credencial: string | undefined;
+    if (signOnFly && inlinePadRef.current) {
+      const dataUrl = inlinePadRef.current.toDataURL?.();
+      if (dataUrl && dataUrl.length > 200) {
+        signature_image_url = dataUrl;
+        signature_source = 'inline';
+      }
+    } else if (signatureId) {
+      const sig = signatures.find(s => s.id === signatureId);
+      if (sig?._signed) {
+        signature_image_url = sig._signed;
+        signature_source = 'saved';
+        signature_name = sig.nome;
+        signature_credencial = sig.credencial || undefined;
+      }
+    }
+
     setSaving(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-anamnese-pdf', {
@@ -190,6 +234,10 @@ export default function NovaAnamnese() {
           exam_type: examType,
           responses,
           observations: observations || undefined,
+          signature_image_url,
+          signature_source,
+          signature_name,
+          signature_credencial,
         },
       });
       if (error) throw error;
@@ -504,6 +552,41 @@ export default function NovaAnamnese() {
                   <Label>Observações (opcional)</Label>
                   <Textarea rows={3} className="text-base" value={observations} onChange={e => setObservations(e.target.value)} />
                 </div>
+
+                <div className="rounded-lg border p-3 bg-muted/20 space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <Label className="text-sm font-medium">Assinatura do profissional</Label>
+                    <div className="flex gap-1">
+                      <Button type="button" size="sm" variant={!signOnFly ? 'default' : 'outline'} onClick={() => setSignOnFly(false)}>
+                        Salva
+                      </Button>
+                      <Button type="button" size="sm" variant={signOnFly ? 'default' : 'outline'} onClick={() => setSignOnFly(true)}>
+                        Assinar agora
+                      </Button>
+                    </div>
+                  </div>
+                  {!signOnFly ? (
+                    signatures.length === 0 ? (
+                      <div className="text-xs text-muted-foreground">
+                        Você não tem assinaturas salvas. <Link to="/assinaturas" className="text-primary underline">Cadastrar</Link> ou clique em "Assinar agora".
+                      </div>
+                    ) : (
+                      <Select value={signatureId} onValueChange={setSignatureId}>
+                        <SelectTrigger><SelectValue placeholder="Selecione uma assinatura" /></SelectTrigger>
+                        <SelectContent>
+                          {signatures.map(s => (
+                            <SelectItem key={s.id} value={s.id}>
+                              {s.nome}{s.credencial ? ` — ${s.credencial}` : ''}{s.is_default ? ' (padrão)' : ''}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )
+                  ) : (
+                    <InlineSignaturePad refObj={inlinePadRef} />
+                  )}
+                </div>
+
 
                 <div className={`flex items-center gap-2 rounded p-3 text-sm ${
                   allAnswered ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'

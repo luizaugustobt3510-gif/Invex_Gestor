@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -17,17 +18,22 @@ interface Signature {
   credencial: string | null;
   image_url: string;
   is_default: boolean;
+  sector_id: string | null;
+  sector_nome: string | null;
   created_at: string;
 }
+interface Sector { id: string; nome: string; }
 
 export default function Assinaturas() {
   const { user } = useAuth();
   const [items, setItems] = useState<Signature[]>([]);
+  const [sectors, setSectors] = useState<Sector[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [nome, setNome] = useState('');
   const [credencial, setCredencial] = useState('');
+  const [sectorId, setSectorId] = useState<string>('');
   const [mode, setMode] = useState<'draw' | 'upload'>('draw');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [urlsCache, setUrlsCache] = useState<Record<string, string>>({});
@@ -38,29 +44,21 @@ export default function Assinaturas() {
     setLoading(true);
     const { data: authUser } = await supabase.auth.getUser();
     if (!authUser.user) return;
-    const { data, error } = await supabase
-      .from('user_signatures')
-      .select('*')
-      .eq('user_id', authUser.user.id)
-      .order('is_default', { ascending: false })
-      .order('created_at', { ascending: false });
-    if (error) {
-      toast.error('Erro ao carregar assinaturas');
-    } else {
-      const rows = (data || []) as Signature[];
+    const [sigRes, secRes] = await Promise.all([
+      supabase.from('user_signatures').select('*').eq('user_id', authUser.user.id).order('is_default', { ascending: false }).order('created_at', { ascending: false }),
+      supabase.from('sectors').select('id, nome').eq('company_id', user.companyId).order('nome'),
+    ]);
+    setSectors((secRes.data as Sector[]) || []);
+    if (sigRes.error) toast.error('Erro ao carregar assinaturas');
+    else {
+      const rows = (sigRes.data || []) as Signature[];
       setItems(rows);
-      // Sign URLs
       const cache: Record<string, string> = {};
-      await Promise.all(
-        rows.map(async (r) => {
-          if (r.image_url.startsWith('data:') || r.image_url.startsWith('http')) {
-            cache[r.id] = r.image_url;
-            return;
-          }
-          const { data: s } = await supabase.storage.from('signatures').createSignedUrl(r.image_url, 3600);
-          if (s?.signedUrl) cache[r.id] = s.signedUrl;
-        }),
-      );
+      await Promise.all(rows.map(async (r) => {
+        if (r.image_url.startsWith('data:') || r.image_url.startsWith('http')) { cache[r.id] = r.image_url; return; }
+        const { data: s } = await supabase.storage.from('signatures').createSignedUrl(r.image_url, 3600);
+        if (s?.signedUrl) cache[r.id] = s.signedUrl;
+      }));
       setUrlsCache(cache);
     }
     setLoading(false);
@@ -71,6 +69,7 @@ export default function Assinaturas() {
   const reset = () => {
     setNome('');
     setCredencial('');
+    setSectorId('');
     setUploadFile(null);
     setMode('draw');
     padRef.current?.clear();
@@ -103,6 +102,7 @@ export default function Assinaturas() {
         imagePath = path;
       }
 
+      const sector = sectors.find(s => s.id === sectorId);
       const { error } = await supabase.from('user_signatures').insert({
         user_id: authUser.user.id,
         company_id: user.companyId,
@@ -110,6 +110,8 @@ export default function Assinaturas() {
         credencial: credencial.trim() || null,
         image_url: imagePath,
         is_default: items.length === 0,
+        sector_id: sectorId || null,
+        sector_nome: sector?.nome || null,
       });
       if (error) throw error;
       toast.success('Assinatura salva');
@@ -156,7 +158,7 @@ export default function Assinaturas() {
           <CardContent>
             {showForm && (
               <div className="space-y-4 rounded-lg border p-3 sm:p-4 bg-muted/20 mb-4">
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-3">
                   <div className="space-y-1.5">
                     <Label>Nome *</Label>
                     <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Dr. João Silva" />
@@ -164,6 +166,15 @@ export default function Assinaturas() {
                   <div className="space-y-1.5">
                     <Label>CRM / Registro / Cargo</Label>
                     <Input value={credencial} onChange={(e) => setCredencial(e.target.value)} placeholder="CRM/SP 123456" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Setor</Label>
+                    <Select value={sectorId} onValueChange={setSectorId}>
+                      <SelectTrigger><SelectValue placeholder="Selecionar (opcional)" /></SelectTrigger>
+                      <SelectContent>
+                        {sectors.map(s => (<SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -219,6 +230,7 @@ export default function Assinaturas() {
                     <div className="text-center text-xs">
                       <div className="font-medium">{s.nome}</div>
                       {s.credencial && <div className="text-muted-foreground">{s.credencial}</div>}
+                      {s.sector_nome && <div className="text-muted-foreground">Setor: {s.sector_nome}</div>}
                     </div>
                     <div className="flex items-center justify-between gap-2 pt-1">
                       {s.is_default ? (

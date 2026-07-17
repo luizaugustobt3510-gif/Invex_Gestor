@@ -14,6 +14,10 @@ interface AnamneseInput {
   exam_type: string;
   responses: { question: string; answer: string }[];
   observations?: string;
+  signature_image_url?: string;
+  signature_source?: string;
+  signature_name?: string;
+  signature_credencial?: string;
 }
 
 Deno.serve(async (req) => {
@@ -59,7 +63,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!mod?.is_active) return json({ error: "Módulo Anamnese Digital não está ativo" }, 403);
 
-    const allowed = ["super_admin", "admin_empresa", "clinica"];
+    const allowed = ["super_admin", "admin_empresa", "clinica", "enfermagem", "enfermeiro", "recepcionista"];
     if (!allowed.includes(userRole.role)) {
       return json({ error: "Sem permissão para gerar anamnese" }, 403);
     }
@@ -103,6 +107,8 @@ Deno.serve(async (req) => {
         exam_type: body.exam_type,
         responses: body.responses,
         observations: body.observations || null,
+        signature_image_url: body.signature_image_url || null,
+        signature_source: body.signature_source || null,
         created_by: userId,
         created_by_name: createdByName,
       })
@@ -220,9 +226,40 @@ Deno.serve(async (req) => {
       y += oLines.length * 5;
     }
 
+    // Signature (if provided) - draw before footer line
+    if (body.signature_image_url) {
+      try {
+        ensureSpace(50);
+        y += 8;
+        const resp = await fetch(body.signature_image_url);
+        if (resp.ok) {
+          const buf = new Uint8Array(await resp.arrayBuffer());
+          let base64 = "";
+          const chunk = 0x8000;
+          for (let i = 0; i < buf.length; i += chunk) {
+            base64 += String.fromCharCode(...buf.subarray(i, i + chunk));
+          }
+          const dataUrl = `data:image/png;base64,${btoa(base64)}`;
+          const sigW = 60, sigH = 25;
+          const sigX = pageWidth - margin - sigW;
+          doc.addImage(dataUrl, "PNG", sigX, y, sigW, sigH);
+          y += sigH + 2;
+          doc.setDrawColor(120);
+          doc.line(sigX, y, sigX + sigW, y);
+          y += 4;
+          doc.setFontSize(8);
+          if (body.signature_name) doc.text(body.signature_name, sigX + sigW / 2, y, { align: "center" });
+          if (body.signature_credencial) {
+            y += 3.5;
+            doc.text(body.signature_credencial, sigX + sigW / 2, y, { align: "center" });
+          }
+        }
+      } catch (_e) { /* ignore signature draw errors */ }
+    }
+
     // Footer / signature
     ensureSpace(24);
-    y += 10;
+    y = Math.max(y + 6, pageHeight - 25);
     doc.setDrawColor(0);
     doc.line(margin, y, pageWidth - margin, y);
     y += 5;

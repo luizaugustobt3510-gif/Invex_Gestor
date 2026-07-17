@@ -192,6 +192,8 @@ export type Database = {
           patient_id: string
           pdf_path: string | null
           responses: Json
+          signature_image_url: string | null
+          signature_source: string | null
           template_id: string | null
           template_name: string | null
           updated_at: string
@@ -207,6 +209,8 @@ export type Database = {
           patient_id: string
           pdf_path?: string | null
           responses?: Json
+          signature_image_url?: string | null
+          signature_source?: string | null
           template_id?: string | null
           template_name?: string | null
           updated_at?: string
@@ -222,6 +226,8 @@ export type Database = {
           patient_id?: string
           pdf_path?: string | null
           responses?: Json
+          signature_image_url?: string | null
+          signature_source?: string | null
           template_id?: string | null
           template_name?: string | null
           updated_at?: string
@@ -2257,8 +2263,13 @@ export type Database = {
       }
       material_dispensations: {
         Row: {
+          billing_status: string
           company_id: string
           created_at: string
+          destino_sector_id: string | null
+          destino_sector_nome: string | null
+          destino_tipo: string
+          exam_type: string | null
           id: string
           material_codigo: string | null
           material_id: string | null
@@ -2270,10 +2281,17 @@ export type Database = {
           unidade: string | null
           updated_at: string
           user_id: string
+          valor_total: number | null
+          valor_unitario: number | null
         }
         Insert: {
+          billing_status?: string
           company_id: string
           created_at?: string
+          destino_sector_id?: string | null
+          destino_sector_nome?: string | null
+          destino_tipo?: string
+          exam_type?: string | null
           id?: string
           material_codigo?: string | null
           material_id?: string | null
@@ -2285,10 +2303,17 @@ export type Database = {
           unidade?: string | null
           updated_at?: string
           user_id: string
+          valor_total?: number | null
+          valor_unitario?: number | null
         }
         Update: {
+          billing_status?: string
           company_id?: string
           created_at?: string
+          destino_sector_id?: string | null
+          destino_sector_nome?: string | null
+          destino_tipo?: string
+          exam_type?: string | null
           id?: string
           material_codigo?: string | null
           material_id?: string | null
@@ -2300,6 +2325,8 @@ export type Database = {
           unidade?: string | null
           updated_at?: string
           user_id?: string
+          valor_total?: number | null
+          valor_unitario?: number | null
         }
         Relationships: [
           {
@@ -2307,6 +2334,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_dispensations_destino_sector_id_fkey"
+            columns: ["destino_sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
             referencedColumns: ["id"]
           },
           {
@@ -2386,6 +2420,7 @@ export type Database = {
           maximo: number
           minimo: number
           preco: number
+          preco_unitario: number | null
           quantidade: number
           unidade: string
           updated_at: string
@@ -2401,6 +2436,7 @@ export type Database = {
           maximo?: number
           minimo?: number
           preco?: number
+          preco_unitario?: number | null
           quantidade?: number
           unidade?: string
           updated_at?: string
@@ -2416,6 +2452,7 @@ export type Database = {
           maximo?: number
           minimo?: number
           preco?: number
+          preco_unitario?: number | null
           quantidade?: number
           unidade?: string
           updated_at?: string
@@ -3316,6 +3353,57 @@ export type Database = {
           },
         ]
       }
+      stock_access_grants: {
+        Row: {
+          can_read: boolean
+          can_write: boolean
+          company_id: string
+          created_at: string
+          from_sector_id: string | null
+          granted_by: string | null
+          id: string
+          to_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          can_read?: boolean
+          can_write?: boolean
+          company_id: string
+          created_at?: string
+          from_sector_id?: string | null
+          granted_by?: string | null
+          id?: string
+          to_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          can_read?: boolean
+          can_write?: boolean
+          company_id?: string
+          created_at?: string
+          from_sector_id?: string | null
+          granted_by?: string | null
+          id?: string
+          to_user_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_access_grants_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_access_grants_from_sector_id_fkey"
+            columns: ["from_sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_movements: {
         Row: {
           company_id: string
@@ -3837,6 +3925,8 @@ export type Database = {
           image_url: string
           is_default: boolean
           nome: string
+          sector_id: string | null
+          sector_nome: string | null
           updated_at: string
           user_id: string
         }
@@ -3848,6 +3938,8 @@ export type Database = {
           image_url: string
           is_default?: boolean
           nome: string
+          sector_id?: string | null
+          sector_nome?: string | null
           updated_at?: string
           user_id: string
         }
@@ -3859,6 +3951,8 @@ export type Database = {
           image_url?: string
           is_default?: boolean
           nome?: string
+          sector_id?: string | null
+          sector_nome?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -3868,6 +3962,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_signatures_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
             referencedColumns: ["id"]
           },
         ]
