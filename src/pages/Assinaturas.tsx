@@ -102,6 +102,7 @@ export default function Assinaturas() {
         imagePath = path;
       }
 
+      const sector = sectors.find(s => s.id === sectorId);
       const { error } = await supabase.from('user_signatures').insert({
         user_id: authUser.user.id,
         company_id: user.companyId,
@@ -109,6 +110,8 @@ export default function Assinaturas() {
         credencial: credencial.trim() || null,
         image_url: imagePath,
         is_default: items.length === 0,
+        sector_id: sectorId || null,
+        sector_nome: sector?.nome || null,
       });
       if (error) throw error;
       toast.success('Assinatura salva');
