@@ -158,7 +158,7 @@ export default function Assinaturas() {
           <CardContent>
             {showForm && (
               <div className="space-y-4 rounded-lg border p-3 sm:p-4 bg-muted/20 mb-4">
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-3">
                   <div className="space-y-1.5">
                     <Label>Nome *</Label>
                     <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Dr. João Silva" />
@@ -166,6 +166,15 @@ export default function Assinaturas() {
                   <div className="space-y-1.5">
                     <Label>CRM / Registro / Cargo</Label>
                     <Input value={credencial} onChange={(e) => setCredencial(e.target.value)} placeholder="CRM/SP 123456" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Setor</Label>
+                    <Select value={sectorId} onValueChange={setSectorId}>
+                      <SelectTrigger><SelectValue placeholder="Selecionar (opcional)" /></SelectTrigger>
+                      <SelectContent>
+                        {sectors.map(s => (<SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
