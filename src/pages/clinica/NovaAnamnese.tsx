@@ -60,12 +60,25 @@ export default function NovaAnamnese() {
   useEffect(() => {
     if (!user?.companyId) return;
     (async () => {
-      const [{ data: pats }, { data: tpls }] = await Promise.all([
+      const { data: authUser } = await supabase.auth.getUser();
+      const uid = authUser.user?.id;
+      const [{ data: pats }, { data: tpls }, sigsRes] = await Promise.all([
         supabase.from('patients').select('id, nome, cpf, birth_date, created_at').eq('company_id', user.companyId).order('nome'),
         supabase.from('anamnese_templates').select('*').eq('company_id', user.companyId).eq('is_active', true).order('name'),
+        uid ? supabase.from('user_signatures').select('id, nome, credencial, image_url, is_default').eq('user_id', uid).order('is_default', { ascending: false }) : Promise.resolve({ data: [] as any }),
       ]);
       setPatients((pats || []) as any);
       setTemplates((tpls || []) as any);
+      const sigs = ((sigsRes as any)?.data || []) as any[];
+      // Pre-sign non-http paths
+      const withUrls = await Promise.all(sigs.map(async (s) => {
+        if (!s.image_url || s.image_url.startsWith('http') || s.image_url.startsWith('data:')) return { ...s, _signed: s.image_url };
+        const { data: signed } = await supabase.storage.from('signatures').createSignedUrl(s.image_url, 3600);
+        return { ...s, _signed: signed?.signedUrl || '' };
+      }));
+      setSignatures(withUrls);
+      const def = withUrls.find(s => s.is_default);
+      if (def) setSignatureId(def.id);
     })();
   }, [user?.companyId]);
 
