@@ -413,6 +413,20 @@ const clinicaGroups: MenuGroup[] = [
       },
     ],
   },
+  {
+    label: "Faturamento",
+    icon: <ClipboardCheck className="w-4 h-4" />,
+    allowedRoles: ["admin", "financeiro", "clinica"],
+    moduleKey: "faturamento",
+    items: [
+      {
+        path: "/faturamento",
+        label: "Faturamento",
+        icon: <ClipboardCheck className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro", "clinica"],
+      },
+    ],
+  },
 ];
 
 
