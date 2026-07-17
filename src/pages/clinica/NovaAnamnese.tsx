@@ -20,6 +20,12 @@ import {
   User, ClipboardList, Pencil, CheckCircle2, ChevronsUpDown, History,
 } from 'lucide-react';
 import type { Question } from './AnamneseModelos';
+import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
+
+// Small local component to bridge ref to inline pad
+function InlineSignaturePad({ refObj }: { refObj: React.MutableRefObject<any> }) {
+  return <SignaturePad ref={refObj as React.Ref<SignaturePadHandle>} height={140} />;
+}
 
 interface Template {
   id: string;
