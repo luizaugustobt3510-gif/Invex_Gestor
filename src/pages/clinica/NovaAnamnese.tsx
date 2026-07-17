@@ -50,6 +50,10 @@ export default function NovaAnamnese() {
   const [phase, setPhase] = useState<Phase>('setup');
   const [idx, setIdx] = useState(0);
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [signatures, setSignatures] = useState<Array<{ id: string; nome: string; credencial: string | null; image_url: string; is_default: boolean; _signed?: string }>>([]);
+  const [signatureId, setSignatureId] = useState<string>('');
+  const [signOnFly, setSignOnFly] = useState(false);
+  const inlinePadRef = useRef<any>(null);
 
   const [patientPopoverOpen, setPatientPopoverOpen] = useState(false);
 
