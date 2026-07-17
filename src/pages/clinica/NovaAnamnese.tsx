@@ -547,6 +547,41 @@ export default function NovaAnamnese() {
                   <Textarea rows={3} className="text-base" value={observations} onChange={e => setObservations(e.target.value)} />
                 </div>
 
+                <div className="rounded-lg border p-3 bg-muted/20 space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <Label className="text-sm font-medium">Assinatura do profissional</Label>
+                    <div className="flex gap-1">
+                      <Button type="button" size="sm" variant={!signOnFly ? 'default' : 'outline'} onClick={() => setSignOnFly(false)}>
+                        Salva
+                      </Button>
+                      <Button type="button" size="sm" variant={signOnFly ? 'default' : 'outline'} onClick={() => setSignOnFly(true)}>
+                        Assinar agora
+                      </Button>
+                    </div>
+                  </div>
+                  {!signOnFly ? (
+                    signatures.length === 0 ? (
+                      <div className="text-xs text-muted-foreground">
+                        Você não tem assinaturas salvas. <Link to="/assinaturas" className="text-primary underline">Cadastrar</Link> ou clique em "Assinar agora".
+                      </div>
+                    ) : (
+                      <Select value={signatureId} onValueChange={setSignatureId}>
+                        <SelectTrigger><SelectValue placeholder="Selecione uma assinatura" /></SelectTrigger>
+                        <SelectContent>
+                          {signatures.map(s => (
+                            <SelectItem key={s.id} value={s.id}>
+                              {s.nome}{s.credencial ? ` — ${s.credencial}` : ''}{s.is_default ? ' (padrão)' : ''}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )
+                  ) : (
+                    <InlineSignaturePad refObj={inlinePadRef} />
+                  )}
+                </div>
+
+
                 <div className={`flex items-center gap-2 rounded p-3 text-sm ${
                   allAnswered ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'
                 }`}>
