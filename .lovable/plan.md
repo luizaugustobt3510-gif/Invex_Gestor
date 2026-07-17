@@ -1,76 +1,65 @@
-# Refatoração: Tipo de Empresa × Módulos × Perfis
+## Escopo
 
-## Diagnóstico atual
+Quatro frentes, todas aditivas — nenhum fluxo existente de Logística/Estoque/Vendas é alterado.
 
-Hoje os três conceitos estão entrelaçados:
+### 1. Dispensação — separar em 2 submódulos
 
-- **Tipo de Empresa** (`companies.company_type`) — ao trocar o tipo, `ModulosEmpresa.tsx` aplica template e pode desligar módulos.
-- **Módulos** (`company_modules`) — corretamente isolados por empresa, mas a UI mistura template + toggle.
-- **Perfis** (`user_roles.role` + função SQL `user_has_domain_access`) — o **nome do perfil** determina módulos (ex.: `rh` → acesso a `rh`, `financeiro` → acesso a `financeiro`), violando a regra "perfil não representa módulo".
-- `user_module_permissions` já existe mas é tratado como *exceção*, não como fonte primária.
-- Sidebar (`AppSidebar.tsx`) e `RoleProtectedRoute` combinam checagem por role + módulo, com fallback por role.
+- `dispensacao.interna` — Logística registra saída de material para **um setor destinatário** (não paciente).
+- `dispensacao.paciente` — Enfermagem/Clínica registra material usado para **paciente + atendimento** (fluxo atual).
+- Nova coluna `material_dispensations.destino_tipo` ('paciente' | 'setor') + `destino_sector_id`.
+- Página `Dispensacao.tsx` passa a rotear em duas telas: `DispensacaoInterna` e `DispensacaoPaciente`. Sidebar mostra só as que o usuário tem permissão (via useModuleAccess submódulos).
+- Registro segue sem alterar saldo de estoque (mantido).
 
-## Nova arquitetura
+### 2. Integração de estoque entre setores (grants)
 
-```text
-Empresa ativa Módulo  →  Perfil recebe permissão para Módulo  →  Usuário herda do Perfil
-     (company_modules)      (role_module_permissions [NOVO])       (user_roles → role)
-```
+- Nova tabela `stock_access_grants` (company_id, from_sector_id, to_user_id, can_read, can_write, granted_by).
+- Só `super_admin`/`admin_empresa` da mesma empresa concede/revoga (RLS por `is_company_admin` + `company_id`).
+- Nova página **"Integração de Setores"** em Gestão de Módulos × Usuários: admin escolhe usuário destino + setor de origem + read/write.
+- `logisticaService.getMaterials` ganha versão `getMaterialsAuthorized(userId, companyId)` que filtra por grants + role. Usada por Dispensação Interna e por Vendas (visualização de itens sem permissão de escrita quando não é do próprio setor). Fluxos existentes de logística seguem inalterados.
 
-O nome do perfil deixa de implicar módulos. Passa a existir uma matriz **Perfil × Módulo** por empresa.
+### 3. Assinaturas por setor
 
-## Mudanças (aditivas, sem remover nada)
+- Adicionar `user_signatures.sector_id` (nullable) — assinatura pertence a 1 setor.
+- Sidebar: novo grupo "Assinaturas" com submódulos dinâmicos `assinaturas.<sector_slug>` gerados a partir de `sectors` da empresa.
+- Regras:
+  - Cada usuário sempre gere a **sua própria** assinatura (independente de submódulo).
+  - Ver as assinaturas de um setor requer o submódulo `assinaturas.<setor>`.
+  - Admin da empresa vê todas.
+- Página `Assinaturas.tsx` atualizada: seleção de setor no cadastro; lista filtrada por submódulos permitidos + próprias.
 
-### 1. Banco de dados (migração única)
+### 4. Anamnese — correção + assinaturas
 
-- Nova tabela `role_module_permissions(company_id, role, module_key, is_active)`, com RLS: admin da empresa gerencia, membros leem.
-- **Seed de compatibilidade**: para cada empresa × role × módulo existente, inserir `is_active=true` refletindo o comportamento atual de `user_has_domain_access` (garante "ninguém perde acesso").
-- Nova função `role_has_module(_user_id, _company_id, _module_key)` que consulta a nova tabela; `super_admin` e `admin_empresa` sempre true.
-- Atualizar `user_has_domain_access` para: `company_modules.is_active AND (role_has_module OR user_module_permissions override) AND user_module_permissions != false`. Comportamento resultante equivale ao atual após o seed.
-- `user_can_write_module` idem, mantendo a lógica de escrita.
+- Bug: hoje `NovaAnamnese.tsx` monta responses vazio quando o template dinâmico não segue o esquema esperado — vou refazer a serialização para garantir shape `{question, answer}[]` compatível com a edge function e voltar a chamar `generate-anamnese-pdf` com payload validado.
+- Integrar seleção de assinatura antes de "Gerar PDF": dropdown com assinaturas do usuário + botão "Assinar agora" (SignaturePad) + opção "Usar assinatura padrão automaticamente" (default = padrão do usuário se existir).
+- Assinatura escolhida é enviada à edge function e desenhada no rodapé do PDF (novo parâmetro `signature_image_url` opcional).
 
-### 2. Tipo de Empresa (somente sugestão)
+### 5. Módulo Faturamento (novo)
 
-- Ao trocar `company_type` em `ModulosEmpresa.tsx` / `GestaoEmpresas.tsx`: **não** aplicar template automaticamente. Apenas exibir botão "Aplicar template sugerido" (já aditivo hoje).
-- Remover qualquer efeito colateral do `company_type` sobre `company_modules`.
+- Novo módulo `faturamento` no catálogo.
+- Nova coluna `materials.preco_unitario` (numeric, nullable) — usada só para faturamento; não afeta o estoque.
+- Nova coluna `material_dispensations.valor_unitario`, `valor_total`, `billing_status` ('a_faturar' | 'faturado' | 'cancelado').
+- Página `Faturamento.tsx`:
+  - Lista de dispensações (paciente) com filtros: data (range), paciente, exame/atendimento (livre), material, setor, status.
+  - Colunas: data, paciente, material, qtd, valor unit, total, status.
+  - Ações: marcar como faturado / cancelado (admin_empresa + role `financeiro`).
+  - Export Excel (via `excelUtils`) e resumo (total a faturar / faturado).
+- RLS: `is_company_member` para leitura; escrita restrita a admin + financeiro.
 
-### 3. Módulos (tela dedicada)
+## Detalhes técnicos
 
-- `ModulosEmpresa.tsx` passa a cuidar **apenas** dos toggles de `company_modules`. Sem seleção de perfis, sem template forçado.
+- Migrações Supabase:
+  1. `ALTER material_dispensations ADD destino_tipo, destino_sector_id, valor_unitario, valor_total, billing_status, exam_type`.
+  2. `ALTER user_signatures ADD sector_id`.
+  3. `ALTER materials ADD preco_unitario`.
+  4. `CREATE TABLE stock_access_grants` + GRANTs + RLS + policies.
+  5. Novos módulos no catálogo → gerenciados por `MODULES_CATALOG` (`src/config/modules.ts`), submódulos gerados runtime para setores.
+- Rotas novas: `/dispensacao/interna`, `/dispensacao/paciente`, `/faturamento`, `/gestao/integracao-setores`.
+- `useModuleAccess` já suporta submódulos com composite key — adicionar tratamento para submódulos dinâmicos `assinaturas.<sector_id>` e `dispensacao.*`.
+- Multi-tenant: todas as consultas continuam filtradas por `company_id` do usuário; grants incluem `company_id` e RLS impede cross-company.
 
-### 4. Perfis (nova tela)
+## Não incluído
 
-- Nova página `src/pages/GestaoPerfis.tsx` (admin da empresa e superadm) — matriz Perfil × Módulo:
-  - Linhas: roles em uso na empresa.
-  - Colunas: módulos ativos da empresa.
-  - Toggle grava em `role_module_permissions`.
-- Adicionar rota `/gestao-perfis` e item na sidebar (grupo Administração).
+- Não altero fluxos de estoque, PO, requests ou vendas existentes.
+- Faturamento não integra ainda com `financial_entries` (fica marcado como próxima fase).
 
-### 5. Frontend de permissão
-
-- `useModuleAccess`: além de `company_modules` e `user_module_permissions`, ler `role_module_permissions` para o role do usuário. Regra final:
-  `companyActive && (roleAllowed || userOverrideTrue) && userOverrideFalse !== true`.
-- `AppSidebar` e `RoleProtectedRoute`: manter checagem por módulo; o gate por role atual permanece para telas de gestão (superadm/admin), sem mudar comportamento.
-- Fitness/Clínica/Solicitante: fluxos de redirecionamento por role em `Index.tsx` permanecem (é UX, não permissão).
-
-### 6. Compatibilidade
-
-- Seed inicial replica exatamente o mapa role→módulo atual → nenhum usuário perde acesso.
-- Módulos já ativos continuam ativos. Nada é apagado.
-- `user_module_permissions` continua funcionando como override individual.
-
-## Fora do escopo
-
-- Renomear roles, alterar enum `app_role`, mexer em dados de negócio.
-- Reescrever telas de Logística/RH/Financeiro.
-- Trocar templates do `companyTypeTemplates.ts` (só deixam de ser aplicados automaticamente).
-
-## Entregáveis
-
-1. Migração SQL (tabela + função + seed + policies + GRANTs).
-2. `useModuleAccess.ts` atualizado.
-3. `ModulosEmpresa.tsx` simplificado (só toggles + botão "aplicar sugestão").
-4. `GestaoPerfis.tsx` novo + rota + item de sidebar.
-5. Sem alterações destrutivas em `RoleProtectedRoute`, `AuthContext`, roles ou dados.
-
-Confirma que sigo com essa direção? Em especial: **manter todos os roles atuais** e apenas adicionar a matriz Perfil×Módulo por empresa (sem renomear/consolidar roles)?
+Confirma para eu implementar tudo em sequência?
