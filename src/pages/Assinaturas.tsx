@@ -230,6 +230,7 @@ export default function Assinaturas() {
                     <div className="text-center text-xs">
                       <div className="font-medium">{s.nome}</div>
                       {s.credencial && <div className="text-muted-foreground">{s.credencial}</div>}
+                      {s.sector_nome && <div className="text-muted-foreground">Setor: {s.sector_nome}</div>}
                     </div>
                     <div className="flex items-center justify-between gap-2 pt-1">
                       {s.is_default ? (
