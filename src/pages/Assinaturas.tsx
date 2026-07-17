@@ -69,6 +69,7 @@ export default function Assinaturas() {
   const reset = () => {
     setNome('');
     setCredencial('');
+    setSectorId('');
     setUploadFile(null);
     setMode('draw');
     padRef.current?.clear();
