@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!mod?.is_active) return json({ error: "Módulo Anamnese Digital não está ativo" }, 403);
 
-    const allowed = ["super_admin", "admin_empresa", "clinica"];
+    const allowed = ["super_admin", "admin_empresa", "clinica", "enfermagem", "enfermeiro", "recepcionista"];
     if (!allowed.includes(userRole.role)) {
       return json({ error: "Sem permissão para gerar anamnese" }, 403);
     }
