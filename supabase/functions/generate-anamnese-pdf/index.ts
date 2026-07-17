@@ -107,6 +107,8 @@ Deno.serve(async (req) => {
         exam_type: body.exam_type,
         responses: body.responses,
         observations: body.observations || null,
+        signature_image_url: body.signature_image_url || null,
+        signature_source: body.signature_source || null,
         created_by: userId,
         created_by_name: createdByName,
       })
