@@ -27,11 +27,13 @@ interface Sector { id: string; nome: string; }
 export default function Assinaturas() {
   const { user } = useAuth();
   const [items, setItems] = useState<Signature[]>([]);
+  const [sectors, setSectors] = useState<Sector[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [nome, setNome] = useState('');
   const [credencial, setCredencial] = useState('');
+  const [sectorId, setSectorId] = useState<string>('');
   const [mode, setMode] = useState<'draw' | 'upload'>('draw');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [urlsCache, setUrlsCache] = useState<Record<string, string>>({});
@@ -42,29 +44,21 @@ export default function Assinaturas() {
     setLoading(true);
     const { data: authUser } = await supabase.auth.getUser();
     if (!authUser.user) return;
-    const { data, error } = await supabase
-      .from('user_signatures')
-      .select('*')
-      .eq('user_id', authUser.user.id)
-      .order('is_default', { ascending: false })
-      .order('created_at', { ascending: false });
-    if (error) {
-      toast.error('Erro ao carregar assinaturas');
-    } else {
-      const rows = (data || []) as Signature[];
+    const [sigRes, secRes] = await Promise.all([
+      supabase.from('user_signatures').select('*').eq('user_id', authUser.user.id).order('is_default', { ascending: false }).order('created_at', { ascending: false }),
+      supabase.from('sectors').select('id, nome').eq('company_id', user.companyId).order('nome'),
+    ]);
+    setSectors((secRes.data as Sector[]) || []);
+    if (sigRes.error) toast.error('Erro ao carregar assinaturas');
+    else {
+      const rows = (sigRes.data || []) as Signature[];
       setItems(rows);
-      // Sign URLs
       const cache: Record<string, string> = {};
-      await Promise.all(
-        rows.map(async (r) => {
-          if (r.image_url.startsWith('data:') || r.image_url.startsWith('http')) {
-            cache[r.id] = r.image_url;
-            return;
-          }
-          const { data: s } = await supabase.storage.from('signatures').createSignedUrl(r.image_url, 3600);
-          if (s?.signedUrl) cache[r.id] = s.signedUrl;
-        }),
-      );
+      await Promise.all(rows.map(async (r) => {
+        if (r.image_url.startsWith('data:') || r.image_url.startsWith('http')) { cache[r.id] = r.image_url; return; }
+        const { data: s } = await supabase.storage.from('signatures').createSignedUrl(r.image_url, 3600);
+        if (s?.signedUrl) cache[r.id] = s.signedUrl;
+      }));
       setUrlsCache(cache);
     }
     setLoading(false);
