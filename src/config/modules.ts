@@ -158,8 +158,18 @@ export const MODULES_CATALOG: ModuleDef[] = [
   {
     key: 'dispensacao',
     label: 'Dispensação de Materiais',
-    description: 'Registro de uso de insumos por paciente/atendimento. Não altera o saldo do estoque de logística.',
+    description: 'Registro de uso de insumos. Interna: logística disponibiliza para setor. Paciente: enfermagem/clínica registra uso por atendimento.',
     route: '/dispensacao',
+    submodules: [
+      { key: 'dispensacao.interna', label: 'Interna (Setor)' },
+      { key: 'dispensacao.paciente', label: 'Paciente' },
+    ],
+  },
+  {
+    key: 'faturamento',
+    label: 'Faturamento',
+    description: 'Consulta e cobrança de dispensações. Filtros por data, paciente, exame e status.',
+    route: '/faturamento',
     submodules: [],
   },
   {
