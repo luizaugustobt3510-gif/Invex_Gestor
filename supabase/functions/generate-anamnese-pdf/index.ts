@@ -14,6 +14,10 @@ interface AnamneseInput {
   exam_type: string;
   responses: { question: string; answer: string }[];
   observations?: string;
+  signature_image_url?: string;
+  signature_source?: string;
+  signature_name?: string;
+  signature_credencial?: string;
 }
 
 Deno.serve(async (req) => {
