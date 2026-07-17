@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -17,8 +18,11 @@ interface Signature {
   credencial: string | null;
   image_url: string;
   is_default: boolean;
+  sector_id: string | null;
+  sector_nome: string | null;
   created_at: string;
 }
+interface Sector { id: string; nome: string; }
 
 export default function Assinaturas() {
   const { user } = useAuth();
