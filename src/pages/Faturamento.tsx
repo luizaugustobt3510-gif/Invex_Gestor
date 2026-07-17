@@ -132,7 +132,7 @@ export default function Faturamento() {
       ValorTotal: r.valor_total || 0,
       Status: STATUS_LABEL[r.billing_status] || r.billing_status,
     }));
-    await exportToExcel(data, 'faturamento', 'Faturamento');
+    await writeExcelFromJson('faturamento.xlsx', 'Faturamento', data);
   };
 
   const money = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
