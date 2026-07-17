@@ -106,6 +106,7 @@ import GestaoChangelog from "./pages/GestaoChangelog";
 import { ChangelogModal } from "./components/ChangelogModal";
 import Assinaturas from "./pages/Assinaturas";
 import Dispensacao from "./pages/Dispensacao";
+import Faturamento from "./pages/Faturamento";
 const queryClient = new QueryClient();
 
 const App = () => (
