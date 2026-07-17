@@ -172,6 +172,8 @@ const App = () => (
             <Route path="/meu-perfil" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao', 'clinica', 'enfermagem', 'enfermeiro', 'recepcionista']}><MeuPerfil /></RoleProtectedRoute>} />
             <Route path="/assinaturas" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao', 'clinica', 'enfermagem', 'enfermeiro', 'recepcionista']}><Assinaturas /></RoleProtectedRoute>} />
             <Route path="/dispensacao" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'enfermagem', 'enfermeiro', 'recepcionista', 'logistica', 'usuario almox']} moduleKey="dispensacao"><Dispensacao /></RoleProtectedRoute>} />
+            <Route path="/faturamento" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'financeiro', 'clinica']} moduleKey="faturamento"><Faturamento /></RoleProtectedRoute>} />
+
 
 
             {/* === MÓDULOS DA EMPRESA (admin da empresa) === */}
