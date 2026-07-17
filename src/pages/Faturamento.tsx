@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Receipt, Filter, Download, Loader2, CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
-import { exportToExcel } from '@/lib/excelUtils';
+import { writeExcelFromJson } from '@/lib/excelUtils';
 
 interface DispensationRow {
   id: string;
