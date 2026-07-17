@@ -197,6 +197,27 @@ export default function NovaAnamnese() {
       question: q.text, answer: (answers[q.id] || '').toString(),
     }));
 
+    // Resolve signature
+    let signature_image_url: string | undefined;
+    let signature_source: string | undefined;
+    let signature_name: string | undefined;
+    let signature_credencial: string | undefined;
+    if (signOnFly && inlinePadRef.current) {
+      const dataUrl = inlinePadRef.current.toDataURL?.();
+      if (dataUrl && dataUrl.length > 200) {
+        signature_image_url = dataUrl;
+        signature_source = 'inline';
+      }
+    } else if (signatureId) {
+      const sig = signatures.find(s => s.id === signatureId);
+      if (sig?._signed) {
+        signature_image_url = sig._signed;
+        signature_source = 'saved';
+        signature_name = sig.nome;
+        signature_credencial = sig.credencial || undefined;
+      }
+    }
+
     setSaving(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-anamnese-pdf', {
@@ -207,6 +228,10 @@ export default function NovaAnamnese() {
           exam_type: examType,
           responses,
           observations: observations || undefined,
+          signature_image_url,
+          signature_source,
+          signature_name,
+          signature_credencial,
         },
       });
       if (error) throw error;
