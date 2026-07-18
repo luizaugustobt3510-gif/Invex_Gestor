@@ -283,15 +283,12 @@ export default function Evolucao() {
                 onTypedChange={setPatientTypedSig}
                 padRef={patientSigRef}
               />
-              <SignatureField
+              <DocumentSignaturePicker
                 label={`Assinatura do profissional${user?.nome ? ` (${user.nome})` : ''}`}
-                mode={profSigMode}
-                onModeChange={setProfSigMode}
-                typed={profTypedSig}
-                onTypedChange={setProfTypedSig}
-                padRef={profSigRef}
+                onChange={setProfSig}
               />
             </div>
+
 
             <div className="flex justify-end pt-2">
               <Button onClick={save} disabled={saving} size="lg" className="gap-2">
