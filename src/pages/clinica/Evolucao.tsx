@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
+import { DocumentSignaturePicker, DocumentSignatureValue } from '@/components/DocumentSignaturePicker';
 
 interface Patient { id: string; nome: string; cpf: string | null; created_at?: string; }
 
@@ -37,6 +38,7 @@ interface Evolution {
 
 type SigMode = 'draw' | 'type' | 'none';
 
+
 export default function Evolucao() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -51,11 +53,11 @@ export default function Evolucao() {
   const [saving, setSaving] = useState(false);
 
   const [patientSigMode, setPatientSigMode] = useState<SigMode>('draw');
-  const [profSigMode, setProfSigMode] = useState<SigMode>('draw');
   const [patientTypedSig, setPatientTypedSig] = useState('');
-  const [profTypedSig, setProfTypedSig] = useState('');
   const patientSigRef = useRef<SignaturePadHandle>(null);
-  const profSigRef = useRef<SignaturePadHandle>(null);
+  // Professional signature — supports saved | draw-now | none via DocumentSignaturePicker
+  const [profSig, setProfSig] = useState<DocumentSignatureValue>({ mode: 'none' });
+
 
   const [history, setHistory] = useState<Evolution[]>([]);
   const [viewing, setViewing] = useState<Evolution | null>(null);
