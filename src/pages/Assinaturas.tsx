@@ -89,7 +89,7 @@ export default function Assinaturas() {
         const dataUrl = padRef.current?.toDataURL();
         if (!dataUrl) { toast.error('Desenhe a assinatura'); setSaving(false); return; }
         const blob = await (await fetch(dataUrl)).blob();
-        const path = `${authUser.user.id}/${Date.now()}.png`;
+        const path = `${authUser.user.id}/${user.companyId}/${Date.now()}.png`;
         const { error } = await supabase.storage.from('signatures').upload(path, blob, { contentType: 'image/png', upsert: false });
         if (error) throw error;
         imagePath = path;
