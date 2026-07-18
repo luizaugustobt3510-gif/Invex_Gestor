@@ -119,8 +119,14 @@ export default function NovaAnamnese() {
   }, [template, answers]);
 
   const totalQ = visibleQuestions.length;
-  const activeQ = visibleQuestions[idx];
+  const activeQ = visibleQuestions[Math.min(idx, Math.max(0, totalQ - 1))];
   const progress = totalQ === 0 ? 0 : Math.round(((idx + (phase === 'review' ? 1 : 0)) / totalQ) * 100);
+
+  // Ref that always reflects the *current* visible-question list. Prevents stale-closure
+  // bugs where auto-advance uses an outdated totalQ after a conditional reveals/hides
+  // a downstream question.
+  const visibleRef = useRef<Question[]>(visibleQuestions);
+  useEffect(() => { visibleRef.current = visibleQuestions; }, [visibleQuestions]);
 
   const isAnswered = (q?: Question) => {
     if (!q) return false;
@@ -150,7 +156,7 @@ export default function NovaAnamnese() {
     if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
     if (phase === 'review') {
       setPhase('questions');
-      setIdx(totalQ - 1);
+      setIdx(Math.max(0, totalQ - 1));
       return;
     }
     if (idx === 0) {
@@ -165,17 +171,27 @@ export default function NovaAnamnese() {
     if (autoAdvance) {
       if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
       autoAdvanceTimer.current = setTimeout(() => {
-        // read fresh idx via functional; use closure — this is safe because we only rely on current active question
-        if (idx + 1 >= totalQ) setPhase('review');
-        else setIdx(i => i + 1);
+        // Read fresh values from the ref — the visible list may have grown/shrunk
+        // because this answer unlocked or hid a conditional question.
+        const freshTotal = visibleRef.current.length;
+        setIdx(current => {
+          if (current + 1 >= freshTotal) {
+            setPhase('review');
+            return current;
+          }
+          return current + 1;
+        });
       }, 280);
     }
   };
 
+
   const jumpTo = (i: number) => {
+    if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
     setPhase('questions');
-    setIdx(i);
+    setIdx(Math.max(0, Math.min(i, Math.max(0, visibleQuestions.length - 1))));
   };
+
 
   const startQuestions = () => {
     if (!setupReady) {

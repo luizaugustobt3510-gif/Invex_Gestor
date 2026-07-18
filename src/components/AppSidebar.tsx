@@ -286,7 +286,7 @@ const logisticsGroups: MenuGroup[] = [
     label: "Setores",
     icon: <Building2 className="w-4 h-4" />,
     allowedRoles: ["admin", "logistica"],
-    moduleKey: "logistica",
+    moduleKey: "setores",
     items: [
       {
         path: "/criar-setor",
@@ -302,22 +302,8 @@ const logisticsGroups: MenuGroup[] = [
       },
     ],
   },
-  {
-    label: "Conferência",
-    icon: <Thermometer className="w-4 h-4" />,
-    allowedRoles: ["admin", "logistica", "usuario almox"],
-    moduleKey: "logistica",
-    items: [
-      {
-        path: "/conferencia-temperatura",
-        label: "Controle Temperatura",
-        icon: <Thermometer className="w-4 h-4" />,
-        allowedRoles: ["admin", "logistica", "usuario almox"],
-        submoduleKey: "logistica.conferencia",
-      },
-    ],
-  },
 ];
+
 
 // ─── INVEX FITNESS (app pessoal — link rápido, só p/ empresa Invex Fitness) ───
 const academiaGroups: MenuGroup[] = [
@@ -739,7 +725,22 @@ const manutencaoGroups: MenuGroup[] = [
       },
     ],
   },
+  {
+    label: "Conferência de Temperatura",
+    icon: <Thermometer className="w-4 h-4" />,
+    allowedRoles: ["admin", "logistica", "manutencao", "usuario almox"],
+    moduleKey: "conferencia_temperatura",
+    items: [
+      {
+        path: "/conferencia-temperatura",
+        label: "Controle Temperatura",
+        icon: <Thermometer className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "manutencao", "usuario almox"],
+      },
+    ],
+  },
 ];
+
 
 // ─── BENEFÍCIOS ───
 const beneficiosGroups: MenuGroup[] = [

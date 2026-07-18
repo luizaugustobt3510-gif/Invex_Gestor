@@ -107,6 +107,21 @@ export const MODULES_CATALOG: ModuleDef[] = [
     ],
   },
   {
+    key: 'setores',
+    label: 'Setores',
+    description: 'Cadastro e listagem de setores da empresa. Utilizado em toda a plataforma (assinaturas, dispensação, solicitações etc.).',
+    route: '/listar-setores',
+    submodules: [],
+  },
+  {
+    key: 'conferencia_temperatura',
+    label: 'Conferência de Temperatura',
+    description: 'Controle diário de temperatura e umidade via QR Code. Vinculado à Manutenção.',
+    route: '/conferencia-temperatura',
+    submodules: [],
+  },
+
+  {
     key: 'academia',
     label: 'Academia',
     description: 'Alunos, mensalidades e controle de pagamentos.',

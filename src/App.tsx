@@ -135,8 +135,8 @@ const App = () => (
             <Route path="/atualizar-estoque" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica" submoduleKey="logistica.estoque"><AtualizarEstoque /></RoleProtectedRoute>} />
             <Route path="/gerar-oc" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica" submoduleKey="logistica.ordem_compra"><GerarOC /></RoleProtectedRoute>} />
             <Route path="/gerenciar-oc" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica" submoduleKey="logistica.ordem_compra"><GerenciarOC /></RoleProtectedRoute>} />
-            <Route path="/criar-setor" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><CriarSetor /></RoleProtectedRoute>} />
-            <Route path="/listar-setores" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><ListarSetores /></RoleProtectedRoute>} />
+            <Route path="/criar-setor" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="setores"><CriarSetor /></RoleProtectedRoute>} />
+            <Route path="/listar-setores" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="setores"><ListarSetores /></RoleProtectedRoute>} />
             <Route path="/conciliacao" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica" submoduleKey="logistica.conciliacao_estoque"><Conciliacao /></RoleProtectedRoute>} />
             <Route path="/qr-scanner" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><QRScanner /></RoleProtectedRoute>} />
             <Route path="/gerar-qrcode" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><GerarQRCode /></RoleProtectedRoute>} />
@@ -145,7 +145,8 @@ const App = () => (
             <Route path="/recontagem" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><Recontagem /></RoleProtectedRoute>} />
             <Route path="/itens-criticos" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><ItensCriticos /></RoleProtectedRoute>} />
             <Route path="/reposicao" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><Reposicao /></RoleProtectedRoute>} />
-            <Route path="/conferencia-temperatura" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.conferencia"><ConferenciaTemperatura /></RoleProtectedRoute>} />
+            <Route path="/conferencia-temperatura" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'manutencao', 'usuario almox']} moduleKey="conferencia_temperatura"><ConferenciaTemperatura /></RoleProtectedRoute>} />
+
             <Route path="/fornecedores" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><Fornecedores /></RoleProtectedRoute>} />
             <Route path="/curva-abc" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><CurvaABCInteligente /></RoleProtectedRoute>} />
             <Route path="/estoque-inteligente" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><EstoqueInteligente /></RoleProtectedRoute>} />
@@ -170,7 +171,7 @@ const App = () => (
 
             {/* === PERFIL === */}
             <Route path="/meu-perfil" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao', 'clinica', 'enfermagem', 'enfermeiro', 'recepcionista']}><MeuPerfil /></RoleProtectedRoute>} />
-            <Route path="/assinaturas" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao', 'clinica', 'enfermagem', 'enfermeiro', 'recepcionista']}><Assinaturas /></RoleProtectedRoute>} />
+            <Route path="/assinaturas" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'usuario almox', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'manutencao', 'clinica', 'enfermagem', 'enfermeiro', 'recepcionista']} moduleKey="assinaturas"><Assinaturas /></RoleProtectedRoute>} />
             <Route path="/dispensacao" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'enfermagem', 'enfermeiro', 'recepcionista', 'logistica', 'usuario almox']} moduleKey="dispensacao"><Dispensacao /></RoleProtectedRoute>} />
             <Route path="/faturamento" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'financeiro', 'clinica']} moduleKey="faturamento"><Faturamento /></RoleProtectedRoute>} />
 
