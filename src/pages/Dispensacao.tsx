@@ -8,11 +8,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
-import { Search, Loader2, Check, ChevronsUpDown, ClipboardCheck, History, Trash2, User as UserIcon, Building2 } from 'lucide-react';
+import { Search, Loader2, Check, ChevronsUpDown, ClipboardCheck, History, Trash2, User as UserIcon, Building2, Plus, X } from 'lucide-react';
 
 interface Material {
   id: string;
@@ -37,15 +38,23 @@ interface Dispensation {
   exam_type: string | null;
   created_at: string;
 }
+interface CartItem { material: Material; qty: number; }
 
 type Mode = 'paciente' | 'interna';
+
+// Roles allowed for each mode. Logistics NEVER dispenses to patients.
+const CLINICAL_ROLES = new Set(['admin', 'superadm', 'clinica', 'enfermagem', 'enfermeiro', 'recepcionista']);
+const LOGISTIC_ROLES = new Set(['admin', 'superadm', 'logistica', 'usuario almox']);
 
 export default function Dispensacao() {
   const { user } = useAuth();
   const { canAccessModule } = useModuleAccess();
 
-  const allowPaciente = canAccessModule('dispensacao.paciente');
-  const allowInterna = canAccessModule('dispensacao.interna');
+  const role = user?.role || '';
+  const canPacienteRole = CLINICAL_ROLES.has(role);
+  const canInternaRole = LOGISTIC_ROLES.has(role);
+  const allowPaciente = canPacienteRole && canAccessModule('dispensacao.paciente');
+  const allowInterna = canInternaRole && canAccessModule('dispensacao.interna');
   const defaultMode: Mode = allowPaciente ? 'paciente' : 'interna';
   const [mode, setMode] = useState<Mode>(defaultMode);
   useEffect(() => { setMode(defaultMode); }, [defaultMode]);
@@ -58,12 +67,11 @@ export default function Dispensacao() {
   const [saving, setSaving] = useState(false);
 
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState<Material | null>(null);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [patientId, setPatientId] = useState('');
   const [patientPop, setPatientPop] = useState(false);
   const [sectorId, setSectorId] = useState('');
   const [examType, setExamType] = useState('');
-  const [qty, setQty] = useState('1');
   const [obs, setObs] = useState('');
 
   const load = async () => {
@@ -92,44 +100,58 @@ export default function Dispensacao() {
     return materials.filter(m => m.material.toLowerCase().includes(s) || m.codigo.toLowerCase().includes(s));
   }, [materials, search]);
 
+  const addToCart = (m: Material) => {
+    setCart(prev => prev.find(c => c.material.id === m.id) ? prev : [...prev, { material: m, qty: 1 }]);
+  };
+  const updateQty = (id: string, qty: number) => {
+    setCart(prev => prev.map(c => c.material.id === id ? { ...c, qty } : c));
+  };
+  const removeFromCart = (id: string) => {
+    setCart(prev => prev.filter(c => c.material.id !== id));
+  };
+
   const register = async () => {
-    if (!user?.companyId || !selected) return;
-    const q = Number(qty);
-    if (!q || q <= 0) { toast.error('Quantidade inválida'); return; }
+    if (!user?.companyId) return;
+    if (cart.length === 0) { toast.error('Adicione pelo menos um material'); return; }
     if (mode === 'interna' && !sectorId) { toast.error('Selecione o setor destinatário'); return; }
+    for (const c of cart) {
+      if (!c.qty || c.qty <= 0) { toast.error(`Quantidade inválida para ${c.material.material}`); return; }
+    }
     const { data: authUser } = await supabase.auth.getUser();
     if (!authUser.user) return;
     setSaving(true);
     try {
       const patient = patients.find(p => p.id === patientId);
       const sector = sectors.find(s => s.id === sectorId);
-      const valorUnit = selected.preco_unitario || null;
-      const payload: any = {
-        company_id: user.companyId,
-        user_id: authUser.user.id,
-        material_id: selected.id,
-        material_codigo: selected.codigo,
-        material_nome: selected.material,
-        quantidade: q,
-        unidade: selected.unidade,
-        observacoes: obs.trim() || null,
-        destino_tipo: mode,
-        valor_unitario: valorUnit,
-        valor_total: valorUnit ? valorUnit * q : null,
-      };
-      if (mode === 'paciente') {
-        payload.patient_id = patientId || null;
-        payload.patient_name = patient?.nome || null;
-        payload.exam_type = examType.trim() || null;
-      } else {
-        payload.destino_sector_id = sectorId;
-        payload.destino_sector_nome = sector?.nome || null;
-      }
-      const { error } = await supabase.from('material_dispensations').insert(payload);
+      const rows = cart.map(c => {
+        const valorUnit = c.material.preco_unitario || null;
+        const payload: any = {
+          company_id: user.companyId,
+          user_id: authUser.user.id,
+          material_id: c.material.id,
+          material_codigo: c.material.codigo,
+          material_nome: c.material.material,
+          quantidade: c.qty,
+          unidade: c.material.unidade,
+          observacoes: obs.trim() || null,
+          destino_tipo: mode,
+          valor_unitario: valorUnit,
+          valor_total: valorUnit ? valorUnit * c.qty : null,
+        };
+        if (mode === 'paciente') {
+          payload.patient_id = patientId || null;
+          payload.patient_name = patient?.nome || null;
+          payload.exam_type = examType.trim() || null;
+        } else {
+          payload.destino_sector_id = sectorId;
+          payload.destino_sector_nome = sector?.nome || null;
+        }
+        return payload;
+      });
+      const { error } = await supabase.from('material_dispensations').insert(rows);
       if (error) throw error;
-      toast.success('Dispensação registrada');
-      setSelected(null);
-      setQty('1');
+      toast.success(`${cart.length} item(ns) dispensado(s)`);
+      setCart([]);
       setObs('');
       setPatientId('');
       setSectorId('');
@@ -160,8 +182,8 @@ export default function Dispensacao() {
             </CardTitle>
             <p className="text-xs text-muted-foreground">
               {mode === 'paciente'
-                ? 'Registro por paciente/atendimento. Não altera o saldo do estoque.'
-                : 'Disponibilização de material para um setor (uso interno). Não altera o saldo do estoque.'}
+                ? 'Registro por paciente/atendimento (clínica/enfermagem). Não altera o saldo do estoque.'
+                : 'Disponibilização de material da logística para um setor. Não altera o saldo do estoque.'}
             </p>
             {(allowPaciente && allowInterna) && (
               <div className="flex gap-2 pt-2">
@@ -177,51 +199,70 @@ export default function Dispensacao() {
           <CardContent className="space-y-4">
             {(!allowPaciente && !allowInterna) ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
-                Sem permissão para nenhum tipo de dispensação. Contate o administrador.
+                Sem permissão para dispensação. Contate o administrador.
               </div>
             ) : (
               <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
                 <div className="space-y-2">
-                  <Label>1. Selecione o material</Label>
+                  <Label>1. Materiais disponíveis</Label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input className="pl-9" placeholder="Buscar por código ou nome..."
                       value={search} onChange={(e) => setSearch(e.target.value)} />
                   </div>
-                  <div className="rounded-lg border max-h-[320px] overflow-y-auto">
+                  <div className="rounded-lg border max-h-[360px] overflow-y-auto">
                     {loading ? (
                       <div className="flex justify-center py-8"><Loader2 className="w-4 h-4 animate-spin" /></div>
                     ) : filtered.length === 0 ? (
                       <div className="text-center py-6 text-sm text-muted-foreground">Nenhum material</div>
                     ) : (
-                      filtered.slice(0, 100).map(m => (
-                        <button key={m.id} onClick={() => setSelected(m)}
-                          className={`w-full text-left px-3 py-2 border-b last:border-0 hover:bg-muted transition-colors ${selected?.id === m.id ? 'bg-primary/10' : ''}`}>
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="min-w-0">
-                              <div className="text-sm font-medium truncate">{m.material}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {m.codigo} · {m.unidade || 'un'} · Saldo: {m.quantidade}
+                      filtered.slice(0, 100).map(m => {
+                        const inCart = cart.find(c => c.material.id === m.id);
+                        return (
+                          <button key={m.id} onClick={() => addToCart(m)} disabled={!!inCart}
+                            className={`w-full text-left px-3 py-2 border-b last:border-0 hover:bg-muted transition-colors ${inCart ? 'opacity-50' : ''}`}>
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="min-w-0">
+                                <div className="text-sm font-medium truncate">{m.material}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {m.codigo} · {m.unidade || 'un'} · Saldo: {m.quantidade}
+                                </div>
                               </div>
+                              {inCart ? <Check className="w-4 h-4 text-primary shrink-0" /> : <Plus className="w-4 h-4 text-muted-foreground shrink-0" />}
                             </div>
-                            {selected?.id === m.id && <Check className="w-4 h-4 text-primary shrink-0" />}
-                          </div>
-                        </button>
-                      ))
+                          </button>
+                        );
+                      })
                     )}
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <Label>2. Detalhes</Label>
-                  <div className="rounded-lg border p-3 bg-muted/20 space-y-3">
-                    <div>
-                      <div className="text-xs text-muted-foreground">Material</div>
-                      <div className="text-sm font-medium">
-                        {selected ? `${selected.codigo} — ${selected.material}` : <span className="text-muted-foreground">Selecione ao lado</span>}
+                  <Label>2. Itens selecionados <Badge variant="secondary">{cart.length}</Badge></Label>
+                  <div className="rounded-lg border p-3 bg-muted/20 space-y-3 max-h-[220px] overflow-y-auto">
+                    {cart.length === 0 ? (
+                      <div className="text-xs text-muted-foreground text-center py-6">
+                        Clique nos materiais ao lado para adicionar
                       </div>
-                    </div>
+                    ) : (
+                      cart.map(c => (
+                        <div key={c.material.id} className="flex items-center gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-medium truncate">{c.material.material}</div>
+                            <div className="text-xs text-muted-foreground">{c.material.codigo} · {c.material.unidade || 'un'}</div>
+                          </div>
+                          <Input type="number" min="0.01" step="0.01" className="w-20 h-8"
+                            value={c.qty} onChange={e => updateQty(c.material.id, Number(e.target.value))} />
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => removeFromCart(c.material.id)}>
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
 
+                  <Label>3. Destino</Label>
+                  <div className="rounded-lg border p-3 space-y-3">
                     {mode === 'paciente' ? (
                       <>
                         <div className="space-y-1.5">
@@ -272,27 +313,13 @@ export default function Dispensacao() {
                         </Select>
                       </div>
                     )}
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Quantidade</Label>
-                        <Input type="number" inputMode="decimal" step="0.01" min="0.01"
-                          value={qty} onChange={(e) => setQty(e.target.value)} />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Unidade</Label>
-                        <Input value={selected?.unidade || '—'} disabled />
-                      </div>
-                    </div>
-
                     <div className="space-y-1.5">
                       <Label className="text-xs">Observações</Label>
                       <Textarea rows={2} value={obs} onChange={(e) => setObs(e.target.value)} placeholder="Opcional" />
                     </div>
-
-                    <Button className="w-full" onClick={register} disabled={saving || !selected}>
+                    <Button className="w-full" onClick={register} disabled={saving || cart.length === 0}>
                       {saving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : null}
-                      Registrar dispensação
+                      Registrar dispensação ({cart.length})
                     </Button>
                   </div>
                 </div>
