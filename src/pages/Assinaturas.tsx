@@ -96,7 +96,7 @@ export default function Assinaturas() {
       } else {
         if (!uploadFile) { toast.error('Selecione uma imagem'); setSaving(false); return; }
         const ext = uploadFile.name.split('.').pop() || 'png';
-        const path = `${authUser.user.id}/${Date.now()}.${ext}`;
+        const path = `${authUser.user.id}/${user.companyId}/${Date.now()}.${ext}`;
         const { error } = await supabase.storage.from('signatures').upload(path, uploadFile, { upsert: false });
         if (error) throw error;
         imagePath = path;
