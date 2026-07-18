@@ -119,9 +119,22 @@ export default function Evolucao() {
     if (patientSigMode === 'type') return buildTypedSignature(patientTypedSig);
     return null;
   };
-  const getProfSignature = (): string | null => {
-    if (profSigMode === 'draw') return profSigRef.current?.toDataURL() || null;
-    if (profSigMode === 'type') return buildTypedSignature(profTypedSig);
+  const resolveProfSignature = async (): Promise<string | null> => {
+    if (profSig.mode === 'none') return null;
+    if (profSig.mode === 'now') return profSig.dataUrl || null;
+    if (profSig.mode === 'saved' && profSig.signedUrl) {
+      try {
+        // Convert saved image URL to data URL for embedded storage
+        const resp = await fetch(profSig.signedUrl);
+        if (!resp.ok) return null;
+        const blob = await resp.blob();
+        return await new Promise<string>((resolve) => {
+          const fr = new FileReader();
+          fr.onload = () => resolve(String(fr.result));
+          fr.readAsDataURL(blob);
+        });
+      } catch { return null; }
+    }
     return null;
   };
 
@@ -130,8 +143,8 @@ export default function Evolucao() {
     if (!patientId) return toast.error('Selecione o paciente');
     if (!content.trim()) return toast.error('Preencha a evolução');
 
-    const patientSig = getPatientSignature();
-    const profSig = getProfSignature();
+    const patientSigData = getPatientSignature();
+    const profSigData = await resolveProfSignature();
 
     setSaving(true);
     const { data: authUser } = await supabase.auth.getUser();
@@ -139,10 +152,10 @@ export default function Evolucao() {
       company_id: user.companyId,
       patient_id: patientId,
       content: content.trim(),
-      patient_signature: patientSig,
-      professional_signature: profSig,
-      professional_name: user.nome || null,
-      signature_type: `${patientSigMode}/${profSigMode}`,
+      patient_signature: patientSigData,
+      professional_signature: profSigData,
+      professional_name: profSig.nome || user.nome || null,
+      signature_type: `${patientSigMode}/${profSig.mode}`,
       created_by: authUser.user?.id,
       created_by_name: user.nome || user.email || null,
     });
@@ -152,11 +165,10 @@ export default function Evolucao() {
     toast.success('Evolução registrada');
     setContent('');
     setPatientTypedSig('');
-    setProfTypedSig('');
     patientSigRef.current?.clear();
-    profSigRef.current?.clear();
     loadHistory(patientId);
   };
+
 
   const remove = async (id: string) => {
     if (!confirm('Excluir esta evolução?')) return;
