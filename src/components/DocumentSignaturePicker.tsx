@@ -68,7 +68,7 @@ export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sector
       }
     })();
     // eslint-disable-next-line
-  }, [user?.id]);
+  }, [user?.companyId]);
 
   const filtered = sectorId ? sigs.filter(s => !s.sector_id || s.sector_id === sectorId) : sigs;
 
