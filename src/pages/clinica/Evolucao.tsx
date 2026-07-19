@@ -338,33 +338,85 @@ export default function Evolucao() {
           </Card>
         )}
 
-        {viewing && (
-          <Card className="border-primary">
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-base">
-                Evolução — {new Date(viewing.created_at).toLocaleString('pt-BR')}
-              </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setViewing(null)}>Fechar</Button>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="whitespace-pre-wrap text-sm bg-muted/40 rounded p-3">{viewing.content}</div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">Assinatura do paciente</div>
-                  {viewing.patient_signature
-                    ? <img src={viewing.patient_signature} alt="Assinatura paciente" className="border rounded bg-white max-h-32" />
-                    : <div className="text-xs text-muted-foreground italic">Não assinado</div>}
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground mb-1">Assinatura do profissional{viewing.professional_name ? ` (${viewing.professional_name})` : ''}</div>
-                  {viewing.professional_signature
-                    ? <img src={viewing.professional_signature} alt="Assinatura profissional" className="border rounded bg-white max-h-32" />
-                    : <div className="text-xs text-muted-foreground italic">Não assinado</div>}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            {viewing && (() => {
+              const dt = new Date(viewing.created_at);
+              const dateStr = dt.toLocaleDateString('pt-BR');
+              const timeStr = dt.toLocaleTimeString('pt-BR').slice(0, 5);
+              const pat = patients.find(p => p.id === viewing.patient_id);
+              const title = `${(pat?.nome || 'Paciente').toUpperCase()} - Evolução - ${dateStr} - ${timeStr}`;
+              const printPdf = () => {
+                const w = window.open('', '_blank');
+                if (!w) return;
+                const esc = (s: any) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]!));
+                w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title>
+                  <style>
+                    body{font-family:Arial,Helvetica,sans-serif;color:#111;max-width:780px;margin:32px auto;padding:0 24px;line-height:1.5}
+                    h1{font-size:18px;text-align:center;border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:16px}
+                    .info{background:#f5f5f5;padding:12px;border-radius:6px;font-size:13px;margin-bottom:16px}
+                    .info div{margin:2px 0}
+                    .content{white-space:pre-wrap;font-size:14px;padding:12px 0;border-bottom:1px solid #ddd}
+                    .sigs{display:flex;gap:24px;margin-top:24px}
+                    .sig{flex:1;text-align:center;font-size:12px}
+                    .sig img{max-height:80px;border-bottom:1px solid #333;padding-bottom:4px}
+                    .foot{margin-top:32px;font-size:11px;color:#666;text-align:center}
+                    @media print { body { margin: 0; } }
+                  </style></head><body>
+                  <h1>${esc(title)}</h1>
+                  <div class="info">
+                    <div><b>Paciente:</b> ${esc(pat?.nome || '-')}</div>
+                    ${pat?.cpf ? `<div><b>CPF:</b> ${esc(pat.cpf)}</div>` : ''}
+                    <div><b>Data:</b> ${esc(dateStr)} às ${esc(timeStr)}</div>
+                    ${viewing.created_by_name ? `<div><b>Profissional:</b> ${esc(viewing.created_by_name)}</div>` : ''}
+                  </div>
+                  <div class="content">${esc(viewing.content)}</div>
+                  <div class="sigs">
+                    <div class="sig">${viewing.patient_signature ? `<img src="${viewing.patient_signature}"/>` : '<div style="border-bottom:1px solid #333;height:60px"></div>'}<div>Paciente</div></div>
+                    <div class="sig">${viewing.professional_signature ? `<img src="${viewing.professional_signature}"/>` : '<div style="border-bottom:1px solid #333;height:60px"></div>'}<div>${esc(viewing.professional_name || 'Profissional')}</div></div>
+                  </div>
+                  <div class="foot">Documento gerado em ${esc(new Date().toLocaleString('pt-BR'))}</div>
+                  <script>window.onload=()=>{window.print();}</script>
+                  </body></html>`);
+                w.document.close();
+              };
+              return (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="text-base uppercase tracking-wide">{title}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <div className="rounded-lg bg-muted/40 p-3 text-sm space-y-1">
+                      <div><span className="text-muted-foreground">Paciente:</span> <b>{pat?.nome || '-'}</b></div>
+                      {pat?.cpf && <div><span className="text-muted-foreground">CPF:</span> {pat.cpf}</div>}
+                      <div><span className="text-muted-foreground">Data:</span> {dateStr} às {timeStr}</div>
+                      {viewing.created_by_name && <div><span className="text-muted-foreground">Profissional:</span> {viewing.created_by_name}</div>}
+                    </div>
+                    <div className="whitespace-pre-wrap text-sm bg-background border rounded p-3">{viewing.content}</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Assinatura do paciente</div>
+                        {viewing.patient_signature
+                          ? <img src={viewing.patient_signature} alt="Assinatura paciente" className="border rounded bg-white max-h-32" />
+                          : <div className="text-xs text-muted-foreground italic">Não assinado</div>}
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Assinatura do profissional{viewing.professional_name ? ` (${viewing.professional_name})` : ''}</div>
+                        {viewing.professional_signature
+                          ? <img src={viewing.professional_signature} alt="Assinatura profissional" className="border rounded bg-white max-h-32" />
+                          : <div className="text-xs text-muted-foreground italic">Não assinado</div>}
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter className="gap-2">
+                    <Button variant="outline" onClick={() => setViewing(null)}>Fechar</Button>
+                    <Button onClick={printPdf} className="gap-2"><FileText className="w-4 h-4" /> Gerar PDF</Button>
+                  </DialogFooter>
+                </>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
       </div>
     </MainLayout>
   );
