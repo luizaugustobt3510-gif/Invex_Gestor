@@ -114,6 +114,7 @@ export default function Dispensacao() {
     if (!user?.companyId) return;
     if (cart.length === 0) { toast.error('Adicione pelo menos um material'); return; }
     if (mode === 'interna' && !sectorId) { toast.error('Selecione o setor destinatário'); return; }
+    if (mode === 'paciente' && !patientId) { toast.error('Selecione o paciente'); return; }
     for (const c of cart) {
       if (!c.qty || c.qty <= 0) { toast.error(`Quantidade inválida para ${c.material.material}`); return; }
     }
