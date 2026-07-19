@@ -44,29 +44,47 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: userRole } = await supabase
+    // Load ALL roles for the user and pick the best match (with a company_id preferred)
+    const { data: allRoles } = await supabase
       .from("user_roles")
       .select("role, company_id")
-      .eq("user_id", userId)
-      .not("company_id", "is", null)
-      .limit(1)
-      .maybeSingle();
+      .eq("user_id", userId);
 
-    if (!userRole?.company_id) return json({ error: "Usuário sem empresa" }, 403);
+    const rolesList = (allRoles || []) as Array<{ role: string; company_id: string | null }>;
+    const userRole =
+      rolesList.find((r) => r.company_id) ||
+      rolesList.find((r) => r.role === "super_admin") ||
+      null;
 
-    // Confirm module is active for company
-    const { data: mod } = await supabase
-      .from("company_modules")
-      .select("is_active")
-      .eq("company_id", userRole.company_id)
-      .eq("module_key", "anamnese")
-      .maybeSingle();
-    if (!mod?.is_active) return json({ error: "Módulo Anamnese Digital não está ativo" }, 403);
-
-    const allowed = ["super_admin", "admin_empresa", "clinica", "enfermagem", "enfermeiro", "recepcionista"];
-    if (!allowed.includes(userRole.role)) {
-      return json({ error: "Sem permissão para gerar anamnese" }, 403);
+    if (!userRole) return json({ error: "Usuário sem perfil atribuído" }, 403);
+    const companyId = userRole.company_id;
+    if (!companyId && userRole.role !== "super_admin") {
+      return json({ error: "Usuário sem empresa" }, 403);
     }
+
+    // Confirm module is active for company (skip for super_admin without company)
+    if (companyId) {
+      const { data: mod } = await supabase
+        .from("company_modules")
+        .select("is_active")
+        .eq("company_id", companyId)
+        .eq("module_key", "anamnese")
+        .maybeSingle();
+      if (!mod?.is_active) return json({ error: "Módulo Anamnese Digital não está ativo" }, 403);
+    }
+
+    const allowed = new Set([
+      "super_admin", "admin_empresa", "clinica",
+      "enfermagem", "enfermeiro", "recepcionista",
+    ]);
+    const hasAllowedRole = rolesList.some((r) => allowed.has(r.role));
+    if (!hasAllowedRole) {
+      return json({
+        error: `Sem permissão para gerar anamnese (perfil: ${rolesList.map(r => r.role).join(", ") || "nenhum"})`,
+      }, 403);
+    }
+    // Rebind userRole company for downstream (patient/company checks)
+    const effectiveCompanyId = companyId as string;
 
     const body = (await req.json()) as AnamneseInput;
     if (!body.patient_id || !body.exam_type || !Array.isArray(body.responses)) {
