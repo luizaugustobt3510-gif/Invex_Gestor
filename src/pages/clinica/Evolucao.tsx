@@ -62,6 +62,7 @@ export default function Evolucao() {
 
   const [history, setHistory] = useState<Evolution[]>([]);
   const [viewing, setViewing] = useState<Evolution | null>(null);
+  const [showHistory, setShowHistory] = useState(true);
 
   const load = async () => {
     if (!user?.companyId) return;
