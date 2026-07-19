@@ -308,40 +308,49 @@ export default function Evolucao() {
         {patientId && (
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <FileText className="w-4 h-4" /> Histórico de evoluções
-                <Badge variant="secondary">{history.length}</Badge>
-              </CardTitle>
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="w-4 h-4" /> Histórico de evoluções
+                  <Badge variant="secondary">{history.length}</Badge>
+                </CardTitle>
+                <Button size="sm" variant="outline" onClick={() => setShowHistory(v => !v)} className="gap-1">
+                  <History className="w-4 h-4" />
+                  {showHistory ? 'Ocultar histórico' : 'Mostrar histórico'}
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent>
-              {history.length === 0 ? (
-                <div className="text-center text-muted-foreground py-6 text-sm">
-                  Nenhuma evolução registrada para este paciente.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {history.map(ev => (
-                    <div key={ev.id} className="border rounded-lg p-3 space-y-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex flex-wrap items-center gap-2 text-sm">
-                          <Badge variant="secondary">{new Date(ev.created_at).toLocaleString('pt-BR')}</Badge>
-                          {ev.created_by_name && <span className="text-muted-foreground text-xs">Por: {ev.created_by_name}</span>}
+            {showHistory && (
+              <CardContent>
+                {history.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-6 text-sm">
+                    Nenhuma evolução registrada para este paciente.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {history.map(ev => (
+                      <div key={ev.id} className="border rounded-lg p-3 space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-2 text-sm">
+                            <Badge variant="secondary">{new Date(ev.created_at).toLocaleString('pt-BR')}</Badge>
+                            {ev.created_by_name && <span className="text-muted-foreground text-xs">Por: {ev.created_by_name}</span>}
+                          </div>
+                          <div className="flex gap-1">
+                            <Button size="sm" variant="outline" onClick={() => setViewing(ev)}>Ver</Button>
+                            <Button size="sm" variant="destructive" onClick={() => remove(ev.id)}>
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline" onClick={() => setViewing(ev)}>Ver</Button>
-                          <Button size="sm" variant="destructive" onClick={() => remove(ev.id)}>
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
+                        <div className="text-sm whitespace-pre-wrap line-clamp-3">{ev.content}</div>
                       </div>
-                      <div className="text-sm whitespace-pre-wrap line-clamp-3">{ev.content}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            )}
           </Card>
         )}
+
 
         <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
