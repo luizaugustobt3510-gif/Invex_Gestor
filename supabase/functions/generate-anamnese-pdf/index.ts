@@ -44,28 +44,44 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: userRole } = await supabase
+    // Load ALL roles for the user and pick the best match (with a company_id preferred)
+    const { data: allRoles } = await supabase
       .from("user_roles")
       .select("role, company_id")
-      .eq("user_id", userId)
-      .not("company_id", "is", null)
-      .limit(1)
-      .maybeSingle();
+      .eq("user_id", userId);
 
-    if (!userRole?.company_id) return json({ error: "Usuário sem empresa" }, 403);
+    const rolesList = (allRoles || []) as Array<{ role: string; company_id: string | null }>;
+    const userRole =
+      rolesList.find((r) => r.company_id) ||
+      rolesList.find((r) => r.role === "super_admin") ||
+      null;
 
-    // Confirm module is active for company
-    const { data: mod } = await supabase
-      .from("company_modules")
-      .select("is_active")
-      .eq("company_id", userRole.company_id)
-      .eq("module_key", "anamnese")
-      .maybeSingle();
-    if (!mod?.is_active) return json({ error: "Módulo Anamnese Digital não está ativo" }, 403);
+    if (!userRole) return json({ error: "Usuário sem perfil atribuído" }, 403);
+    const effectiveCompanyId = (userRole.company_id || "") as string;
+    if (!effectiveCompanyId && userRole.role !== "super_admin") {
+      return json({ error: "Usuário sem empresa" }, 403);
+    }
 
-    const allowed = ["super_admin", "admin_empresa", "clinica", "enfermagem", "enfermeiro", "recepcionista"];
-    if (!allowed.includes(userRole.role)) {
-      return json({ error: "Sem permissão para gerar anamnese" }, 403);
+    // Confirm module is active for company (skip for super_admin without company)
+    if (effectiveCompanyId) {
+      const { data: mod } = await supabase
+        .from("company_modules")
+        .select("is_active")
+        .eq("company_id", effectiveCompanyId)
+        .eq("module_key", "anamnese")
+        .maybeSingle();
+      if (!mod?.is_active) return json({ error: "Módulo Anamnese Digital não está ativo" }, 403);
+    }
+
+    const allowed = new Set([
+      "super_admin", "admin_empresa", "clinica",
+      "enfermagem", "enfermeiro", "recepcionista",
+    ]);
+    const hasAllowedRole = rolesList.some((r) => allowed.has(r.role));
+    if (!hasAllowedRole) {
+      return json({
+        error: `Sem permissão para gerar anamnese (perfil: ${rolesList.map(r => r.role).join(", ") || "nenhum"})`,
+      }, 403);
     }
 
     const body = (await req.json()) as AnamneseInput;
@@ -79,14 +95,14 @@ Deno.serve(async (req) => {
       .select("id, company_id, nome, cpf, birth_date, phone, email, gender")
       .eq("id", body.patient_id)
       .maybeSingle();
-    if (!patient || patient.company_id !== userRole.company_id) {
+    if (!patient || patient.company_id !== effectiveCompanyId) {
       return json({ error: "Paciente inválido" }, 400);
     }
 
     const { data: company } = await supabase
       .from("companies")
       .select("name, cnpj")
-      .eq("id", userRole.company_id)
+      .eq("id", effectiveCompanyId)
       .single();
 
     const { data: profile } = await supabase
@@ -100,7 +116,7 @@ Deno.serve(async (req) => {
     const { data: anamnese, error: insErr } = await supabase
       .from("anamneses")
       .insert({
-        company_id: userRole.company_id,
+        company_id: effectiveCompanyId,
         patient_id: patient.id,
         template_id: body.template_id || null,
         template_name: body.template_name || null,
@@ -270,7 +286,7 @@ Deno.serve(async (req) => {
 
     const pdfBytes = doc.output("arraybuffer");
     const pdfBuffer = new Uint8Array(pdfBytes);
-    const filePath = `${userRole.company_id}/${anamnese.id}.pdf`;
+    const filePath = `${effectiveCompanyId}/${anamnese.id}.pdf`;
     const { error: upErr } = await supabase.storage
       .from("anamnese-pdfs")
       .upload(filePath, pdfBuffer, { contentType: "application/pdf", upsert: true });
