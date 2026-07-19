@@ -57,17 +57,17 @@ Deno.serve(async (req) => {
       null;
 
     if (!userRole) return json({ error: "Usuário sem perfil atribuído" }, 403);
-    const companyId = effectiveCompanyId;
-    if (!companyId && userRole.role !== "super_admin") {
+    const effectiveCompanyId = (userRole.company_id || "") as string;
+    if (!effectiveCompanyId && userRole.role !== "super_admin") {
       return json({ error: "Usuário sem empresa" }, 403);
     }
 
     // Confirm module is active for company (skip for super_admin without company)
-    if (companyId) {
+    if (effectiveCompanyId) {
       const { data: mod } = await supabase
         .from("company_modules")
         .select("is_active")
-        .eq("company_id", companyId)
+        .eq("company_id", effectiveCompanyId)
         .eq("module_key", "anamnese")
         .maybeSingle();
       if (!mod?.is_active) return json({ error: "Módulo Anamnese Digital não está ativo" }, 403);
@@ -83,8 +83,6 @@ Deno.serve(async (req) => {
         error: `Sem permissão para gerar anamnese (perfil: ${rolesList.map(r => r.role).join(", ") || "nenhum"})`,
       }, 403);
     }
-    // Rebind userRole company for downstream (patient/company checks)
-    const effectiveCompanyId = companyId as string;
 
     const body = (await req.json()) as AnamneseInput;
     if (!body.patient_id || !body.exam_type || !Array.isArray(body.responses)) {
