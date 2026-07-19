@@ -267,11 +267,11 @@ export default function Dispensacao() {
                     {mode === 'paciente' ? (
                       <>
                         <div className="space-y-1.5">
-                          <Label className="text-xs">Paciente</Label>
+                          <Label className="text-xs">Paciente *</Label>
                           <Popover open={patientPop} onOpenChange={setPatientPop}>
                             <PopoverTrigger asChild>
                               <Button variant="outline" role="combobox" className="w-full justify-between">
-                                {selectedPatient?.nome || 'Selecionar paciente (opcional)'}
+                                {selectedPatient?.nome || 'Selecionar paciente'}
                                 <ChevronsUpDown className="w-4 h-4 opacity-50" />
                               </Button>
                             </PopoverTrigger>
@@ -281,7 +281,6 @@ export default function Dispensacao() {
                                 <CommandList>
                                   <CommandEmpty>Nenhum paciente</CommandEmpty>
                                   <CommandGroup>
-                                    <CommandItem value="__none" onSelect={() => { setPatientId(''); setPatientPop(false); }}>Sem paciente</CommandItem>
                                     {patients.map(p => (
                                       <CommandItem key={p.id} value={p.nome} onSelect={() => { setPatientId(p.id); setPatientPop(false); }}>
                                         <Check className={`w-4 h-4 mr-2 ${patientId === p.id ? 'opacity-100' : 'opacity-0'}`} />
