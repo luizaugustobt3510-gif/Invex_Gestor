@@ -234,11 +234,11 @@ export default function Evolucao() {
                     </Command>
                   </PopoverContent>
                 </Popover>
-                {lastPatient && (
-                  <Button type="button" variant="outline" size="icon" className="h-11 w-11 shrink-0"
+                {lastPatient && lastPatient.id !== patientId && (
+                  <Button type="button" variant="outline" className="h-11 shrink-0 gap-1"
                     title={`Último paciente: ${lastPatient.nome}`}
                     onClick={() => setPatientId(lastPatient.id)}>
-                    <History className="w-4 h-4" />
+                    <History className="w-4 h-4" /> Último
                   </Button>
                 )}
               </div>
