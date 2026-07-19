@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
       null;
 
     if (!userRole) return json({ error: "Usuário sem perfil atribuído" }, 403);
-    const companyId = userRole.company_id;
+    const companyId = effectiveCompanyId;
     if (!companyId && userRole.role !== "super_admin") {
       return json({ error: "Usuário sem empresa" }, 403);
     }
@@ -97,14 +97,14 @@ Deno.serve(async (req) => {
       .select("id, company_id, nome, cpf, birth_date, phone, email, gender")
       .eq("id", body.patient_id)
       .maybeSingle();
-    if (!patient || patient.company_id !== userRole.company_id) {
+    if (!patient || patient.company_id !== effectiveCompanyId) {
       return json({ error: "Paciente inválido" }, 400);
     }
 
     const { data: company } = await supabase
       .from("companies")
       .select("name, cnpj")
-      .eq("id", userRole.company_id)
+      .eq("id", effectiveCompanyId)
       .single();
 
     const { data: profile } = await supabase
@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
     const { data: anamnese, error: insErr } = await supabase
       .from("anamneses")
       .insert({
-        company_id: userRole.company_id,
+        company_id: effectiveCompanyId,
         patient_id: patient.id,
         template_id: body.template_id || null,
         template_name: body.template_name || null,
@@ -288,7 +288,7 @@ Deno.serve(async (req) => {
 
     const pdfBytes = doc.output("arraybuffer");
     const pdfBuffer = new Uint8Array(pdfBytes);
-    const filePath = `${userRole.company_id}/${anamnese.id}.pdf`;
+    const filePath = `${effectiveCompanyId}/${anamnese.id}.pdf`;
     const { error: upErr } = await supabase.storage
       .from("anamnese-pdfs")
       .upload(filePath, pdfBuffer, { contentType: "application/pdf", upsert: true });
