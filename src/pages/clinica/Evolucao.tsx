@@ -121,21 +121,25 @@ export default function Evolucao() {
     if (patientSigMode === 'type') return buildTypedSignature(patientTypedSig);
     return null;
   };
+  const urlToDataUrl = async (url: string): Promise<string | null> => {
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) return null;
+      const blob = await resp.blob();
+      return await new Promise<string>((resolve) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(String(fr.result));
+        fr.readAsDataURL(blob);
+      });
+    } catch { return null; }
+  };
   const resolveProfSignature = async (): Promise<string | null> => {
     if (profSig.mode === 'none') return null;
     if (profSig.mode === 'now') return profSig.dataUrl || null;
     if (profSig.mode === 'saved' && profSig.signedUrl) {
-      try {
-        // Convert saved image URL to data URL for embedded storage
-        const resp = await fetch(profSig.signedUrl);
-        if (!resp.ok) return null;
-        const blob = await resp.blob();
-        return await new Promise<string>((resolve) => {
-          const fr = new FileReader();
-          fr.onload = () => resolve(String(fr.result));
-          fr.readAsDataURL(blob);
-        });
-      } catch { return null; }
+      // Try to embed as data URL; fall back to signed URL so it still renders on the printed page.
+      const dataUrl = await urlToDataUrl(profSig.signedUrl);
+      return dataUrl || profSig.signedUrl;
     }
     return null;
   };
