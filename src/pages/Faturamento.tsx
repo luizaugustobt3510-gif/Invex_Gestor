@@ -6,15 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Receipt, Filter, Download, Loader2, CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
+import { Receipt, Download, Loader2, CheckCircle2, XCircle, RotateCcw, Eye } from 'lucide-react';
 import { writeExcelFromJson } from '@/lib/excelUtils';
 
 interface DispensationRow {
   id: string;
   created_at: string;
+  patient_id: string | null;
   patient_name: string | null;
   material_nome: string | null;
   material_codigo: string | null;
@@ -28,17 +30,32 @@ interface DispensationRow {
   destino_sector_nome: string | null;
 }
 
+interface GroupRow {
+  key: string;
+  created_at: string;
+  patient_name: string;
+  patient_id: string | null;
+  exam_type: string;
+  items: DispensationRow[];
+  total: number;
+  statuses: Set<string>;
+}
+
 const STATUS_LABEL: Record<string, string> = {
   a_faturar: 'A faturar',
   faturado: 'Faturado',
   cancelado: 'Cancelado',
+  misto: 'Misto',
 };
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   a_faturar: 'outline',
   faturado: 'default',
   cancelado: 'destructive',
+  misto: 'secondary',
 };
+
+const today = () => new Date().toISOString().slice(0, 10);
 
 export default function Faturamento() {
   const { user } = useAuth();
@@ -46,11 +63,13 @@ export default function Faturamento() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string>('');
 
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom, setDateFrom] = useState(today());
+  const [dateTo, setDateTo] = useState(today());
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<string>('all');
   const [exam, setExam] = useState('');
+
+  const [viewing, setViewing] = useState<GroupRow | null>(null);
 
   const canEdit = user?.role === 'superadm' || user?.role === 'admin' || user?.role === 'financeiro';
 
@@ -59,11 +78,11 @@ export default function Faturamento() {
     setLoading(true);
     const { data, error } = await supabase
       .from('material_dispensations')
-      .select('id, created_at, patient_name, material_nome, material_codigo, quantidade, unidade, exam_type, valor_unitario, valor_total, billing_status, destino_tipo, destino_sector_nome')
+      .select('id, created_at, patient_id, patient_name, material_nome, material_codigo, quantidade, unidade, exam_type, valor_unitario, valor_total, billing_status, destino_tipo, destino_sector_nome')
       .eq('company_id', user.companyId)
       .eq('destino_tipo', 'paciente')
       .order('created_at', { ascending: false })
-      .limit(1000);
+      .limit(2000);
     if (error) toast.error('Erro ao carregar');
     setRows((data || []) as any);
     setLoading(false);
@@ -86,6 +105,33 @@ export default function Faturamento() {
     });
   }, [rows, dateFrom, dateTo, status, exam, search]);
 
+  // Group by patient + exam + minute of created_at (one dispensation event)
+  const groups = useMemo<GroupRow[]>(() => {
+    const map = new Map<string, GroupRow>();
+    filtered.forEach(r => {
+      const minute = r.created_at.slice(0, 16); // YYYY-MM-DDTHH:MM
+      const key = `${r.patient_id || r.patient_name || 'x'}|${r.exam_type || ''}|${minute}`;
+      let g = map.get(key);
+      if (!g) {
+        g = {
+          key,
+          created_at: r.created_at,
+          patient_name: r.patient_name || '-',
+          patient_id: r.patient_id,
+          exam_type: r.exam_type || '-',
+          items: [],
+          total: 0,
+          statuses: new Set(),
+        };
+        map.set(key, g);
+      }
+      g.items.push(r);
+      g.total += Number(r.valor_total || 0);
+      g.statuses.add(r.billing_status);
+    });
+    return Array.from(map.values()).sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }, [filtered]);
+
   const totals = useMemo(() => {
     let aFaturar = 0, faturado = 0, cancelado = 0;
     filtered.forEach(r => {
@@ -94,18 +140,22 @@ export default function Faturamento() {
       else if (r.billing_status === 'faturado') faturado += v;
       else if (r.billing_status === 'cancelado') cancelado += v;
     });
-    return { aFaturar, faturado, cancelado, count: filtered.length };
-  }, [filtered]);
+    return { aFaturar, faturado, cancelado, count: groups.length, items: filtered.length };
+  }, [filtered, groups]);
 
-  const updateStatus = async (id: string, newStatus: string) => {
-    setSaving(id);
+  const updateStatusBulk = async (ids: string[], newStatus: string) => {
+    setSaving(ids.join(','));
     const { error } = await supabase
       .from('material_dispensations')
       .update({ billing_status: newStatus })
-      .eq('id', id);
+      .in('id', ids);
     if (error) toast.error('Erro ao atualizar', { description: error.message });
-    else { toast.success('Status atualizado'); load(); }
+    else { toast.success('Status atualizado'); await load(); }
     setSaving('');
+    if (viewing) {
+      const refreshed = groups.find(g => g.key === viewing.key);
+      setViewing(refreshed || null);
+    }
   };
 
   const updateValor = async (id: string, valor: number, qtd: number) => {
@@ -115,7 +165,7 @@ export default function Faturamento() {
       .update({ valor_unitario: valor, valor_total: valor * qtd })
       .eq('id', id);
     if (error) toast.error('Erro', { description: error.message });
-    else load();
+    else await load();
     setSaving('');
   };
 
@@ -136,6 +186,11 @@ export default function Faturamento() {
   };
 
   const money = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const groupStatus = (g: GroupRow): string => {
+    if (g.statuses.size === 1) return Array.from(g.statuses)[0];
+    return 'misto';
+  };
 
   return (
     <MainLayout>
@@ -183,8 +238,8 @@ export default function Faturamento() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <div className="rounded-lg border p-3">
-                <div className="text-xs text-muted-foreground">Registros</div>
-                <div className="text-lg font-semibold">{totals.count}</div>
+                <div className="text-xs text-muted-foreground">Dispensações</div>
+                <div className="text-lg font-semibold">{totals.count} <span className="text-xs text-muted-foreground font-normal">({totals.items} itens)</span></div>
               </div>
               <div className="rounded-lg border p-3">
                 <div className="text-xs text-muted-foreground">A faturar</div>
@@ -204,12 +259,10 @@ export default function Faturamento() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr className="text-left">
-                    <th className="p-2">Data</th>
+                    <th className="p-2">Data/Hora</th>
                     <th className="p-2">Paciente</th>
                     <th className="p-2">Exame</th>
-                    <th className="p-2">Material</th>
-                    <th className="p-2 text-right">Qtd</th>
-                    <th className="p-2 text-right">Valor unit.</th>
+                    <th className="p-2 text-right">Itens</th>
                     <th className="p-2 text-right">Total</th>
                     <th className="p-2">Status</th>
                     <th className="p-2 text-right">Ações</th>
@@ -217,69 +270,125 @@ export default function Faturamento() {
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={9} className="text-center py-6"><Loader2 className="w-4 h-4 animate-spin inline" /></td></tr>
-                  ) : filtered.length === 0 ? (
-                    <tr><td colSpan={9} className="text-center py-6 text-muted-foreground">Nenhum registro</td></tr>
-                  ) : filtered.map(r => (
-                    <tr key={r.id} className="border-t">
-                      <td className="p-2 whitespace-nowrap">{new Date(r.created_at).toLocaleDateString('pt-BR')}</td>
-                      <td className="p-2">{r.patient_name || '-'}</td>
-                      <td className="p-2">{r.exam_type || '-'}</td>
-                      <td className="p-2">
-                        <div className="text-xs">{r.material_codigo}</div>
-                        <div className="truncate max-w-[220px]">{r.material_nome}</div>
-                      </td>
-                      <td className="p-2 text-right">{r.quantidade} {r.unidade || ''}</td>
-                      <td className="p-2 text-right">
-                        {canEdit ? (
-                          <Input
-                            type="number" step="0.01" className="h-7 text-right w-24 inline-block"
-                            defaultValue={r.valor_unitario || 0}
-                            onBlur={e => {
-                              const v = Number(e.target.value);
-                              if (v !== (r.valor_unitario || 0)) updateValor(r.id, v, r.quantidade);
-                            }}
-                          />
-                        ) : money(r.valor_unitario || 0)}
-                      </td>
-                      <td className="p-2 text-right font-medium">{money(r.valor_total || 0)}</td>
-                      <td className="p-2">
-                        <Badge variant={STATUS_VARIANT[r.billing_status] || 'outline'}>
-                          {STATUS_LABEL[r.billing_status] || r.billing_status}
-                        </Badge>
-                      </td>
-                      <td className="p-2 text-right whitespace-nowrap">
-                        {canEdit && (
-                          <div className="inline-flex gap-1">
-                            {r.billing_status !== 'faturado' && (
-                              <Button size="icon" variant="ghost" className="h-7 w-7 text-primary" title="Marcar como faturado"
-                                disabled={saving === r.id} onClick={() => updateStatus(r.id, 'faturado')}>
-                                <CheckCircle2 className="w-4 h-4" />
-                              </Button>
-                            )}
-                            {r.billing_status !== 'cancelado' && (
-                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" title="Cancelar"
-                                disabled={saving === r.id} onClick={() => updateStatus(r.id, 'cancelado')}>
-                                <XCircle className="w-4 h-4" />
-                              </Button>
-                            )}
-                            {r.billing_status !== 'a_faturar' && (
-                              <Button size="icon" variant="ghost" className="h-7 w-7" title="Reabrir"
-                                disabled={saving === r.id} onClick={() => updateStatus(r.id, 'a_faturar')}>
-                                <RotateCcw className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                    <tr><td colSpan={7} className="text-center py-6"><Loader2 className="w-4 h-4 animate-spin inline" /></td></tr>
+                  ) : groups.length === 0 ? (
+                    <tr><td colSpan={7} className="text-center py-6 text-muted-foreground">Nenhum registro</td></tr>
+                  ) : groups.map(g => {
+                    const st = groupStatus(g);
+                    return (
+                      <tr
+                        key={g.key}
+                        className="border-t hover:bg-muted/30 cursor-pointer"
+                        onClick={() => setViewing(g)}
+                      >
+                        <td className="p-2 whitespace-nowrap">
+                          <div>{new Date(g.created_at).toLocaleDateString('pt-BR')}</div>
+                          <div className="text-xs text-muted-foreground">{new Date(g.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+                        </td>
+                        <td className="p-2 font-medium">{g.patient_name}</td>
+                        <td className="p-2">{g.exam_type}</td>
+                        <td className="p-2 text-right">{g.items.length}</td>
+                        <td className="p-2 text-right font-medium">{money(g.total)}</td>
+                        <td className="p-2">
+                          <Badge variant={STATUS_VARIANT[st] || 'outline'}>{STATUS_LABEL[st] || st}</Badge>
+                        </td>
+                        <td className="p-2 text-right whitespace-nowrap">
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setViewing(g); }}>
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              {viewing?.patient_name} — {viewing?.exam_type}
+            </DialogTitle>
+            <div className="text-xs text-muted-foreground">
+              {viewing && new Date(viewing.created_at).toLocaleString('pt-BR')}
+            </div>
+          </DialogHeader>
+          {viewing && (
+            <div className="space-y-3">
+              <div className="rounded-lg border overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr className="text-left">
+                      <th className="p-2">Material</th>
+                      <th className="p-2 text-right">Qtd</th>
+                      <th className="p-2 text-right">Valor unit.</th>
+                      <th className="p-2 text-right">Total</th>
+                      <th className="p-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {viewing.items.map(r => (
+                      <tr key={r.id} className="border-t">
+                        <td className="p-2">
+                          <div className="text-xs text-muted-foreground">{r.material_codigo}</div>
+                          <div>{r.material_nome}</div>
+                        </td>
+                        <td className="p-2 text-right whitespace-nowrap">{r.quantidade} {r.unidade || ''}</td>
+                        <td className="p-2 text-right">
+                          {canEdit ? (
+                            <Input
+                              type="number" step="0.01" className="h-7 text-right w-24 inline-block"
+                              defaultValue={r.valor_unitario || 0}
+                              onBlur={e => {
+                                const v = Number(e.target.value);
+                                if (v !== (r.valor_unitario || 0)) updateValor(r.id, v, r.quantidade);
+                              }}
+                            />
+                          ) : money(r.valor_unitario || 0)}
+                        </td>
+                        <td className="p-2 text-right font-medium">{money(r.valor_total || 0)}</td>
+                        <td className="p-2">
+                          <Badge variant={STATUS_VARIANT[r.billing_status] || 'outline'}>
+                            {STATUS_LABEL[r.billing_status] || r.billing_status}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t bg-muted/30">
+                      <td className="p-2 font-semibold" colSpan={3}>Total</td>
+                      <td className="p-2 text-right font-semibold">{money(viewing.total)}</td>
+                      <td />
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {canEdit && (
+                <div className="flex flex-wrap gap-2 justify-end">
+                  <Button size="sm" variant="outline" disabled={!!saving}
+                    onClick={() => updateStatusBulk(viewing.items.map(i => i.id), 'a_faturar')}>
+                    <RotateCcw className="w-4 h-4 mr-1" /> Reabrir
+                  </Button>
+                  <Button size="sm" variant="destructive" disabled={!!saving}
+                    onClick={() => updateStatusBulk(viewing.items.map(i => i.id), 'cancelado')}>
+                    <XCircle className="w-4 h-4 mr-1" /> Cancelar
+                  </Button>
+                  <Button size="sm" disabled={!!saving}
+                    onClick={() => updateStatusBulk(viewing.items.map(i => i.id), 'faturado')}>
+                    <CheckCircle2 className="w-4 h-4 mr-1" /> Marcar faturado
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }

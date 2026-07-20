@@ -53,7 +53,21 @@ export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sector
         .order('is_default', { ascending: false });
       const rows = (data || []) as SavedSig[];
       const withUrls = await Promise.all(rows.map(async (s) => {
-        if (s.image_url.startsWith('http') || s.image_url.startsWith('data:')) return { ...s, _signed: s.image_url };
+        if (s.image_url.startsWith('data:')) return { ...s, _signed: s.image_url };
+        // Download via storage client and inline as data URL — this avoids CORS issues
+        // when downstream consumers (Evolução PDF, edge functions) embed the image.
+        try {
+          const { data: blob } = await supabase.storage.from('signatures').download(s.image_url);
+          if (blob) {
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+              const fr = new FileReader();
+              fr.onload = () => resolve(String(fr.result));
+              fr.onerror = () => reject(fr.error);
+              fr.readAsDataURL(blob);
+            });
+            return { ...s, _signed: dataUrl };
+          }
+        } catch { /* fall through */ }
         const { data: signed } = await supabase.storage.from('signatures').createSignedUrl(s.image_url, 3600);
         return { ...s, _signed: signed?.signedUrl || '' };
       }));
