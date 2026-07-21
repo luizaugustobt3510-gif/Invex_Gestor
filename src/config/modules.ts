@@ -54,6 +54,8 @@ export const MODULES_CATALOG: ModuleDef[] = [
       { key: 'logistica.fornecedores', label: 'Fornecedores' },
       { key: 'logistica.curva_abc', label: 'Curva ABC' },
       { key: 'logistica.conferencia', label: 'Conferência de Temperatura' },
+      { key: 'logistica.estoque_setores', label: 'Estoque por Setor' },
+
     ],
   },
   {

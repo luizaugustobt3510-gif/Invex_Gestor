@@ -280,8 +280,16 @@ const logisticsGroups: MenuGroup[] = [
         allowedRoles: ["admin", "logistica"],
         submoduleKey: "logistica.curva_abc",
       },
+      {
+        path: "/estoque-setores",
+        label: "Estoque por Setor",
+        icon: <Building2 className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox", "enfermagem", "enfermeiro", "clinica"],
+        submoduleKey: "logistica.estoque_setores",
+      },
     ],
   },
+
   {
     label: "Setores",
     icon: <Building2 className="w-4 h-4" />,

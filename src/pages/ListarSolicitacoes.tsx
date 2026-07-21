@@ -99,64 +99,28 @@ const ListarSolicitacoes = () => {
   const handleDeliver = async (sol: Solicitacao) => {
     setActionLoading(sol.id);
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) throw new Error('Não autenticado');
-
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('company_id')
-        .eq('user_id', authUser.id)
-        .limit(1)
-        .single();
-
-      const companyId = roleData?.company_id;
-      if (!companyId) throw new Error('Empresa não encontrada');
-
-      // Find material and deduct stock
-      const { data: material } = await supabase
-        .from('materials')
-        .select('id, quantidade')
-        .eq('company_id', companyId)
-        .eq('codigo', sol.codigo)
-        .limit(1)
-        .single();
-
-      if (!material) {
-        toast({ title: 'Erro', description: `Material com código ${sol.codigo} não encontrado no estoque.`, variant: 'destructive' });
-        return;
-      }
-
-      const newQty = Number(material.quantidade) - Number(sol.quantidade);
-      if (newQty < 0) {
-        toast({ title: 'Estoque insuficiente', description: `Estoque atual: ${material.quantidade}. Solicitado: ${sol.quantidade}.`, variant: 'destructive' });
-        return;
-      }
-
-      // Update material stock
-      await supabase.from('materials').update({ quantidade: newQty }).eq('id', material.id);
-
-      // Register stock movement
-      await supabase.from('stock_movements').insert({
-        company_id: companyId,
-        material_id: material.id,
-        quantidade: Number(sol.quantidade),
-        tipo: 'saida',
-        obs: `Entrega solicitação - ${sol.setor}`,
-        user_id: authUser.id,
+      const { error } = await supabase.rpc('deliver_material_request', {
+        _request_id: sol.id,
+        _sector_id: undefined as any,
+      } as any);
+      if (error) throw error;
+      toast({
+        title: 'Entrega registrada',
+        description: `Material transferido do almoxarifado para o setor ${sol.setor}.`,
       });
-
-      // Update request status
-      await supabase.from('material_requests').update({ status: 'Entregue' }).eq('id', sol.id);
-
-      toast({ title: 'Sucesso!', description: 'Material entregue e baixa realizada no estoque.' });
       fetchSolicitacoes();
     } catch (err: any) {
-      toast({ title: 'Erro', description: err?.message || 'Erro ao entregar material.', variant: 'destructive' });
+      toast({
+        title: 'Erro',
+        description: err?.message || 'Erro ao entregar material.',
+        variant: 'destructive',
+      });
     } finally {
       setActionLoading(null);
       setConfirmDeliver(null);
     }
   };
+
 
   const handleReject = async () => {
     if (!rejectDialog) return;

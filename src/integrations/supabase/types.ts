@@ -2275,6 +2275,7 @@ export type Database = {
           material_id: string | null
           material_nome: string | null
           observacoes: string | null
+          patient_consumption_id: string | null
           patient_id: string | null
           patient_name: string | null
           quantidade: number
@@ -2297,6 +2298,7 @@ export type Database = {
           material_id?: string | null
           material_nome?: string | null
           observacoes?: string | null
+          patient_consumption_id?: string | null
           patient_id?: string | null
           patient_name?: string | null
           quantidade?: number
@@ -2319,6 +2321,7 @@ export type Database = {
           material_id?: string | null
           material_nome?: string | null
           observacoes?: string | null
+          patient_consumption_id?: string | null
           patient_id?: string | null
           patient_name?: string | null
           quantidade?: number
@@ -2348,6 +2351,13 @@ export type Database = {
             columns: ["material_id"]
             isOneToOne: false
             referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_dispensations_patient_consumption_fkey"
+            columns: ["patient_consumption_id"]
+            isOneToOne: false
+            referencedRelation: "patient_consumptions"
             referencedColumns: ["id"]
           },
           {
@@ -2618,6 +2628,110 @@ export type Database = {
             columns: ["material_id"]
             isOneToOne: false
             referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_consumptions: {
+        Row: {
+          appointment_id: string | null
+          company_id: string
+          created_at: string
+          dispensation_id: string | null
+          evolution_id: string | null
+          exam_type: string | null
+          id: string
+          material_id: string
+          observacoes: string | null
+          patient_id: string
+          professional_user_id: string | null
+          quantidade: number
+          sector_id: string
+          updated_at: string
+          valor_unitario: number | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          company_id: string
+          created_at?: string
+          dispensation_id?: string | null
+          evolution_id?: string | null
+          exam_type?: string | null
+          id?: string
+          material_id: string
+          observacoes?: string | null
+          patient_id: string
+          professional_user_id?: string | null
+          quantidade: number
+          sector_id: string
+          updated_at?: string
+          valor_unitario?: number | null
+        }
+        Update: {
+          appointment_id?: string | null
+          company_id?: string
+          created_at?: string
+          dispensation_id?: string | null
+          evolution_id?: string | null
+          exam_type?: string | null
+          id?: string
+          material_id?: string
+          observacoes?: string | null
+          patient_id?: string
+          professional_user_id?: string | null
+          quantidade?: number
+          sector_id?: string
+          updated_at?: string
+          valor_unitario?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_consumptions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_consumptions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_consumptions_dispensation_id_fkey"
+            columns: ["dispensation_id"]
+            isOneToOne: false
+            referencedRelation: "material_dispensations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_consumptions_evolution_id_fkey"
+            columns: ["evolution_id"]
+            isOneToOne: false
+            referencedRelation: "clinical_evolutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_consumptions_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_consumptions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_consumptions_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
             referencedColumns: ["id"]
           },
         ]
@@ -3318,6 +3432,58 @@ export type Database = {
           },
         ]
       }
+      sector_stock: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          material_id: string
+          quantidade: number
+          sector_id: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          material_id: string
+          quantidade?: number
+          sector_id: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          material_id?: string
+          quantidade?: number
+          sector_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sector_stock_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sector_stock_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sector_stock_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sectors: {
         Row: {
           company_id: string
@@ -3411,7 +3577,10 @@ export type Database = {
           id: string
           material_id: string
           obs: string | null
+          patient_consumption_id: string | null
           quantidade: number
+          request_id: string | null
+          sector_id: string | null
           tipo: string
           user_id: string
         }
@@ -3421,7 +3590,10 @@ export type Database = {
           id?: string
           material_id: string
           obs?: string | null
+          patient_consumption_id?: string | null
           quantidade: number
+          request_id?: string | null
+          sector_id?: string | null
           tipo: string
           user_id: string
         }
@@ -3431,7 +3603,10 @@ export type Database = {
           id?: string
           material_id?: string
           obs?: string | null
+          patient_consumption_id?: string | null
           quantidade?: number
+          request_id?: string | null
+          sector_id?: string | null
           tipo?: string
           user_id?: string
         }
@@ -3448,6 +3623,27 @@ export type Database = {
             columns: ["material_id"]
             isOneToOne: false
             referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_patient_consumption_fkey"
+            columns: ["patient_consumption_id"]
+            isOneToOne: false
+            referencedRelation: "patient_consumptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "material_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
             referencedColumns: ["id"]
           },
         ]
@@ -4008,6 +4204,10 @@ export type Database = {
     }
     Functions: {
       check_setup_needed: { Args: never; Returns: boolean }
+      deliver_material_request: {
+        Args: { _request_id: string; _sector_id?: string }
+        Returns: string
+      }
       evaluate_subscription_status: {
         Args: { _company_id: string }
         Returns: string
@@ -4054,6 +4254,16 @@ export type Database = {
       role_has_module: {
         Args: { _company_id: string; _module_key: string; _user_id: string }
         Returns: boolean
+      }
+      transfer_material_to_sector: {
+        Args: {
+          _company_id: string
+          _material_id: string
+          _obs?: string
+          _quantidade: number
+          _sector_id: string
+        }
+        Returns: string
       }
       user_can_write_module: {
         Args: { _company_id: string; _module_key: string; _user_id: string }
