@@ -4255,6 +4255,16 @@ export type Database = {
         Args: { _company_id: string; _module_key: string; _user_id: string }
         Returns: boolean
       }
+      transfer_material_to_sector: {
+        Args: {
+          _company_id: string
+          _material_id: string
+          _obs?: string
+          _quantidade: number
+          _sector_id: string
+        }
+        Returns: string
+      }
       user_can_write_module: {
         Args: { _company_id: string; _module_key: string; _user_id: string }
         Returns: boolean
