@@ -189,6 +189,8 @@ export default function Dispensacao() {
     try {
       if (mode === 'paciente') {
         // Insere consumo (trigger debita sector_stock + cria material_dispensations)
+        const { data: authRes } = await supabase.auth.getUser();
+        const proId = authRes.user?.id ?? null;
         const rows = cart.map(c => ({
           company_id: user.companyId!,
           patient_id: patientId,
@@ -198,10 +200,11 @@ export default function Dispensacao() {
           valor_unitario: c.preco ?? null,
           exam_type: examType.trim() || null,
           observacoes: obs.trim() || null,
-          professional_user_id: (await supabase.auth.getUser()).data.user?.id ?? null,
+          professional_user_id: proId,
         }));
         const { error } = await supabase.from('patient_consumptions').insert(rows);
         if (error) throw error;
+
       } else {
         // Transferência avulsa item a item via RPC
         for (const c of cart) {
