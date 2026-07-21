@@ -63,4 +63,56 @@ export const logisticaService = {
       .eq('company_id', companyId)
       .eq('codigo', codigo);
   },
+
+  // ============================================================
+  // Integração Almoxarifado ↔ Enfermagem
+  // ============================================================
+
+  /** Saldo de materiais por setor (opcionalmente filtrado por setor). */
+  async getSectorStock(companyId: string, sectorId?: string) {
+    let q = supabase
+      .from('sector_stock')
+      .select('id, sector_id, material_id, quantidade, updated_at, materials(codigo, material, unidade, preco_unitario, preco), sectors(nome)')
+      .eq('company_id', companyId)
+      .order('updated_at', { ascending: false });
+    if (sectorId) q = q.eq('sector_id', sectorId);
+    return q;
+  },
+
+  /** Aprova e entrega uma solicitação de material (debita central + credita setor). */
+  async deliverMaterialRequest(requestId: string, sectorId?: string) {
+    return supabase.rpc('deliver_material_request', {
+      _request_id: requestId,
+      _sector_id: sectorId ?? undefined,
+    } as any);
+  },
+
+  /** Transferência avulsa do estoque central para um setor. */
+  async transferToSector(
+    companyId: string,
+    materialId: string,
+    sectorId: string,
+    quantidade: number,
+    obs?: string
+  ) {
+    return supabase.rpc('transfer_material_to_sector', {
+      _company_id: companyId,
+      _material_id: materialId,
+      _sector_id: sectorId,
+      _quantidade: quantidade,
+      _obs: obs ?? null,
+    } as any);
+  },
+
+  /** Histórico de consumo assistencial. */
+  async getPatientConsumptions(companyId: string, patientId?: string) {
+    let q = supabase
+      .from('patient_consumptions')
+      .select('*, patients(nome), materials(codigo, material, unidade), sectors(nome)')
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false });
+    if (patientId) q = q.eq('patient_id', patientId);
+    return q;
+  },
 };
+
