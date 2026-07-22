@@ -157,7 +157,7 @@ const App = () => (
 
 
             {/* === SOLICITAÇÕES === */}
-            <Route path="/solicitar-material" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox', 'solicitante']} moduleKey="logistica" submoduleKey="logistica.solicitacoes"><SolicitarMaterial /></RoleProtectedRoute>} />
+            <Route path="/solicitar-material" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox', 'solicitante', 'enfermagem', 'enfermeiro', 'recepcionista', 'clinica']} moduleKey="solicitacao_materiais"><SolicitarMaterial /></RoleProtectedRoute>} />
             <Route path="/listar-solicitacoes" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox', 'solicitante']} moduleKey="logistica" submoduleKey="logistica.solicitacoes"><ListarSolicitacoes /></RoleProtectedRoute>} />
             
             {/* === ADMIN === */}
