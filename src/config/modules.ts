@@ -122,6 +122,14 @@ export const MODULES_CATALOG: ModuleDef[] = [
     route: '/conferencia-temperatura',
     submodules: [],
   },
+  {
+    key: 'solicitacao_materiais',
+    label: 'Solicitação de Materiais',
+    description: 'Permite que qualquer setor (enfermagem, recepção, clínica, etc.) solicite materiais ao almoxarifado, buscando pelo catálogo cadastrado da empresa.',
+    route: '/solicitar-material',
+    submodules: [],
+  },
+
 
   {
     key: 'academia',
