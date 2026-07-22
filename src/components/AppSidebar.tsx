@@ -224,23 +224,30 @@ const logisticsGroups: MenuGroup[] = [
     ],
   },
   {
-    label: "Solicitações",
-    icon: <Inbox className="w-4 h-4" />,
-    allowedRoles: ["admin", "logistica", "usuario almox", "solicitante"],
-    moduleKey: "logistica",
+    label: "Solicitação de Materiais",
+    icon: <Send className="w-4 h-4" />,
+    allowedRoles: ["admin", "logistica", "usuario almox", "solicitante", "enfermagem", "enfermeiro", "recepcionista", "clinica"],
+    moduleKey: "solicitacao_materiais",
     items: [
       {
         path: "/solicitar-material",
         label: "Solicitar Material",
         icon: <Send className="w-4 h-4" />,
-        allowedRoles: ["admin", "logistica", "usuario almox", "solicitante"],
-        submoduleKey: "logistica.solicitacoes",
+        allowedRoles: ["admin", "logistica", "usuario almox", "solicitante", "enfermagem", "enfermeiro", "recepcionista", "clinica"],
       },
+    ],
+  },
+  {
+    label: "Solicitações (Almoxarifado)",
+    icon: <Inbox className="w-4 h-4" />,
+    allowedRoles: ["admin", "logistica", "usuario almox"],
+    moduleKey: "logistica",
+    items: [
       {
         path: "/listar-solicitacoes",
-        label: "Solicitações",
+        label: "Gerenciar Solicitações",
         icon: <ClipboardList className="w-4 h-4" />,
-        allowedRoles: ["admin", "logistica", "usuario almox", "solicitante"],
+        allowedRoles: ["admin", "logistica", "usuario almox"],
         submoduleKey: "logistica.solicitacoes",
       },
     ],
