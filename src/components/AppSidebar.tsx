@@ -224,7 +224,7 @@ const logisticsGroups: MenuGroup[] = [
     ],
   },
   {
-    label: "Solicitação de Materiais",
+    label: "Solicitar Materiais",
     icon: <Send className="w-4 h-4" />,
     allowedRoles: ["admin", "logistica", "usuario almox", "solicitante", "enfermagem", "enfermeiro", "recepcionista", "clinica"],
     moduleKey: "solicitacao_materiais",
@@ -238,7 +238,7 @@ const logisticsGroups: MenuGroup[] = [
     ],
   },
   {
-    label: "Solicitações (Almoxarifado)",
+    label: "Solicitações",
     icon: <Inbox className="w-4 h-4" />,
     allowedRoles: ["admin", "logistica", "usuario almox"],
     moduleKey: "logistica",
