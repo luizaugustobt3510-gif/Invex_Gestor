@@ -166,7 +166,7 @@ const ListarSolicitacoes = () => {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <ClipboardList className="w-5 h-5" />
-            Solicitações de Material
+            Solicitações
           </CardTitle>
           <Button variant="outline" size="sm" onClick={fetchSolicitacoes} disabled={loading}>
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />

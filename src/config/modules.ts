@@ -124,7 +124,7 @@ export const MODULES_CATALOG: ModuleDef[] = [
   },
   {
     key: 'solicitacao_materiais',
-    label: 'Solicitação de Materiais',
+    label: 'Solicitar Materiais',
     description: 'Permite que qualquer setor (enfermagem, recepção, clínica, etc.) solicite materiais ao almoxarifado, buscando pelo catálogo cadastrado da empresa.',
     route: '/solicitar-material',
     submodules: [],
