@@ -140,7 +140,7 @@ const SolicitarMaterial = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ClipboardList className="w-5 h-5" />
-            Solicitar Material ao Almoxarifado
+            Solicitar Materiais
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             Busque no catálogo da empresa e envie a solicitação. A logística irá aprovar e entregar ao setor.
