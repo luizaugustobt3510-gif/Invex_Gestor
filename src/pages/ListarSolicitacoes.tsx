@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ClipboardList, RefreshCw, Filter, PackageCheck, XCircle, Trash2 } from 'lucide-react';
+import { ClipboardList, RefreshCw, Filter, PackageCheck, XCircle, Trash2, CheckCircle2, Pencil, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -37,6 +37,9 @@ const ListarSolicitacoes = () => {
   const [rejectObs, setRejectObs] = useState('');
   const [confirmDeliver, setConfirmDeliver] = useState<Solicitacao | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Solicitacao | null>(null);
+  const [confirmAccept, setConfirmAccept] = useState<Solicitacao | null>(null);
+  const [editDialog, setEditDialog] = useState<Solicitacao | null>(null);
+  const [editForm, setEditForm] = useState<{ quantidade: number; setor: string; obs: string }>({ quantidade: 0, setor: '', obs: '' });
 
   const fetchSolicitacoes = async () => {
     setLoading(true);
@@ -60,7 +63,6 @@ const ListarSolicitacoes = () => {
         query = query.eq('company_id', roleData.company_id);
       }
 
-      // Solicitantes only see their own requests
       if (roleData?.role === 'solicitante') {
         query = query.eq('user_id', authUser.id);
       }
@@ -91,9 +93,28 @@ const ListarSolicitacoes = () => {
   const getStatusBadge = (status: string) => {
     const s = status.toLowerCase();
     if (s.includes('pendente')) return <Badge variant="secondary">{status}</Badge>;
-    if (s.includes('aprovad') || s.includes('entreg')) return <Badge className="bg-green-500 text-white">{status}</Badge>;
+    if (s.includes('entreg')) return <Badge className="bg-green-600 text-white">{status}</Badge>;
+    if (s.includes('aprovad')) return <Badge className="bg-blue-500 text-white">{status}</Badge>;
     if (s.includes('rejeitad') || s.includes('negad') || s.includes('recusad')) return <Badge variant="destructive">{status}</Badge>;
     return <Badge>{status}</Badge>;
+  };
+
+  const handleAccept = async (sol: Solicitacao) => {
+    setActionLoading(sol.id);
+    try {
+      const { error } = await supabase
+        .from('material_requests')
+        .update({ status: 'Aprovada' })
+        .eq('id', sol.id);
+      if (error) throw error;
+      toast({ title: 'Solicitação aprovada', description: 'Marque como entregue quando os materiais forem enviados ao setor.' });
+      fetchSolicitacoes();
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err?.message || 'Erro ao aprovar.', variant: 'destructive' });
+    } finally {
+      setActionLoading(null);
+      setConfirmAccept(null);
+    }
   };
 
   const handleDeliver = async (sol: Solicitacao) => {
@@ -106,7 +127,7 @@ const ListarSolicitacoes = () => {
       if (error) throw error;
       toast({
         title: 'Entrega registrada',
-        description: `Material transferido do almoxarifado para o setor ${sol.setor}.`,
+        description: `Material transferido do almoxarifado para o setor ${sol.setor}. Estoque baixado.`,
       });
       fetchSolicitacoes();
     } catch (err: any) {
@@ -121,6 +142,41 @@ const ListarSolicitacoes = () => {
     }
   };
 
+  const openEdit = (sol: Solicitacao) => {
+    setEditForm({ quantidade: sol.quantidade, setor: sol.setor, obs: sol.obs || '' });
+    setEditDialog(sol);
+  };
+
+  const handleEditSave = async () => {
+    if (!editDialog) return;
+    if (!editForm.quantidade || editForm.quantidade <= 0) {
+      toast({ title: 'Quantidade inválida', variant: 'destructive' });
+      return;
+    }
+    if (!editForm.setor.trim()) {
+      toast({ title: 'Setor é obrigatório', variant: 'destructive' });
+      return;
+    }
+    setActionLoading(editDialog.id);
+    try {
+      const { error } = await supabase
+        .from('material_requests')
+        .update({
+          quantidade: editForm.quantidade,
+          setor: editForm.setor.trim(),
+          obs: editForm.obs.trim() || null,
+        })
+        .eq('id', editDialog.id);
+      if (error) throw error;
+      toast({ title: 'Solicitação atualizada.' });
+      fetchSolicitacoes();
+      setEditDialog(null);
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err?.message || 'Erro ao editar.', variant: 'destructive' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   const handleReject = async () => {
     if (!rejectDialog) return;
@@ -208,27 +264,52 @@ const ListarSolicitacoes = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredSolicitacoes.map((sol) => (
-                    <TableRow key={sol.id}>
-                      <TableCell className="text-sm">{new Date(sol.created_at).toLocaleDateString('pt-BR')}</TableCell>
-                      <TableCell>{sol.setor}</TableCell>
-                      <TableCell className="font-mono">{sol.codigo}</TableCell>
-                      <TableCell>{sol.material}</TableCell>
-                      <TableCell>{sol.quantidade}</TableCell>
-                      <TableCell>{getStatusBadge(sol.status)}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{sol.obs || '-'}</TableCell>
-                      {isAdmin && (
-                        <TableCell>
-                          <div className="flex items-center justify-end gap-1">
-                            {sol.status.toLowerCase() === 'pendente' && (
-                              <>
+                  {filteredSolicitacoes.map((sol) => {
+                    const st = sol.status.toLowerCase();
+                    const isPendente = st === 'pendente';
+                    const isAprovada = st.includes('aprovad');
+                    const isEntregue = st.includes('entreg');
+                    const canEdit = isPendente || isAprovada;
+                    return (
+                      <TableRow key={sol.id}>
+                        <TableCell className="text-sm">{new Date(sol.created_at).toLocaleDateString('pt-BR')}</TableCell>
+                        <TableCell>{sol.setor}</TableCell>
+                        <TableCell className="font-mono">{sol.codigo}</TableCell>
+                        <TableCell>{sol.material}</TableCell>
+                        <TableCell>{sol.quantidade}</TableCell>
+                        <TableCell>{getStatusBadge(sol.status)}</TableCell>
+                        <TableCell className="max-w-[200px] truncate">{sol.obs || '-'}</TableCell>
+                        {isAdmin && (
+                          <TableCell>
+                            <div className="flex items-center justify-end gap-1">
+                              {isPendente && (
                                 <Button
-                                  variant="ghost" size="icon" title="Aprovar e entregar"
+                                  variant="ghost" size="icon" title="Aceitar"
+                                  onClick={() => setConfirmAccept(sol)}
+                                  disabled={actionLoading === sol.id}
+                                >
+                                  <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                                </Button>
+                              )}
+                              {(isPendente || isAprovada) && (
+                                <Button
+                                  variant="ghost" size="icon" title="Marcar como entregue (baixa no estoque)"
                                   onClick={() => setConfirmDeliver(sol)}
                                   disabled={actionLoading === sol.id}
                                 >
-                                  <PackageCheck className="w-4 h-4 text-primary" />
+                                  <Truck className="w-4 h-4 text-green-600" />
                                 </Button>
+                              )}
+                              {canEdit && (
+                                <Button
+                                  variant="ghost" size="icon" title="Editar"
+                                  onClick={() => openEdit(sol)}
+                                  disabled={actionLoading === sol.id}
+                                >
+                                  <Pencil className="w-4 h-4 text-muted-foreground" />
+                                </Button>
+                              )}
+                              {isPendente && (
                                 <Button
                                   variant="ghost" size="icon" title="Recusar"
                                   onClick={() => setRejectDialog({ id: sol.id, material: sol.material })}
@@ -236,20 +317,22 @@ const ListarSolicitacoes = () => {
                                 >
                                   <XCircle className="w-4 h-4 text-muted-foreground" />
                                 </Button>
-                              </>
-                            )}
-                            <Button
-                              variant="ghost" size="icon" title="Excluir"
-                              onClick={() => setConfirmDelete(sol)}
-                              disabled={actionLoading === sol.id}
-                            >
-                              <Trash2 className="w-4 h-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
+                              )}
+                              {!isEntregue && (
+                                <Button
+                                  variant="ghost" size="icon" title="Excluir"
+                                  onClick={() => setConfirmDelete(sol)}
+                                  disabled={actionLoading === sol.id}
+                                >
+                                  <Trash2 className="w-4 h-4 text-destructive" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -260,20 +343,82 @@ const ListarSolicitacoes = () => {
         </CardContent>
       </Card>
 
-      {/* Confirm Deliver Dialog */}
+      {/* Accept Dialog */}
+      <Dialog open={!!confirmAccept} onOpenChange={(open) => !open && setConfirmAccept(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Aceitar solicitação</DialogTitle>
+            <DialogDescription>
+              Aprovar {confirmAccept?.quantidade}x {confirmAccept?.material} para o setor {confirmAccept?.setor}?
+              O estoque ainda NÃO será baixado — use "Marcar como entregue" após enviar os materiais.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmAccept(null)}>Cancelar</Button>
+            <Button onClick={() => confirmAccept && handleAccept(confirmAccept)} disabled={!!actionLoading}>
+              {actionLoading ? 'Processando...' : 'Aceitar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Deliver Dialog */}
       <Dialog open={!!confirmDeliver} onOpenChange={(open) => !open && setConfirmDeliver(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Aprovar e entregar material</DialogTitle>
+            <DialogTitle>Marcar como entregue</DialogTitle>
             <DialogDescription>
-              Confirma a entrega de {confirmDeliver?.quantidade} unidade(s) de {confirmDeliver?.material}? 
-              Isso dará baixa no estoque automaticamente.
+              Confirma o envio de {confirmDeliver?.quantidade} unidade(s) de {confirmDeliver?.material} para o setor {confirmDeliver?.setor}?
+              Isso dará baixa no estoque central e creditará o saldo no setor.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmDeliver(null)}>Cancelar</Button>
             <Button onClick={() => confirmDeliver && handleDeliver(confirmDeliver)} disabled={!!actionLoading}>
               {actionLoading ? 'Processando...' : 'Confirmar Entrega'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editDialog} onOpenChange={(open) => !open && setEditDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar solicitação</DialogTitle>
+            <DialogDescription>
+              {editDialog?.codigo} — {editDialog?.material}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Quantidade</Label>
+              <Input
+                type="number" min={1}
+                value={editForm.quantidade}
+                onChange={(e) => setEditForm(f => ({ ...f, quantidade: Number(e.target.value) }))}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Setor</Label>
+              <Input
+                value={editForm.setor}
+                onChange={(e) => setEditForm(f => ({ ...f, setor: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Observação</Label>
+              <Textarea
+                value={editForm.obs}
+                onChange={(e) => setEditForm(f => ({ ...f, obs: e.target.value }))}
+                className="min-h-[80px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialog(null)}>Cancelar</Button>
+            <Button onClick={handleEditSave} disabled={!!actionLoading}>
+              {actionLoading ? 'Salvando...' : 'Salvar'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -303,7 +448,7 @@ const ListarSolicitacoes = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Confirm Delete Dialog */}
+      {/* Delete Dialog */}
       <Dialog open={!!confirmDelete} onOpenChange={(open) => !open && setConfirmDelete(null)}>
         <DialogContent>
           <DialogHeader>
