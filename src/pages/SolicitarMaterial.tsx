@@ -11,6 +11,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { ClipboardList, Send, Search, Check, ChevronsUpDown, Package, Plus, Trash2, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -30,9 +31,10 @@ interface CartItem {
 
 const SolicitarMaterial = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const companyId = user?.companyId ?? null;
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
-  const [companyId, setCompanyId] = useState<string | null>(null);
   const [setores, setSetores] = useState<Array<{ id: string; nome: string }>>([]);
   const [materiais, setMateriais] = useState<MaterialOption[]>([]);
 
@@ -45,40 +47,33 @@ const SolicitarMaterial = () => {
 
   useEffect(() => {
     const load = async () => {
+      if (!companyId) {
+        setLoadingData(false);
+        return;
+      }
       setLoadingData(true);
       try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (!authUser) return;
-
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('company_id')
-          .eq('user_id', authUser.id)
-          .not('company_id', 'is', null)
-          .limit(1)
-          .single();
-
-        if (!roleData?.company_id) return;
-        setCompanyId(roleData.company_id);
-
         const [setoresRes, matsRes] = await Promise.all([
-          supabase.from('sectors').select('id, nome').eq('company_id', roleData.company_id).order('nome'),
+          supabase.from('sectors').select('id, nome').eq('company_id', companyId).order('nome'),
           supabase
             .from('materials')
             .select('id, codigo, material, unidade, quantidade')
-            .eq('company_id', roleData.company_id)
+            .eq('company_id', companyId)
             .order('material'),
         ]);
+        if (setoresRes.error) console.error('sectors error', setoresRes.error);
+        if (matsRes.error) console.error('materials error', matsRes.error);
         setSetores(setoresRes.data || []);
         setMateriais((matsRes.data || []) as MaterialOption[]);
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
+        toast({ title: 'Erro ao carregar catálogo', variant: 'destructive' });
       } finally {
         setLoadingData(false);
       }
     };
     load();
-  }, []);
+  }, [companyId, toast]);
 
   const selectedLabel = useMemo(() => {
     if (!selectedMaterial) return '';
