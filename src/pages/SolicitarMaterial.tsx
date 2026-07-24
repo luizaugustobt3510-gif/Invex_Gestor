@@ -11,6 +11,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { ClipboardList, Send, Search, Check, ChevronsUpDown, Package, Plus, Trash2, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
