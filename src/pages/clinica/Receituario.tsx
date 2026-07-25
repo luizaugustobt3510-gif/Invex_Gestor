@@ -104,7 +104,18 @@ export default function Receituario() {
     setItems((data || []) as any);
   };
 
-  useEffect(() => { loadPatients(); }, [user?.companyId]);
+  const [quickMeds, setQuickMeds] = useState<QuickMed[]>([]);
+  const loadQuickMeds = async () => {
+    if (!user?.companyId) return;
+    const { data } = await (supabase.from('prescription_quick_items' as any) as any)
+      .select('id, title, content, is_active')
+      .eq('company_id', user.companyId)
+      .eq('is_active', true)
+      .order('title');
+    setQuickMeds(((data || []) as any) as QuickMed[]);
+  };
+
+  useEffect(() => { loadPatients(); loadQuickMeds(); }, [user?.companyId]);
   useEffect(() => { loadItems(patientId); }, [patientId]);
 
   const resetForm = () => {
