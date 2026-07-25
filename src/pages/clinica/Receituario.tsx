@@ -66,7 +66,7 @@ export default function Receituario() {
   const [tipo, setTipo] = useState<string>('simples');
   const [content, setContent] = useState('');
   const [obs, setObs] = useState('');
-  const [profName, setProfName] = useState(user?.name || '');
+  const [profName, setProfName] = useState(user?.nome || '');
   const [profSig, setProfSig] = useState<DocumentSignatureValue>({ mode: 'none' });
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -103,7 +103,7 @@ export default function Receituario() {
     setTipo('simples');
     setContent('');
     setObs('');
-    setProfName(user?.name || '');
+    setProfName(user?.nome || '');
     setProfSig({ mode: 'none' });
   };
 
@@ -112,7 +112,7 @@ export default function Receituario() {
     setTipo(rx.tipo || 'simples');
     setContent(rx.content || '');
     setObs(rx.observacoes || '');
-    setProfName(rx.professional_name || user?.name || '');
+    setProfName(rx.professional_name || user?.nome || '');
     if (rx.professional_signature) {
       setProfSig({ mode: 'now', dataUrl: rx.professional_signature });
     } else {
@@ -142,7 +142,7 @@ export default function Receituario() {
       error = res.error;
     } else {
       payload.created_by = uidUser;
-      payload.created_by_name = user.name || null;
+      payload.created_by_name = user.nome || null;
       const res = await (supabase.from('prescriptions' as any) as any).insert(payload);
       error = res.error;
     }
