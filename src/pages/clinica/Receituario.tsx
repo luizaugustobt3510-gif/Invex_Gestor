@@ -55,6 +55,8 @@ export default function Receituario() {
   const params = useParams<{ patientId?: string }>();
 
   const isAdmin = ['super_admin', 'admin_empresa', 'superadm', 'admin'].includes(user?.role || '');
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setAuthUserId(data.user?.id || null)); }, []);
 
   const [patients, setPatients] = useState<Patient[]>([]);
   const [patientId, setPatientId] = useState<string>(params.patientId || '');
