@@ -23,6 +23,14 @@ interface Solicitacao {
   quantidade: number;
   status: string;
   obs: string | null;
+  request_group_id?: string | null;
+}
+
+interface GroupedRequest {
+  key: string;
+  created_at: string;
+  setor: string;
+  items: Solicitacao[];
 }
 
 const ListarSolicitacoes = () => {
