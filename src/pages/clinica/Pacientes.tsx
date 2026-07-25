@@ -95,6 +95,7 @@ export default function Pacientes() {
   const { canAccessModule } = useModuleAccess();
   const hasAnamnese = canAccessModule('anamnese');
   const hasEvolucao = canAccessModule('evolucao');
+  const hasReceituario = canAccessModule('receituario');
 
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
