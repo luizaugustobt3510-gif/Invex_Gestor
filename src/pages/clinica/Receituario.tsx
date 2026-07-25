@@ -248,38 +248,51 @@ export default function Receituario() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="md:col-span-2">
                 <Label>Paciente *</Label>
-                <Popover open={patientPopoverOpen} onOpenChange={setPatientPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" className="w-full justify-between">
-                      {patient ? patient.nome : 'Selecione um paciente'}
-                      <ChevronsUpDown className="w-4 h-4 opacity-50" />
+                <div className="flex gap-2">
+                  <Popover open={patientPopoverOpen} onOpenChange={setPatientPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" className="flex-1 justify-between">
+                        {patient ? patient.nome : 'Selecione um paciente'}
+                        <ChevronsUpDown className="w-4 h-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar paciente..." />
+                        <CommandList>
+                          <CommandEmpty>Nenhum paciente encontrado.</CommandEmpty>
+                          <CommandGroup>
+                            {patients.map(p => (
+                              <CommandItem
+                                key={p.id}
+                                value={`${p.nome} ${p.cpf || ''}`}
+                                onSelect={() => {
+                                  setPatientId(p.id);
+                                  setPatientPopoverOpen(false);
+                                }}
+                              >
+                                <Check className={`w-4 h-4 mr-2 ${p.id === patientId ? 'opacity-100' : 'opacity-0'}`} />
+                                <span>{p.nome}</span>
+                                {p.cpf && <span className="ml-2 text-xs text-muted-foreground">{p.cpf}</span>}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  {lastPatient && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      title={`Usar último paciente: ${lastPatient.nome}`}
+                      onClick={() => setPatientId(lastPatient.id)}
+                    >
+                      <History className="w-4 h-4" />
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
-                    <Command>
-                      <CommandInput placeholder="Buscar paciente..." />
-                      <CommandList>
-                        <CommandEmpty>Nenhum paciente encontrado.</CommandEmpty>
-                        <CommandGroup>
-                          {patients.map(p => (
-                            <CommandItem
-                              key={p.id}
-                              value={`${p.nome} ${p.cpf || ''}`}
-                              onSelect={() => {
-                                setPatientId(p.id);
-                                setPatientPopoverOpen(false);
-                              }}
-                            >
-                              <Check className={`w-4 h-4 mr-2 ${p.id === patientId ? 'opacity-100' : 'opacity-0'}`} />
-                              <span>{p.nome}</span>
-                              {p.cpf && <span className="ml-2 text-xs text-muted-foreground">{p.cpf}</span>}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                  )}
+                </div>
               </div>
               <div>
                 <Label>Tipo de receita *</Label>
