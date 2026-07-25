@@ -102,6 +102,10 @@ export default function Pacientes() {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [editing, setEditing] = useState<Patient | null>(null);
+  const [deleting, setDeleting] = useState<Patient | null>(null);
+
+  const isAdmin = ['super_admin', 'admin_empresa', 'superadm', 'admin'].includes(user?.role || '');
 
   const load = async () => {
     if (!user?.companyId) return;
@@ -118,6 +122,29 @@ export default function Pacientes() {
 
   useEffect(() => { load(); }, [user?.companyId]);
 
+  const openNew = () => {
+    setEditing(null);
+    setForm(emptyForm);
+    setOpen(true);
+  };
+
+  const openEdit = (p: Patient) => {
+    setEditing(p);
+    setForm({
+      nome: p.nome || '',
+      cpf: p.cpf || '',
+      birth_date_br: isoToBR(p.birth_date),
+      phone: p.phone || '',
+      email: p.email || '',
+      gender: p.gender || '',
+      height_cm: p.height_cm != null ? String(p.height_cm) : '',
+      weight_kg: p.weight_kg != null ? String(p.weight_kg) : '',
+      address: (p as any).address || '',
+      notes: (p as any).notes || '',
+    });
+    setOpen(true);
+  };
+
   const save = async () => {
     if (!user?.companyId) return;
 
@@ -133,22 +160,23 @@ export default function Pacientes() {
       if (!iso) return toast.error('Data de nascimento inválida (use DD/MM/AAAA)');
     }
 
-    // Duplicate CPF check within same company
     const cpfMasked = maskCPF(form.cpf);
-    const { data: existing } = await supabase
+
+    // Duplicate CPF check within same company (excluding self on edit)
+    let dupQuery = supabase
       .from('patients')
       .select('id, nome')
       .eq('company_id', user.companyId)
-      .eq('cpf', cpfMasked)
-      .maybeSingle();
+      .eq('cpf', cpfMasked);
+    if (editing) dupQuery = dupQuery.neq('id', editing.id);
+    const { data: existing } = await dupQuery.maybeSingle();
     if (existing) {
       toast.error(`Paciente já cadastrado (${existing.nome})`);
       return;
     }
 
     setSaving(true);
-    const { error } = await supabase.from('patients').insert({
-      company_id: user.companyId,
+    const payload = {
       nome: form.nome.trim(),
       cpf: cpfMasked,
       birth_date: iso,
@@ -159,8 +187,18 @@ export default function Pacientes() {
       weight_kg: Number(form.weight_kg),
       address: form.address || null,
       notes: form.notes || null,
-      created_by: (await supabase.auth.getUser()).data.user?.id,
-    } as any);
+    };
+
+    let error;
+    if (editing) {
+      ({ error } = await supabase.from('patients').update(payload as any).eq('id', editing.id));
+    } else {
+      ({ error } = await supabase.from('patients').insert({
+        ...payload,
+        company_id: user.companyId,
+        created_by: (await supabase.auth.getUser()).data.user?.id,
+      } as any));
+    }
     setSaving(false);
 
     if (error) {
@@ -171,9 +209,26 @@ export default function Pacientes() {
       }
       return;
     }
-    toast.success('Paciente cadastrado');
+    toast.success(editing ? 'Paciente atualizado' : 'Paciente cadastrado');
     setOpen(false);
+    setEditing(null);
     setForm(emptyForm);
+    load();
+  };
+
+  const doDelete = async () => {
+    if (!deleting) return;
+    const { error } = await supabase.from('patients').delete().eq('id', deleting.id);
+    if (error) {
+      toast.error(
+        error.message.includes('foreign')
+          ? 'Não é possível excluir: o paciente possui registros vinculados (anamneses, prontuários, dispensações).'
+          : error.message
+      );
+      return;
+    }
+    toast.success('Paciente excluído');
+    setDeleting(null);
     load();
   };
 
