@@ -103,15 +103,40 @@ export default function NovaAnamnese() {
     }
   }, [templateId]);
 
+  // Parse a stored answer into the set of selected values (works for single or multi).
+  const parseAnswerValues = (raw: string | undefined): string[] => {
+    const s = (raw || '').trim();
+    if (!s) return [];
+    if (s.startsWith('[')) {
+      try {
+        const arr = JSON.parse(s);
+        if (Array.isArray(arr)) return arr.map(v => String(v));
+      } catch { /* fallthrough */ }
+    }
+    return [s];
+  };
+
   // Filter questions visible under current conditional state.
+  // Supports both legacy `condition.equals` (previous question) and the new
+  // `conditions[]` cascade (AND across conditions, OR across values within a condition).
   const visibleQuestions = useMemo(() => {
     if (!template) return [] as Question[];
     const out: Question[] = [];
     template.questions.forEach((q, i) => {
-      if (q.condition?.equals && i > 0) {
+      // Legacy single-condition support
+      if (q.condition?.equals && i > 0 && !q.conditions?.length) {
         const prev = template.questions[i - 1];
-        const prevAns = (answers[prev.id] || '').trim().toLowerCase();
-        if (prevAns !== q.condition.equals.trim().toLowerCase()) return;
+        const prevAns = parseAnswerValues(answers[prev.id]).map(v => v.trim().toLowerCase());
+        const target = q.condition.equals.trim().toLowerCase();
+        if (!prevAns.includes(target)) return;
+      }
+      // New cascade
+      if (q.conditions?.length) {
+        const allMatch = q.conditions.every(c => {
+          const ans = parseAnswerValues(answers[c.questionId]).map(v => v.trim().toLowerCase());
+          return c.values.some(v => ans.includes(v.trim().toLowerCase()));
+        });
+        if (!allMatch) return;
       }
       out.push(q);
     });
@@ -130,9 +155,9 @@ export default function NovaAnamnese() {
 
   const isAnswered = (q?: Question) => {
     if (!q) return false;
-    const v = (answers[q.id] || '').toString().trim();
     if (!q.required) return true;
-    return v.length > 0;
+    const vals = parseAnswerValues(answers[q.id]);
+    return vals.length > 0 && vals.some(v => v.trim().length > 0);
   };
 
   const allAnswered = totalQ > 0 && visibleQuestions.every(isAnswered);
