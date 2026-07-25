@@ -401,6 +401,20 @@ const clinicaGroups: MenuGroup[] = [
     ],
   },
   {
+    label: "Receituário",
+    icon: <FileText className="w-4 h-4" />,
+    allowedRoles: ["admin", "clinica", "enfermeiro"],
+    moduleKey: "receituario",
+    items: [
+      {
+        path: "/clinica/receituario",
+        label: "Nova Receita",
+        icon: <FileText className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica", "enfermeiro"],
+      },
+    ],
+  },
+  {
     label: "Dispensação",
     icon: <ClipboardCheck className="w-4 h-4" />,
     allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro", "recepcionista", "logistica", "usuario almox"],
