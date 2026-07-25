@@ -16,7 +16,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import {
-  ArrowLeft, Save, Loader2, FileText, ChevronsUpDown, Check, Plus, Trash2, Pencil, Printer,
+  ArrowLeft, Save, Loader2, FileText, ChevronsUpDown, Check, Plus, Trash2, Pencil, Printer, History, Sparkles,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
