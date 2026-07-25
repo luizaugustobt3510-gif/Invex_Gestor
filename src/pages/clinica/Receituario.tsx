@@ -320,7 +320,7 @@ export default function Receituario() {
             ) : (
               <div className="space-y-2">
                 {items.map(rx => {
-                  const canEdit = isAdmin || rx.created_by === user?.id;
+                  const canEdit = isAdmin || rx.created_by === authUserId;
                   return (
                     <div key={rx.id} className="border rounded-md p-3 flex flex-wrap items-center justify-between gap-2">
                       <div className="min-w-0">
