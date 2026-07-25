@@ -90,14 +90,19 @@ export default function Receituario() {
 
   const patient = useMemo(() => patients.find(p => p.id === patientId) || null, [patients, patientId]);
 
+  const [lastPatient, setLastPatient] = useState<Patient | null>(null);
+
   const loadPatients = async () => {
     if (!user?.companyId) return;
     const { data } = await supabase
       .from('patients')
-      .select('id, nome, cpf, birth_date')
+      .select('id, nome, cpf, birth_date, created_at')
       .eq('company_id', user.companyId)
       .order('nome');
-    setPatients((data || []) as any);
+    const rows = (data || []) as any[];
+    setPatients(rows as any);
+    const latest = [...rows].sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))[0];
+    setLastPatient((latest as any) || null);
   };
 
   const loadItems = async (pid: string) => {
