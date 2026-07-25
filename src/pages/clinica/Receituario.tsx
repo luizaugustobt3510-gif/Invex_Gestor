@@ -206,7 +206,7 @@ export default function Receituario() {
         .sig { margin-top: 60px; text-align:center; }
         .sig .line { border-top:1px solid #333; width: 320px; margin: 0 auto 6px; }
       </style></head><body>
-      <h1>${esc(tipoLabel(rx.tipo))}</h1>
+      <h1>Receita Médica</h1>
       <div class="muted">Emitida em ${dataStr}</div>
       <div class="box">
         <div><strong>Paciente:</strong> ${esc(patient?.nome || '')} ${patient?.cpf ? ' — CPF: ' + esc(patient.cpf) : ''}</div>
