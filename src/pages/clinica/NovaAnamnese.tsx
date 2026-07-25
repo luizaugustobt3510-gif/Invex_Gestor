@@ -619,7 +619,10 @@ export default function NovaAnamnese() {
                         <div className="text-xs text-muted-foreground">Pergunta {i + 1}</div>
                         <div className="text-sm font-medium">{q.text}</div>
                         <div className="text-sm text-foreground/80 break-words">
-                          {answers[q.id] || <span className="text-muted-foreground italic">sem resposta</span>}
+                          {(() => {
+                            const shown = parseAnswerValues(answers[q.id]).join(', ');
+                            return shown || <span className="text-muted-foreground italic">sem resposta</span>;
+                          })()}
                         </div>
                       </div>
                       <Pencil className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 mt-1" />
