@@ -174,6 +174,13 @@ export const MODULES_CATALOG: ModuleDef[] = [
     ],
   },
   {
+    key: 'receituario',
+    label: 'Receituário',
+    description: 'Emissão e histórico de receitas médicas (simples, especial e controlada) vinculadas ao paciente.',
+    route: '/clinica/receituario',
+    submodules: [],
+  },
+  {
     key: 'assinaturas',
     label: 'Assinaturas Eletrônicas',
     description: 'Biblioteca pessoal de assinaturas eletrônicas — desenhe ou envie imagens com nome/CRM abaixo. Reutilize em evoluções e anamneses.',
