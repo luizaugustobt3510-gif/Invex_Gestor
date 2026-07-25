@@ -60,6 +60,7 @@ export default function PacienteProntuario() {
   const { canAccessModule } = useModuleAccess();
   const hasAnamnese = canAccessModule('anamnese');
   const hasEvolucao = canAccessModule('evolucao');
+  const hasReceituario = canAccessModule('receituario');
   const isAdmin = ['super_admin', 'admin_empresa', 'superadm', 'admin'].includes(user?.role || '');
   const [patient, setPatient] = useState<Patient | null>(null);
   const [records, setRecords] = useState<MRecord[]>([]);
@@ -268,6 +269,13 @@ export default function PacienteProntuario() {
               <Button asChild variant="secondary" className="gap-2">
                 <RouterLink to={`/clinica/evolucao/${patient.id}`}>
                   <Activity className="w-4 h-4" /> Nova Evolução
+                </RouterLink>
+              </Button>
+            )}
+            {hasReceituario && (
+              <Button asChild variant="outline" className="gap-2">
+                <RouterLink to={`/clinica/receituario/${patient.id}`}>
+                  <FileText className="w-4 h-4" /> Nova Receita
                 </RouterLink>
               </Button>
             )}

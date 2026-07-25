@@ -3066,6 +3066,66 @@ export type Database = {
           },
         ]
       }
+      prescriptions: {
+        Row: {
+          company_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          id: string
+          observacoes: string | null
+          patient_id: string
+          professional_name: string | null
+          professional_signature: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          observacoes?: string | null
+          patient_id: string
+          professional_name?: string | null
+          professional_signature?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          observacoes?: string | null
+          patient_id?: string
+          professional_name?: string | null
+          professional_signature?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           accepted_invite_at: string | null
