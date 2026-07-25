@@ -314,26 +314,40 @@ export default function Receituario() {
                 onChange={e => setContent(e.target.value)}
               />
               <div className="mt-2">
-                <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground mb-1">
-                  <Sparkles className="w-3.5 h-3.5" /> Prescrições rápidas (clique para adicionar)
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                    <Sparkles className="w-3.5 h-3.5" /> Prescrições rápidas (clique para adicionar)
+                  </div>
+                  <Button asChild type="button" variant="ghost" size="sm" className="h-6 text-xs">
+                    <Link to="/clinica/receituario/rapidas">
+                      <Pencil className="w-3 h-3 mr-1" /> Gerenciar
+                    </Link>
+                  </Button>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {QUICK_MEDS.map(qm => (
-                    <Button
-                      key={qm.label}
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-xs"
-                      onClick={() => {
-                        const line = `${content.trim() ? content.trimEnd() + '\n' : ''}${qm.text}\n`;
-                        setContent(line);
-                      }}
-                    >
-                      + {qm.label}
-                    </Button>
-                  ))}
-                </div>
+                {quickMeds.length === 0 ? (
+                  <div className="text-xs text-muted-foreground border border-dashed rounded p-2">
+                    Nenhuma prescrição rápida cadastrada.{' '}
+                    <Link to="/clinica/receituario/rapidas" className="underline text-primary">Cadastrar agora</Link>.
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {quickMeds.map(qm => (
+                      <Button
+                        key={qm.id}
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs"
+                        onClick={() => {
+                          const line = `${content.trim() ? content.trimEnd() + '\n' : ''}${qm.content}\n`;
+                          setContent(line);
+                        }}
+                      >
+                        + {qm.title}
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
