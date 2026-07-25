@@ -313,6 +313,28 @@ export default function Receituario() {
                 value={content}
                 onChange={e => setContent(e.target.value)}
               />
+              <div className="mt-2">
+                <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground mb-1">
+                  <Sparkles className="w-3.5 h-3.5" /> Prescrições rápidas (clique para adicionar)
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {QUICK_MEDS.map(qm => (
+                    <Button
+                      key={qm.label}
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        const line = `${content.trim() ? content.trimEnd() + '\n' : ''}${qm.text}\n`;
+                        setContent(line);
+                      }}
+                    >
+                      + {qm.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div>
