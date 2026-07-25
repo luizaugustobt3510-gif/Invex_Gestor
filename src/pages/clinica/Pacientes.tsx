@@ -394,6 +394,16 @@ export default function Pacientes() {
                               </Link>
                             </Button>
                           )}
+                          {isAdmin && (
+                            <>
+                              <Button size="sm" variant="ghost" className="gap-1" onClick={() => openEdit(p)} title="Editar paciente">
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button size="sm" variant="ghost" className="gap-1 text-destructive hover:text-destructive" onClick={() => setDeleting(p)} title="Excluir paciente">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -403,6 +413,23 @@ export default function Pacientes() {
             )}
           </CardContent>
         </Card>
+
+        {/* Confirm delete dialog */}
+        <Dialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Excluir paciente</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm">
+              Deseja excluir permanentemente <strong>{deleting?.nome}</strong>?
+              Registros vinculados (anamneses, prontuários) precisam ser removidos antes.
+            </p>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleting(null)}>Cancelar</Button>
+              <Button variant="destructive" onClick={doDelete}>Excluir</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </MainLayout>
   );
