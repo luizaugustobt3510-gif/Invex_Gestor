@@ -241,7 +241,8 @@ export default function NovaAnamnese() {
       }
     }
     const responses = visibleQuestions.map(q => ({
-      question: q.text, answer: (answers[q.id] || '').toString(),
+      question: q.text,
+      answer: parseAnswerValues(answers[q.id]).join(', '),
     }));
 
     // Resolve signature
