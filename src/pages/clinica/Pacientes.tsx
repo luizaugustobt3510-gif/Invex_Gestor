@@ -10,7 +10,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, FileText, User, ClipboardList, Activity, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Search, FileText, User, ClipboardList, Activity, Pencil, Trash2, Pill } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
