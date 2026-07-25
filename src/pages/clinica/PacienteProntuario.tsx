@@ -272,6 +272,13 @@ export default function PacienteProntuario() {
                 </RouterLink>
               </Button>
             )}
+            {hasReceituario && (
+              <Button asChild variant="outline" className="gap-2">
+                <RouterLink to={`/clinica/receituario/${patient.id}`}>
+                  <FileText className="w-4 h-4" /> Nova Receita
+                </RouterLink>
+              </Button>
+            )}
           </div>
         </div>
 
