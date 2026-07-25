@@ -395,6 +395,17 @@ export default function Pacientes() {
                               </Link>
                             </Button>
                           )}
+                          {hasReceituario && (
+                            <Button
+                              asChild
+                              size="sm"
+                              className="gap-1 bg-yellow-200 hover:bg-yellow-300 text-yellow-900 border border-yellow-300"
+                            >
+                              <Link to={`/clinica/receituario/${p.id}`}>
+                                <Pill className="w-3.5 h-3.5" /> Receita
+                              </Link>
+                            </Button>
+                          )}
                           {isAdmin && (
                             <>
                               <Button size="sm" variant="ghost" className="gap-1" onClick={() => openEdit(p)} title="Editar paciente">
