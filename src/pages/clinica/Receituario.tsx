@@ -49,6 +49,19 @@ const tipoLabel = (t: string) => TIPOS.find(x => x.value === t)?.label || t;
 const TEMPLATE_PLACEHOLDER =
   '1) Medicamento — dosagem\n    Tomar ___ a cada ___ horas por ___ dias.\n\n2) Medicamento — dosagem\n    ...';
 
+const QUICK_MEDS: { label: string; text: string }[] = [
+  { label: 'Dipirona 500mg', text: 'Dipirona 500mg — 1 comprimido via oral a cada 6 horas em caso de dor ou febre por até 3 dias.' },
+  { label: 'Paracetamol 750mg', text: 'Paracetamol 750mg — 1 comprimido via oral a cada 6 horas em caso de dor ou febre por até 3 dias.' },
+  { label: 'Ibuprofeno 600mg', text: 'Ibuprofeno 600mg — 1 comprimido via oral a cada 8 horas após as refeições por 5 dias.' },
+  { label: 'Amoxicilina 500mg', text: 'Amoxicilina 500mg — 1 cápsula via oral a cada 8 horas por 7 dias.' },
+  { label: 'Azitromicina 500mg', text: 'Azitromicina 500mg — 1 comprimido via oral 1x ao dia por 5 dias.' },
+  { label: 'Omeprazol 20mg', text: 'Omeprazol 20mg — 1 cápsula via oral em jejum, 1x ao dia por 30 dias.' },
+  { label: 'Loratadina 10mg', text: 'Loratadina 10mg — 1 comprimido via oral 1x ao dia por 7 dias.' },
+  { label: 'Dexametasona 4mg', text: 'Dexametasona 4mg — 1 comprimido via oral 1x ao dia por 3 dias.' },
+  { label: 'Soro fisiológico nasal', text: 'Soro fisiológico 0,9% — 2 jatos em cada narina 3x ao dia por 7 dias.' },
+  { label: 'Repouso e hidratação', text: 'Orientações: repouso relativo e hidratação oral abundante por 48 horas.' },
+];
+
 export default function Receituario() {
   const { user } = useAuth();
   const navigate = useNavigate();
