@@ -245,12 +245,12 @@ export default function Pacientes() {
             <h1 className="text-2xl font-bold">Pacientes</h1>
             <p className="text-sm text-muted-foreground">Gerencie pacientes e acesse o prontuário clínico.</p>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
             <DialogTrigger asChild>
-              <Button className="gap-2"><Plus className="w-4 h-4" /> Novo paciente</Button>
+              <Button className="gap-2" onClick={openNew}><Plus className="w-4 h-4" /> Novo paciente</Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>Novo paciente</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{editing ? 'Editar paciente' : 'Novo paciente'}</DialogTitle></DialogHeader>
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
                   <Label>Nome *</Label>
