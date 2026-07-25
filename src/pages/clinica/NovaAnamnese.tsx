@@ -103,15 +103,40 @@ export default function NovaAnamnese() {
     }
   }, [templateId]);
 
+  // Parse a stored answer into the set of selected values (works for single or multi).
+  const parseAnswerValues = (raw: string | undefined): string[] => {
+    const s = (raw || '').trim();
+    if (!s) return [];
+    if (s.startsWith('[')) {
+      try {
+        const arr = JSON.parse(s);
+        if (Array.isArray(arr)) return arr.map(v => String(v));
+      } catch { /* fallthrough */ }
+    }
+    return [s];
+  };
+
   // Filter questions visible under current conditional state.
+  // Supports both legacy `condition.equals` (previous question) and the new
+  // `conditions[]` cascade (AND across conditions, OR across values within a condition).
   const visibleQuestions = useMemo(() => {
     if (!template) return [] as Question[];
     const out: Question[] = [];
     template.questions.forEach((q, i) => {
-      if (q.condition?.equals && i > 0) {
+      // Legacy single-condition support
+      if (q.condition?.equals && i > 0 && !q.conditions?.length) {
         const prev = template.questions[i - 1];
-        const prevAns = (answers[prev.id] || '').trim().toLowerCase();
-        if (prevAns !== q.condition.equals.trim().toLowerCase()) return;
+        const prevAns = parseAnswerValues(answers[prev.id]).map(v => v.trim().toLowerCase());
+        const target = q.condition.equals.trim().toLowerCase();
+        if (!prevAns.includes(target)) return;
+      }
+      // New cascade
+      if (q.conditions?.length) {
+        const allMatch = q.conditions.every(c => {
+          const ans = parseAnswerValues(answers[c.questionId]).map(v => v.trim().toLowerCase());
+          return c.values.some(v => ans.includes(v.trim().toLowerCase()));
+        });
+        if (!allMatch) return;
       }
       out.push(q);
     });
@@ -130,9 +155,9 @@ export default function NovaAnamnese() {
 
   const isAnswered = (q?: Question) => {
     if (!q) return false;
-    const v = (answers[q.id] || '').toString().trim();
     if (!q.required) return true;
-    return v.length > 0;
+    const vals = parseAnswerValues(answers[q.id]);
+    return vals.length > 0 && vals.some(v => v.trim().length > 0);
   };
 
   const allAnswered = totalQ > 0 && visibleQuestions.every(isAnswered);
@@ -216,7 +241,8 @@ export default function NovaAnamnese() {
       }
     }
     const responses = visibleQuestions.map(q => ({
-      question: q.text, answer: (answers[q.id] || '').toString(),
+      question: q.text,
+      answer: parseAnswerValues(answers[q.id]).join(', '),
     }));
 
     // Resolve signature
@@ -311,6 +337,43 @@ export default function NovaAnamnese() {
             ))}
           </div>
         );
+      case 'multi_escolha': {
+        const selected = parseAnswerValues(val);
+        const toggle = (op: string) => {
+          const has = selected.includes(op);
+          const next = has ? selected.filter(v => v !== op) : [...selected, op];
+          setAnswer(q, JSON.stringify(next));
+        };
+        return (
+          <div className="space-y-2 mt-4">
+            <div className="text-xs text-muted-foreground">Selecione uma ou mais opções.</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {(q.options || []).map(op => {
+                const on = selected.includes(op);
+                return (
+                  <button
+                    key={op}
+                    type="button"
+                    onClick={() => toggle(op)}
+                    className={`min-h-14 px-4 py-3 rounded-lg border-2 text-base text-left transition-all active:scale-[0.98] flex items-center gap-2 ${
+                      on
+                        ? 'border-primary bg-primary/10 text-foreground font-medium'
+                        : 'border-border hover:border-primary/40 hover:bg-muted'
+                    }`}
+                  >
+                    <span className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
+                      on ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground/40'
+                    }`}>
+                      {on && <Check className="w-3.5 h-3.5" />}
+                    </span>
+                    <span className="flex-1">{op}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
       case 'texto_longo':
         return (
           <Textarea
@@ -345,7 +408,7 @@ export default function NovaAnamnese() {
   };
 
   const requiresManualNext = (q?: Question) =>
-    !!q && (q.type === 'texto_curto' || q.type === 'texto_longo' || q.type === 'numero');
+    !!q && (q.type === 'texto_curto' || q.type === 'texto_longo' || q.type === 'numero' || q.type === 'multi_escolha');
 
   return (
     <MainLayout>
@@ -481,8 +544,8 @@ export default function NovaAnamnese() {
 
         {/* QUESTIONS PHASE — one at a time */}
         {phase === 'questions' && activeQ && (
-          <Card className="animate-in fade-in slide-in-from-right-2 duration-200" key={activeQ.id}>
-            <CardContent className="p-6 md:p-8">
+          <Card className="animate-in fade-in slide-in-from-right-2 duration-200 flex flex-col max-h-[calc(100dvh-11rem)]" key={activeQ.id}>
+            <CardContent className="p-6 md:p-8 flex-1 overflow-y-auto">
               <div className="flex items-center gap-2 text-xs font-medium text-primary mb-3">
                 <span>PERGUNTA {idx + 1} DE {totalQ}</span>
                 {activeQ.required && <span className="text-destructive">*obrigatória</span>}
@@ -491,27 +554,26 @@ export default function NovaAnamnese() {
                 {activeQ.text}
               </div>
               {renderActiveInput(activeQ)}
-
-              <div className="flex items-center justify-between gap-2 mt-6 pt-4 border-t">
-                <Button variant="outline" onClick={goBack} size="lg" className="gap-1">
-                  <ChevronLeft className="w-4 h-4" /> Voltar
-                </Button>
-                {requiresManualNext(activeQ) ? (
-                  <Button
-                    onClick={goNext}
-                    disabled={!isAnswered(activeQ)}
-                    size="lg"
-                    className="gap-1"
-                  >
-                    {idx + 1 >= totalQ ? 'Revisar' : 'Próxima'} <ChevronRight className="w-4 h-4" />
-                  </Button>
-                ) : (
-                  <div className="text-xs text-muted-foreground text-right">
-                    {isAnswered(activeQ) ? 'Avançando…' : 'Selecione uma opção'}
-                  </div>
-                )}
-              </div>
             </CardContent>
+            <div className="flex items-center justify-between gap-2 px-6 md:px-8 py-4 border-t bg-card">
+              <Button variant="outline" onClick={goBack} size="lg" className="gap-1">
+                <ChevronLeft className="w-4 h-4" /> Voltar
+              </Button>
+              {requiresManualNext(activeQ) ? (
+                <Button
+                  onClick={goNext}
+                  disabled={!isAnswered(activeQ)}
+                  size="lg"
+                  className="gap-1"
+                >
+                  {idx + 1 >= totalQ ? 'Revisar' : 'Próxima'} <ChevronRight className="w-4 h-4" />
+                </Button>
+              ) : (
+                <div className="text-xs text-muted-foreground text-right">
+                  {isAnswered(activeQ) ? 'Avançando…' : 'Selecione uma opção'}
+                </div>
+              )}
+            </div>
           </Card>
         )}
 
@@ -556,7 +618,10 @@ export default function NovaAnamnese() {
                         <div className="text-xs text-muted-foreground">Pergunta {i + 1}</div>
                         <div className="text-sm font-medium">{q.text}</div>
                         <div className="text-sm text-foreground/80 break-words">
-                          {answers[q.id] || <span className="text-muted-foreground italic">sem resposta</span>}
+                          {(() => {
+                            const shown = parseAnswerValues(answers[q.id]).join(', ');
+                            return shown || <span className="text-muted-foreground italic">sem resposta</span>;
+                          })()}
                         </div>
                       </div>
                       <Pencil className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 mt-1" />

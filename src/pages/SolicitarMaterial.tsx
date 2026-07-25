@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -120,6 +119,11 @@ const SolicitarMaterial = () => {
       if (!authUser || !companyId) throw new Error('Não autenticado');
 
       const selectedSetor = setores.find(s => s.id === setor);
+      // One order = one group id shared across the whole cart
+      const groupId =
+        typeof crypto !== 'undefined' && 'randomUUID' in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
       const rows = cart.map(item => ({
         company_id: companyId,
@@ -129,14 +133,15 @@ const SolicitarMaterial = () => {
         material: item.material.material,
         quantidade: item.quantidade,
         obs: item.obs || '',
+        request_group_id: groupId,
       }));
 
-      const { error } = await supabase.from('material_requests').insert(rows);
+      const { error } = await supabase.from('material_requests').insert(rows as any);
       if (error) throw error;
 
       toast({
-        title: 'Solicitação enviada!',
-        description: `${cart.length} ${cart.length === 1 ? 'item enviado' : 'itens enviados'} para ${selectedSetor?.nome}.`,
+        title: 'Pedido enviado!',
+        description: `${cart.length} ${cart.length === 1 ? 'item enviado' : 'itens enviados'} para ${selectedSetor?.nome} em um único pedido.`,
       });
       setCart([]);
     } catch (err: any) {
@@ -159,7 +164,7 @@ const SolicitarMaterial = () => {
             Solicitar Materiais
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Adicione vários materiais à lista e envie tudo de uma vez para a logística.
+            Adicione vários materiais à lista e envie tudo como <strong>um único pedido</strong> para o almoxarifado.
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -360,7 +365,7 @@ const SolicitarMaterial = () => {
             disabled={loading || loadingData || cart.length === 0 || !setor}
           >
             <Send className="w-4 h-4" />
-            {loading ? 'Enviando...' : `Enviar Solicitação${cart.length > 0 ? ` (${cart.length})` : ''}`}
+            {loading ? 'Enviando...' : `Enviar Pedido${cart.length > 0 ? ` (${cart.length} itens)` : ''}`}
           </Button>
         </CardContent>
       </Card>

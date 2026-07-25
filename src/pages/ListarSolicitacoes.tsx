@@ -23,6 +23,14 @@ interface Solicitacao {
   quantidade: number;
   status: string;
   obs: string | null;
+  request_group_id?: string | null;
+}
+
+interface GroupedRequest {
+  key: string;
+  created_at: string;
+  setor: string;
+  items: Solicitacao[];
 }
 
 const ListarSolicitacoes = () => {
@@ -249,92 +257,174 @@ const ListarSolicitacoes = () => {
           ) : filteredSolicitacoes.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">Nenhuma solicitação encontrada.</div>
           ) : (
-            <div className="border rounded-lg overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Setor</TableHead>
-                    <TableHead>Código</TableHead>
-                    <TableHead>Material</TableHead>
-                    <TableHead>Qtd</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Obs</TableHead>
-                    {isAdmin && <TableHead className="text-right">Ações</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredSolicitacoes.map((sol) => {
-                    const st = sol.status.toLowerCase();
-                    const isPendente = st === 'pendente';
-                    const isAprovada = st.includes('aprovad');
-                    const isEntregue = st.includes('entreg');
-                    const canEdit = isPendente || isAprovada;
-                    return (
-                      <TableRow key={sol.id}>
-                        <TableCell className="text-sm">{new Date(sol.created_at).toLocaleDateString('pt-BR')}</TableCell>
-                        <TableCell>{sol.setor}</TableCell>
-                        <TableCell className="font-mono">{sol.codigo}</TableCell>
-                        <TableCell>{sol.material}</TableCell>
-                        <TableCell>{sol.quantidade}</TableCell>
-                        <TableCell>{getStatusBadge(sol.status)}</TableCell>
-                        <TableCell className="max-w-[200px] truncate">{sol.obs || '-'}</TableCell>
-                        {isAdmin && (
-                          <TableCell>
-                            <div className="flex items-center justify-end gap-1">
-                              {isPendente && (
+            <div className="space-y-3">
+              {(() => {
+                // Group by request_group_id — falls back to individual id for legacy rows.
+                const groups = new Map<string, GroupedRequest>();
+                for (const s of filteredSolicitacoes) {
+                  const key = s.request_group_id || `single-${s.id}`;
+                  const g = groups.get(key);
+                  if (g) {
+                    g.items.push(s);
+                    if (s.created_at < g.created_at) g.created_at = s.created_at;
+                  } else {
+                    groups.set(key, { key, created_at: s.created_at, setor: s.setor, items: [s] });
+                  }
+                }
+                const list = Array.from(groups.values()).sort(
+                  (a, b) => (b.created_at || '').localeCompare(a.created_at || ''),
+                );
+
+                return list.map(group => {
+                  const pendentes = group.items.filter(i => i.status.toLowerCase() === 'pendente');
+                  const aprovadas = group.items.filter(i => i.status.toLowerCase().includes('aprovad'));
+                  const bulkAcceptable = pendentes.length;
+                  const bulkDeliverable = pendentes.length + aprovadas.length;
+                  const isMulti = group.items.length > 1;
+
+                  return (
+                    <Card key={group.key} className="border">
+                      <CardHeader className="pb-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge variant="outline">{new Date(group.created_at).toLocaleString('pt-BR')}</Badge>
+                              <Badge variant="secondary">Setor: {group.setor}</Badge>
+                              <Badge>{group.items.length} {group.items.length === 1 ? 'item' : 'itens'}</Badge>
+                            </div>
+                          </div>
+                          {isAdmin && isMulti && (bulkAcceptable > 0 || bulkDeliverable > 0) && (
+                            <div className="flex flex-wrap gap-2">
+                              {bulkAcceptable > 0 && (
                                 <Button
-                                  variant="ghost" size="icon" title="Aceitar"
-                                  onClick={() => setConfirmAccept(sol)}
-                                  disabled={actionLoading === sol.id}
+                                  size="sm" variant="outline" className="gap-1"
+                                  disabled={!!actionLoading}
+                                  onClick={async () => {
+                                    if (!confirm(`Aceitar ${bulkAcceptable} item(ns) pendente(s)?`)) return;
+                                    setActionLoading(group.key);
+                                    try {
+                                      const { error } = await supabase
+                                        .from('material_requests')
+                                        .update({ status: 'Aprovada' })
+                                        .in('id', pendentes.map(p => p.id));
+                                      if (error) throw error;
+                                      toast({ title: 'Pedido aprovado' });
+                                      fetchSolicitacoes();
+                                    } catch (err: any) {
+                                      toast({ title: 'Erro', description: err?.message, variant: 'destructive' });
+                                    } finally {
+                                      setActionLoading(null);
+                                    }
+                                  }}
                                 >
-                                  <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                                  <CheckCircle2 className="w-4 h-4 text-blue-500" /> Aceitar todos
                                 </Button>
                               )}
-                              {(isPendente || isAprovada) && (
+                              {bulkDeliverable > 0 && (
                                 <Button
-                                  variant="ghost" size="icon" title="Marcar como entregue (baixa no estoque)"
-                                  onClick={() => setConfirmDeliver(sol)}
-                                  disabled={actionLoading === sol.id}
+                                  size="sm" variant="outline" className="gap-1"
+                                  disabled={!!actionLoading}
+                                  onClick={async () => {
+                                    if (!confirm(`Marcar ${bulkDeliverable} item(ns) como entregue(s)? Isso baixa o estoque.`)) return;
+                                    setActionLoading(group.key);
+                                    try {
+                                      for (const item of [...pendentes, ...aprovadas]) {
+                                        const { error } = await supabase.rpc('deliver_material_request', {
+                                          _request_id: item.id, _sector_id: undefined as any,
+                                        } as any);
+                                        if (error) throw error;
+                                      }
+                                      toast({ title: 'Pedido entregue', description: `Estoque atualizado para setor ${group.setor}.` });
+                                      fetchSolicitacoes();
+                                    } catch (err: any) {
+                                      toast({ title: 'Erro ao entregar', description: err?.message, variant: 'destructive' });
+                                    } finally {
+                                      setActionLoading(null);
+                                    }
+                                  }}
                                 >
-                                  <Truck className="w-4 h-4 text-green-600" />
-                                </Button>
-                              )}
-                              {canEdit && (
-                                <Button
-                                  variant="ghost" size="icon" title="Editar"
-                                  onClick={() => openEdit(sol)}
-                                  disabled={actionLoading === sol.id}
-                                >
-                                  <Pencil className="w-4 h-4 text-muted-foreground" />
-                                </Button>
-                              )}
-                              {isPendente && (
-                                <Button
-                                  variant="ghost" size="icon" title="Recusar"
-                                  onClick={() => setRejectDialog({ id: sol.id, material: sol.material })}
-                                  disabled={actionLoading === sol.id}
-                                >
-                                  <XCircle className="w-4 h-4 text-muted-foreground" />
-                                </Button>
-                              )}
-                              {!isEntregue && (
-                                <Button
-                                  variant="ghost" size="icon" title="Excluir"
-                                  onClick={() => setConfirmDelete(sol)}
-                                  disabled={actionLoading === sol.id}
-                                >
-                                  <Trash2 className="w-4 h-4 text-destructive" />
+                                  <Truck className="w-4 h-4 text-green-600" /> Entregar todos
                                 </Button>
                               )}
                             </div>
-                          </TableCell>
-                        )}
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Código</TableHead>
+                                <TableHead>Material</TableHead>
+                                <TableHead>Qtd</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Obs</TableHead>
+                                {isAdmin && <TableHead className="text-right">Ações</TableHead>}
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {group.items.map(sol => {
+                                const st = sol.status.toLowerCase();
+                                const isPendente = st === 'pendente';
+                                const isAprovada = st.includes('aprovad');
+                                const isEntregue = st.includes('entreg');
+                                const canEdit = isPendente || isAprovada;
+                                return (
+                                  <TableRow key={sol.id}>
+                                    <TableCell className="font-mono">{sol.codigo}</TableCell>
+                                    <TableCell>{sol.material}</TableCell>
+                                    <TableCell>{sol.quantidade}</TableCell>
+                                    <TableCell>{getStatusBadge(sol.status)}</TableCell>
+                                    <TableCell className="max-w-[200px] truncate">{sol.obs || '-'}</TableCell>
+                                    {isAdmin && (
+                                      <TableCell>
+                                        <div className="flex items-center justify-end gap-1">
+                                          {isPendente && (
+                                            <Button variant="ghost" size="icon" title="Aceitar"
+                                              onClick={() => setConfirmAccept(sol)} disabled={actionLoading === sol.id}>
+                                              <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                                            </Button>
+                                          )}
+                                          {(isPendente || isAprovada) && (
+                                            <Button variant="ghost" size="icon" title="Marcar como entregue"
+                                              onClick={() => setConfirmDeliver(sol)} disabled={actionLoading === sol.id}>
+                                              <Truck className="w-4 h-4 text-green-600" />
+                                            </Button>
+                                          )}
+                                          {canEdit && (
+                                            <Button variant="ghost" size="icon" title="Editar"
+                                              onClick={() => openEdit(sol)} disabled={actionLoading === sol.id}>
+                                              <Pencil className="w-4 h-4 text-muted-foreground" />
+                                            </Button>
+                                          )}
+                                          {isPendente && (
+                                            <Button variant="ghost" size="icon" title="Recusar"
+                                              onClick={() => setRejectDialog({ id: sol.id, material: sol.material })}
+                                              disabled={actionLoading === sol.id}>
+                                              <XCircle className="w-4 h-4 text-muted-foreground" />
+                                            </Button>
+                                          )}
+                                          {!isEntregue && (
+                                            <Button variant="ghost" size="icon" title="Excluir"
+                                              onClick={() => setConfirmDelete(sol)} disabled={actionLoading === sol.id}>
+                                              <Trash2 className="w-4 h-4 text-destructive" />
+                                            </Button>
+                                          )}
+                                        </div>
+                                      </TableCell>
+                                    )}
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                });
+              })()}
             </div>
           )}
           <div className="text-sm text-muted-foreground">

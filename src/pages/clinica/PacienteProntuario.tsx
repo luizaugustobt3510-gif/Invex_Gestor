@@ -60,6 +60,7 @@ export default function PacienteProntuario() {
   const { canAccessModule } = useModuleAccess();
   const hasAnamnese = canAccessModule('anamnese');
   const hasEvolucao = canAccessModule('evolucao');
+  const isAdmin = ['super_admin', 'admin_empresa', 'superadm', 'admin'].includes(user?.role || '');
   const [patient, setPatient] = useState<Patient | null>(null);
   const [records, setRecords] = useState<MRecord[]>([]);
   const [anamneses, setAnamneses] = useState<Anamnese[]>([]);
@@ -394,15 +395,36 @@ export default function PacienteProntuario() {
                               {a.created_by_name && <> · Por: {a.created_by_name}</>}
                             </div>
                           </div>
-                          {a.pdf_path && (
-                            <Button size="sm" variant="outline" onClick={async () => {
-                              const { data } = await supabase.storage.from('anamnese-pdfs').createSignedUrl(a.pdf_path!, 3600);
-                              if (data?.signedUrl) await downloadPdfFromUrl(data.signedUrl, `anamnese-${a.id.slice(0,8)}.pdf`);
-                              else toast.error('Não foi possível abrir o PDF');
-                            }}>
-                              <Download className="w-3.5 h-3.5 mr-1" /> PDF
-                            </Button>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {a.pdf_path && (
+                              <Button size="sm" variant="outline" onClick={async () => {
+                                const { data } = await supabase.storage.from('anamnese-pdfs').createSignedUrl(a.pdf_path!, 3600);
+                                if (data?.signedUrl) await downloadPdfFromUrl(data.signedUrl, `anamnese-${a.id.slice(0,8)}.pdf`);
+                                else toast.error('Não foi possível abrir o PDF');
+                              }}>
+                                <Download className="w-3.5 h-3.5 mr-1" /> PDF
+                              </Button>
+                            )}
+                            {isAdmin && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-destructive hover:text-destructive"
+                                onClick={async () => {
+                                  if (!confirm('Excluir permanentemente esta anamnese?')) return;
+                                  if (a.pdf_path) {
+                                    await supabase.storage.from('anamnese-pdfs').remove([a.pdf_path]);
+                                  }
+                                  const { error } = await supabase.from('anamneses').delete().eq('id', a.id);
+                                  if (error) { toast.error(error.message); return; }
+                                  toast.success('Anamnese excluída');
+                                  load();
+                                }}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>

@@ -2378,6 +2378,7 @@ export type Database = {
           material: string
           obs: string | null
           quantidade: number
+          request_group_id: string | null
           setor: string
           status: string
           updated_at: string
@@ -2391,6 +2392,7 @@ export type Database = {
           material: string
           obs?: string | null
           quantidade: number
+          request_group_id?: string | null
           setor: string
           status?: string
           updated_at?: string
@@ -2404,6 +2406,7 @@ export type Database = {
           material?: string
           obs?: string | null
           quantidade?: number
+          request_group_id?: string | null
           setor?: string
           status?: string
           updated_at?: string

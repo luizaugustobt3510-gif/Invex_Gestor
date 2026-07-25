@@ -10,7 +10,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, FileText, User, ClipboardList, Activity } from 'lucide-react';
+import { Plus, Search, FileText, User, ClipboardList, Activity, Pencil, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
@@ -102,6 +102,10 @@ export default function Pacientes() {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [editing, setEditing] = useState<Patient | null>(null);
+  const [deleting, setDeleting] = useState<Patient | null>(null);
+
+  const isAdmin = ['super_admin', 'admin_empresa', 'superadm', 'admin'].includes(user?.role || '');
 
   const load = async () => {
     if (!user?.companyId) return;
@@ -118,6 +122,29 @@ export default function Pacientes() {
 
   useEffect(() => { load(); }, [user?.companyId]);
 
+  const openNew = () => {
+    setEditing(null);
+    setForm(emptyForm);
+    setOpen(true);
+  };
+
+  const openEdit = (p: Patient) => {
+    setEditing(p);
+    setForm({
+      nome: p.nome || '',
+      cpf: p.cpf || '',
+      birth_date_br: isoToBR(p.birth_date),
+      phone: p.phone || '',
+      email: p.email || '',
+      gender: p.gender || '',
+      height_cm: p.height_cm != null ? String(p.height_cm) : '',
+      weight_kg: p.weight_kg != null ? String(p.weight_kg) : '',
+      address: (p as any).address || '',
+      notes: (p as any).notes || '',
+    });
+    setOpen(true);
+  };
+
   const save = async () => {
     if (!user?.companyId) return;
 
@@ -133,22 +160,23 @@ export default function Pacientes() {
       if (!iso) return toast.error('Data de nascimento inválida (use DD/MM/AAAA)');
     }
 
-    // Duplicate CPF check within same company
     const cpfMasked = maskCPF(form.cpf);
-    const { data: existing } = await supabase
+
+    // Duplicate CPF check within same company (excluding self on edit)
+    let dupQuery = supabase
       .from('patients')
       .select('id, nome')
       .eq('company_id', user.companyId)
-      .eq('cpf', cpfMasked)
-      .maybeSingle();
+      .eq('cpf', cpfMasked);
+    if (editing) dupQuery = dupQuery.neq('id', editing.id);
+    const { data: existing } = await dupQuery.maybeSingle();
     if (existing) {
       toast.error(`Paciente já cadastrado (${existing.nome})`);
       return;
     }
 
     setSaving(true);
-    const { error } = await supabase.from('patients').insert({
-      company_id: user.companyId,
+    const payload = {
       nome: form.nome.trim(),
       cpf: cpfMasked,
       birth_date: iso,
@@ -159,8 +187,18 @@ export default function Pacientes() {
       weight_kg: Number(form.weight_kg),
       address: form.address || null,
       notes: form.notes || null,
-      created_by: (await supabase.auth.getUser()).data.user?.id,
-    } as any);
+    };
+
+    let error;
+    if (editing) {
+      ({ error } = await supabase.from('patients').update(payload as any).eq('id', editing.id));
+    } else {
+      ({ error } = await supabase.from('patients').insert({
+        ...payload,
+        company_id: user.companyId,
+        created_by: (await supabase.auth.getUser()).data.user?.id,
+      } as any));
+    }
     setSaving(false);
 
     if (error) {
@@ -171,9 +209,26 @@ export default function Pacientes() {
       }
       return;
     }
-    toast.success('Paciente cadastrado');
+    toast.success(editing ? 'Paciente atualizado' : 'Paciente cadastrado');
     setOpen(false);
+    setEditing(null);
     setForm(emptyForm);
+    load();
+  };
+
+  const doDelete = async () => {
+    if (!deleting) return;
+    const { error } = await supabase.from('patients').delete().eq('id', deleting.id);
+    if (error) {
+      toast.error(
+        error.message.includes('foreign')
+          ? 'Não é possível excluir: o paciente possui registros vinculados (anamneses, prontuários, dispensações).'
+          : error.message
+      );
+      return;
+    }
+    toast.success('Paciente excluído');
+    setDeleting(null);
     load();
   };
 
@@ -190,12 +245,12 @@ export default function Pacientes() {
             <h1 className="text-2xl font-bold">Pacientes</h1>
             <p className="text-sm text-muted-foreground">Gerencie pacientes e acesse o prontuário clínico.</p>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
             <DialogTrigger asChild>
-              <Button className="gap-2"><Plus className="w-4 h-4" /> Novo paciente</Button>
+              <Button className="gap-2" onClick={openNew}><Plus className="w-4 h-4" /> Novo paciente</Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>Novo paciente</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{editing ? 'Editar paciente' : 'Novo paciente'}</DialogTitle></DialogHeader>
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
                   <Label>Nome *</Label>
@@ -339,6 +394,16 @@ export default function Pacientes() {
                               </Link>
                             </Button>
                           )}
+                          {isAdmin && (
+                            <>
+                              <Button size="sm" variant="ghost" className="gap-1" onClick={() => openEdit(p)} title="Editar paciente">
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button size="sm" variant="ghost" className="gap-1 text-destructive hover:text-destructive" onClick={() => setDeleting(p)} title="Excluir paciente">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -348,6 +413,23 @@ export default function Pacientes() {
             )}
           </CardContent>
         </Card>
+
+        {/* Confirm delete dialog */}
+        <Dialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Excluir paciente</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm">
+              Deseja excluir permanentemente <strong>{deleting?.nome}</strong>?
+              Registros vinculados (anamneses, prontuários) precisam ser removidos antes.
+            </p>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleting(null)}>Cancelar</Button>
+              <Button variant="destructive" onClick={doDelete}>Excluir</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </MainLayout>
   );
