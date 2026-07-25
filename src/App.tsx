@@ -78,6 +78,7 @@ import NovaAnamnese from "./pages/clinica/NovaAnamnese";
 import Evolucao from "./pages/clinica/Evolucao";
 import EvolucaoMensagens from "./pages/clinica/EvolucaoMensagens";
 import Receituario from "./pages/clinica/Receituario";
+import PrescricaoRapidas from "./pages/clinica/PrescricaoRapidas";
 import DashboardFinanceiro from "./pages/financeiro/DashboardFinanceiro";
 import Lancamentos from "./pages/financeiro/Lancamentos";
 import FluxoCaixa from "./pages/financeiro/FluxoCaixa";
