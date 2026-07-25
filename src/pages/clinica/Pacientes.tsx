@@ -10,7 +10,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, FileText, User, ClipboardList, Activity, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Search, FileText, User, ClipboardList, Activity, Pencil, Trash2, Pill } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
@@ -95,6 +95,7 @@ export default function Pacientes() {
   const { canAccessModule } = useModuleAccess();
   const hasAnamnese = canAccessModule('anamnese');
   const hasEvolucao = canAccessModule('evolucao');
+  const hasReceituario = canAccessModule('receituario');
 
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -391,6 +392,17 @@ export default function Pacientes() {
                             <Button asChild size="sm" variant="secondary" className="gap-1">
                               <Link to={`/clinica/evolucao/${p.id}`}>
                                 <Activity className="w-3.5 h-3.5" /> Evolução
+                              </Link>
+                            </Button>
+                          )}
+                          {hasReceituario && (
+                            <Button
+                              asChild
+                              size="sm"
+                              className="gap-1 bg-yellow-200 hover:bg-yellow-300 text-yellow-900 border border-yellow-300"
+                            >
+                              <Link to={`/clinica/receituario/${p.id}`}>
+                                <Pill className="w-3.5 h-3.5" /> Receita
                               </Link>
                             </Button>
                           )}

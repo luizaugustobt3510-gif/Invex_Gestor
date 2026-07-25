@@ -682,10 +682,24 @@ export default function NovaAnamnese() {
                   <Button variant="outline" onClick={goBack} size="lg" className="gap-1">
                     <ChevronLeft className="w-4 h-4" /> Editar respostas
                   </Button>
-                  <Button onClick={submit} disabled={saving || !allAnswered} size="lg" className="gap-2">
-                    {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                    <FileText className="w-4 h-4" /> Salvar e gerar PDF
-                  </Button>
+                  <div className="flex flex-col md:flex-row gap-2">
+                    {patientId && (
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="lg"
+                        className="gap-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-900 border-yellow-300"
+                      >
+                        <Link to={`/clinica/receituario/${patientId}`} target="_blank" rel="noopener">
+                          <FileText className="w-4 h-4" /> Anexar receita
+                        </Link>
+                      </Button>
+                    )}
+                    <Button onClick={submit} disabled={saving || !allAnswered} size="lg" className="gap-2">
+                      {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                      <FileText className="w-4 h-4" /> Salvar e gerar PDF
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

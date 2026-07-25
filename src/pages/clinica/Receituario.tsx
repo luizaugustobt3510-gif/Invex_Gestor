@@ -16,7 +16,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import {
-  ArrowLeft, Save, Loader2, FileText, ChevronsUpDown, Check, Plus, Trash2, Pencil, Printer,
+  ArrowLeft, Save, Loader2, FileText, ChevronsUpDown, Check, Plus, Trash2, Pencil, Printer, History, Sparkles,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -49,6 +49,19 @@ const tipoLabel = (t: string) => TIPOS.find(x => x.value === t)?.label || t;
 const TEMPLATE_PLACEHOLDER =
   '1) Medicamento — dosagem\n    Tomar ___ a cada ___ horas por ___ dias.\n\n2) Medicamento — dosagem\n    ...';
 
+const QUICK_MEDS: { label: string; text: string }[] = [
+  { label: 'Dipirona 500mg', text: 'Dipirona 500mg — 1 comprimido via oral a cada 6 horas em caso de dor ou febre por até 3 dias.' },
+  { label: 'Paracetamol 750mg', text: 'Paracetamol 750mg — 1 comprimido via oral a cada 6 horas em caso de dor ou febre por até 3 dias.' },
+  { label: 'Ibuprofeno 600mg', text: 'Ibuprofeno 600mg — 1 comprimido via oral a cada 8 horas após as refeições por 5 dias.' },
+  { label: 'Amoxicilina 500mg', text: 'Amoxicilina 500mg — 1 cápsula via oral a cada 8 horas por 7 dias.' },
+  { label: 'Azitromicina 500mg', text: 'Azitromicina 500mg — 1 comprimido via oral 1x ao dia por 5 dias.' },
+  { label: 'Omeprazol 20mg', text: 'Omeprazol 20mg — 1 cápsula via oral em jejum, 1x ao dia por 30 dias.' },
+  { label: 'Loratadina 10mg', text: 'Loratadina 10mg — 1 comprimido via oral 1x ao dia por 7 dias.' },
+  { label: 'Dexametasona 4mg', text: 'Dexametasona 4mg — 1 comprimido via oral 1x ao dia por 3 dias.' },
+  { label: 'Soro fisiológico nasal', text: 'Soro fisiológico 0,9% — 2 jatos em cada narina 3x ao dia por 7 dias.' },
+  { label: 'Repouso e hidratação', text: 'Orientações: repouso relativo e hidratação oral abundante por 48 horas.' },
+];
+
 export default function Receituario() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -77,14 +90,19 @@ export default function Receituario() {
 
   const patient = useMemo(() => patients.find(p => p.id === patientId) || null, [patients, patientId]);
 
+  const [lastPatient, setLastPatient] = useState<Patient | null>(null);
+
   const loadPatients = async () => {
     if (!user?.companyId) return;
     const { data } = await supabase
       .from('patients')
-      .select('id, nome, cpf, birth_date')
+      .select('id, nome, cpf, birth_date, created_at')
       .eq('company_id', user.companyId)
       .order('nome');
-    setPatients((data || []) as any);
+    const rows = (data || []) as any[];
+    setPatients(rows as any);
+    const latest = [...rows].sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))[0];
+    setLastPatient((latest as any) || null);
   };
 
   const loadItems = async (pid: string) => {
@@ -135,7 +153,12 @@ export default function Receituario() {
       content: content.trim(),
       observacoes: obs.trim() || null,
       professional_name: profName.trim() || null,
-      professional_signature: profSig.mode === 'now' ? profSig.dataUrl : null,
+      professional_signature:
+        profSig.mode === 'now'
+          ? profSig.dataUrl || null
+          : profSig.mode === 'saved'
+            ? profSig.signedUrl || null
+            : null,
     };
     let error: any = null;
     if (editingId) {
@@ -183,7 +206,7 @@ export default function Receituario() {
         .sig { margin-top: 60px; text-align:center; }
         .sig .line { border-top:1px solid #333; width: 320px; margin: 0 auto 6px; }
       </style></head><body>
-      <h1>${esc(tipoLabel(rx.tipo))}</h1>
+      <h1>Receita Médica</h1>
       <div class="muted">Emitida em ${dataStr}</div>
       <div class="box">
         <div><strong>Paciente:</strong> ${esc(patient?.nome || '')} ${patient?.cpf ? ' — CPF: ' + esc(patient.cpf) : ''}</div>
@@ -225,38 +248,51 @@ export default function Receituario() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="md:col-span-2">
                 <Label>Paciente *</Label>
-                <Popover open={patientPopoverOpen} onOpenChange={setPatientPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" className="w-full justify-between">
-                      {patient ? patient.nome : 'Selecione um paciente'}
-                      <ChevronsUpDown className="w-4 h-4 opacity-50" />
+                <div className="flex gap-2">
+                  <Popover open={patientPopoverOpen} onOpenChange={setPatientPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" className="flex-1 justify-between">
+                        {patient ? patient.nome : 'Selecione um paciente'}
+                        <ChevronsUpDown className="w-4 h-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar paciente..." />
+                        <CommandList>
+                          <CommandEmpty>Nenhum paciente encontrado.</CommandEmpty>
+                          <CommandGroup>
+                            {patients.map(p => (
+                              <CommandItem
+                                key={p.id}
+                                value={`${p.nome} ${p.cpf || ''}`}
+                                onSelect={() => {
+                                  setPatientId(p.id);
+                                  setPatientPopoverOpen(false);
+                                }}
+                              >
+                                <Check className={`w-4 h-4 mr-2 ${p.id === patientId ? 'opacity-100' : 'opacity-0'}`} />
+                                <span>{p.nome}</span>
+                                {p.cpf && <span className="ml-2 text-xs text-muted-foreground">{p.cpf}</span>}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  {lastPatient && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      title={`Usar último paciente: ${lastPatient.nome}`}
+                      onClick={() => setPatientId(lastPatient.id)}
+                    >
+                      <History className="w-4 h-4" />
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
-                    <Command>
-                      <CommandInput placeholder="Buscar paciente..." />
-                      <CommandList>
-                        <CommandEmpty>Nenhum paciente encontrado.</CommandEmpty>
-                        <CommandGroup>
-                          {patients.map(p => (
-                            <CommandItem
-                              key={p.id}
-                              value={`${p.nome} ${p.cpf || ''}`}
-                              onSelect={() => {
-                                setPatientId(p.id);
-                                setPatientPopoverOpen(false);
-                              }}
-                            >
-                              <Check className={`w-4 h-4 mr-2 ${p.id === patientId ? 'opacity-100' : 'opacity-0'}`} />
-                              <span>{p.nome}</span>
-                              {p.cpf && <span className="ml-2 text-xs text-muted-foreground">{p.cpf}</span>}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                  )}
+                </div>
               </div>
               <div>
                 <Label>Tipo de receita *</Label>
@@ -277,6 +313,28 @@ export default function Receituario() {
                 value={content}
                 onChange={e => setContent(e.target.value)}
               />
+              <div className="mt-2">
+                <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground mb-1">
+                  <Sparkles className="w-3.5 h-3.5" /> Prescrições rápidas (clique para adicionar)
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {QUICK_MEDS.map(qm => (
+                    <Button
+                      key={qm.label}
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        const line = `${content.trim() ? content.trimEnd() + '\n' : ''}${qm.text}\n`;
+                        setContent(line);
+                      }}
+                    >
+                      + {qm.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div>
