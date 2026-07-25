@@ -544,8 +544,8 @@ export default function NovaAnamnese() {
 
         {/* QUESTIONS PHASE — one at a time */}
         {phase === 'questions' && activeQ && (
-          <Card className="animate-in fade-in slide-in-from-right-2 duration-200" key={activeQ.id}>
-            <CardContent className="p-6 md:p-8">
+          <Card className="animate-in fade-in slide-in-from-right-2 duration-200 flex flex-col max-h-[calc(100dvh-11rem)]" key={activeQ.id}>
+            <CardContent className="p-6 md:p-8 flex-1 overflow-y-auto">
               <div className="flex items-center gap-2 text-xs font-medium text-primary mb-3">
                 <span>PERGUNTA {idx + 1} DE {totalQ}</span>
                 {activeQ.required && <span className="text-destructive">*obrigatória</span>}
@@ -554,27 +554,26 @@ export default function NovaAnamnese() {
                 {activeQ.text}
               </div>
               {renderActiveInput(activeQ)}
-
-              <div className="flex items-center justify-between gap-2 mt-6 pt-4 border-t">
-                <Button variant="outline" onClick={goBack} size="lg" className="gap-1">
-                  <ChevronLeft className="w-4 h-4" /> Voltar
-                </Button>
-                {requiresManualNext(activeQ) ? (
-                  <Button
-                    onClick={goNext}
-                    disabled={!isAnswered(activeQ)}
-                    size="lg"
-                    className="gap-1"
-                  >
-                    {idx + 1 >= totalQ ? 'Revisar' : 'Próxima'} <ChevronRight className="w-4 h-4" />
-                  </Button>
-                ) : (
-                  <div className="text-xs text-muted-foreground text-right">
-                    {isAnswered(activeQ) ? 'Avançando…' : 'Selecione uma opção'}
-                  </div>
-                )}
-              </div>
             </CardContent>
+            <div className="flex items-center justify-between gap-2 px-6 md:px-8 py-4 border-t bg-card">
+              <Button variant="outline" onClick={goBack} size="lg" className="gap-1">
+                <ChevronLeft className="w-4 h-4" /> Voltar
+              </Button>
+              {requiresManualNext(activeQ) ? (
+                <Button
+                  onClick={goNext}
+                  disabled={!isAnswered(activeQ)}
+                  size="lg"
+                  className="gap-1"
+                >
+                  {idx + 1 >= totalQ ? 'Revisar' : 'Próxima'} <ChevronRight className="w-4 h-4" />
+                </Button>
+              ) : (
+                <div className="text-xs text-muted-foreground text-right">
+                  {isAnswered(activeQ) ? 'Avançando…' : 'Selecione uma opção'}
+                </div>
+              )}
+            </div>
           </Card>
         )}
 
