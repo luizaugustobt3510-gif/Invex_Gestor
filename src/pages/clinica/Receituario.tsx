@@ -288,8 +288,7 @@ export default function Receituario() {
                 <Input value={profName} onChange={e => setProfName(e.target.value)} placeholder="Nome / CRM" />
               </div>
               <div>
-                <Label>Assinatura</Label>
-                <DocumentSignaturePicker value={profSig} onChange={setProfSig} />
+                <DocumentSignaturePicker onChange={setProfSig} />
               </div>
             </div>
 
