@@ -153,7 +153,12 @@ export default function Receituario() {
       content: content.trim(),
       observacoes: obs.trim() || null,
       professional_name: profName.trim() || null,
-      professional_signature: profSig.mode === 'now' ? profSig.dataUrl : null,
+      professional_signature:
+        profSig.mode === 'now'
+          ? profSig.dataUrl || null
+          : profSig.mode === 'saved'
+            ? profSig.signedUrl || null
+            : null,
     };
     let error: any = null;
     if (editingId) {
