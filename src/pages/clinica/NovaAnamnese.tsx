@@ -336,6 +336,43 @@ export default function NovaAnamnese() {
             ))}
           </div>
         );
+      case 'multi_escolha': {
+        const selected = parseAnswerValues(val);
+        const toggle = (op: string) => {
+          const has = selected.includes(op);
+          const next = has ? selected.filter(v => v !== op) : [...selected, op];
+          setAnswer(q, JSON.stringify(next));
+        };
+        return (
+          <div className="space-y-2 mt-4">
+            <div className="text-xs text-muted-foreground">Selecione uma ou mais opções.</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {(q.options || []).map(op => {
+                const on = selected.includes(op);
+                return (
+                  <button
+                    key={op}
+                    type="button"
+                    onClick={() => toggle(op)}
+                    className={`min-h-14 px-4 py-3 rounded-lg border-2 text-base text-left transition-all active:scale-[0.98] flex items-center gap-2 ${
+                      on
+                        ? 'border-primary bg-primary/10 text-foreground font-medium'
+                        : 'border-border hover:border-primary/40 hover:bg-muted'
+                    }`}
+                  >
+                    <span className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
+                      on ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground/40'
+                    }`}>
+                      {on && <Check className="w-3.5 h-3.5" />}
+                    </span>
+                    <span className="flex-1">{op}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
       case 'texto_longo':
         return (
           <Textarea
@@ -370,7 +407,7 @@ export default function NovaAnamnese() {
   };
 
   const requiresManualNext = (q?: Question) =>
-    !!q && (q.type === 'texto_curto' || q.type === 'texto_longo' || q.type === 'numero');
+    !!q && (q.type === 'texto_curto' || q.type === 'texto_longo' || q.type === 'numero' || q.type === 'multi_escolha');
 
   return (
     <MainLayout>
