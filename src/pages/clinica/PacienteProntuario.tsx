@@ -60,6 +60,7 @@ export default function PacienteProntuario() {
   const { canAccessModule } = useModuleAccess();
   const hasAnamnese = canAccessModule('anamnese');
   const hasEvolucao = canAccessModule('evolucao');
+  const hasReceituario = canAccessModule('receituario');
   const isAdmin = ['super_admin', 'admin_empresa', 'superadm', 'admin'].includes(user?.role || '');
   const [patient, setPatient] = useState<Patient | null>(null);
   const [records, setRecords] = useState<MRecord[]>([]);
