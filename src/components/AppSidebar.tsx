@@ -403,13 +403,19 @@ const clinicaGroups: MenuGroup[] = [
   {
     label: "Receituário",
     icon: <FileText className="w-4 h-4" />,
-    allowedRoles: ["admin", "clinica", "enfermeiro"],
+    allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro", "recepcionista"],
     moduleKey: "receituario",
     items: [
       {
         path: "/clinica/receituario",
         label: "Nova Receita",
         icon: <FileText className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro", "recepcionista"],
+      },
+      {
+        path: "/clinica/receituario/rapidas",
+        label: "Prescrições Rápidas",
+        icon: <ClipboardList className="w-4 h-4" />,
         allowedRoles: ["admin", "clinica", "enfermeiro"],
       },
     ],

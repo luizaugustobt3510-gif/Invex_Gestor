@@ -32,7 +32,7 @@ interface SectorStockRow {
   unidade: string | null;
   preco_unitario: number | null;
 }
-interface Patient { id: string; nome: string; }
+interface Patient { id: string; nome: string; created_at?: string; }
 interface Sector { id: string; nome: string; }
 interface HistoryRow {
   id: string;
@@ -90,7 +90,7 @@ export default function Dispensacao() {
     const [mat, pac, sec] = await Promise.all([
       supabase.from('materials').select('id, codigo, material, unidade, quantidade, preco_unitario')
         .eq('company_id', user.companyId).order('material'),
-      supabase.from('patients').select('id, nome').eq('company_id', user.companyId).order('nome'),
+      supabase.from('patients').select('id, nome, created_at').eq('company_id', user.companyId).order('nome'),
       supabase.from('sectors').select('id, nome').eq('company_id', user.companyId).order('nome'),
     ]);
     setMaterials((mat.data as MaterialRow[]) || []);
@@ -228,6 +228,10 @@ export default function Dispensacao() {
   };
 
   const selectedPatient = patients.find(p => p.id === patientId);
+  const lastPatient = useMemo(() => {
+    if (!patients.length) return null;
+    return [...patients].sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))[0];
+  }, [patients]);
 
   return (
     <MainLayout>
@@ -349,7 +353,21 @@ export default function Dispensacao() {
                       {mode === 'paciente' ? (
                         <>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Paciente *</Label>
+                            <div className="flex items-center justify-between gap-2">
+                              <Label className="text-xs">Paciente *</Label>
+                              {lastPatient && (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 px-2 text-xs gap-1"
+                                  onClick={() => setPatientId(lastPatient.id)}
+                                  title={`Usar último paciente: ${lastPatient.nome}`}
+                                >
+                                  <History className="w-3.5 h-3.5" /> Último
+                                </Button>
+                              )}
+                            </div>
                             <Popover open={patientPop} onOpenChange={setPatientPop}>
                               <PopoverTrigger asChild>
                                 <Button variant="outline" role="combobox" className="w-full justify-between">

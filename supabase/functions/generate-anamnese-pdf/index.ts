@@ -18,6 +18,7 @@ interface AnamneseInput {
   signature_source?: string;
   signature_name?: string;
   signature_credencial?: string;
+  prescription?: { tipo?: string; content: string } | null;
 }
 
 Deno.serve(async (req) => {
@@ -240,6 +241,56 @@ Deno.serve(async (req) => {
       ensureSpace(oLines.length * 5);
       doc.text(oLines, margin, y);
       y += oLines.length * 5;
+    }
+
+    // Receita vinculada (opcional) — mesma folha/PDF da anamnese
+    const rxContent = body.prescription?.content?.trim();
+    if (rxContent) {
+      const tipoMap: Record<string, string> = {
+        simples: "Receita Simples",
+        especial: "Receita Especial",
+        controlada: "Receita Controlada",
+      };
+      const tipoKey = body.prescription?.tipo || "simples";
+      doc.addPage();
+      y = 20;
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("RECEITUÁRIO", pageWidth / 2, y, { align: "center" });
+      y += 6;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(tipoMap[tipoKey] || tipoKey, pageWidth / 2, y, { align: "center" });
+      y += 5;
+      doc.setDrawColor(200);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 8;
+      doc.setFontSize(9);
+      doc.text(`Paciente: ${patient.nome}`, margin, y); y += 4;
+      if (patient.cpf) { doc.text(`CPF: ${patient.cpf}`, margin, y); y += 4; }
+      doc.text(`Data: ${dt.toLocaleDateString("pt-BR")}`, margin, y);
+      y += 8;
+      doc.setFontSize(10);
+      const rxLines = doc.splitTextToSize(rxContent, contentWidth);
+      for (const line of rxLines) {
+        ensureSpace(6);
+        doc.text(line, margin, y);
+        y += 5;
+      }
+      y += 4;
+
+      // Persist prescription in the patient's record
+      await supabase.from("prescriptions").insert({
+        company_id: effectiveCompanyId,
+        patient_id: patient.id,
+        tipo: tipoKey,
+        content: rxContent,
+        observacoes: `Vinculada à anamnese Nº ${anamneseNumber}`,
+        professional_name: body.signature_name || createdByName,
+        professional_signature: null,
+        created_by: userId,
+        created_by_name: createdByName,
+      });
     }
 
     // Signature (if provided) - draw before footer line
