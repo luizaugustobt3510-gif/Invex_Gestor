@@ -63,6 +63,12 @@ export default function NovaAnamnese() {
 
   const [patientPopoverOpen, setPatientPopoverOpen] = useState(false);
 
+  // Receita vinculada (opcional) — vai no mesmo PDF da anamnese
+  const [rxEnabled, setRxEnabled] = useState(false);
+  const [rxTipo, setRxTipo] = useState('simples');
+  const [rxContent, setRxContent] = useState('');
+  const [quickMeds, setQuickMeds] = useState<Array<{ id: string; title: string; content: string }>>([]);
+
   useEffect(() => {
     if (!user?.companyId) return;
     (async () => {
@@ -85,6 +91,13 @@ export default function NovaAnamnese() {
       setSignatures(withUrls);
       const def = withUrls.find(s => s.is_default);
       if (def) setSignatureId(def.id);
+
+      const { data: qm } = await (supabase.from('prescription_quick_items' as any) as any)
+        .select('id, title, content')
+        .eq('company_id', user.companyId)
+        .eq('is_active', true)
+        .order('title');
+      setQuickMeds((qm || []) as any);
     })();
   }, [user?.companyId]);
 
@@ -280,6 +293,9 @@ export default function NovaAnamnese() {
           signature_source,
           signature_name,
           signature_credencial,
+          prescription: rxEnabled && rxContent.trim()
+            ? { tipo: rxTipo, content: rxContent.trim() }
+            : undefined,
         },
       });
       if (error) throw error;
@@ -634,6 +650,67 @@ export default function NovaAnamnese() {
                   <Textarea rows={3} className="text-base" value={observations} onChange={e => setObservations(e.target.value)} />
                 </div>
 
+                <div className="rounded-lg border border-yellow-300 bg-yellow-50/60 p-3 space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <Label className="text-sm font-medium text-yellow-900">Receita vinculada (opcional)</Label>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={rxEnabled ? 'default' : 'outline'}
+                      className={rxEnabled ? '' : 'bg-yellow-100 hover:bg-yellow-200 text-yellow-900 border-yellow-300'}
+                      onClick={() => setRxEnabled(v => !v)}
+                    >
+                      <FileText className="w-4 h-4 mr-1" /> {rxEnabled ? 'Vinculada' : 'Adicionar receita'}
+                    </Button>
+                  </div>
+                  {rxEnabled && (
+                    <div className="space-y-2">
+                      <p className="text-xs text-yellow-900/80">
+                        A receita será salva no prontuário do paciente e impressa no mesmo PDF da anamnese.
+                      </p>
+                      <div className="grid gap-2 md:grid-cols-[220px_1fr] md:items-start">
+                        <div>
+                          <Label className="text-xs">Tipo</Label>
+                          <Select value={rxTipo} onValueChange={setRxTipo}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="simples">Receita Simples</SelectItem>
+                              <SelectItem value="especial">Receita Especial</SelectItem>
+                              <SelectItem value="controlada">Receita Controlada</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-xs">Medicamentos e posologia</Label>
+                          <Textarea
+                            rows={6}
+                            className="text-base font-mono bg-background"
+                            placeholder={'1) Medicamento — dosagem\n    Tomar ___ a cada ___ horas por ___ dias.'}
+                            value={rxContent}
+                            onChange={e => setRxContent(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      {quickMeds.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {quickMeds.map(q => (
+                            <Button
+                              key={q.id}
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs bg-background"
+                              onClick={() => setRxContent(prev => (prev ? prev.trimEnd() + '\n\n' : '') + q.content)}
+                            >
+                              + {q.title}
+                            </Button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="rounded-lg border p-3 bg-muted/20 space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <Label className="text-sm font-medium">Assinatura do profissional</Label>
@@ -683,18 +760,6 @@ export default function NovaAnamnese() {
                     <ChevronLeft className="w-4 h-4" /> Editar respostas
                   </Button>
                   <div className="flex flex-col md:flex-row gap-2">
-                    {patientId && (
-                      <Button
-                        asChild
-                        variant="outline"
-                        size="lg"
-                        className="gap-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-900 border-yellow-300"
-                      >
-                        <Link to={`/clinica/receituario/${patientId}`} target="_blank" rel="noopener">
-                          <FileText className="w-4 h-4" /> Anexar receita
-                        </Link>
-                      </Button>
-                    )}
                     <Button onClick={submit} disabled={saving || !allAnswered} size="lg" className="gap-2">
                       {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                       <FileText className="w-4 h-4" /> Salvar e gerar PDF
