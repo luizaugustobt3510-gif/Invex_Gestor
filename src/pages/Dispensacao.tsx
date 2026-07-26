@@ -349,7 +349,21 @@ export default function Dispensacao() {
                       {mode === 'paciente' ? (
                         <>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Paciente *</Label>
+                            <div className="flex items-center justify-between gap-2">
+                              <Label className="text-xs">Paciente *</Label>
+                              {lastPatient && (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 px-2 text-xs gap-1"
+                                  onClick={() => setPatientId(lastPatient.id)}
+                                  title={`Usar último paciente: ${lastPatient.nome}`}
+                                >
+                                  <History className="w-3.5 h-3.5" /> Último
+                                </Button>
+                              )}
+                            </div>
                             <Popover open={patientPop} onOpenChange={setPatientPop}>
                               <PopoverTrigger asChild>
                                 <Button variant="outline" role="combobox" className="w-full justify-between">
