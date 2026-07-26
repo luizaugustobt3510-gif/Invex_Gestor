@@ -209,7 +209,8 @@ export default function Receituario() {
       <h1>Receita Médica</h1>
       <div class="muted">Emitida em ${dataStr}</div>
       <div class="box">
-        <div><strong>Paciente:</strong> ${esc(patient?.nome || '')} ${patient?.cpf ? ' — CPF: ' + esc(patient.cpf) : ''}</div>
+        <div><strong>Paciente:</strong> ${esc(patient?.nome || '')}</div>
+        <div style="margin-top:4px; font-size:13px;"><strong>CPF:</strong> ${esc(patient?.cpf || 'Não informado')}</div>
       </div>
       <div class="box">
         <div class="muted" style="margin-bottom:8px;">Prescrição</div>
