@@ -371,8 +371,8 @@ export default function Pacientes() {
                       <TableCell>{isoToBR(p.birth_date) || '-'}</TableCell>
                       <TableCell>{p.phone || '-'}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2 flex-wrap">
-                          <Button asChild size="sm" variant="outline" className="gap-1">
+                        <div className="flex justify-end items-center gap-1 flex-nowrap whitespace-nowrap">
+                          <Button asChild size="sm" variant="outline" className="h-8 px-2 gap-1 text-xs">
                             <Link to={`/clinica/pacientes/${p.id}`}>
                               <FileText className="w-3.5 h-3.5" /> Prontuário
                             </Link>
@@ -381,15 +381,15 @@ export default function Pacientes() {
                             <Button
                               asChild
                               size="sm"
-                              className="gap-1 bg-sky-500 hover:bg-sky-600 text-white"
+                              className="h-8 px-2 gap-1 text-xs bg-sky-500 hover:bg-sky-600 text-white"
                             >
                               <Link to={`/clinica/anamnese/nova?patient=${p.id}`}>
-                                <ClipboardList className="w-3.5 h-3.5" /> Iniciar Anamnese
+                                <ClipboardList className="w-3.5 h-3.5" /> Anamnese
                               </Link>
                             </Button>
                           )}
                           {hasEvolucao && (
-                            <Button asChild size="sm" variant="secondary" className="gap-1">
+                            <Button asChild size="sm" variant="secondary" className="h-8 px-2 gap-1 text-xs">
                               <Link to={`/clinica/evolucao/${p.id}`}>
                                 <Activity className="w-3.5 h-3.5" /> Evolução
                               </Link>
@@ -399,7 +399,7 @@ export default function Pacientes() {
                             <Button
                               asChild
                               size="sm"
-                              className="gap-1 bg-yellow-200 hover:bg-yellow-300 text-yellow-900 border border-yellow-300"
+                              className="h-8 px-2 gap-1 text-xs bg-yellow-200 hover:bg-yellow-300 text-yellow-900 border border-yellow-300"
                             >
                               <Link to={`/clinica/receituario/${p.id}`}>
                                 <Pill className="w-3.5 h-3.5" /> Receita
@@ -408,10 +408,10 @@ export default function Pacientes() {
                           )}
                           {isAdmin && (
                             <>
-                              <Button size="sm" variant="ghost" className="gap-1" onClick={() => openEdit(p)} title="Editar paciente">
+                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(p)} title="Editar paciente">
                                 <Pencil className="w-3.5 h-3.5" />
                               </Button>
-                              <Button size="sm" variant="ghost" className="gap-1 text-destructive hover:text-destructive" onClick={() => setDeleting(p)} title="Excluir paciente">
+                              <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleting(p)} title="Excluir paciente">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </Button>
                             </>
