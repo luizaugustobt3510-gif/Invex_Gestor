@@ -32,7 +32,7 @@ interface SectorStockRow {
   unidade: string | null;
   preco_unitario: number | null;
 }
-interface Patient { id: string; nome: string; }
+interface Patient { id: string; nome: string; created_at?: string; }
 interface Sector { id: string; nome: string; }
 interface HistoryRow {
   id: string;
@@ -90,7 +90,7 @@ export default function Dispensacao() {
     const [mat, pac, sec] = await Promise.all([
       supabase.from('materials').select('id, codigo, material, unidade, quantidade, preco_unitario')
         .eq('company_id', user.companyId).order('material'),
-      supabase.from('patients').select('id, nome').eq('company_id', user.companyId).order('nome'),
+      supabase.from('patients').select('id, nome, created_at').eq('company_id', user.companyId).order('nome'),
       supabase.from('sectors').select('id, nome').eq('company_id', user.companyId).order('nome'),
     ]);
     setMaterials((mat.data as MaterialRow[]) || []);
@@ -228,6 +228,10 @@ export default function Dispensacao() {
   };
 
   const selectedPatient = patients.find(p => p.id === patientId);
+  const lastPatient = useMemo(() => {
+    if (!patients.length) return null;
+    return [...patients].sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))[0];
+  }, [patients]);
 
   return (
     <MainLayout>
