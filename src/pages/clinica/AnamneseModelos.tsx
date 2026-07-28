@@ -452,6 +452,8 @@ function ConditionsEditor({
           </div>
         );
       })}
+      </div>
+
 
       <Button size="sm" variant="outline" onClick={addRow} className="gap-1">
         <Plus className="w-3.5 h-3.5" /> Adicionar condição
