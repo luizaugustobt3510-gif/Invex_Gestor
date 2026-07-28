@@ -78,7 +78,8 @@ export default function AnamneseModelos() {
   const [dlgOpen, setDlgOpen] = useState(false);
   const [editing, setEditing] = useState<Template | null>(null);
   const [form, setForm] = useState<Omit<Template, 'id'>>(emptyTemplate);
-  const [condDlg, setCondDlg] = useState<{ qId: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [openCond, setOpenCond] = useState<Record<string, boolean>>({});
 
   const load = async () => {
     if (!user?.companyId) return;
