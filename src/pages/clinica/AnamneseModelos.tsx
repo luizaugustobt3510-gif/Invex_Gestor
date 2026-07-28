@@ -389,16 +389,17 @@ function ConditionsEditor({
   if (sources.length === 0) {
     return (
       <div className="text-sm text-muted-foreground">
-        Não há perguntas anteriores com respostas selecionáveis (Sim/Não, Lista, Múltipla escolha) para usar como gatilho.
+        Nenhuma outra pergunta com respostas selecionáveis (Sim/Não, Lista, Múltipla escolha) para usar como gatilho.
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 border rounded-md p-3 bg-muted/30">
       <p className="text-xs text-muted-foreground">
-        A pergunta só aparece quando <strong>todas</strong> as condições abaixo forem satisfeitas.
-        Cada condição casa se a resposta do usuário for <strong>qualquer uma</strong> das marcadas.
+        A pergunta só aparece quando <strong>todas</strong> as condições forem satisfeitas.
+        Cada condição casa com <strong>qualquer</strong> resposta marcada. Pode usar qualquer outra
+        pergunta do modelo como gatilho (inclusive a primeira).
       </p>
       {value.length === 0 && (
         <div className="text-sm text-muted-foreground italic">
@@ -409,7 +410,7 @@ function ConditionsEditor({
         const src = sources.find(s => s.id === c.questionId) || sources[0];
         const opts = possibleValuesFor(src);
         return (
-          <div key={i} className="border rounded-md p-3 space-y-2">
+          <div key={i} className="border rounded-md p-3 space-y-2 bg-background">
             <div className="flex items-center gap-2">
               <Select value={c.questionId} onValueChange={(v) => updateRow(i, { questionId: v, values: [] })}>
                 <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
@@ -424,33 +425,33 @@ function ConditionsEditor({
               </Button>
             </div>
             <div className="text-xs text-muted-foreground">Responder com:</div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-wrap gap-2">
               {opts.map(o => {
                 const checked = c.values.includes(o);
                 return (
-                  <label key={o} className="flex items-center gap-2 border rounded px-2 py-1.5 cursor-pointer hover:bg-muted">
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={(v) => {
-                        const next = v
-                          ? [...c.values, o]
-                          : c.values.filter(x => x !== o);
-                        updateRow(i, { values: next });
-                      }}
-                    />
-                    <span className="text-sm">{o}</span>
-                  </label>
+                  <Button
+                    key={o}
+                    type="button"
+                    size="sm"
+                    variant={checked ? 'default' : 'outline'}
+                    onClick={() => updateRow(i, {
+                      values: checked ? c.values.filter(x => x !== o) : [...c.values, o],
+                    })}
+                  >
+                    {o}
+                  </Button>
                 );
               })}
               {opts.length === 0 && (
-                <div className="col-span-2 text-xs text-muted-foreground italic">
-                  Configure as opções desta pergunta primeiro.
+                <div className="text-xs text-muted-foreground italic">
+                  Configure as opções dessa pergunta primeiro.
                 </div>
               )}
             </div>
           </div>
         );
       })}
+
       <Button size="sm" variant="outline" onClick={addRow} className="gap-1">
         <Plus className="w-3.5 h-3.5" /> Adicionar condição
       </Button>
