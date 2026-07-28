@@ -315,7 +315,7 @@ export default function AnamneseModelos() {
                                     size="sm"
                                     variant={conds.length ? 'default' : 'outline'}
                                     className="gap-1"
-                                    disabled={!canHaveConditions}
+                                    
                                     onClick={() => setOpenCond(o => ({ ...o, [q.id]: !expanded }))}
                                   >
                                     <GitBranch className="w-3.5 h-3.5" />
