@@ -269,7 +269,7 @@ export default function AnamneseModelos() {
                   <div className="space-y-3">
                     {form.questions.map((q, idx) => {
                       const sources = sourcesFor(q.id);
-                      const canHaveConditions = sources.length > 0;
+
                       const conds: QuestionCondition[] = q.conditions || (q.condition?.equals && idx > 0
                         ? [{ questionId: form.questions[idx - 1].id, values: [q.condition.equals] }]
                         : []);
@@ -315,7 +315,7 @@ export default function AnamneseModelos() {
                                     size="sm"
                                     variant={conds.length ? 'default' : 'outline'}
                                     className="gap-1"
-                                    disabled={!canHaveConditions}
+                                    
                                     onClick={() => setOpenCond(o => ({ ...o, [q.id]: !expanded }))}
                                   >
                                     <GitBranch className="w-3.5 h-3.5" />
