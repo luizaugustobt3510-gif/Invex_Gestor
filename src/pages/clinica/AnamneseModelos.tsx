@@ -137,32 +137,38 @@ export default function AnamneseModelos() {
   };
 
   const save = async () => {
-    if (!user?.companyId) return;
+    if (!user?.companyId || saving) return;
     if (!form.name.trim() || !form.exam_type.trim()) {
       toast.error('Preencha nome e tipo de exame'); return;
     }
     if (form.questions.some(q => !q.text.trim())) {
       toast.error('Todas as perguntas precisam de texto'); return;
     }
-    const uidUser = (await supabase.auth.getUser()).data.user?.id;
-    const payload = {
-      company_id: user.companyId,
-      name: form.name.trim(),
-      exam_type: form.exam_type.trim(),
-      questions: form.questions as any,
-      is_active: form.is_active,
-    };
-    if (editing) {
-      const { error } = await supabase.from('anamnese_templates').update(payload).eq('id', editing.id);
-      if (error) { toast.error(error.message); return; }
-      toast.success('Modelo atualizado');
-    } else {
-      const { error } = await supabase.from('anamnese_templates').insert({ ...payload, created_by: uidUser });
-      if (error) { toast.error(error.message); return; }
-      toast.success('Modelo criado');
+    setSaving(true);
+    try {
+      const uidUser = (await supabase.auth.getUser()).data.user?.id;
+      const payload = {
+        company_id: user.companyId,
+        name: form.name.trim(),
+        exam_type: form.exam_type.trim(),
+        questions: form.questions as any,
+        is_active: form.is_active,
+      };
+      if (editing) {
+        const { error } = await supabase.from('anamnese_templates').update(payload).eq('id', editing.id);
+        if (error) { toast.error(error.message); return; }
+        toast.success('Modelo atualizado');
+      } else {
+        const { error } = await supabase.from('anamnese_templates').insert({ ...payload, created_by: uidUser });
+        if (error) { toast.error(error.message); return; }
+        toast.success('Modelo criado');
+      }
+      setDlgOpen(false);
+      setEditing(null);
+      load();
+    } finally {
+      setSaving(false);
     }
-    setDlgOpen(false);
-    load();
   };
 
   const remove = async (t: Template) => {
@@ -173,25 +179,16 @@ export default function AnamneseModelos() {
     load();
   };
 
-  const currentCondQ = useMemo(
-    () => (condDlg ? form.questions.find(q => q.id === condDlg.qId) : null),
-    [condDlg, form.questions],
-  );
-  const currentCondIdx = useMemo(
-    () => (condDlg ? form.questions.findIndex(q => q.id === condDlg.qId) : -1),
-    [condDlg, form.questions],
-  );
-  const eligibleSources = useMemo(() => {
-    if (currentCondIdx < 0) return [];
-    // Only earlier questions with enumerable answers (sim_nao / lista / multi_escolha)
-    return form.questions.slice(0, currentCondIdx).filter(q =>
-      q.type === 'sim_nao' || q.type === 'lista' || q.type === 'multi_escolha'
+  /** Any other question with enumerable answers can be a trigger (order-independent). */
+  const sourcesFor = (qId: string) =>
+    form.questions.filter(q =>
+      q.id !== qId && (q.type === 'sim_nao' || q.type === 'lista' || q.type === 'multi_escolha')
     );
-  }, [form.questions, currentCondIdx]);
 
   const setConditions = (qId: string, conditions: QuestionCondition[]) => {
     updateQ(qId, { conditions: conditions.length ? conditions : undefined });
   };
+
 
   return (
     <MainLayout>
