@@ -2361,6 +2361,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "material_dispensations_patient_consumption_id_fkey"
+            columns: ["patient_consumption_id"]
+            isOneToOne: false
+            referencedRelation: "patient_consumptions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "material_dispensations_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
@@ -3723,6 +3730,13 @@ export type Database = {
           },
           {
             foreignKeyName: "stock_movements_patient_consumption_fkey"
+            columns: ["patient_consumption_id"]
+            isOneToOne: false
+            referencedRelation: "patient_consumptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_patient_consumption_id_fkey"
             columns: ["patient_consumption_id"]
             isOneToOne: false
             referencedRelation: "patient_consumptions"

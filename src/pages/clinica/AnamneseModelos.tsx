@@ -406,6 +406,7 @@ function ConditionsEditor({
           Sem condições — a pergunta aparece sempre.
         </div>
       )}
+      <div className="max-h-[45vh] overflow-y-auto pr-1 space-y-3">
       {value.map((c, i) => {
         const src = sources.find(s => s.id === c.questionId) || sources[0];
         const opts = possibleValuesFor(src);
@@ -451,6 +452,8 @@ function ConditionsEditor({
           </div>
         );
       })}
+      </div>
+
 
       <Button size="sm" variant="outline" onClick={addRow} className="gap-1">
         <Plus className="w-3.5 h-3.5" /> Adicionar condição
