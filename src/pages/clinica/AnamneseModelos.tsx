@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
+
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
@@ -78,7 +78,8 @@ export default function AnamneseModelos() {
   const [dlgOpen, setDlgOpen] = useState(false);
   const [editing, setEditing] = useState<Template | null>(null);
   const [form, setForm] = useState<Omit<Template, 'id'>>(emptyTemplate);
-  const [condDlg, setCondDlg] = useState<{ qId: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [openCond, setOpenCond] = useState<Record<string, boolean>>({});
 
   const load = async () => {
     if (!user?.companyId) return;
@@ -136,32 +137,38 @@ export default function AnamneseModelos() {
   };
 
   const save = async () => {
-    if (!user?.companyId) return;
+    if (!user?.companyId || saving) return;
     if (!form.name.trim() || !form.exam_type.trim()) {
       toast.error('Preencha nome e tipo de exame'); return;
     }
     if (form.questions.some(q => !q.text.trim())) {
       toast.error('Todas as perguntas precisam de texto'); return;
     }
-    const uidUser = (await supabase.auth.getUser()).data.user?.id;
-    const payload = {
-      company_id: user.companyId,
-      name: form.name.trim(),
-      exam_type: form.exam_type.trim(),
-      questions: form.questions as any,
-      is_active: form.is_active,
-    };
-    if (editing) {
-      const { error } = await supabase.from('anamnese_templates').update(payload).eq('id', editing.id);
-      if (error) { toast.error(error.message); return; }
-      toast.success('Modelo atualizado');
-    } else {
-      const { error } = await supabase.from('anamnese_templates').insert({ ...payload, created_by: uidUser });
-      if (error) { toast.error(error.message); return; }
-      toast.success('Modelo criado');
+    setSaving(true);
+    try {
+      const uidUser = (await supabase.auth.getUser()).data.user?.id;
+      const payload = {
+        company_id: user.companyId,
+        name: form.name.trim(),
+        exam_type: form.exam_type.trim(),
+        questions: form.questions as any,
+        is_active: form.is_active,
+      };
+      if (editing) {
+        const { error } = await supabase.from('anamnese_templates').update(payload).eq('id', editing.id);
+        if (error) { toast.error(error.message); return; }
+        toast.success('Modelo atualizado');
+      } else {
+        const { error } = await supabase.from('anamnese_templates').insert({ ...payload, created_by: uidUser });
+        if (error) { toast.error(error.message); return; }
+        toast.success('Modelo criado');
+      }
+      setDlgOpen(false);
+      setEditing(null);
+      load();
+    } finally {
+      setSaving(false);
     }
-    setDlgOpen(false);
-    load();
   };
 
   const remove = async (t: Template) => {
@@ -172,25 +179,16 @@ export default function AnamneseModelos() {
     load();
   };
 
-  const currentCondQ = useMemo(
-    () => (condDlg ? form.questions.find(q => q.id === condDlg.qId) : null),
-    [condDlg, form.questions],
-  );
-  const currentCondIdx = useMemo(
-    () => (condDlg ? form.questions.findIndex(q => q.id === condDlg.qId) : -1),
-    [condDlg, form.questions],
-  );
-  const eligibleSources = useMemo(() => {
-    if (currentCondIdx < 0) return [];
-    // Only earlier questions with enumerable answers (sim_nao / lista / multi_escolha)
-    return form.questions.slice(0, currentCondIdx).filter(q =>
-      q.type === 'sim_nao' || q.type === 'lista' || q.type === 'multi_escolha'
+  /** Any other question with enumerable answers can be a trigger (order-independent). */
+  const sourcesFor = (qId: string) =>
+    form.questions.filter(q =>
+      q.id !== qId && (q.type === 'sim_nao' || q.type === 'lista' || q.type === 'multi_escolha')
     );
-  }, [form.questions, currentCondIdx]);
 
   const setConditions = (qId: string, conditions: QuestionCondition[]) => {
     updateQ(qId, { conditions: conditions.length ? conditions : undefined });
   };
+
 
   return (
     <MainLayout>
@@ -270,12 +268,12 @@ export default function AnamneseModelos() {
                 ) : (
                   <div className="space-y-3">
                     {form.questions.map((q, idx) => {
-                      const canHaveConditions = idx > 0 && form.questions.slice(0, idx).some(p =>
-                        p.type === 'sim_nao' || p.type === 'lista' || p.type === 'multi_escolha'
-                      );
-                      const conds = q.conditions || (q.condition?.equals && idx > 0
+                      const sources = sourcesFor(q.id);
+                      const canHaveConditions = sources.length > 0;
+                      const conds: QuestionCondition[] = q.conditions || (q.condition?.equals && idx > 0
                         ? [{ questionId: form.questions[idx - 1].id, values: [q.condition.equals] }]
                         : []);
+                      const expanded = !!openCond[q.id];
                       return (
                         <Card key={q.id} className="border">
                           <CardContent className="pt-4 space-y-2">
@@ -311,26 +309,25 @@ export default function AnamneseModelos() {
                                   <Switch checked={q.required} onCheckedChange={(v) => updateQ(q.id, { required: v })} />
                                   <Label className="mb-0 text-xs">Obrigatória</Label>
                                 </div>
-                                {canHaveConditions && (
-                                  <div className="md:col-span-3 flex items-center justify-end">
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant={conds.length ? 'default' : 'outline'}
-                                      className="gap-1"
-                                      onClick={() => setCondDlg({ qId: q.id })}
-                                    >
-                                      <GitBranch className="w-3.5 h-3.5" />
-                                      {conds.length ? `Exibir se (${conds.length})` : 'Exibir sempre'}
-                                    </Button>
-                                  </div>
-                                )}
+                                <div className="md:col-span-3 flex items-center justify-end">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={conds.length ? 'default' : 'outline'}
+                                    className="gap-1"
+                                    disabled={!canHaveConditions}
+                                    onClick={() => setOpenCond(o => ({ ...o, [q.id]: !expanded }))}
+                                  >
+                                    <GitBranch className="w-3.5 h-3.5" />
+                                    {conds.length ? `Exibir se (${conds.length})` : 'Exibir sempre'}
+                                  </Button>
+                                </div>
                               </div>
                               <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => removeQ(q.id)}>
                                 <Trash2 className="w-3.5 h-3.5" />
                               </Button>
                             </div>
-                            {conds.length > 0 && (
+                            {conds.length > 0 && !expanded && (
                               <div className="text-xs text-muted-foreground pl-10 space-y-0.5">
                                 {conds.map((c, i) => {
                                   const src = form.questions.find(qq => qq.id === c.questionId);
@@ -342,6 +339,15 @@ export default function AnamneseModelos() {
                                 })}
                               </div>
                             )}
+                            {expanded && (
+                              <div className="pl-10">
+                                <ConditionsEditor
+                                  sources={sources}
+                                  value={conds}
+                                  onChange={(next) => setConditions(q.id, next)}
+                                />
+                              </div>
+                            )}
                           </CardContent>
                         </Card>
                       );
@@ -351,35 +357,14 @@ export default function AnamneseModelos() {
               </div>
             </div>
             <DialogFooter className="p-6 pt-3 border-t">
-              <Button variant="outline" onClick={() => setDlgOpen(false)}>Cancelar</Button>
-              <Button onClick={save}>{editing ? 'Salvar' : 'Criar modelo'}</Button>
+              <Button variant="outline" onClick={() => setDlgOpen(false)} disabled={saving}>Cancelar</Button>
+              <Button onClick={save} disabled={saving}>
+                {saving ? 'Salvando...' : editing ? 'Salvar' : 'Criar modelo'}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
-        {/* CONDITIONS DIALOG */}
-        <Dialog open={!!condDlg} onOpenChange={(o) => !o && setCondDlg(null)}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Condições de exibição</DialogTitle>
-            </DialogHeader>
-            {currentCondQ && (
-              <ConditionsEditor
-                sources={eligibleSources}
-                value={
-                  currentCondQ.conditions ||
-                  (currentCondQ.condition?.equals && currentCondIdx > 0
-                    ? [{ questionId: form.questions[currentCondIdx - 1].id, values: [currentCondQ.condition.equals] }]
-                    : [])
-                }
-                onChange={(next) => setConditions(currentCondQ.id, next)}
-              />
-            )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setCondDlg(null)}>Fechar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </MainLayout>
   );
@@ -404,16 +389,17 @@ function ConditionsEditor({
   if (sources.length === 0) {
     return (
       <div className="text-sm text-muted-foreground">
-        Não há perguntas anteriores com respostas selecionáveis (Sim/Não, Lista, Múltipla escolha) para usar como gatilho.
+        Nenhuma outra pergunta com respostas selecionáveis (Sim/Não, Lista, Múltipla escolha) para usar como gatilho.
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 border rounded-md p-3 bg-muted/30">
       <p className="text-xs text-muted-foreground">
-        A pergunta só aparece quando <strong>todas</strong> as condições abaixo forem satisfeitas.
-        Cada condição casa se a resposta do usuário for <strong>qualquer uma</strong> das marcadas.
+        A pergunta só aparece quando <strong>todas</strong> as condições forem satisfeitas.
+        Cada condição casa com <strong>qualquer</strong> resposta marcada. Pode usar qualquer outra
+        pergunta do modelo como gatilho (inclusive a primeira).
       </p>
       {value.length === 0 && (
         <div className="text-sm text-muted-foreground italic">
@@ -424,7 +410,7 @@ function ConditionsEditor({
         const src = sources.find(s => s.id === c.questionId) || sources[0];
         const opts = possibleValuesFor(src);
         return (
-          <div key={i} className="border rounded-md p-3 space-y-2">
+          <div key={i} className="border rounded-md p-3 space-y-2 bg-background">
             <div className="flex items-center gap-2">
               <Select value={c.questionId} onValueChange={(v) => updateRow(i, { questionId: v, values: [] })}>
                 <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
@@ -439,33 +425,33 @@ function ConditionsEditor({
               </Button>
             </div>
             <div className="text-xs text-muted-foreground">Responder com:</div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-wrap gap-2">
               {opts.map(o => {
                 const checked = c.values.includes(o);
                 return (
-                  <label key={o} className="flex items-center gap-2 border rounded px-2 py-1.5 cursor-pointer hover:bg-muted">
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={(v) => {
-                        const next = v
-                          ? [...c.values, o]
-                          : c.values.filter(x => x !== o);
-                        updateRow(i, { values: next });
-                      }}
-                    />
-                    <span className="text-sm">{o}</span>
-                  </label>
+                  <Button
+                    key={o}
+                    type="button"
+                    size="sm"
+                    variant={checked ? 'default' : 'outline'}
+                    onClick={() => updateRow(i, {
+                      values: checked ? c.values.filter(x => x !== o) : [...c.values, o],
+                    })}
+                  >
+                    {o}
+                  </Button>
                 );
               })}
               {opts.length === 0 && (
-                <div className="col-span-2 text-xs text-muted-foreground italic">
-                  Configure as opções desta pergunta primeiro.
+                <div className="text-xs text-muted-foreground italic">
+                  Configure as opções dessa pergunta primeiro.
                 </div>
               )}
             </div>
           </div>
         );
       })}
+
       <Button size="sm" variant="outline" onClick={addRow} className="gap-1">
         <Plus className="w-3.5 h-3.5" /> Adicionar condição
       </Button>
