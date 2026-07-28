@@ -268,12 +268,12 @@ export default function AnamneseModelos() {
                 ) : (
                   <div className="space-y-3">
                     {form.questions.map((q, idx) => {
-                      const canHaveConditions = idx > 0 && form.questions.slice(0, idx).some(p =>
-                        p.type === 'sim_nao' || p.type === 'lista' || p.type === 'multi_escolha'
-                      );
-                      const conds = q.conditions || (q.condition?.equals && idx > 0
+                      const sources = sourcesFor(q.id);
+                      const canHaveConditions = sources.length > 0;
+                      const conds: QuestionCondition[] = q.conditions || (q.condition?.equals && idx > 0
                         ? [{ questionId: form.questions[idx - 1].id, values: [q.condition.equals] }]
                         : []);
+                      const expanded = !!openCond[q.id];
                       return (
                         <Card key={q.id} className="border">
                           <CardContent className="pt-4 space-y-2">
@@ -309,26 +309,25 @@ export default function AnamneseModelos() {
                                   <Switch checked={q.required} onCheckedChange={(v) => updateQ(q.id, { required: v })} />
                                   <Label className="mb-0 text-xs">Obrigatória</Label>
                                 </div>
-                                {canHaveConditions && (
-                                  <div className="md:col-span-3 flex items-center justify-end">
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant={conds.length ? 'default' : 'outline'}
-                                      className="gap-1"
-                                      onClick={() => setCondDlg({ qId: q.id })}
-                                    >
-                                      <GitBranch className="w-3.5 h-3.5" />
-                                      {conds.length ? `Exibir se (${conds.length})` : 'Exibir sempre'}
-                                    </Button>
-                                  </div>
-                                )}
+                                <div className="md:col-span-3 flex items-center justify-end">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={conds.length ? 'default' : 'outline'}
+                                    className="gap-1"
+                                    disabled={!canHaveConditions}
+                                    onClick={() => setOpenCond(o => ({ ...o, [q.id]: !expanded }))}
+                                  >
+                                    <GitBranch className="w-3.5 h-3.5" />
+                                    {conds.length ? `Exibir se (${conds.length})` : 'Exibir sempre'}
+                                  </Button>
+                                </div>
                               </div>
                               <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => removeQ(q.id)}>
                                 <Trash2 className="w-3.5 h-3.5" />
                               </Button>
                             </div>
-                            {conds.length > 0 && (
+                            {conds.length > 0 && !expanded && (
                               <div className="text-xs text-muted-foreground pl-10 space-y-0.5">
                                 {conds.map((c, i) => {
                                   const src = form.questions.find(qq => qq.id === c.questionId);
@@ -340,6 +339,15 @@ export default function AnamneseModelos() {
                                 })}
                               </div>
                             )}
+                            {expanded && (
+                              <div className="pl-10">
+                                <ConditionsEditor
+                                  sources={sources}
+                                  value={conds}
+                                  onChange={(next) => setConditions(q.id, next)}
+                                />
+                              </div>
+                            )}
                           </CardContent>
                         </Card>
                       );
@@ -349,35 +357,14 @@ export default function AnamneseModelos() {
               </div>
             </div>
             <DialogFooter className="p-6 pt-3 border-t">
-              <Button variant="outline" onClick={() => setDlgOpen(false)}>Cancelar</Button>
-              <Button onClick={save}>{editing ? 'Salvar' : 'Criar modelo'}</Button>
+              <Button variant="outline" onClick={() => setDlgOpen(false)} disabled={saving}>Cancelar</Button>
+              <Button onClick={save} disabled={saving}>
+                {saving ? 'Salvando...' : editing ? 'Salvar' : 'Criar modelo'}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
-        {/* CONDITIONS DIALOG */}
-        <Dialog open={!!condDlg} onOpenChange={(o) => !o && setCondDlg(null)}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Condições de exibição</DialogTitle>
-            </DialogHeader>
-            {currentCondQ && (
-              <ConditionsEditor
-                sources={eligibleSources}
-                value={
-                  currentCondQ.conditions ||
-                  (currentCondQ.condition?.equals && currentCondIdx > 0
-                    ? [{ questionId: form.questions[currentCondIdx - 1].id, values: [currentCondQ.condition.equals] }]
-                    : [])
-                }
-                onChange={(next) => setConditions(currentCondQ.id, next)}
-              />
-            )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setCondDlg(null)}>Fechar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </MainLayout>
   );
