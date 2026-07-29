@@ -60,6 +60,10 @@ export default function NovaAnamnese() {
   const [signatureId, setSignatureId] = useState<string>('');
   const [signOnFly, setSignOnFly] = useState(false);
   const inlinePadRef = useRef<any>(null);
+  // Assinatura exclusiva da ANAMNESE (usada apenas quando há receita vinculada)
+  const [anamSignatureId, setAnamSignatureId] = useState<string>('');
+  const [anamSignOnFly, setAnamSignOnFly] = useState(false);
+  const anamPadRef = useRef<any>(null);
 
   const [patientPopoverOpen, setPatientPopoverOpen] = useState(false);
 
