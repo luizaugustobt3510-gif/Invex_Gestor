@@ -308,9 +308,6 @@ export default function AnamneseModelos() {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label>Perguntas</Label>
-              <div>
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                   <Label>Perguntas</Label>
                   <div className="flex items-center gap-2">
@@ -335,6 +332,8 @@ export default function AnamneseModelos() {
                     </Button>
                   </div>
                 </div>
+                {form.questions.length === 0 ? (
+                  <div className="text-center text-sm text-muted-foreground border rounded p-4">
                     Nenhuma pergunta ainda.
                   </div>
                 ) : (
