@@ -60,6 +60,10 @@ export default function NovaAnamnese() {
   const [signatureId, setSignatureId] = useState<string>('');
   const [signOnFly, setSignOnFly] = useState(false);
   const inlinePadRef = useRef<any>(null);
+  // Assinatura exclusiva da ANAMNESE (usada apenas quando há receita vinculada)
+  const [anamSignatureId, setAnamSignatureId] = useState<string>('');
+  const [anamSignOnFly, setAnamSignOnFly] = useState(false);
+  const anamPadRef = useRef<any>(null);
 
   const [patientPopoverOpen, setPatientPopoverOpen] = useState(false);
 
@@ -90,7 +94,7 @@ export default function NovaAnamnese() {
       }));
       setSignatures(withUrls);
       const def = withUrls.find(s => s.is_default);
-      if (def) setSignatureId(def.id);
+      if (def) { setSignatureId(def.id); setAnamSignatureId(def.id); }
 
       const { data: qm } = await (supabase.from('prescription_quick_items' as any) as any)
         .select('id, title, content')
@@ -258,26 +262,25 @@ export default function NovaAnamnese() {
       answer: parseAnswerValues(answers[q.id]).join(', '),
     }));
 
-    // Resolve signature
-    let signature_image_url: string | undefined;
-    let signature_source: string | undefined;
-    let signature_name: string | undefined;
-    let signature_credencial: string | undefined;
-    if (signOnFly && inlinePadRef.current) {
-      const dataUrl = inlinePadRef.current.toDataURL?.();
-      if (dataUrl && dataUrl.length > 200) {
-        signature_image_url = dataUrl;
-        signature_source = 'inline';
+    // Resolve signature (padrão: usada na anamnese e na receita)
+    const resolveSig = (onFly: boolean, padRef: any, sigId: string) => {
+      if (onFly && padRef.current) {
+        const dataUrl = padRef.current.toDataURL?.();
+        if (dataUrl && dataUrl.length > 200) {
+          return { url: dataUrl as string, source: 'inline', nome: undefined as string | undefined, cred: undefined as string | undefined };
+        }
+        return null;
       }
-    } else if (signatureId) {
-      const sig = signatures.find(s => s.id === signatureId);
+      const sig = signatures.find(s => s.id === sigId);
       if (sig?._signed) {
-        signature_image_url = sig._signed;
-        signature_source = 'saved';
-        signature_name = sig.nome;
-        signature_credencial = sig.credencial || undefined;
+        return { url: sig._signed as string, source: 'saved', nome: sig.nome as string, cred: (sig.credencial || undefined) as string | undefined };
       }
-    }
+      return null;
+    };
+
+    const main = resolveSig(signOnFly, inlinePadRef, signatureId);
+    const hasRx = rxEnabled && !!rxContent.trim();
+    const anam = hasRx ? resolveSig(anamSignOnFly, anamPadRef, anamSignatureId) : null;
 
     setSaving(true);
     try {
@@ -289,11 +292,14 @@ export default function NovaAnamnese() {
           exam_type: examType,
           responses,
           observations: observations || undefined,
-          signature_image_url,
-          signature_source,
-          signature_name,
-          signature_credencial,
-          prescription: rxEnabled && rxContent.trim()
+          signature_image_url: main?.url,
+          signature_source: main?.source,
+          signature_name: main?.nome,
+          signature_credencial: main?.cred,
+          anamnese_signature_image_url: anam?.url,
+          anamnese_signature_name: anam?.nome,
+          anamnese_signature_credencial: anam?.cred,
+          prescription: hasRx
             ? { tipo: rxTipo, content: rxContent.trim() }
             : undefined,
         },
@@ -713,7 +719,9 @@ export default function NovaAnamnese() {
 
                 <div className="rounded-lg border p-3 bg-muted/20 space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
-                    <Label className="text-sm font-medium">Assinatura do profissional</Label>
+                    <Label className="text-sm font-medium">
+                      {rxEnabled ? 'Assinatura da receita' : 'Assinatura do profissional'}
+                    </Label>
                     <div className="flex gap-1">
                       <Button type="button" size="sm" variant={!signOnFly ? 'default' : 'outline'} onClick={() => setSignOnFly(false)}>
                         Salva
@@ -744,6 +752,45 @@ export default function NovaAnamnese() {
                     <InlineSignaturePad refObj={inlinePadRef} />
                   )}
                 </div>
+
+                {rxEnabled && (
+                  <div className="rounded-lg border p-3 bg-muted/20 space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <Label className="text-sm font-medium">Assinatura da anamnese</Label>
+                      <div className="flex gap-1">
+                        <Button type="button" size="sm" variant={!anamSignOnFly ? 'default' : 'outline'} onClick={() => setAnamSignOnFly(false)}>
+                          Salva
+                        </Button>
+                        <Button type="button" size="sm" variant={anamSignOnFly ? 'default' : 'outline'} onClick={() => setAnamSignOnFly(true)}>
+                          Assinar agora
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Como há receita vinculada, escolha a assinatura que sairá na página da anamnese.
+                    </p>
+                    {!anamSignOnFly ? (
+                      signatures.length === 0 ? (
+                        <div className="text-xs text-muted-foreground">
+                          Você não tem assinaturas salvas. <Link to="/assinaturas" className="text-primary underline">Cadastrar</Link> ou clique em "Assinar agora".
+                        </div>
+                      ) : (
+                        <Select value={anamSignatureId} onValueChange={setAnamSignatureId}>
+                          <SelectTrigger><SelectValue placeholder="Selecione uma assinatura" /></SelectTrigger>
+                          <SelectContent>
+                            {signatures.map(s => (
+                              <SelectItem key={s.id} value={s.id}>
+                                {s.nome}{s.credencial ? ` — ${s.credencial}` : ''}{s.is_default ? ' (padrão)' : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )
+                    ) : (
+                      <InlineSignaturePad refObj={anamPadRef} />
+                    )}
+                  </div>
+                )}
 
 
                 <div className={`flex items-center gap-2 rounded p-3 text-sm ${
