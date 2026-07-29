@@ -262,26 +262,25 @@ export default function NovaAnamnese() {
       answer: parseAnswerValues(answers[q.id]).join(', '),
     }));
 
-    // Resolve signature
-    let signature_image_url: string | undefined;
-    let signature_source: string | undefined;
-    let signature_name: string | undefined;
-    let signature_credencial: string | undefined;
-    if (signOnFly && inlinePadRef.current) {
-      const dataUrl = inlinePadRef.current.toDataURL?.();
-      if (dataUrl && dataUrl.length > 200) {
-        signature_image_url = dataUrl;
-        signature_source = 'inline';
+    // Resolve signature (padrão: usada na anamnese e na receita)
+    const resolveSig = (onFly: boolean, padRef: any, sigId: string) => {
+      if (onFly && padRef.current) {
+        const dataUrl = padRef.current.toDataURL?.();
+        if (dataUrl && dataUrl.length > 200) {
+          return { url: dataUrl as string, source: 'inline', nome: undefined as string | undefined, cred: undefined as string | undefined };
+        }
+        return null;
       }
-    } else if (signatureId) {
-      const sig = signatures.find(s => s.id === signatureId);
+      const sig = signatures.find(s => s.id === sigId);
       if (sig?._signed) {
-        signature_image_url = sig._signed;
-        signature_source = 'saved';
-        signature_name = sig.nome;
-        signature_credencial = sig.credencial || undefined;
+        return { url: sig._signed as string, source: 'saved', nome: sig.nome as string, cred: (sig.credencial || undefined) as string | undefined };
       }
-    }
+      return null;
+    };
+
+    const main = resolveSig(signOnFly, inlinePadRef, signatureId);
+    const hasRx = rxEnabled && !!rxContent.trim();
+    const anam = hasRx ? resolveSig(anamSignOnFly, anamPadRef, anamSignatureId) : null;
 
     setSaving(true);
     try {
@@ -293,11 +292,14 @@ export default function NovaAnamnese() {
           exam_type: examType,
           responses,
           observations: observations || undefined,
-          signature_image_url,
-          signature_source,
-          signature_name,
-          signature_credencial,
-          prescription: rxEnabled && rxContent.trim()
+          signature_image_url: main?.url,
+          signature_source: main?.source,
+          signature_name: main?.nome,
+          signature_credencial: main?.cred,
+          anamnese_signature_image_url: anam?.url,
+          anamnese_signature_name: anam?.nome,
+          anamnese_signature_credencial: anam?.cred,
+          prescription: hasRx
             ? { tipo: rxTipo, content: rxContent.trim() }
             : undefined,
         },
