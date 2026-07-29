@@ -310,12 +310,31 @@ export default function AnamneseModelos() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <Label>Perguntas</Label>
-                  <Button size="sm" variant="outline" onClick={addQuestion} className="gap-1">
-                    <Plus className="w-3.5 h-3.5" /> Pergunta
-                  </Button>
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                  <Label>Perguntas</Label>
+                  <div className="flex items-center gap-2">
+                    {items.filter(t => t.id !== editing?.id && (t.questions || []).length > 0).length > 0 && (
+                      <Select value="" onValueChange={importQuestions}>
+                        <SelectTrigger className="h-9 w-[230px] text-xs">
+                          <SelectValue placeholder="Copiar perguntas de..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {items
+                            .filter(t => t.id !== editing?.id && (t.questions || []).length > 0)
+                            .map(t => (
+                              <SelectItem key={t.id} value={t.id}>
+                                {t.name} ({(t.questions || []).length})
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <Button size="sm" variant="outline" onClick={addQuestion} className="gap-1">
+                      <Plus className="w-3.5 h-3.5" /> Pergunta
+                    </Button>
+                  </div>
                 </div>
-                {form.questions.length === 0 ? (
-                  <div className="text-center text-sm text-muted-foreground border rounded p-4">
                     Nenhuma pergunta ainda.
                   </div>
                 ) : (
