@@ -105,6 +105,52 @@ export default function AnamneseModelos() {
     setDlgOpen(true);
   };
 
+  /** Clone question ids so conditions keep pointing to the copied questions. */
+  const cloneQuestions = (qs: Question[]): Question[] => {
+    const map: Record<string, string> = {};
+    const cloned = (qs || []).map(q => {
+      const nid = uid();
+      map[q.id] = nid;
+      return { ...q, id: nid, options: q.options ? [...q.options] : undefined };
+    });
+    return cloned.map(q => ({
+      ...q,
+      conditions: q.conditions
+        ? q.conditions.map(c => ({ questionId: map[c.questionId] || c.questionId, values: [...c.values] }))
+        : undefined,
+    }));
+  };
+
+  const uniqueName = (base: string) => {
+    let name = `${base} (cópia)`;
+    let n = 2;
+    const taken = (v: string) => items.some(t => t.name.trim().toLowerCase() === v.trim().toLowerCase());
+    while (taken(name)) { name = `${base} (cópia ${n})`; n++; }
+    return name;
+  };
+
+  /** Duplicate an existing template into a new (unsaved) one, headers editable. */
+  const duplicate = (t: Template) => {
+    setEditing(null);
+    setForm({
+      name: uniqueName(t.name),
+      exam_type: t.exam_type,
+      questions: cloneQuestions(t.questions || []),
+      is_active: t.is_active,
+    });
+    setDlgOpen(true);
+    toast.info('Modelo duplicado — ajuste o nome e as perguntas antes de salvar.');
+  };
+
+  /** Import (append) questions from another template into the current form. */
+  const importQuestions = (templateId: string) => {
+    const src = items.find(t => t.id === templateId);
+    if (!src) return;
+    setForm(f => ({ ...f, questions: [...f.questions, ...cloneQuestions(src.questions || [])] }));
+    toast.success(`${(src.questions || []).length} pergunta(s) copiada(s) de "${src.name}"`);
+  };
+
+
   const addQuestion = () => {
     setForm(f => ({
       ...f,
