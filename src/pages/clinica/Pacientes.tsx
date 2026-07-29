@@ -106,7 +106,7 @@ export default function Pacientes() {
   const [editing, setEditing] = useState<Patient | null>(null);
   const [deleting, setDeleting] = useState<Patient | null>(null);
 
-  const isAdmin = ['super_admin', 'admin_empresa', 'superadm', 'admin'].includes(user?.role || '');
+  const isAdmin = ['super_admin', 'admin_empresa', 'superadm', 'admin', 'clinica', 'enfermagem', 'enfermeiro'].includes(user?.role || '');
 
   const load = async () => {
     if (!user?.companyId) return;
