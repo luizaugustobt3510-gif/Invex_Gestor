@@ -11,7 +11,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Pencil, ArrowUp, ArrowDown, ClipboardList, GitBranch } from 'lucide-react';
+import { Plus, Trash2, Pencil, ArrowUp, ArrowDown, ClipboardList, GitBranch, Copy } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -105,6 +105,52 @@ export default function AnamneseModelos() {
     setDlgOpen(true);
   };
 
+  /** Clone question ids so conditions keep pointing to the copied questions. */
+  const cloneQuestions = (qs: Question[]): Question[] => {
+    const map: Record<string, string> = {};
+    const cloned = (qs || []).map(q => {
+      const nid = uid();
+      map[q.id] = nid;
+      return { ...q, id: nid, options: q.options ? [...q.options] : undefined };
+    });
+    return cloned.map(q => ({
+      ...q,
+      conditions: q.conditions
+        ? q.conditions.map(c => ({ questionId: map[c.questionId] || c.questionId, values: [...c.values] }))
+        : undefined,
+    }));
+  };
+
+  const uniqueName = (base: string) => {
+    let name = `${base} (cópia)`;
+    let n = 2;
+    const taken = (v: string) => items.some(t => t.name.trim().toLowerCase() === v.trim().toLowerCase());
+    while (taken(name)) { name = `${base} (cópia ${n})`; n++; }
+    return name;
+  };
+
+  /** Duplicate an existing template into a new (unsaved) one, headers editable. */
+  const duplicate = (t: Template) => {
+    setEditing(null);
+    setForm({
+      name: uniqueName(t.name),
+      exam_type: t.exam_type,
+      questions: cloneQuestions(t.questions || []),
+      is_active: t.is_active,
+    });
+    setDlgOpen(true);
+    toast.info('Modelo duplicado — ajuste o nome e as perguntas antes de salvar.');
+  };
+
+  /** Import (append) questions from another template into the current form. */
+  const importQuestions = (templateId: string) => {
+    const src = items.find(t => t.id === templateId);
+    if (!src) return;
+    setForm(f => ({ ...f, questions: [...f.questions, ...cloneQuestions(src.questions || [])] }));
+    toast.success(`${(src.questions || []).length} pergunta(s) copiada(s) de "${src.name}"`);
+  };
+
+
   const addQuestion = () => {
     setForm(f => ({
       ...f,
@@ -140,6 +186,10 @@ export default function AnamneseModelos() {
     if (!user?.companyId || saving) return;
     if (!form.name.trim() || !form.exam_type.trim()) {
       toast.error('Preencha nome e tipo de exame'); return;
+    }
+    const nameKey = form.name.trim().toLowerCase();
+    if (items.some(t => t.id !== editing?.id && t.name.trim().toLowerCase() === nameKey)) {
+      toast.error('Já existe um modelo com este nome. Escolha outro nome.'); return;
     }
     if (form.questions.some(q => !q.text.trim())) {
       toast.error('Todas as perguntas precisam de texto'); return;
@@ -221,6 +271,9 @@ export default function AnamneseModelos() {
                         </div>
                       </div>
                       <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => duplicate(t)} title="Duplicar modelo" className="gap-1">
+                          <Copy className="w-3.5 h-3.5" /> Duplicar
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => openEdit(t)}><Pencil className="w-3.5 h-3.5" /></Button>
                         <Button size="sm" variant="destructive" onClick={() => remove(t)}><Trash2 className="w-3.5 h-3.5" /></Button>
                       </div>
@@ -255,11 +308,29 @@ export default function AnamneseModelos() {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                   <Label>Perguntas</Label>
-                  <Button size="sm" variant="outline" onClick={addQuestion} className="gap-1">
-                    <Plus className="w-3.5 h-3.5" /> Pergunta
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {items.filter(t => t.id !== editing?.id && (t.questions || []).length > 0).length > 0 && (
+                      <Select value="" onValueChange={importQuestions}>
+                        <SelectTrigger className="h-9 w-[230px] text-xs">
+                          <SelectValue placeholder="Copiar perguntas de..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {items
+                            .filter(t => t.id !== editing?.id && (t.questions || []).length > 0)
+                            .map(t => (
+                              <SelectItem key={t.id} value={t.id}>
+                                {t.name} ({(t.questions || []).length})
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <Button size="sm" variant="outline" onClick={addQuestion} className="gap-1">
+                      <Plus className="w-3.5 h-3.5" /> Pergunta
+                    </Button>
+                  </div>
                 </div>
                 {form.questions.length === 0 ? (
                   <div className="text-center text-sm text-muted-foreground border rounded p-4">
