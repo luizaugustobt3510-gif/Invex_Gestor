@@ -271,6 +271,9 @@ export default function AnamneseModelos() {
                         </div>
                       </div>
                       <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => duplicate(t)} title="Duplicar modelo" className="gap-1">
+                          <Copy className="w-3.5 h-3.5" /> Duplicar
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => openEdit(t)}><Pencil className="w-3.5 h-3.5" /></Button>
                         <Button size="sm" variant="destructive" onClick={() => remove(t)}><Trash2 className="w-3.5 h-3.5" /></Button>
                       </div>
