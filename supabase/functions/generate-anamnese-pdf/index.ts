@@ -243,6 +243,57 @@ Deno.serve(async (req) => {
       y += oLines.length * 5;
     }
 
+    // Signature helper — reused on the anamnese page and on the prescription page
+    let sigDataUrl: string | null | undefined;
+    const loadSignature = async (): Promise<string | null> => {
+      if (sigDataUrl !== undefined) return sigDataUrl;
+      sigDataUrl = null;
+      if (body.signature_image_url) {
+        try {
+          if (body.signature_image_url.startsWith("data:")) {
+            sigDataUrl = body.signature_image_url;
+          } else {
+            const resp = await fetch(body.signature_image_url);
+            if (resp.ok) {
+              const buf = new Uint8Array(await resp.arrayBuffer());
+              let base64 = "";
+              const chunk = 0x8000;
+              for (let i = 0; i < buf.length; i += chunk) {
+                base64 += String.fromCharCode(...buf.subarray(i, i + chunk));
+              }
+              sigDataUrl = `data:image/png;base64,${btoa(base64)}`;
+            }
+          }
+        } catch (_e) { sigDataUrl = null; }
+      }
+      return sigDataUrl;
+    };
+
+    const drawSignature = async () => {
+      const dataUrl = await loadSignature();
+      if (!dataUrl) return;
+      try {
+        ensureSpace(50);
+        y += 8;
+        const sigW = 60, sigH = 25;
+        const sigX = pageWidth - margin - sigW;
+        doc.addImage(dataUrl, "PNG", sigX, y, sigW, sigH);
+        y += sigH + 2;
+        doc.setDrawColor(120);
+        doc.line(sigX, y, sigX + sigW, y);
+        y += 4;
+        doc.setFontSize(8);
+        if (body.signature_name) doc.text(body.signature_name, sigX + sigW / 2, y, { align: "center" });
+        if (body.signature_credencial) {
+          y += 3.5;
+          doc.text(body.signature_credencial, sigX + sigW / 2, y, { align: "center" });
+        }
+      } catch (_e) { /* ignore signature draw errors */ }
+    };
+
+    // Assinatura da ANAMNESE (sempre na página da anamnese, antes da receita)
+    await drawSignature();
+
     // Receita vinculada (opcional) — mesma folha/PDF da anamnese
     const rxContent = body.prescription?.content?.trim();
     if (rxContent) {
@@ -279,6 +330,9 @@ Deno.serve(async (req) => {
       }
       y += 4;
 
+      // Assinatura da receita
+      await drawSignature();
+
       // Persist prescription in the patient's record
       await supabase.from("prescriptions").insert({
         company_id: effectiveCompanyId,
@@ -293,36 +347,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Signature (if provided) - draw before footer line
-    if (body.signature_image_url) {
-      try {
-        ensureSpace(50);
-        y += 8;
-        const resp = await fetch(body.signature_image_url);
-        if (resp.ok) {
-          const buf = new Uint8Array(await resp.arrayBuffer());
-          let base64 = "";
-          const chunk = 0x8000;
-          for (let i = 0; i < buf.length; i += chunk) {
-            base64 += String.fromCharCode(...buf.subarray(i, i + chunk));
-          }
-          const dataUrl = `data:image/png;base64,${btoa(base64)}`;
-          const sigW = 60, sigH = 25;
-          const sigX = pageWidth - margin - sigW;
-          doc.addImage(dataUrl, "PNG", sigX, y, sigW, sigH);
-          y += sigH + 2;
-          doc.setDrawColor(120);
-          doc.line(sigX, y, sigX + sigW, y);
-          y += 4;
-          doc.setFontSize(8);
-          if (body.signature_name) doc.text(body.signature_name, sigX + sigW / 2, y, { align: "center" });
-          if (body.signature_credencial) {
-            y += 3.5;
-            doc.text(body.signature_credencial, sigX + sigW / 2, y, { align: "center" });
-          }
-        }
-      } catch (_e) { /* ignore signature draw errors */ }
-    }
 
     // Footer / signature
     ensureSpace(24);
