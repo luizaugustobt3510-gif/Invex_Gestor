@@ -348,7 +348,7 @@ Deno.serve(async (req) => {
       y += 4;
 
       // Assinatura da receita
-      await drawSignature();
+      await drawSignature(rxSig);
 
       // Persist prescription in the patient's record
       await supabase.from("prescriptions").insert({
