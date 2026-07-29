@@ -11,7 +11,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Pencil, ArrowUp, ArrowDown, ClipboardList, GitBranch } from 'lucide-react';
+import { Plus, Trash2, Pencil, ArrowUp, ArrowDown, ClipboardList, GitBranch, Copy } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
