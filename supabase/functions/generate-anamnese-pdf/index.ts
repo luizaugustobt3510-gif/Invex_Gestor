@@ -247,33 +247,33 @@ Deno.serve(async (req) => {
     }
 
     // Signature helper — reused on the anamnese page and on the prescription page
-    let sigDataUrl: string | null | undefined;
-    const loadSignature = async (): Promise<string | null> => {
-      if (sigDataUrl !== undefined) return sigDataUrl;
-      sigDataUrl = null;
-      if (body.signature_image_url) {
-        try {
-          if (body.signature_image_url.startsWith("data:")) {
-            sigDataUrl = body.signature_image_url;
-          } else {
-            const resp = await fetch(body.signature_image_url);
-            if (resp.ok) {
-              const buf = new Uint8Array(await resp.arrayBuffer());
-              let base64 = "";
-              const chunk = 0x8000;
-              for (let i = 0; i < buf.length; i += chunk) {
-                base64 += String.fromCharCode(...buf.subarray(i, i + chunk));
-              }
-              sigDataUrl = `data:image/png;base64,${btoa(base64)}`;
+    const sigCache = new Map<string, string | null>();
+    const loadSignature = async (url?: string): Promise<string | null> => {
+      if (!url) return null;
+      if (sigCache.has(url)) return sigCache.get(url)!;
+      let out: string | null = null;
+      try {
+        if (url.startsWith("data:")) {
+          out = url;
+        } else {
+          const resp = await fetch(url);
+          if (resp.ok) {
+            const buf = new Uint8Array(await resp.arrayBuffer());
+            let base64 = "";
+            const chunk = 0x8000;
+            for (let i = 0; i < buf.length; i += chunk) {
+              base64 += String.fromCharCode(...buf.subarray(i, i + chunk));
             }
+            out = `data:image/png;base64,${btoa(base64)}`;
           }
-        } catch (_e) { sigDataUrl = null; }
-      }
-      return sigDataUrl;
+        }
+      } catch (_e) { out = null; }
+      sigCache.set(url, out);
+      return out;
     };
 
-    const drawSignature = async () => {
-      const dataUrl = await loadSignature();
+    const drawSignature = async (sig: { url?: string; name?: string; credencial?: string }) => {
+      const dataUrl = await loadSignature(sig.url);
       if (!dataUrl) return;
       try {
         ensureSpace(50);
@@ -286,16 +286,30 @@ Deno.serve(async (req) => {
         doc.line(sigX, y, sigX + sigW, y);
         y += 4;
         doc.setFontSize(8);
-        if (body.signature_name) doc.text(body.signature_name, sigX + sigW / 2, y, { align: "center" });
-        if (body.signature_credencial) {
+        if (sig.name) doc.text(sig.name, sigX + sigW / 2, y, { align: "center" });
+        if (sig.credencial) {
           y += 3.5;
-          doc.text(body.signature_credencial, sigX + sigW / 2, y, { align: "center" });
+          doc.text(sig.credencial, sigX + sigW / 2, y, { align: "center" });
         }
       } catch (_e) { /* ignore signature draw errors */ }
     };
 
+    const rxSig = {
+      url: body.signature_image_url,
+      name: body.signature_name,
+      credencial: body.signature_credencial,
+    };
+    // Quando há receita vinculada, a anamnese pode ter assinatura própria
+    const anamSig = body.anamnese_signature_image_url
+      ? {
+          url: body.anamnese_signature_image_url,
+          name: body.anamnese_signature_name,
+          credencial: body.anamnese_signature_credencial,
+        }
+      : rxSig;
+
     // Assinatura da ANAMNESE (sempre na página da anamnese, antes da receita)
-    await drawSignature();
+    await drawSignature(anamSig);
 
     // Receita vinculada (opcional) — mesma folha/PDF da anamnese
     const rxContent = body.prescription?.content?.trim();
