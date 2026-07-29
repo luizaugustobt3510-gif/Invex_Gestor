@@ -719,7 +719,9 @@ export default function NovaAnamnese() {
 
                 <div className="rounded-lg border p-3 bg-muted/20 space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
-                    <Label className="text-sm font-medium">Assinatura do profissional</Label>
+                    <Label className="text-sm font-medium">
+                      {rxEnabled ? 'Assinatura da receita' : 'Assinatura do profissional'}
+                    </Label>
                     <div className="flex gap-1">
                       <Button type="button" size="sm" variant={!signOnFly ? 'default' : 'outline'} onClick={() => setSignOnFly(false)}>
                         Salva
@@ -750,6 +752,45 @@ export default function NovaAnamnese() {
                     <InlineSignaturePad refObj={inlinePadRef} />
                   )}
                 </div>
+
+                {rxEnabled && (
+                  <div className="rounded-lg border p-3 bg-muted/20 space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <Label className="text-sm font-medium">Assinatura da anamnese</Label>
+                      <div className="flex gap-1">
+                        <Button type="button" size="sm" variant={!anamSignOnFly ? 'default' : 'outline'} onClick={() => setAnamSignOnFly(false)}>
+                          Salva
+                        </Button>
+                        <Button type="button" size="sm" variant={anamSignOnFly ? 'default' : 'outline'} onClick={() => setAnamSignOnFly(true)}>
+                          Assinar agora
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Como há receita vinculada, escolha a assinatura que sairá na página da anamnese.
+                    </p>
+                    {!anamSignOnFly ? (
+                      signatures.length === 0 ? (
+                        <div className="text-xs text-muted-foreground">
+                          Você não tem assinaturas salvas. <Link to="/assinaturas" className="text-primary underline">Cadastrar</Link> ou clique em "Assinar agora".
+                        </div>
+                      ) : (
+                        <Select value={anamSignatureId} onValueChange={setAnamSignatureId}>
+                          <SelectTrigger><SelectValue placeholder="Selecione uma assinatura" /></SelectTrigger>
+                          <SelectContent>
+                            {signatures.map(s => (
+                              <SelectItem key={s.id} value={s.id}>
+                                {s.nome}{s.credencial ? ` — ${s.credencial}` : ''}{s.is_default ? ' (padrão)' : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )
+                    ) : (
+                      <InlineSignaturePad refObj={anamPadRef} />
+                    )}
+                  </div>
+                )}
 
 
                 <div className={`flex items-center gap-2 rounded p-3 text-sm ${
