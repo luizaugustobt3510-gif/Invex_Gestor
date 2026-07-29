@@ -18,6 +18,9 @@ interface AnamneseInput {
   signature_source?: string;
   signature_name?: string;
   signature_credencial?: string;
+  anamnese_signature_image_url?: string;
+  anamnese_signature_name?: string;
+  anamnese_signature_credencial?: string;
   prescription?: { tipo?: string; content: string } | null;
 }
 
