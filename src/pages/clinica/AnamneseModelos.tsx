@@ -187,6 +187,10 @@ export default function AnamneseModelos() {
     if (!form.name.trim() || !form.exam_type.trim()) {
       toast.error('Preencha nome e tipo de exame'); return;
     }
+    const nameKey = form.name.trim().toLowerCase();
+    if (items.some(t => t.id !== editing?.id && t.name.trim().toLowerCase() === nameKey)) {
+      toast.error('Já existe um modelo com este nome. Escolha outro nome.'); return;
+    }
     if (form.questions.some(q => !q.text.trim())) {
       toast.error('Todas as perguntas precisam de texto'); return;
     }
