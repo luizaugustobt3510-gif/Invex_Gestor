@@ -17,12 +17,30 @@ export function isAndroidWebView(): boolean {
     !!anyWin.gonative ||
     !!anyWin.ReactNativeWebView ||
     !!anyWin.AndroidInterface ||
-    !!anyWin.Android;
+    !!anyWin.Android ||
+    // Kodular / MIT App Inventor WebViewer bridges
+    !!anyWin.AppInventor ||
+    !!anyWin.Kodular ||
+    !!anyWin.KodularWebView ||
+    !!anyWin.Niotron;
   if (nativeBridge) return true;
   const isAndroid = /Android/i.test(ua);
+  // Kodular/App Inventor WebViewer UA tokens
+  if (/Kodular|AppInventor|Niotron|MIT App Inventor/i.test(ua)) return true;
   // Android WebView UA contains "; wv)" or lacks a real browser token
   const wvToken = /;\s*wv\)/i.test(ua) || /\bVersion\/[\d.]+\s+Chrome\//i.test(ua);
   return isAndroid && wvToken;
+}
+
+/** Kodular / App Inventor WebViewer specifically (no download manager binding). */
+export function isKodularWebView(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const anyWin = window as any;
+  const ua = navigator.userAgent || '';
+  return (
+    !!anyWin.AppInventor || !!anyWin.Kodular || !!anyWin.KodularWebView || !!anyWin.Niotron ||
+    /Kodular|AppInventor|Niotron|MIT App Inventor/i.test(ua)
+  );
 }
 
 export function isIosWebView(): boolean {
@@ -36,6 +54,7 @@ export function isIosWebView(): boolean {
 export function isWebView(): boolean {
   return isAndroidWebView() || isIosWebView();
 }
+
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
