@@ -139,6 +139,7 @@ export function printHtmlDocument(html: string, title = 'Documento') {
       w.document.open();
       w.document.write(html);
       w.document.close();
+      setTimeout(() => { try { w.focus(); w.print(); } catch { /* noop */ } }, 400);
       return true;
     }
   }
