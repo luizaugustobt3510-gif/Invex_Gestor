@@ -101,19 +101,41 @@ export async function downloadPdfFromUrl(url: string, filename = 'documento.pdf'
   const hinted = withDownloadHint(url, safeName);
 
   if (isWebView()) {
+    const anyWin = window as any;
+    // 1) Notify a native bridge when present (Kodular/App Inventor, RN, custom).
+    try {
+      if (anyWin.AppInventor?.setWebViewString) {
+        anyWin.AppInventor.setWebViewString(JSON.stringify({ action: 'download', url: hinted, filename: safeName }));
+      } else if (anyWin.ReactNativeWebView?.postMessage) {
+        anyWin.ReactNativeWebView.postMessage(JSON.stringify({ action: 'download', url: hinted, filename: safeName }));
+      } else if (anyWin.AndroidInterface?.downloadFile) {
+        anyWin.AndroidInterface.downloadFile(hinted, safeName);
+      } else if (anyWin.Android?.downloadFile) {
+        anyWin.Android.downloadFile(hinted, safeName);
+      }
+    } catch { /* noop */ }
+
+    // 2) Anchor click — triggers the native DownloadListener in most WebViews.
+    let clicked = false;
     try {
       const a = document.createElement('a');
       a.href = hinted;
       a.download = safeName;
       a.rel = 'noopener';
+      a.target = '_self';
       document.body.appendChild(a);
       a.click();
       a.remove();
-    } catch {
-      window.location.href = hinted;
+      clicked = true;
+    } catch { /* noop */ }
+
+    // 3) Kodular WebViewer often ignores anchors — force a direct navigation.
+    if (!clicked || isKodularWebView()) {
+      setTimeout(() => { try { window.location.href = hinted; } catch { /* noop */ } }, clicked ? 600 : 0);
     }
     return true;
   }
+
 
   try {
     const res = await fetch(url);
