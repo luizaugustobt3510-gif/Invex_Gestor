@@ -10,18 +10,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
-import { PenLine, Trash2, Upload, Star, Loader2, Plus, Image as ImageIcon } from 'lucide-react';
+import { PenLine, Trash2, Upload, Star, Loader2, Plus, Image as ImageIcon, Users } from 'lucide-react';
 
 interface Signature {
   id: string;
+  user_id: string;
   nome: string;
   credencial: string | null;
   image_url: string;
   is_default: boolean;
+  is_shared: boolean;
   sector_id: string | null;
   sector_nome: string | null;
   created_at: string;
 }
+
 interface Sector { id: string; nome: string; }
 
 export default function Assinaturas() {
@@ -37,21 +40,29 @@ export default function Assinaturas() {
   const [mode, setMode] = useState<'draw' | 'upload'>('draw');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [urlsCache, setUrlsCache] = useState<Record<string, string>>({});
+  const [myUserId, setMyUserId] = useState('');
   const padRef = useRef<SignaturePadHandle>(null);
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadm';
 
   const load = async () => {
     if (!user?.companyId) return;
     setLoading(true);
     const { data: authUser } = await supabase.auth.getUser();
     if (!authUser.user) return;
-    const [sigRes, secRes] = await Promise.all([
-      supabase.from('user_signatures').select('*').eq('user_id', authUser.user.id).order('is_default', { ascending: false }).order('created_at', { ascending: false }),
+    setMyUserId(authUser.user.id);
+    const sigQuery = isAdmin
+      ? supabase.from('user_signatures').select('*').eq('company_id', user.companyId)
+      : supabase.from('user_signatures').select('*').eq('user_id', authUser.user.id);
+    const [sigRes, sharedRes, secRes] = await Promise.all([
+      sigQuery.order('is_default', { ascending: false }).order('created_at', { ascending: false }),
+      supabase.from('user_signatures').select('*').eq('company_id', user.companyId).eq('is_shared', true),
       supabase.from('sectors').select('id, nome').eq('company_id', user.companyId).order('nome'),
     ]);
     setSectors((secRes.data as Sector[]) || []);
     if (sigRes.error) toast.error('Erro ao carregar assinaturas');
     else {
-      const rows = (sigRes.data || []) as Signature[];
+      const merged = [...((sigRes.data || []) as Signature[]), ...((sharedRes.data || []) as Signature[])];
+      const rows = merged.filter((s, i) => merged.findIndex(x => x.id === s.id) === i);
       setItems(rows);
       const cache: Record<string, string> = {};
       await Promise.all(rows.map(async (r) => {
@@ -63,6 +74,19 @@ export default function Assinaturas() {
     }
     setLoading(false);
   };
+
+  const toggleShared = async (item: Signature) => {
+    const { error } = await supabase
+      .from('user_signatures')
+      .update({ is_shared: !item.is_shared })
+      .eq('id', item.id);
+    if (error) toast.error('Erro ao atualizar', { description: error.message });
+    else {
+      toast.success(item.is_shared ? 'Assinatura removida do padrão da empresa' : 'Assinatura liberada para a equipe');
+      load();
+    }
+  };
+
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [user?.companyId]);
 
@@ -231,21 +255,44 @@ export default function Assinaturas() {
                       <div className="font-medium">{s.nome}</div>
                       {s.credencial && <div className="text-muted-foreground">{s.credencial}</div>}
                       {s.sector_nome && <div className="text-muted-foreground">Setor: {s.sector_nome}</div>}
-                    </div>
-                    <div className="flex items-center justify-between gap-2 pt-1">
-                      {s.is_default ? (
-                        <Badge variant="secondary" className="gap-1 text-[10px]">
-                          <Star className="w-3 h-3" /> Padrão
+                      {s.is_shared && (
+                        <Badge className="mt-1 gap-1 text-[10px]">
+                          <Users className="w-3 h-3" /> Padrão da empresa
                         </Badge>
-                      ) : (
-                        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setDefault(s.id)}>
-                          <Star className="w-3 h-3 mr-1" /> Definir padrão
-                        </Button>
                       )}
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => remove(s)}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
                     </div>
+                    {s.user_id === myUserId ? (
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        {s.is_default ? (
+                          <Badge variant="secondary" className="gap-1 text-[10px]">
+                            <Star className="w-3 h-3" /> Padrão
+                          </Badge>
+                        ) : (
+                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setDefault(s.id)}>
+                            <Star className="w-3 h-3 mr-1" /> Definir padrão
+                          </Button>
+                        )}
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => remove(s)}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-center text-[10px] text-muted-foreground pt-1">
+                        Assinatura de outro usuário
+                      </div>
+                    )}
+                    {isAdmin && (
+                      <Button
+                        size="sm"
+                        variant={s.is_shared ? 'secondary' : 'outline'}
+                        className="w-full h-7 text-xs"
+                        onClick={() => toggleShared(s)}
+                      >
+                        <Users className="w-3 h-3 mr-1" />
+                        {s.is_shared ? 'Remover da equipe' : 'Liberar para a equipe'}
+                      </Button>
+                    )}
+
                   </div>
                 ))}
               </div>

@@ -17,12 +17,30 @@ export function isAndroidWebView(): boolean {
     !!anyWin.gonative ||
     !!anyWin.ReactNativeWebView ||
     !!anyWin.AndroidInterface ||
-    !!anyWin.Android;
+    !!anyWin.Android ||
+    // Kodular / MIT App Inventor WebViewer bridges
+    !!anyWin.AppInventor ||
+    !!anyWin.Kodular ||
+    !!anyWin.KodularWebView ||
+    !!anyWin.Niotron;
   if (nativeBridge) return true;
   const isAndroid = /Android/i.test(ua);
+  // Kodular/App Inventor WebViewer UA tokens
+  if (/Kodular|AppInventor|Niotron|MIT App Inventor/i.test(ua)) return true;
   // Android WebView UA contains "; wv)" or lacks a real browser token
   const wvToken = /;\s*wv\)/i.test(ua) || /\bVersion\/[\d.]+\s+Chrome\//i.test(ua);
   return isAndroid && wvToken;
+}
+
+/** Kodular / App Inventor WebViewer specifically (no download manager binding). */
+export function isKodularWebView(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const anyWin = window as any;
+  const ua = navigator.userAgent || '';
+  return (
+    !!anyWin.AppInventor || !!anyWin.Kodular || !!anyWin.KodularWebView || !!anyWin.Niotron ||
+    /Kodular|AppInventor|Niotron|MIT App Inventor/i.test(ua)
+  );
 }
 
 export function isIosWebView(): boolean {
@@ -36,6 +54,7 @@ export function isIosWebView(): boolean {
 export function isWebView(): boolean {
   return isAndroidWebView() || isIosWebView();
 }
+
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -82,19 +101,41 @@ export async function downloadPdfFromUrl(url: string, filename = 'documento.pdf'
   const hinted = withDownloadHint(url, safeName);
 
   if (isWebView()) {
+    const anyWin = window as any;
+    // 1) Notify a native bridge when present (Kodular/App Inventor, RN, custom).
+    try {
+      if (anyWin.AppInventor?.setWebViewString) {
+        anyWin.AppInventor.setWebViewString(JSON.stringify({ action: 'download', url: hinted, filename: safeName }));
+      } else if (anyWin.ReactNativeWebView?.postMessage) {
+        anyWin.ReactNativeWebView.postMessage(JSON.stringify({ action: 'download', url: hinted, filename: safeName }));
+      } else if (anyWin.AndroidInterface?.downloadFile) {
+        anyWin.AndroidInterface.downloadFile(hinted, safeName);
+      } else if (anyWin.Android?.downloadFile) {
+        anyWin.Android.downloadFile(hinted, safeName);
+      }
+    } catch { /* noop */ }
+
+    // 2) Anchor click — triggers the native DownloadListener in most WebViews.
+    let clicked = false;
     try {
       const a = document.createElement('a');
       a.href = hinted;
       a.download = safeName;
       a.rel = 'noopener';
+      a.target = '_self';
       document.body.appendChild(a);
       a.click();
       a.remove();
-    } catch {
-      window.location.href = hinted;
+      clicked = true;
+    } catch { /* noop */ }
+
+    // 3) Kodular WebViewer often ignores anchors — force a direct navigation.
+    if (!clicked || isKodularWebView()) {
+      setTimeout(() => { try { window.location.href = hinted; } catch { /* noop */ } }, clicked ? 600 : 0);
     }
     return true;
   }
+
 
   try {
     const res = await fetch(url);
@@ -120,12 +161,21 @@ export async function downloadPdfFromUrl(url: string, filename = 'documento.pdf'
 /** Opens any URL (attachments, signed links) safely in browser and WebView. */
 export function openUrlSafely(url: string) {
   if (isWebView()) {
+    const anyWin = window as any;
+    try {
+      if (anyWin.AppInventor?.setWebViewString) {
+        anyWin.AppInventor.setWebViewString(JSON.stringify({ action: 'open', url }));
+      } else if (anyWin.ReactNativeWebView?.postMessage) {
+        anyWin.ReactNativeWebView.postMessage(JSON.stringify({ action: 'open', url }));
+      }
+    } catch { /* noop */ }
     window.location.href = url;
     return;
   }
   const w = window.open(url, '_blank', 'noopener');
   if (!w) window.location.href = url;
 }
+
 
 /**
  * Print an HTML document. Uses a popup window in browsers; falls back to a
