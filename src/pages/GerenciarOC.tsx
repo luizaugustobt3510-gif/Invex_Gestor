@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FileText, RefreshCw, Download, PackageCheck, XCircle, Trash2, Eye } from 'lucide-react';
+import { openUrlSafely } from '@/lib/pdfDownload';
 
 interface PurchaseOrder {
   id: string;
@@ -93,7 +94,7 @@ const GerenciarOC = () => {
         .from('oc-pdfs')
         .createSignedUrl(order.pdf_url, 3600);
       if (error || !data?.signedUrl) throw error;
-      window.open(data.signedUrl, '_blank');
+      openUrlSafely(data.signedUrl);
     } catch {
       toast({ title: 'Erro', description: 'Erro ao gerar link do PDF.', variant: 'destructive' });
     }
