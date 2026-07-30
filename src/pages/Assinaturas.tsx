@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
-import { PenLine, Trash2, Upload, Star, Loader2, Plus, Image as ImageIcon } from 'lucide-react';
+import { PenLine, Trash2, Upload, Star, Loader2, Plus, Image as ImageIcon, Users } from 'lucide-react';
 
 interface Signature {
   id: string;
