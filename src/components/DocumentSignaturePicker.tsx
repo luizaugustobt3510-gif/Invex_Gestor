@@ -165,7 +165,7 @@ export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sector
               <SelectContent>
                 {filtered.map(s => (
                   <SelectItem key={s.id} value={s.id}>
-                    {s.nome}{s.credencial ? ` — ${s.credencial}` : ''}{s.is_default ? ' (padrão)' : ''}
+                    {s.nome}{s.credencial ? ` — ${s.credencial}` : ''}{s.is_shared ? ' (padrão da empresa)' : s.is_default ? ' (padrão)' : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
