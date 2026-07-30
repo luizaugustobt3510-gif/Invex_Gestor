@@ -4230,6 +4230,7 @@ export type Database = {
           id: string
           image_url: string
           is_default: boolean
+          is_shared: boolean
           nome: string
           sector_id: string | null
           sector_nome: string | null
@@ -4243,6 +4244,7 @@ export type Database = {
           id?: string
           image_url: string
           is_default?: boolean
+          is_shared?: boolean
           nome: string
           sector_id?: string | null
           sector_nome?: string | null
@@ -4256,6 +4258,7 @@ export type Database = {
           id?: string
           image_url?: string
           is_default?: boolean
+          is_shared?: boolean
           nome?: string
           sector_id?: string | null
           sector_nome?: string | null
