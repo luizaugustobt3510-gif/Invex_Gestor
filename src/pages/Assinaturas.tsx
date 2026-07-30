@@ -255,21 +255,44 @@ export default function Assinaturas() {
                       <div className="font-medium">{s.nome}</div>
                       {s.credencial && <div className="text-muted-foreground">{s.credencial}</div>}
                       {s.sector_nome && <div className="text-muted-foreground">Setor: {s.sector_nome}</div>}
-                    </div>
-                    <div className="flex items-center justify-between gap-2 pt-1">
-                      {s.is_default ? (
-                        <Badge variant="secondary" className="gap-1 text-[10px]">
-                          <Star className="w-3 h-3" /> Padrão
+                      {s.is_shared && (
+                        <Badge className="mt-1 gap-1 text-[10px]">
+                          <Users className="w-3 h-3" /> Padrão da empresa
                         </Badge>
-                      ) : (
-                        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setDefault(s.id)}>
-                          <Star className="w-3 h-3 mr-1" /> Definir padrão
-                        </Button>
                       )}
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => remove(s)}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
                     </div>
+                    {s.user_id === myUserId ? (
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        {s.is_default ? (
+                          <Badge variant="secondary" className="gap-1 text-[10px]">
+                            <Star className="w-3 h-3" /> Padrão
+                          </Badge>
+                        ) : (
+                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setDefault(s.id)}>
+                            <Star className="w-3 h-3 mr-1" /> Definir padrão
+                          </Button>
+                        )}
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => remove(s)}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-center text-[10px] text-muted-foreground pt-1">
+                        Assinatura de outro usuário
+                      </div>
+                    )}
+                    {isAdmin && (
+                      <Button
+                        size="sm"
+                        variant={s.is_shared ? 'secondary' : 'outline'}
+                        className="w-full h-7 text-xs"
+                        onClick={() => toggleShared(s)}
+                      >
+                        <Users className="w-3 h-3 mr-1" />
+                        {s.is_shared ? 'Remover da equipe' : 'Liberar para a equipe'}
+                      </Button>
+                    )}
+
                   </div>
                 ))}
               </div>
