@@ -18,6 +18,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { printHtmlDocument, buildPdfFilename } from '@/lib/pdfDownload';
 import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
 import { DocumentSignaturePicker, DocumentSignatureValue } from '@/components/DocumentSignaturePicker';
 
@@ -361,10 +362,9 @@ export default function Evolucao() {
               const pat = patients.find(p => p.id === viewing.patient_id);
               const title = `${(pat?.nome || 'Paciente').toUpperCase()} - Evolução - ${dateStr} - ${timeStr}`;
               const printPdf = () => {
-                const w = window.open('', '_blank');
-                if (!w) return;
+                const docTitle = buildPdfFilename(pat?.nome, dt).replace(/\.pdf$/, '');
                 const esc = (s: any) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]!));
-                w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title>
+                const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title>
                   <style>
                     body{font-family:Arial,Helvetica,sans-serif;color:#111;max-width:780px;margin:32px auto;padding:0 24px;line-height:1.5}
                     h1{font-size:18px;text-align:center;border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:16px}
@@ -390,9 +390,9 @@ export default function Evolucao() {
                     <div class="sig">${viewing.professional_signature ? `<img src="${viewing.professional_signature}"/>` : '<div style="border-bottom:1px solid #333;height:60px"></div>'}<div>${esc(viewing.professional_name || 'Profissional')}</div></div>
                   </div>
                   <div class="foot">Documento gerado em ${esc(new Date().toLocaleString('pt-BR'))}</div>
-                  <script>window.onload=()=>{window.print();}</script>
-                  </body></html>`);
-                w.document.close();
+                  </body></html>`;
+                const ok = printHtmlDocument(html, docTitle);
+                if (!ok) toast.error('Não foi possível abrir a impressão');
               };
               return (
                 <>

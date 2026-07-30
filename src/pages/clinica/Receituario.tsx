@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { DocumentSignaturePicker, DocumentSignatureValue } from '@/components/DocumentSignaturePicker';
+import { printHtmlDocument, buildPdfFilename } from '@/lib/pdfDownload';
 
 interface Patient { id: string; nome: string; cpf: string | null; birth_date: string | null; }
 
@@ -188,15 +189,14 @@ export default function Receituario() {
   };
 
   const printRx = (rx: Prescription) => {
-    const w = window.open('', '_blank', 'width=800,height=900');
-    if (!w) { toast.error('Ative popups para imprimir'); return; }
     const dt = new Date(rx.created_at);
     const dataStr = dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR').slice(0, 5);
     const esc = (s: string) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const sigImg = rx.professional_signature
       ? `<img src="${rx.professional_signature}" style="max-height:80px;" />`
       : '';
-    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Receita - ${esc(patient?.nome || '')}</title>
+    const docTitle = buildPdfFilename(patient?.nome, dt).replace(/\.pdf$/, '');
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(docTitle)}</title>
       <style>
         body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; color:#111; }
         h1 { font-size: 20px; margin: 0 0 6px; }
@@ -205,6 +205,7 @@ export default function Receituario() {
         pre { white-space: pre-wrap; font-family: inherit; font-size: 14px; line-height: 1.5; margin:0; }
         .sig { margin-top: 60px; text-align:center; }
         .sig .line { border-top:1px solid #333; width: 320px; margin: 0 auto 6px; }
+        @media print { body { padding: 24px; } }
       </style></head><body>
       <h1>Receita Médica</h1>
       <div class="muted">Emitida em ${dataStr}</div>
@@ -222,9 +223,9 @@ export default function Receituario() {
         <div class="line"></div>
         <div>${esc(rx.professional_name || rx.created_by_name || '')}</div>
       </div>
-      <script>window.onload = () => { window.print(); }<\/script>
-      </body></html>`);
-    w.document.close();
+      </body></html>`;
+    const ok = printHtmlDocument(html, docTitle);
+    if (!ok) toast.error('Não foi possível abrir a impressão');
   };
 
   return (
