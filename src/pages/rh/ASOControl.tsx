@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { hardDeleteById } from '@/lib/hardDelete';
 import { HeartPulse, Plus, Download, Search, Pencil, Trash2, RefreshCw, History } from 'lucide-react';
+import { openUrlSafely } from '@/lib/pdfDownload';
 
 interface ASO {
   id: string;
@@ -188,7 +189,7 @@ const ASOControl = () => {
 
   const handleDownload = async (url: string) => {
     const { data } = await supabase.storage.from('atestados').createSignedUrl(url, 300);
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+    if (data?.signedUrl) openUrlSafely(data.signedUrl);
   };
 
   const formatDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('pt-BR');

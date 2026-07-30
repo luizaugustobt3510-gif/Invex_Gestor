@@ -16,6 +16,7 @@ import { useInventoryData } from '@/hooks/useInventoryData';
 import { useCurvaABCData } from '@/hooks/useCurvaABCData';
 import { useAuth } from '@/contexts/AuthContext';
 import { FileText, Plus, Trash2, Download, Search, Sparkles } from 'lucide-react';
+import { openUrlSafely } from '@/lib/pdfDownload';
 
 interface OCItem {
   codigo: string;
@@ -213,7 +214,7 @@ const GerarOC = () => {
       const result = await response.json();
       if (result.ok) {
         toast({ title: 'Sucesso!', description: result.msg || 'Ordem de compra gerada.' });
-        if (result.pdf_url) window.open(result.pdf_url, '_blank');
+        if (result.pdf_url) openUrlSafely(result.pdf_url);
         setFormData({ setor: '', fornecedor: '', cond_pagto: '', obs: '' });
         setItens([]);
       } else {

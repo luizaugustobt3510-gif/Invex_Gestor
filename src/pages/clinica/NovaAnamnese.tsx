@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { downloadPdfFromUrl } from '@/lib/pdfDownload';
+import { downloadPdfFromUrl, buildPdfFilename } from '@/lib/pdfDownload';
 import {
   ArrowLeft, FileText, Loader2, Check, ChevronRight, ChevronLeft,
   User, ClipboardList, Pencil, CheckCircle2, ChevronsUpDown, History,
@@ -308,7 +308,7 @@ export default function NovaAnamnese() {
       if ((data as any)?.error) throw new Error((data as any).error);
       toast.success('Anamnese salva com sucesso');
       const pdfUrl = (data as any)?.pdf_url;
-      if (pdfUrl) await downloadPdfFromUrl(pdfUrl, `anamnese-${(data as any)?.number || 'invex'}.pdf`);
+      if (pdfUrl) await downloadPdfFromUrl(pdfUrl, buildPdfFilename(selectedPatient?.nome));
       navigate(`/clinica/pacientes/${patientId}`);
     } catch (e: any) {
       toast.error(e.message || 'Erro ao salvar anamnese');
