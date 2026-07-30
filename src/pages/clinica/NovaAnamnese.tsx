@@ -308,7 +308,7 @@ export default function NovaAnamnese() {
       if ((data as any)?.error) throw new Error((data as any).error);
       toast.success('Anamnese salva com sucesso');
       const pdfUrl = (data as any)?.pdf_url;
-      if (pdfUrl) await downloadPdfFromUrl(pdfUrl, buildPdfFilename(patient?.nome));
+      if (pdfUrl) await downloadPdfFromUrl(pdfUrl, buildPdfFilename(selectedPatient?.nome));
       navigate(`/clinica/pacientes/${patientId}`);
     } catch (e: any) {
       toast.error(e.message || 'Erro ao salvar anamnese');
