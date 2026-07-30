@@ -40,21 +40,29 @@ export default function Assinaturas() {
   const [mode, setMode] = useState<'draw' | 'upload'>('draw');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [urlsCache, setUrlsCache] = useState<Record<string, string>>({});
+  const [myUserId, setMyUserId] = useState('');
   const padRef = useRef<SignaturePadHandle>(null);
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadm';
 
   const load = async () => {
     if (!user?.companyId) return;
     setLoading(true);
     const { data: authUser } = await supabase.auth.getUser();
     if (!authUser.user) return;
-    const [sigRes, secRes] = await Promise.all([
-      supabase.from('user_signatures').select('*').eq('user_id', authUser.user.id).order('is_default', { ascending: false }).order('created_at', { ascending: false }),
+    setMyUserId(authUser.user.id);
+    const sigQuery = isAdmin
+      ? supabase.from('user_signatures').select('*').eq('company_id', user.companyId)
+      : supabase.from('user_signatures').select('*').eq('user_id', authUser.user.id);
+    const [sigRes, sharedRes, secRes] = await Promise.all([
+      sigQuery.order('is_default', { ascending: false }).order('created_at', { ascending: false }),
+      supabase.from('user_signatures').select('*').eq('company_id', user.companyId).eq('is_shared', true),
       supabase.from('sectors').select('id, nome').eq('company_id', user.companyId).order('nome'),
     ]);
     setSectors((secRes.data as Sector[]) || []);
     if (sigRes.error) toast.error('Erro ao carregar assinaturas');
     else {
-      const rows = (sigRes.data || []) as Signature[];
+      const merged = [...((sigRes.data || []) as Signature[]), ...((sharedRes.data || []) as Signature[])];
+      const rows = merged.filter((s, i) => merged.findIndex(x => x.id === s.id) === i);
       setItems(rows);
       const cache: Record<string, string> = {};
       await Promise.all(rows.map(async (r) => {
@@ -66,6 +74,19 @@ export default function Assinaturas() {
     }
     setLoading(false);
   };
+
+  const toggleShared = async (item: Signature) => {
+    const { error } = await supabase
+      .from('user_signatures')
+      .update({ is_shared: !item.is_shared })
+      .eq('id', item.id);
+    if (error) toast.error('Erro ao atualizar', { description: error.message });
+    else {
+      toast.success(item.is_shared ? 'Assinatura removida do padrão da empresa' : 'Assinatura liberada para a equipe');
+      load();
+    }
+  };
+
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [user?.companyId]);
 
