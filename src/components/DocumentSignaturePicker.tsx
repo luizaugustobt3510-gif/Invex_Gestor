@@ -32,6 +32,7 @@ interface SavedSig {
   image_url: string;
   is_default: boolean;
   sector_id: string | null;
+  is_shared?: boolean;
   _signed?: string;
 }
 
@@ -46,12 +47,23 @@ export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sector
     (async () => {
       const { data: authUser } = await supabase.auth.getUser();
       if (!authUser.user) return;
-      const { data } = await supabase
-        .from('user_signatures')
-        .select('id, nome, credencial, image_url, is_default, sector_id')
-        .eq('user_id', authUser.user.id)
-        .order('is_default', { ascending: false });
-      const rows = (data || []) as SavedSig[];
+      const cols = 'id, nome, credencial, image_url, is_default, sector_id, is_shared';
+      const [ownRes, sharedRes] = await Promise.all([
+        supabase
+          .from('user_signatures')
+          .select(cols)
+          .eq('user_id', authUser.user.id)
+          .order('is_default', { ascending: false }),
+        user?.companyId
+          ? supabase
+              .from('user_signatures')
+              .select(cols)
+              .eq('company_id', user.companyId)
+              .eq('is_shared', true)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+      const merged = [...((ownRes.data || []) as SavedSig[]), ...(((sharedRes as any).data || []) as SavedSig[])];
+      const rows = merged.filter((s, i) => merged.findIndex(x => x.id === s.id) === i);
       const withUrls = await Promise.all(rows.map(async (s) => {
         if (s.image_url.startsWith('data:')) return { ...s, _signed: s.image_url };
         // Download via storage client and inline as data URL — this avoids CORS issues
@@ -83,6 +95,7 @@ export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sector
     })();
     // eslint-disable-next-line
   }, [user?.companyId]);
+
 
   const filtered = sectorId ? sigs.filter(s => !s.sector_id || s.sector_id === sectorId) : sigs;
 
