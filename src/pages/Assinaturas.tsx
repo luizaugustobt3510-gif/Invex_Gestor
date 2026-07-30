@@ -14,14 +14,17 @@ import { PenLine, Trash2, Upload, Star, Loader2, Plus, Image as ImageIcon } from
 
 interface Signature {
   id: string;
+  user_id: string;
   nome: string;
   credencial: string | null;
   image_url: string;
   is_default: boolean;
+  is_shared: boolean;
   sector_id: string | null;
   sector_nome: string | null;
   created_at: string;
 }
+
 interface Sector { id: string; nome: string; }
 
 export default function Assinaturas() {
