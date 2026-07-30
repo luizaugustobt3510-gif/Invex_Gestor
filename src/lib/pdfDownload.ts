@@ -161,12 +161,21 @@ export async function downloadPdfFromUrl(url: string, filename = 'documento.pdf'
 /** Opens any URL (attachments, signed links) safely in browser and WebView. */
 export function openUrlSafely(url: string) {
   if (isWebView()) {
+    const anyWin = window as any;
+    try {
+      if (anyWin.AppInventor?.setWebViewString) {
+        anyWin.AppInventor.setWebViewString(JSON.stringify({ action: 'open', url }));
+      } else if (anyWin.ReactNativeWebView?.postMessage) {
+        anyWin.ReactNativeWebView.postMessage(JSON.stringify({ action: 'open', url }));
+      }
+    } catch { /* noop */ }
     window.location.href = url;
     return;
   }
   const w = window.open(url, '_blank', 'noopener');
   if (!w) window.location.href = url;
 }
+
 
 /**
  * Print an HTML document. Uses a popup window in browsers; falls back to a
