@@ -87,6 +87,7 @@ export const MODULES_CATALOG: ModuleDef[] = [
       { key: 'financeiro.lancamentos', label: 'Lançamentos' },
       { key: 'financeiro.fluxo_caixa', label: 'Fluxo de Caixa' },
       { key: 'financeiro.relatorios', label: 'Relatórios' },
+      { key: 'financeiro.dre', label: 'DRE' },
     ],
   },
   {
