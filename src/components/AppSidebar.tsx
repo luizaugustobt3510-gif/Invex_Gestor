@@ -54,6 +54,7 @@ import {
   Gift,
   Calculator,
   PenLine,
+  Sparkles,
 } from "lucide-react";
 import { InvexLogo } from "@/components/InvexLogo";
 import {
@@ -416,6 +417,20 @@ const clinicaGroups: MenuGroup[] = [
         path: "/clinica/receituario/rapidas",
         label: "Prescrições Rápidas",
         icon: <ClipboardList className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica", "enfermeiro"],
+      },
+    ],
+  },
+  {
+    label: "Modelos de Prescrição",
+    icon: <Sparkles className="w-4 h-4" />,
+    allowedRoles: ["admin", "clinica", "enfermeiro"],
+    moduleKey: "receituario",
+    items: [
+      {
+        path: "/clinica/receituario/rapidas",
+        label: "Modelos de Prescrição",
+        icon: <Sparkles className="w-4 h-4" />,
         allowedRoles: ["admin", "clinica", "enfermeiro"],
       },
     ],

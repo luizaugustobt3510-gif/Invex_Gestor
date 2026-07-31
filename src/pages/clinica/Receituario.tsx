@@ -141,10 +141,22 @@ export default function Receituario() {
     }
   };
 
+  const handleSigChange = (v: DocumentSignatureValue) => {
+    setProfSig(v);
+    if (v.mode === 'saved') {
+      const label = [v.nome, v.credencial].filter(Boolean).join(' — ');
+      if (label) setProfName(label);
+    }
+  };
+
   const save = async () => {
     if (!user?.companyId) return;
     if (!patientId) { toast.error('Selecione o paciente'); return; }
     if (!content.trim()) { toast.error('Descreva os medicamentos e a posologia'); return; }
+    if (profSig.mode !== 'saved' && !profName.trim()) {
+      toast.error('Informe o profissional responsável');
+      return;
+    }
     setSaving(true);
     const uidUser = (await supabase.auth.getUser()).data.user?.id;
     const payload: any = {
@@ -360,13 +372,25 @@ export default function Receituario() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <Label>Profissional</Label>
-                <Input value={profName} onChange={e => setProfName(e.target.value)} placeholder="Nome / CRM" />
+                <Label>Profissional {profSig.mode !== 'saved' && <span className="text-destructive">*</span>}</Label>
+                <Input
+                  value={profName}
+                  onChange={e => setProfName(e.target.value)}
+                  placeholder="Nome / CRM"
+                  readOnly={profSig.mode === 'saved'}
+                  className={profSig.mode === 'saved' ? 'bg-muted' : ''}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {profSig.mode === 'saved'
+                    ? 'Preenchido automaticamente pela assinatura cadastrada.'
+                    : 'Informe o nome e CRM do profissional responsável.'}
+                </p>
               </div>
               <div>
-                <DocumentSignaturePicker onChange={setProfSig} />
+                <DocumentSignaturePicker onChange={handleSigChange} />
               </div>
             </div>
+
 
             <div className="flex flex-wrap gap-2 justify-end pt-2">
               {editingId && (
