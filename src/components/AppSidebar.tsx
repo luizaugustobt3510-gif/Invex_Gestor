@@ -46,6 +46,7 @@ import {
   DollarSign,
   Wallet,
   BarChart2,
+  FileBarChart,
   Receipt,
   ShoppingCart,
   Truck,
