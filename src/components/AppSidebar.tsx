@@ -54,6 +54,7 @@ import {
   Gift,
   Calculator,
   PenLine,
+  Sparkles,
 } from "lucide-react";
 import { InvexLogo } from "@/components/InvexLogo";
 import {
