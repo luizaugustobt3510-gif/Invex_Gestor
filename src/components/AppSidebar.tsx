@@ -538,6 +538,13 @@ const financeiroGroups: MenuGroup[] = [
         allowedRoles: ["admin", "financeiro"],
         submoduleKey: "financeiro.relatorios",
       },
+      {
+        path: "/financeiro/dre",
+        label: "DRE",
+        icon: <FileBarChart className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro"],
+        submoduleKey: "financeiro.dre",
+      },
     ],
   },
 ];
