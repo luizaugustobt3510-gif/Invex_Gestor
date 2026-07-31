@@ -360,13 +360,25 @@ export default function Receituario() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <Label>Profissional</Label>
-                <Input value={profName} onChange={e => setProfName(e.target.value)} placeholder="Nome / CRM" />
+                <Label>Profissional {profSig.mode !== 'saved' && <span className="text-destructive">*</span>}</Label>
+                <Input
+                  value={profName}
+                  onChange={e => setProfName(e.target.value)}
+                  placeholder="Nome / CRM"
+                  readOnly={profSig.mode === 'saved'}
+                  className={profSig.mode === 'saved' ? 'bg-muted' : ''}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {profSig.mode === 'saved'
+                    ? 'Preenchido automaticamente pela assinatura cadastrada.'
+                    : 'Informe o nome e CRM do profissional responsável.'}
+                </p>
               </div>
               <div>
-                <DocumentSignaturePicker onChange={setProfSig} />
+                <DocumentSignaturePicker onChange={handleSigChange} />
               </div>
             </div>
+
 
             <div className="flex flex-wrap gap-2 justify-end pt-2">
               {editingId && (
