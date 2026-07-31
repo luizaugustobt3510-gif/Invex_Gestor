@@ -141,10 +141,22 @@ export default function Receituario() {
     }
   };
 
+  const handleSigChange = (v: DocumentSignatureValue) => {
+    setProfSig(v);
+    if (v.mode === 'saved') {
+      const label = [v.nome, v.credencial].filter(Boolean).join(' — ');
+      if (label) setProfName(label);
+    }
+  };
+
   const save = async () => {
     if (!user?.companyId) return;
     if (!patientId) { toast.error('Selecione o paciente'); return; }
     if (!content.trim()) { toast.error('Descreva os medicamentos e a posologia'); return; }
+    if (profSig.mode !== 'saved' && !profName.trim()) {
+      toast.error('Informe o profissional responsável');
+      return;
+    }
     setSaving(true);
     const uidUser = (await supabase.auth.getUser()).data.user?.id;
     const payload: any = {
