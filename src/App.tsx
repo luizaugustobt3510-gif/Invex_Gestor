@@ -248,6 +248,7 @@ const App = () => (
             <Route path="/financeiro/lancamentos" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro" submoduleKey="financeiro.lancamentos"><Lancamentos /></RoleProtectedRoute>} />
             <Route path="/financeiro/fluxo-caixa" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro" submoduleKey="financeiro.fluxo_caixa"><FluxoCaixa /></RoleProtectedRoute>} />
             <Route path="/financeiro/relatorios" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro" submoduleKey="financeiro.relatorios"><RelatoriosFinanceiros /></RoleProtectedRoute>} />
+            <Route path="/financeiro/dre" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro" submoduleKey="financeiro.dre"><DRE /></RoleProtectedRoute>} />
 
             {/* === VENDAS === */}
             <Route path="/vendas" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']} moduleKey="vendas"><DashboardVendas /></RoleProtectedRoute>} />
