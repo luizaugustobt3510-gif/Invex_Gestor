@@ -88,6 +88,12 @@ export const MODULES_CATALOG: ModuleDef[] = [
       { key: 'financeiro.fluxo_caixa', label: 'Fluxo de Caixa' },
       { key: 'financeiro.relatorios', label: 'Relatórios' },
       { key: 'financeiro.dre', label: 'DRE' },
+      { key: 'financeiro.vencimentos', label: 'Vencimentos' },
+      { key: 'financeiro.contas_pagar', label: 'Contas a Pagar' },
+      { key: 'financeiro.contas_receber', label: 'Contas a Receber' },
+      { key: 'financeiro.conciliacao', label: 'Conciliação Bancária' },
+      { key: 'financeiro.orcamentos', label: 'Orçamentos' },
+      { key: 'financeiro.centros_custo', label: 'Centros de Custo' },
     ],
   },
   {
