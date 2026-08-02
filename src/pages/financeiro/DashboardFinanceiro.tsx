@@ -94,6 +94,42 @@ const DashboardFinanceiro = () => {
 
         <InsightsPanel insights={finInsights} title="Insights Financeiros" />
 
+        {(() => {
+          const hoje = format(new Date(), 'yyyy-MM-dd');
+          const em7 = format(new Date(Date.now() + 7 * 86400000), 'yyyy-MM-dd');
+          const abertas = entries.filter(e => e.status !== 'pago' && e.status !== 'cancelado');
+          const venc = (e: any) => e.data_vencimento || e.data;
+          const vencidas = abertas.filter(e => venc(e) < hoje);
+          const vencemHoje = abertas.filter(e => venc(e) === hoje);
+          const prox = abertas.filter(e => venc(e) > hoje && venc(e) <= em7);
+          const sum = (a: any[]) => a.reduce((s, e) => s + Number(e.valor), 0);
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="border-red-200">
+                <CardContent className="p-4">
+                  <p className="text-xs text-muted-foreground">Vencidas</p>
+                  <p className="text-xl font-bold text-red-600">{fmt(sum(vencidas))}</p>
+                  <p className="text-xs text-muted-foreground">{vencidas.length} conta(s) em atraso</p>
+                </CardContent>
+              </Card>
+              <Card className="border-orange-200">
+                <CardContent className="p-4">
+                  <p className="text-xs text-muted-foreground">Vencem hoje</p>
+                  <p className="text-xl font-bold text-orange-600">{fmt(sum(vencemHoje))}</p>
+                  <p className="text-xs text-muted-foreground">{vencemHoje.length} conta(s)</p>
+                </CardContent>
+              </Card>
+              <Card className="border-blue-200">
+                <CardContent className="p-4">
+                  <p className="text-xs text-muted-foreground">Próximos 7 dias</p>
+                  <p className="text-xl font-bold text-blue-600">{fmt(sum(prox))}</p>
+                  <p className="text-xs text-muted-foreground">{prox.length} conta(s) a vencer</p>
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })()}
+
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Receitas</p><p className="text-xl font-bold text-green-600">{fmt(stats.receitas)}</p></CardContent></Card>
           <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Despesas</p><p className="text-xl font-bold text-red-600">{fmt(stats.despesas)}</p></CardContent></Card>
@@ -101,6 +137,7 @@ const DashboardFinanceiro = () => {
           <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">A Receber</p><p className="text-xl font-bold text-blue-600">{fmt(stats.aReceber)}</p></CardContent></Card>
           <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">A Pagar</p><p className="text-xl font-bold text-orange-600">{fmt(stats.aPagar)}</p></CardContent></Card>
         </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
