@@ -289,6 +289,108 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_accounts: {
+        Row: {
+          agencia: string | null
+          ativo: boolean
+          banco: string | null
+          company_id: string
+          conta: string | null
+          created_at: string
+          id: string
+          nome: string
+          saldo_inicial: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          agencia?: string | null
+          ativo?: boolean
+          banco?: string | null
+          company_id: string
+          conta?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          saldo_inicial?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          agencia?: string | null
+          ativo?: boolean
+          banco?: string | null
+          company_id?: string
+          conta?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
+          saldo_inicial?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bank_transactions: {
+        Row: {
+          bank_account_id: string
+          company_id: string
+          conciliado: boolean
+          created_at: string
+          data: string
+          descricao: string
+          documento: string | null
+          financial_entry_id: string | null
+          id: string
+          tipo: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          bank_account_id: string
+          company_id: string
+          conciliado?: boolean
+          created_at?: string
+          data: string
+          descricao: string
+          documento?: string | null
+          financial_entry_id?: string | null
+          id?: string
+          tipo: string
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          bank_account_id?: string
+          company_id?: string
+          conciliado?: boolean
+          created_at?: string
+          data?: string
+          descricao?: string
+          documento?: string | null
+          financial_entry_id?: string | null
+          id?: string
+          tipo?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_financial_entry_id_fkey"
+            columns: ["financial_entry_id"]
+            isOneToOne: false
+            referencedRelation: "financial_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       benefits: {
         Row: {
           allows_dependents: boolean
@@ -751,6 +853,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      cost_centers: {
+        Row: {
+          ativo: boolean
+          company_id: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          company_id: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          company_id?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       curva_abc_data: {
         Row: {
@@ -1352,6 +1484,63 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_budgets: {
+        Row: {
+          ano: number
+          categoria_id: string | null
+          centro_custo_id: string | null
+          company_id: string
+          created_at: string
+          id: string
+          mes: number
+          observacoes: string | null
+          tipo: string
+          updated_at: string
+          valor_previsto: number
+        }
+        Insert: {
+          ano: number
+          categoria_id?: string | null
+          centro_custo_id?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          mes: number
+          observacoes?: string | null
+          tipo?: string
+          updated_at?: string
+          valor_previsto?: number
+        }
+        Update: {
+          ano?: number
+          categoria_id?: string | null
+          centro_custo_id?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          mes?: number
+          observacoes?: string | null
+          tipo?: string
+          updated_at?: string
+          valor_previsto?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_budgets_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "financial_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_budgets_centro_custo_id_fkey"
+            columns: ["centro_custo_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_categories: {
         Row: {
           company_id: string
@@ -1390,7 +1579,10 @@ export type Database = {
       financial_entries: {
         Row: {
           categoria_id: string | null
+          centro_custo_id: string | null
           company_id: string
+          conciliado: boolean
+          conta_bancaria_id: string | null
           created_at: string
           data: string
           data_pagamento: string | null
@@ -1411,7 +1603,10 @@ export type Database = {
         }
         Insert: {
           categoria_id?: string | null
+          centro_custo_id?: string | null
           company_id: string
+          conciliado?: boolean
+          conta_bancaria_id?: string | null
           created_at?: string
           data?: string
           data_pagamento?: string | null
@@ -1432,7 +1627,10 @@ export type Database = {
         }
         Update: {
           categoria_id?: string | null
+          centro_custo_id?: string | null
           company_id?: string
+          conciliado?: boolean
+          conta_bancaria_id?: string | null
           created_at?: string
           data?: string
           data_pagamento?: string | null
@@ -1460,10 +1658,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "financial_entries_centro_custo_id_fkey"
+            columns: ["centro_custo_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "financial_entries_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_entries_conta_bancaria_id_fkey"
+            columns: ["conta_bancaria_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
             referencedColumns: ["id"]
           },
         ]
