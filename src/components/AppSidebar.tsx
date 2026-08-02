@@ -56,6 +56,10 @@ import {
   Calculator,
   PenLine,
   Sparkles,
+  CalendarClock,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Landmark,
 } from "lucide-react";
 import { InvexLogo } from "@/components/InvexLogo";
 import {
@@ -538,6 +542,48 @@ const financeiroGroups: MenuGroup[] = [
         icon: <BarChart2 className="w-4 h-4" />,
         allowedRoles: ["admin", "financeiro"],
         submoduleKey: "financeiro.relatorios",
+      },
+      {
+        path: "/financeiro/vencimentos",
+        label: "Vencimentos",
+        icon: <CalendarClock className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro", "logistica"],
+        submoduleKey: "financeiro.vencimentos",
+      },
+      {
+        path: "/financeiro/contas-pagar",
+        label: "Contas a Pagar",
+        icon: <ArrowDownCircle className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro", "logistica"],
+        submoduleKey: "financeiro.contas_pagar",
+      },
+      {
+        path: "/financeiro/contas-receber",
+        label: "Contas a Receber",
+        icon: <ArrowUpCircle className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro", "logistica"],
+        submoduleKey: "financeiro.contas_receber",
+      },
+      {
+        path: "/financeiro/conciliacao",
+        label: "Conciliação Bancária",
+        icon: <Landmark className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro"],
+        submoduleKey: "financeiro.conciliacao",
+      },
+      {
+        path: "/financeiro/orcamentos",
+        label: "Orçamentos",
+        icon: <Target className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro"],
+        submoduleKey: "financeiro.orcamentos",
+      },
+      {
+        path: "/financeiro/centros-custo",
+        label: "Centros de Custo",
+        icon: <Building2 className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro"],
+        submoduleKey: "financeiro.centros_custo",
       },
       {
         path: "/financeiro/dre",
