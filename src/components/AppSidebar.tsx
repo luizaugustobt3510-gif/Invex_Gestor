@@ -56,6 +56,10 @@ import {
   Calculator,
   PenLine,
   Sparkles,
+  CalendarClock,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Landmark,
 } from "lucide-react";
 import { InvexLogo } from "@/components/InvexLogo";
 import {
