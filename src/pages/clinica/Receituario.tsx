@@ -188,6 +188,7 @@ export default function Receituario() {
       error = res.error;
     }
     setSaving(false);
+    savingRef.current = false;
     if (error) { toast.error(error.message); return; }
     toast.success(editingId ? 'Receita atualizada' : 'Receita registrada');
     resetForm();
