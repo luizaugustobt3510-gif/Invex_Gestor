@@ -74,6 +74,7 @@ export default function Receituario() {
   const [profName, setProfName] = useState(user?.nome || '');
   const [profSig, setProfSig] = useState<DocumentSignatureValue>({ mode: 'none' });
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [viewing, setViewing] = useState<Prescription | null>(null);
