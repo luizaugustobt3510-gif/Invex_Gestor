@@ -522,8 +522,7 @@ export default function NovaAnamnese() {
                       </Button>
                     )}
                   </div>
-                </div>
-                <div>
+                <div className="md:col-span-2">
                   <Label>Modelo de anamnese *</Label>
                   <Select value={templateId} onValueChange={setTemplateId}>
                     <SelectTrigger className="h-12 text-base"><SelectValue placeholder="Selecione o modelo" /></SelectTrigger>
