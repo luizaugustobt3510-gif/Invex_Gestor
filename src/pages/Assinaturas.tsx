@@ -277,8 +277,11 @@ export default function Assinaturas() {
                         </Button>
                       </div>
                     ) : (
-                      <div className="text-center text-[10px] text-muted-foreground pt-1">
-                        Assinatura de outro usuário
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        <span className="text-[10px] text-muted-foreground">Assinatura de outro usuário</span>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => remove(s)}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
                       </div>
                     )}
                     {isAdmin && (
