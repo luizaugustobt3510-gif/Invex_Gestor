@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,6 +74,7 @@ export default function Receituario() {
   const [profName, setProfName] = useState(user?.nome || '');
   const [profSig, setProfSig] = useState<DocumentSignatureValue>({ mode: 'none' });
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [viewing, setViewing] = useState<Prescription | null>(null);
@@ -150,6 +151,7 @@ export default function Receituario() {
   };
 
   const save = async () => {
+    if (savingRef.current) return;
     if (!user?.companyId) return;
     if (!patientId) { toast.error('Selecione o paciente'); return; }
     if (!content.trim()) { toast.error('Descreva os medicamentos e a posologia'); return; }
@@ -157,6 +159,7 @@ export default function Receituario() {
       toast.error('Informe o profissional responsável');
       return;
     }
+    savingRef.current = true;
     setSaving(true);
     const uidUser = (await supabase.auth.getUser()).data.user?.id;
     const payload: any = {
@@ -185,6 +188,7 @@ export default function Receituario() {
       error = res.error;
     }
     setSaving(false);
+    savingRef.current = false;
     if (error) { toast.error(error.message); return; }
     toast.success(editingId ? 'Receita atualizada' : 'Receita registrada');
     resetForm();
