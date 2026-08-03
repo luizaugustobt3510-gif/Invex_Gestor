@@ -151,6 +151,7 @@ export default function Receituario() {
   };
 
   const save = async () => {
+    if (savingRef.current) return;
     if (!user?.companyId) return;
     if (!patientId) { toast.error('Selecione o paciente'); return; }
     if (!content.trim()) { toast.error('Descreva os medicamentos e a posologia'); return; }
@@ -158,6 +159,7 @@ export default function Receituario() {
       toast.error('Informe o profissional responsável');
       return;
     }
+    savingRef.current = true;
     setSaving(true);
     const uidUser = (await supabase.auth.getUser()).data.user?.id;
     const payload: any = {
