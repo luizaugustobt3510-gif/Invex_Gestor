@@ -15,6 +15,7 @@ const DEFAULT_METHODS: AuthMethods = { email: true, google: false, microsoft: fa
 const Login = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<null | 'google' | 'microsoft'>(null);
   const [checkingSetup, setCheckingSetup] = useState(true);
