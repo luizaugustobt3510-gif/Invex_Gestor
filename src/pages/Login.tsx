@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Mail, Lock, ArrowRight, MessageCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, MessageCircle, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
@@ -15,6 +15,7 @@ const DEFAULT_METHODS: AuthMethods = { email: true, google: false, microsoft: fa
 const Login = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<null | 'google' | 'microsoft'>(null);
   const [checkingSetup, setCheckingSetup] = useState(true);
@@ -120,7 +121,7 @@ const Login = () => {
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-primary/8 rounded-full blur-3xl" />
         <div className="relative z-10 px-16 max-w-lg">
           <div className="mb-8">
-            <h1 className="text-5xl font-bold tracking-tight text-primary">Invex</h1>
+            <h1 className="text-5xl font-bold tracking-tight text-primary">Invex Gestor</h1>
             <div className="mt-2 h-1 w-16 bg-primary rounded-full" />
           </div>
           <p className="text-2xl font-light text-foreground leading-relaxed">
@@ -142,7 +143,7 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center px-5 py-8 sm:p-12 safe-area-inset">
         <div className="w-full max-w-md">
           <div className="lg:hidden mb-8 text-center">
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">Invex</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">Invex Gestor</h1>
             <p className="mt-1.5 text-muted-foreground text-xs sm:text-sm">Controle inteligente de estoque e operações</p>
           </div>
 
@@ -188,10 +189,19 @@ const Login = () => {
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input id="senha" type="password" placeholder="••••••••" value={senha}
+                  <Input id="senha" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={senha}
                     onChange={(e) => setSenha(e.target.value)}
-                    className="pl-10 h-11 sm:h-12 rounded-xl text-base"
+                    className="pl-10 pr-10 h-11 sm:h-12 rounded-xl text-base"
                     disabled={loading} autoComplete="current-password" />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
             )}
