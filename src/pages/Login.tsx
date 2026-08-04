@@ -121,7 +121,7 @@ const Login = () => {
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-primary/8 rounded-full blur-3xl" />
         <div className="relative z-10 px-16 max-w-lg">
           <div className="mb-8">
-            <h1 className="text-5xl font-bold tracking-tight text-primary">Invex</h1>
+            <h1 className="text-5xl font-bold tracking-tight text-primary">Invex Gestor</h1>
             <div className="mt-2 h-1 w-16 bg-primary rounded-full" />
           </div>
           <p className="text-2xl font-light text-foreground leading-relaxed">
@@ -143,7 +143,7 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center px-5 py-8 sm:p-12 safe-area-inset">
         <div className="w-full max-w-md">
           <div className="lg:hidden mb-8 text-center">
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">Invex</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">Invex Gestor</h1>
             <p className="mt-1.5 text-muted-foreground text-xs sm:text-sm">Controle inteligente de estoque e operações</p>
           </div>
 
