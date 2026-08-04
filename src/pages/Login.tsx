@@ -189,10 +189,19 @@ const Login = () => {
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input id="senha" type="password" placeholder="••••••••" value={senha}
+                  <Input id="senha" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={senha}
                     onChange={(e) => setSenha(e.target.value)}
-                    className="pl-10 h-11 sm:h-12 rounded-xl text-base"
+                    className="pl-10 pr-10 h-11 sm:h-12 rounded-xl text-base"
                     disabled={loading} autoComplete="current-password" />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
             )}
