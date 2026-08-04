@@ -222,7 +222,8 @@ const ListarSolicitacoes = () => {
     }
   };
 
-  const isAdmin = user?.role === 'superadm' || user?.role === 'admin' || user?.role === 'usuario almox';
+  // Quem pode gerenciar solicitações (ver, aceitar, recusar, editar, entregar)
+  const isAdmin = ['superadm', 'admin', 'usuario almox', 'logistica'].includes(user?.role ?? '');
 
   return (
     <MainLayout>
