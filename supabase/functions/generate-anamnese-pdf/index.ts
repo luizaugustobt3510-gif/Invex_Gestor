@@ -1,5 +1,41 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "npm:jspdf@2.5.2";
+import { Image as IsImage } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
+
+const MAX_PDF_BYTES = 1024 * 1024; // 1 MB
+const SIG_MAX_WIDTH = 420; // px — suficiente para 60mm impressos
+const SIG_MAX_BYTES = 120 * 1024; // orçamento por assinatura
+
+const toDataUrl = (bytes: Uint8Array) => {
+  let s = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) s += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  return `data:image/png;base64,${btoa(s)}`;
+};
+
+/** Redimensiona/otimiza a imagem da assinatura para reduzir o peso do PDF */
+async function optimizeSignature(dataUrl: string): Promise<string> {
+  try {
+    const b64 = dataUrl.split(",")[1];
+    if (!b64) return dataUrl;
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+
+    let best = dataUrl;
+    for (const width of [SIG_MAX_WIDTH, 300, 220, 160]) {
+      const img = await IsImage.decode(bytes);
+      if (img.width > width) img.resize(width, IsImage.RESIZE_AUTO);
+      const out = await img.encode(9); // PNG com compressão máxima
+      const candidate = toDataUrl(out);
+      if (candidate.length < best.length) best = candidate;
+      if (out.length <= SIG_MAX_BYTES) break;
+    }
+    return best;
+  } catch (_e) {
+    return dataUrl;
+  }
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -137,7 +173,7 @@ Deno.serve(async (req) => {
     if (insErr || !anamnese) return json({ error: "Falha ao registrar anamnese" }, 500);
 
     // Build PDF
-    const doc = new jsPDF();
+    const doc = new jsPDF({ compress: true });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
@@ -254,7 +290,7 @@ Deno.serve(async (req) => {
       let out: string | null = null;
       try {
         if (url.startsWith("data:")) {
-          out = url;
+          out = await optimizeSignature(url);
         } else {
           const resp = await fetch(url);
           if (resp.ok) {
@@ -264,7 +300,7 @@ Deno.serve(async (req) => {
             for (let i = 0; i < buf.length; i += chunk) {
               base64 += String.fromCharCode(...buf.subarray(i, i + chunk));
             }
-            out = `data:image/png;base64,${btoa(base64)}`;
+            out = await optimizeSignature(`data:image/png;base64,${btoa(base64)}`);
           }
         }
       } catch (_e) { out = null; }
@@ -280,7 +316,7 @@ Deno.serve(async (req) => {
         y += 8;
         const sigW = 60, sigH = 25;
         const sigX = pageWidth - margin - sigW;
-        doc.addImage(dataUrl, "PNG", sigX, y, sigW, sigH);
+        doc.addImage(dataUrl, "PNG", sigX, y, sigW, sigH, undefined, "FAST");
         y += sigH + 2;
         doc.setDrawColor(120);
         doc.line(sigX, y, sigX + sigW, y);
@@ -378,6 +414,9 @@ Deno.serve(async (req) => {
 
     const pdfBytes = doc.output("arraybuffer");
     const pdfBuffer = new Uint8Array(pdfBytes);
+    if (pdfBuffer.length > MAX_PDF_BYTES) {
+      console.warn(`PDF acima do limite de 1MB: ${(pdfBuffer.length / 1024).toFixed(0)}KB`);
+    }
     const filePath = `${effectiveCompanyId}/${anamnese.id}.pdf`;
     const { error: upErr } = await supabase.storage
       .from("anamnese-pdfs")
@@ -395,6 +434,7 @@ Deno.serve(async (req) => {
       anamnese_id: anamnese.id,
       number: anamneseNumber,
       pdf_url: signed?.signedUrl || "",
+      pdf_size_kb: Math.round(pdfBuffer.length / 1024),
     }, 200);
   } catch (err) {
     return json({ error: "Erro interno: " + (err as Error).message }, 500);
