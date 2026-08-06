@@ -116,7 +116,7 @@ export default function Dispensacao() {
     (cons.data || []).forEach((r: any) => rows.push({
       id: r.id, kind: 'consumo', quantidade: r.quantidade,
       material_nome: r.materials?.material || '—', material_codigo: r.materials?.codigo || '—',
-      unidade: r.materials?.unidade || null, patient_name: r.patients?.nome,
+      unidade: r.materials?.unidade || null, patient_id: r.patient_id, patient_name: r.patients?.nome,
       sector_nome: r.sectors?.nome, exam_type: r.exam_type, observacoes: r.observacoes,
       created_at: r.created_at,
     }));
