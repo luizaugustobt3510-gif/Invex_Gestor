@@ -8,7 +8,6 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
 } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, FileText, User, ClipboardList, Activity, Pencil, Trash2, Pill } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -328,8 +327,6 @@ export default function Pacientes() {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>CPF</TableHead>
-                    <TableHead>Nascimento</TableHead>
-                    <TableHead>Telefone</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -338,8 +335,6 @@ export default function Pacientes() {
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">{p.nome}</TableCell>
                       <TableCell>{p.cpf || '-'}</TableCell>
-                      <TableCell>{isoToBR(p.birth_date) || '-'}</TableCell>
-                      <TableCell>{p.phone || '-'}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end items-center gap-1 flex-nowrap whitespace-nowrap">
                           <Button asChild size="sm" variant="outline" className="h-8 px-2 gap-1 text-xs">
