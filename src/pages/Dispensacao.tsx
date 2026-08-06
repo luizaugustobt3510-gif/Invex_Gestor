@@ -234,6 +234,13 @@ export default function Dispensacao() {
     return [...patients].sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))[0];
   }, [patients]);
 
+  // Ao selecionar o paciente, puxa automaticamente o último exame registrado para ele
+  const selectPatient = (id: string) => {
+    setPatientId(id);
+    const lastExam = history.find(h => h.kind === 'consumo' && h.patient_id === id && h.exam_type);
+    if (lastExam?.exam_type) setExamType(lastExam.exam_type);
+  };
+
   return (
     <MainLayout>
       <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
