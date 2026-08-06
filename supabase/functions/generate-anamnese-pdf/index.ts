@@ -1,5 +1,32 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "npm:jspdf@2.5.2";
+import { Image as IsImage } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
+
+const MAX_PDF_BYTES = 1024 * 1024; // 1 MB
+const SIG_MAX_WIDTH = 420; // px — suficiente para 60mm impressos
+
+/** Redimensiona/otimiza a imagem da assinatura para reduzir o peso do PDF */
+async function optimizeSignature(dataUrl: string, maxWidth = SIG_MAX_WIDTH): Promise<string> {
+  try {
+    const b64 = dataUrl.split(",")[1];
+    if (!b64) return dataUrl;
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const img = await IsImage.decode(bytes);
+    if (img.width > maxWidth) {
+      img.resize(maxWidth, IsImage.RESIZE_AUTO);
+    }
+    const out = await img.encode(9); // PNG nível máximo de compressão
+    let s = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < out.length; i += chunk) s += String.fromCharCode(...out.subarray(i, i + chunk));
+    const optimized = `data:image/png;base64,${btoa(s)}`;
+    return optimized.length < dataUrl.length ? optimized : dataUrl;
+  } catch (_e) {
+    return dataUrl;
+  }
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
