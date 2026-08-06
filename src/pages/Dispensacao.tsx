@@ -235,11 +235,23 @@ export default function Dispensacao() {
   }, [patients]);
 
   // Ao selecionar o paciente, puxa automaticamente o último exame registrado para ele
-  const selectPatient = (id: string) => {
+  const selectPatient = async (id: string) => {
     setPatientId(id);
-    const lastExam = history.find(h => h.kind === 'consumo' && h.patient_id === id && h.exam_type);
-    if (lastExam?.exam_type) setExamType(lastExam.exam_type);
+    const local = history.find(h => h.kind === 'consumo' && h.patient_id === id && h.exam_type);
+    if (local?.exam_type) { setExamType(local.exam_type); return; }
+    if (!user?.companyId) return;
+    const { data } = await supabase
+      .from('patient_consumptions')
+      .select('exam_type, created_at')
+      .eq('company_id', user.companyId)
+      .eq('patient_id', id)
+      .not('exam_type', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (data?.exam_type) setExamType(data.exam_type);
   };
+
 
   return (
     <MainLayout>
