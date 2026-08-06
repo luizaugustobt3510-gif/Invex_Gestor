@@ -41,6 +41,7 @@ interface HistoryRow {
   material_nome: string;
   material_codigo: string;
   unidade: string | null;
+  patient_id?: string | null;
   patient_name?: string | null;
   sector_nome?: string | null;
   exam_type?: string | null;
