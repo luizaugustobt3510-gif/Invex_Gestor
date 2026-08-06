@@ -414,6 +414,9 @@ Deno.serve(async (req) => {
 
     const pdfBytes = doc.output("arraybuffer");
     const pdfBuffer = new Uint8Array(pdfBytes);
+    if (pdfBuffer.length > MAX_PDF_BYTES) {
+      console.warn(`PDF acima do limite de 1MB: ${(pdfBuffer.length / 1024).toFixed(0)}KB`);
+    }
     const filePath = `${effectiveCompanyId}/${anamnese.id}.pdf`;
     const { error: upErr } = await supabase.storage
       .from("anamnese-pdfs")
@@ -431,6 +434,7 @@ Deno.serve(async (req) => {
       anamnese_id: anamnese.id,
       number: anamneseNumber,
       pdf_url: signed?.signedUrl || "",
+      pdf_size_kb: Math.round(pdfBuffer.length / 1024),
     }, 200);
   } catch (err) {
     return json({ error: "Erro interno: " + (err as Error).message }, 500);
