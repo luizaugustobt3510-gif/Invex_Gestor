@@ -369,7 +369,7 @@ export default function Dispensacao() {
                                   size="sm"
                                   variant="ghost"
                                   className="h-7 px-2 text-xs gap-1"
-                                  onClick={() => setPatientId(lastPatient.id)}
+                                  onClick={() => selectPatient(lastPatient.id)}
                                   title={`Usar último paciente: ${lastPatient.nome}`}
                                 >
                                   <History className="w-3.5 h-3.5" /> Último
@@ -390,7 +390,7 @@ export default function Dispensacao() {
                                     <CommandEmpty>Nenhum paciente</CommandEmpty>
                                     <CommandGroup>
                                       {patients.map(p => (
-                                        <CommandItem key={p.id} value={p.nome} onSelect={() => { setPatientId(p.id); setPatientPop(false); }}>
+                                        <CommandItem key={p.id} value={p.nome} onSelect={() => { selectPatient(p.id); setPatientPop(false); }}>
                                           <Check className={`w-4 h-4 mr-2 ${patientId === p.id ? 'opacity-100' : 'opacity-0'}`} />
                                           {p.nome}
                                         </CommandItem>
