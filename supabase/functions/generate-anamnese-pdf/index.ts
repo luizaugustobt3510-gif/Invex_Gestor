@@ -4,25 +4,34 @@ import { Image as IsImage } from "https://deno.land/x/imagescript@1.2.17/mod.ts"
 
 const MAX_PDF_BYTES = 1024 * 1024; // 1 MB
 const SIG_MAX_WIDTH = 420; // px — suficiente para 60mm impressos
+const SIG_MAX_BYTES = 120 * 1024; // orçamento por assinatura
+
+const toDataUrl = (bytes: Uint8Array) => {
+  let s = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) s += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  return `data:image/png;base64,${btoa(s)}`;
+};
 
 /** Redimensiona/otimiza a imagem da assinatura para reduzir o peso do PDF */
-async function optimizeSignature(dataUrl: string, maxWidth = SIG_MAX_WIDTH): Promise<string> {
+async function optimizeSignature(dataUrl: string): Promise<string> {
   try {
     const b64 = dataUrl.split(",")[1];
     if (!b64) return dataUrl;
     const bin = atob(b64);
     const bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    const img = await IsImage.decode(bytes);
-    if (img.width > maxWidth) {
-      img.resize(maxWidth, IsImage.RESIZE_AUTO);
+
+    let best = dataUrl;
+    for (const width of [SIG_MAX_WIDTH, 300, 220, 160]) {
+      const img = await IsImage.decode(bytes);
+      if (img.width > width) img.resize(width, IsImage.RESIZE_AUTO);
+      const out = await img.encode(9); // PNG com compressão máxima
+      const candidate = toDataUrl(out);
+      if (candidate.length < best.length) best = candidate;
+      if (out.length <= SIG_MAX_BYTES) break;
     }
-    const out = await img.encode(9); // PNG nível máximo de compressão
-    let s = "";
-    const chunk = 0x8000;
-    for (let i = 0; i < out.length; i += chunk) s += String.fromCharCode(...out.subarray(i, i + chunk));
-    const optimized = `data:image/png;base64,${btoa(s)}`;
-    return optimized.length < dataUrl.length ? optimized : dataUrl;
+    return best;
   } catch (_e) {
     return dataUrl;
   }
