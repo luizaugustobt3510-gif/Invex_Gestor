@@ -41,6 +41,7 @@ interface HistoryRow {
   material_nome: string;
   material_codigo: string;
   unidade: string | null;
+  patient_id?: string | null;
   patient_name?: string | null;
   sector_nome?: string | null;
   exam_type?: string | null;
@@ -115,7 +116,7 @@ export default function Dispensacao() {
     (cons.data || []).forEach((r: any) => rows.push({
       id: r.id, kind: 'consumo', quantidade: r.quantidade,
       material_nome: r.materials?.material || '—', material_codigo: r.materials?.codigo || '—',
-      unidade: r.materials?.unidade || null, patient_name: r.patients?.nome,
+      unidade: r.materials?.unidade || null, patient_id: r.patient_id, patient_name: r.patients?.nome,
       sector_nome: r.sectors?.nome, exam_type: r.exam_type, observacoes: r.observacoes,
       created_at: r.created_at,
     }));
@@ -232,6 +233,13 @@ export default function Dispensacao() {
     if (!patients.length) return null;
     return [...patients].sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))[0];
   }, [patients]);
+
+  // Ao selecionar o paciente, puxa automaticamente o último exame registrado para ele
+  const selectPatient = (id: string) => {
+    setPatientId(id);
+    const lastExam = history.find(h => h.kind === 'consumo' && h.patient_id === id && h.exam_type);
+    if (lastExam?.exam_type) setExamType(lastExam.exam_type);
+  };
 
   return (
     <MainLayout>
@@ -361,7 +369,7 @@ export default function Dispensacao() {
                                   size="sm"
                                   variant="ghost"
                                   className="h-7 px-2 text-xs gap-1"
-                                  onClick={() => setPatientId(lastPatient.id)}
+                                  onClick={() => selectPatient(lastPatient.id)}
                                   title={`Usar último paciente: ${lastPatient.nome}`}
                                 >
                                   <History className="w-3.5 h-3.5" /> Último
@@ -382,7 +390,7 @@ export default function Dispensacao() {
                                     <CommandEmpty>Nenhum paciente</CommandEmpty>
                                     <CommandGroup>
                                       {patients.map(p => (
-                                        <CommandItem key={p.id} value={p.nome} onSelect={() => { setPatientId(p.id); setPatientPop(false); }}>
+                                        <CommandItem key={p.id} value={p.nome} onSelect={() => { selectPatient(p.id); setPatientPop(false); }}>
                                           <Check className={`w-4 h-4 mr-2 ${patientId === p.id ? 'opacity-100' : 'opacity-0'}`} />
                                           {p.nome}
                                         </CommandItem>

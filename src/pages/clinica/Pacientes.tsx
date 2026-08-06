@@ -8,7 +8,6 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
 } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, FileText, User, ClipboardList, Activity, Pencil, Trash2, Pill } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -267,28 +266,6 @@ export default function Pacientes() {
                   />
                 </div>
                 <div>
-                  <Label>Nascimento</Label>
-                  <Input
-                    inputMode="numeric"
-                    placeholder="DD/MM/AAAA"
-                    value={form.birth_date_br}
-                    onChange={e => setForm({ ...form, birth_date_br: maskDateBR(e.target.value) })}
-                  />
-                </div>
-                <div>
-                  <Label>Telefone</Label>
-                  <Input
-                    inputMode="tel"
-                    placeholder="(00) 00000-0000"
-                    value={form.phone}
-                    onChange={e => setForm({ ...form, phone: maskPhone(e.target.value) })}
-                  />
-                </div>
-                <div>
-                  <Label>E-mail</Label>
-                  <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
-                </div>
-                <div>
                   <Label>Sexo *</Label>
                   <Select value={form.gender} onValueChange={v => setForm({ ...form, gender: v })}>
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
@@ -322,14 +299,6 @@ export default function Pacientes() {
                     onChange={e => setForm({ ...form, weight_kg: e.target.value.replace(/[^0-9.]/g, '') })}
                   />
                 </div>
-                <div className="col-span-2">
-                  <Label>Endereço</Label>
-                  <Input value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} />
-                </div>
-                <div className="col-span-2">
-                  <Label>Observações</Label>
-                  <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} />
-                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
@@ -358,8 +327,6 @@ export default function Pacientes() {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>CPF</TableHead>
-                    <TableHead>Nascimento</TableHead>
-                    <TableHead>Telefone</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -368,8 +335,6 @@ export default function Pacientes() {
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">{p.nome}</TableCell>
                       <TableCell>{p.cpf || '-'}</TableCell>
-                      <TableCell>{isoToBR(p.birth_date) || '-'}</TableCell>
-                      <TableCell>{p.phone || '-'}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end items-center gap-1 flex-nowrap whitespace-nowrap">
                           <Button asChild size="sm" variant="outline" className="h-8 px-2 gap-1 text-xs">
