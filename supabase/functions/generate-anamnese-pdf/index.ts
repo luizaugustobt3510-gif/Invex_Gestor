@@ -164,7 +164,7 @@ Deno.serve(async (req) => {
     if (insErr || !anamnese) return json({ error: "Falha ao registrar anamnese" }, 500);
 
     // Build PDF
-    const doc = new jsPDF();
+    const doc = new jsPDF({ compress: true });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
@@ -281,7 +281,7 @@ Deno.serve(async (req) => {
       let out: string | null = null;
       try {
         if (url.startsWith("data:")) {
-          out = url;
+          out = await optimizeSignature(url);
         } else {
           const resp = await fetch(url);
           if (resp.ok) {
@@ -291,7 +291,7 @@ Deno.serve(async (req) => {
             for (let i = 0; i < buf.length; i += chunk) {
               base64 += String.fromCharCode(...buf.subarray(i, i + chunk));
             }
-            out = `data:image/png;base64,${btoa(base64)}`;
+            out = await optimizeSignature(`data:image/png;base64,${btoa(base64)}`);
           }
         }
       } catch (_e) { out = null; }
@@ -307,7 +307,7 @@ Deno.serve(async (req) => {
         y += 8;
         const sigW = 60, sigH = 25;
         const sigX = pageWidth - margin - sigW;
-        doc.addImage(dataUrl, "PNG", sigX, y, sigW, sigH);
+        doc.addImage(dataUrl, "PNG", sigX, y, sigW, sigH, undefined, "FAST");
         y += sigH + 2;
         doc.setDrawColor(120);
         doc.line(sigX, y, sigX + sigW, y);
