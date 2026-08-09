@@ -337,7 +337,7 @@ const Lancamentos = () => {
         </Dialog>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="space-y-3">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -351,7 +351,51 @@ const Lancamentos = () => {
                   <SelectItem value="despesa">Despesas</SelectItem>
                 </SelectContent>
               </Select>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-full sm:w-40"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Toda situação</SelectItem>
+                  <SelectItem value="aberto">Em aberto</SelectItem>
+                  <SelectItem value="pago">Pagos/Recebidos</SelectItem>
+                  <SelectItem value="cancelado">Cancelados</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+              <div className="flex-1">
+                <Label className="text-xs text-muted-foreground">Filtrar por</Label>
+                <Select value={dateField} onValueChange={setDateField}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="data">Data do lançamento</SelectItem>
+                    <SelectItem value="vencimento">Data de vencimento</SelectItem>
+                    <SelectItem value="pagamento">Data de pagamento</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1">
+                <Label className="text-xs text-muted-foreground">De</Label>
+                <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+              </div>
+              <div className="flex-1">
+                <Label className="text-xs text-muted-foreground">Até</Label>
+                <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {quickRanges.map(r => (
+                <Button key={r.label} size="sm" variant="outline" onClick={r.apply}>{r.label}</Button>
+              ))}
+              {(dateFrom || dateTo || filterTipo !== 'todos' || filterStatus !== 'todos') && (
+                <Button size="sm" variant="ghost" onClick={() => { setDateFrom(''); setDateTo(''); setFilterTipo('todos'); setFilterStatus('todos'); }}>Limpar filtros</Button>
+              )}
+              <span className="ml-auto text-xs text-muted-foreground">
+                {filtered.length} lançamento(s) · <span className="text-green-600 font-medium">{fmt(totals.receitas)}</span> · <span className="text-red-600 font-medium">{fmt(totals.despesas)}</span>
+              </span>
+            </div>
+
           </CardHeader>
           <CardContent>
             {/* Mobile: cards */}
