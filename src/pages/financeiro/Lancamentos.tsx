@@ -175,13 +175,39 @@ const Lancamentos = () => {
     setDeleteCatId(null);
   };
 
+  const dateOf = (e: any) => (dateField === 'vencimento' ? (e.data_vencimento || e.data) : dateField === 'pagamento' ? e.data_pagamento : e.data);
+
   const filtered = entries.filter(e => {
     const matchSearch = e.descricao.toLowerCase().includes(search.toLowerCase());
     const matchTipo = filterTipo === 'todos' || e.tipo === filterTipo;
-    return matchSearch && matchTipo;
+    const matchStatus = filterStatus === 'todos'
+      || (filterStatus === 'aberto' ? e.status !== 'pago' && e.status !== 'cancelado' : e.status === filterStatus);
+    const d = dateOf(e);
+    const matchFrom = !dateFrom || (!!d && d >= dateFrom);
+    const matchTo = !dateTo || (!!d && d <= dateTo);
+    return matchSearch && matchTipo && matchStatus && matchFrom && matchTo;
   });
 
   const fmt = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+  const totals = filtered.reduce((acc, e) => {
+    if (e.status === 'cancelado') return acc;
+    if (e.tipo === 'receita') acc.receitas += Number(e.valor); else acc.despesas += Number(e.valor);
+    return acc;
+  }, { receitas: 0, despesas: 0 });
+
+  const setRange = (from: Date, to: Date) => {
+    setDateFrom(format(from, 'yyyy-MM-dd'));
+    setDateTo(format(to, 'yyyy-MM-dd'));
+  };
+  const now = new Date();
+  const quickRanges = [
+    { label: 'Mês atual', apply: () => setRange(startOfMonth(now), endOfMonth(now)) },
+    { label: 'Mês anterior', apply: () => setRange(startOfMonth(subMonths(now, 1)), endOfMonth(subMonths(now, 1))) },
+    { label: 'Últimos 3 meses', apply: () => setRange(startOfMonth(subMonths(now, 2)), endOfMonth(now)) },
+    { label: 'Ano', apply: () => setRange(startOfYear(now), endOfMonth(now)) },
+  ];
+
 
   return (
     <MainLayout>
