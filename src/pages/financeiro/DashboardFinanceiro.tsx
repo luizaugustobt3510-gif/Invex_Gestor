@@ -9,9 +9,11 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { InsightsPanel } from '@/components/insights/InsightsPanel';
 import { generateFinanceiroInsights } from '@/components/insights/generateFinanceiroInsights';
+import { useNavigate } from 'react-router-dom';
 
 const DashboardFinanceiro = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [entries, setEntries] = useState<any[]>([]);
   const [period, setPeriod] = useState('mes_atual');
 
@@ -24,7 +26,7 @@ const DashboardFinanceiro = () => {
     load();
   }, [user?.companyId]);
 
-  const filteredEntries = useMemo(() => {
+  const range = useMemo(() => {
     const now = new Date();
     let start: Date, end: Date;
     if (period === 'mes_atual') {
@@ -40,11 +42,23 @@ const DashboardFinanceiro = () => {
       start = startOfMonth(subMonths(now, 11));
       end = endOfMonth(now);
     }
-    return entries.filter(e => {
-      const d = parseISO(e.data);
-      return d >= start && d <= end;
-    });
-  }, [entries, period]);
+    return { start, end };
+  }, [period]);
+
+  const filteredEntries = useMemo(() => entries.filter(e => {
+    const d = parseISO(e.data);
+    return d >= range.start && d <= range.end;
+  }), [entries, range]);
+
+  const goToLancamentos = (params: Record<string, string> = {}, useRange = true) => {
+    const qs = new URLSearchParams(params);
+    if (useRange) {
+      qs.set('de', format(range.start, 'yyyy-MM-dd'));
+      qs.set('ate', format(range.end, 'yyyy-MM-dd'));
+    }
+    navigate(`/financeiro/lancamentos?${qs.toString()}`);
+  };
+
 
   const stats = useMemo(() => financeiroService.computeStats(filteredEntries), [filteredEntries]);
 
