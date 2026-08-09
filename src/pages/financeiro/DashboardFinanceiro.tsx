@@ -119,21 +119,21 @@ const DashboardFinanceiro = () => {
           const sum = (a: any[]) => a.reduce((s, e) => s + Number(e.valor), 0);
           return (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="border-red-200">
+              <Card className="border-red-200 cursor-pointer transition hover:shadow-md" onClick={() => navigate('/financeiro/vencimentos')}>
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground">Vencidas</p>
                   <p className="text-xl font-bold text-red-600">{fmt(sum(vencidas))}</p>
                   <p className="text-xs text-muted-foreground">{vencidas.length} conta(s) em atraso</p>
                 </CardContent>
               </Card>
-              <Card className="border-orange-200">
+              <Card className="border-orange-200 cursor-pointer transition hover:shadow-md" onClick={() => goToLancamentos({ status: 'aberto', campo: 'vencimento', de: hoje, ate: hoje }, false)}>
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground">Vencem hoje</p>
                   <p className="text-xl font-bold text-orange-600">{fmt(sum(vencemHoje))}</p>
                   <p className="text-xs text-muted-foreground">{vencemHoje.length} conta(s)</p>
                 </CardContent>
               </Card>
-              <Card className="border-blue-200">
+              <Card className="border-blue-200 cursor-pointer transition hover:shadow-md" onClick={() => goToLancamentos({ status: 'aberto', campo: 'vencimento', de: hoje, ate: em7 }, false)}>
                 <CardContent className="p-4">
                   <p className="text-xs text-muted-foreground">Próximos 7 dias</p>
                   <p className="text-xl font-bold text-blue-600">{fmt(sum(prox))}</p>
@@ -145,11 +145,12 @@ const DashboardFinanceiro = () => {
         })()}
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Receitas</p><p className="text-xl font-bold text-green-600">{fmt(stats.receitas)}</p></CardContent></Card>
-          <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Despesas</p><p className="text-xl font-bold text-red-600">{fmt(stats.despesas)}</p></CardContent></Card>
-          <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Lucro Líquido</p><p className={`text-xl font-bold ${stats.lucro >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(stats.lucro)}</p></CardContent></Card>
-          <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">A Receber</p><p className="text-xl font-bold text-blue-600">{fmt(stats.aReceber)}</p></CardContent></Card>
-          <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">A Pagar</p><p className="text-xl font-bold text-orange-600">{fmt(stats.aPagar)}</p></CardContent></Card>
+          <Card className="cursor-pointer transition hover:shadow-md" onClick={() => goToLancamentos({ tipo: 'receita', status: 'pago' })}><CardContent className="p-4"><p className="text-xs text-muted-foreground">Receitas</p><p className="text-xl font-bold text-green-600">{fmt(stats.receitas)}</p></CardContent></Card>
+          <Card className="cursor-pointer transition hover:shadow-md" onClick={() => goToLancamentos({ tipo: 'despesa', status: 'pago' })}><CardContent className="p-4"><p className="text-xs text-muted-foreground">Despesas</p><p className="text-xl font-bold text-red-600">{fmt(stats.despesas)}</p></CardContent></Card>
+          <Card className="cursor-pointer transition hover:shadow-md" onClick={() => goToLancamentos({ status: 'pago' })}><CardContent className="p-4"><p className="text-xs text-muted-foreground">Lucro Líquido</p><p className={`text-xl font-bold ${stats.lucro >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(stats.lucro)}</p></CardContent></Card>
+          <Card className="cursor-pointer transition hover:shadow-md" onClick={() => navigate('/financeiro/contas-receber')}><CardContent className="p-4"><p className="text-xs text-muted-foreground">A Receber</p><p className="text-xl font-bold text-blue-600">{fmt(stats.aReceber)}</p></CardContent></Card>
+          <Card className="cursor-pointer transition hover:shadow-md" onClick={() => goToLancamentos({ tipo: 'despesa', status: 'aberto' }, false)}><CardContent className="p-4"><p className="text-xs text-muted-foreground">A Pagar</p><p className="text-xl font-bold text-orange-600">{fmt(stats.aPagar)}</p></CardContent></Card>
+
         </div>
 
 
