@@ -551,13 +551,6 @@ const financeiroGroups: MenuGroup[] = [
         submoduleKey: "financeiro.vencimentos",
       },
       {
-        path: "/financeiro/contas-pagar",
-        label: "Contas a Pagar",
-        icon: <ArrowDownCircle className="w-4 h-4" />,
-        allowedRoles: ["admin", "financeiro", "logistica"],
-        submoduleKey: "financeiro.contas_pagar",
-      },
-      {
         path: "/financeiro/contas-receber",
         label: "Contas a Receber",
         icon: <ArrowUpCircle className="w-4 h-4" />,

@@ -88,7 +88,7 @@ import Vencimentos from "./pages/financeiro/Vencimentos";
 import CentrosCusto from "./pages/financeiro/CentrosCusto";
 import Orcamentos from "./pages/financeiro/Orcamentos";
 import ConciliacaoBancaria from "./pages/financeiro/ConciliacaoBancaria";
-import { ContasPagar, ContasReceber } from "./pages/financeiro/ContasPagarReceber";
+import { ContasReceber } from "./pages/financeiro/ContasPagarReceber";
 import DashboardVendas from "./pages/vendas/DashboardVendas";
 import PDV from "./pages/vendas/PDV";
 import HistoricoVendas from "./pages/vendas/HistoricoVendas";
@@ -254,7 +254,7 @@ const App = () => (
             <Route path="/financeiro/fluxo-caixa" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro" submoduleKey="financeiro.fluxo_caixa"><FluxoCaixa /></RoleProtectedRoute>} />
             <Route path="/financeiro/relatorios" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro" submoduleKey="financeiro.relatorios"><RelatoriosFinanceiros /></RoleProtectedRoute>} />
             <Route path="/financeiro/vencimentos" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro" submoduleKey="financeiro.vencimentos"><Vencimentos /></RoleProtectedRoute>} />
-            <Route path="/financeiro/contas-pagar" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro" submoduleKey="financeiro.contas_pagar"><ContasPagar /></RoleProtectedRoute>} />
+            <Route path="/financeiro/contas-pagar" element={<Navigate to="/financeiro/vencimentos" replace />} />
             <Route path="/financeiro/contas-receber" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro', 'logistica']} moduleKey="financeiro" submoduleKey="financeiro.contas_receber"><ContasReceber /></RoleProtectedRoute>} />
             <Route path="/financeiro/conciliacao" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro']} moduleKey="financeiro" submoduleKey="financeiro.conciliacao"><ConciliacaoBancaria /></RoleProtectedRoute>} />
             <Route path="/financeiro/orcamentos" element={<RoleProtectedRoute allowedRoles={['admin', 'financeiro']} moduleKey="financeiro" submoduleKey="financeiro.orcamentos"><Orcamentos /></RoleProtectedRoute>} />

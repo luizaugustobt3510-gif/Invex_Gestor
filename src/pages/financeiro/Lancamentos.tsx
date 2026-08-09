@@ -15,7 +15,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Search, Trash2, CheckCircle, TrendingUp, TrendingDown, Pencil, Tags } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth, subMonths, startOfYear } from 'date-fns';
+import { useSearchParams } from 'react-router-dom';
 
 const emptyForm = {
   tipo: 'despesa',
@@ -35,12 +36,17 @@ const emptyForm = {
 const Lancamentos = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [entries, setEntries] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [costCenters, setCostCenters] = useState<any[]>([]);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [search, setSearch] = useState('');
-  const [filterTipo, setFilterTipo] = useState('todos');
+  const [filterTipo, setFilterTipo] = useState(searchParams.get('tipo') || 'todos');
+  const [filterStatus, setFilterStatus] = useState(searchParams.get('status') || 'todos');
+  const [dateFrom, setDateFrom] = useState(searchParams.get('de') || '');
+  const [dateTo, setDateTo] = useState(searchParams.get('ate') || '');
+  const [dateField, setDateField] = useState(searchParams.get('campo') || 'data');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -169,13 +175,39 @@ const Lancamentos = () => {
     setDeleteCatId(null);
   };
 
+  const dateOf = (e: any) => (dateField === 'vencimento' ? (e.data_vencimento || e.data) : dateField === 'pagamento' ? e.data_pagamento : e.data);
+
   const filtered = entries.filter(e => {
     const matchSearch = e.descricao.toLowerCase().includes(search.toLowerCase());
     const matchTipo = filterTipo === 'todos' || e.tipo === filterTipo;
-    return matchSearch && matchTipo;
+    const matchStatus = filterStatus === 'todos'
+      || (filterStatus === 'aberto' ? e.status !== 'pago' && e.status !== 'cancelado' : e.status === filterStatus);
+    const d = dateOf(e);
+    const matchFrom = !dateFrom || (!!d && d >= dateFrom);
+    const matchTo = !dateTo || (!!d && d <= dateTo);
+    return matchSearch && matchTipo && matchStatus && matchFrom && matchTo;
   });
 
   const fmt = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+  const totals = filtered.reduce((acc, e) => {
+    if (e.status === 'cancelado') return acc;
+    if (e.tipo === 'receita') acc.receitas += Number(e.valor); else acc.despesas += Number(e.valor);
+    return acc;
+  }, { receitas: 0, despesas: 0 });
+
+  const setRange = (from: Date, to: Date) => {
+    setDateFrom(format(from, 'yyyy-MM-dd'));
+    setDateTo(format(to, 'yyyy-MM-dd'));
+  };
+  const now = new Date();
+  const quickRanges = [
+    { label: 'Mês atual', apply: () => setRange(startOfMonth(now), endOfMonth(now)) },
+    { label: 'Mês anterior', apply: () => setRange(startOfMonth(subMonths(now, 1)), endOfMonth(subMonths(now, 1))) },
+    { label: 'Últimos 3 meses', apply: () => setRange(startOfMonth(subMonths(now, 2)), endOfMonth(now)) },
+    { label: 'Ano', apply: () => setRange(startOfYear(now), endOfMonth(now)) },
+  ];
+
 
   return (
     <MainLayout>
@@ -305,7 +337,7 @@ const Lancamentos = () => {
         </Dialog>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="space-y-3">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -319,7 +351,51 @@ const Lancamentos = () => {
                   <SelectItem value="despesa">Despesas</SelectItem>
                 </SelectContent>
               </Select>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-full sm:w-40"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Toda situação</SelectItem>
+                  <SelectItem value="aberto">Em aberto</SelectItem>
+                  <SelectItem value="pago">Pagos/Recebidos</SelectItem>
+                  <SelectItem value="cancelado">Cancelados</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+              <div className="flex-1">
+                <Label className="text-xs text-muted-foreground">Filtrar por</Label>
+                <Select value={dateField} onValueChange={setDateField}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="data">Data do lançamento</SelectItem>
+                    <SelectItem value="vencimento">Data de vencimento</SelectItem>
+                    <SelectItem value="pagamento">Data de pagamento</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1">
+                <Label className="text-xs text-muted-foreground">De</Label>
+                <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+              </div>
+              <div className="flex-1">
+                <Label className="text-xs text-muted-foreground">Até</Label>
+                <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {quickRanges.map(r => (
+                <Button key={r.label} size="sm" variant="outline" onClick={r.apply}>{r.label}</Button>
+              ))}
+              {(dateFrom || dateTo || filterTipo !== 'todos' || filterStatus !== 'todos') && (
+                <Button size="sm" variant="ghost" onClick={() => { setDateFrom(''); setDateTo(''); setFilterTipo('todos'); setFilterStatus('todos'); }}>Limpar filtros</Button>
+              )}
+              <span className="ml-auto text-xs text-muted-foreground">
+                {filtered.length} lançamento(s) · <span className="text-green-600 font-medium">{fmt(totals.receitas)}</span> · <span className="text-red-600 font-medium">{fmt(totals.despesas)}</span>
+              </span>
+            </div>
+
           </CardHeader>
           <CardContent>
             {/* Mobile: cards */}

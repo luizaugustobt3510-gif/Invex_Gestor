@@ -186,6 +186,5 @@ const ContasPagarReceber = ({ tipo }: Props) => {
   );
 };
 
-export const ContasPagar = () => <ContasPagarReceber tipo="despesa" />;
 export const ContasReceber = () => <ContasPagarReceber tipo="receita" />;
 export default ContasPagarReceber;
