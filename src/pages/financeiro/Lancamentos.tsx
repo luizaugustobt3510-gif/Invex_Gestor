@@ -15,7 +15,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Search, Trash2, CheckCircle, TrendingUp, TrendingDown, Pencil, Tags } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth, subMonths, startOfYear } from 'date-fns';
+import { useSearchParams } from 'react-router-dom';
 
 const emptyForm = {
   tipo: 'despesa',
@@ -35,12 +36,17 @@ const emptyForm = {
 const Lancamentos = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [entries, setEntries] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [costCenters, setCostCenters] = useState<any[]>([]);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [search, setSearch] = useState('');
-  const [filterTipo, setFilterTipo] = useState('todos');
+  const [filterTipo, setFilterTipo] = useState(searchParams.get('tipo') || 'todos');
+  const [filterStatus, setFilterStatus] = useState(searchParams.get('status') || 'todos');
+  const [dateFrom, setDateFrom] = useState(searchParams.get('de') || '');
+  const [dateTo, setDateTo] = useState(searchParams.get('ate') || '');
+  const [dateField, setDateField] = useState(searchParams.get('campo') || 'data');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
