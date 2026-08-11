@@ -12,10 +12,11 @@ const useReveal = () => {
     const els = Array.from(document.querySelectorAll('.inv-reveal'));
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('inv-in')),
-      { threshold: 0.15, rootMargin: '0px 0px -60px 0px' },
+      { threshold: 0.05, rootMargin: '0px 0px -60px 0px' },
     );
     els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    const fallback = window.setTimeout(() => els.forEach((el) => el.classList.add('inv-in')), 1500);
+    return () => { io.disconnect(); window.clearTimeout(fallback); };
   }, []);
 };
 
