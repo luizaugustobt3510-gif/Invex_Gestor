@@ -14,7 +14,18 @@ export default {
     },
     extend: {
       colors: {
+        inv: {
+          ink: "hsl(var(--inv-ink))",
+          "ink-soft": "hsl(var(--inv-ink-soft))",
+          paper: "hsl(var(--inv-paper))",
+          sand: "hsl(var(--inv-sand))",
+          line: "hsl(var(--inv-line))",
+          leaf: "hsl(var(--inv-leaf))",
+          "leaf-soft": "hsl(var(--inv-leaf-soft))",
+          glow: "hsl(var(--inv-glow))",
+        },
         border: "hsl(var(--border))",
+
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",

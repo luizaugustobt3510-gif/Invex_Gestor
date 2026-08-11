@@ -346,3 +346,61 @@ All colors MUST be HSL.
 
 
 
+
+/* ============= INVEX Institucional — identidade tecnológica + natural ============= */
+:root {
+  --inv-ink: 155 25% 8%;
+  --inv-ink-soft: 158 12% 32%;
+  --inv-paper: 60 30% 98%;
+  --inv-sand: 40 30% 92%;
+  --inv-line: 150 12% 88%;
+  --inv-leaf: 152 58% 28%;
+  --inv-leaf-soft: 150 45% 55%;
+  --inv-glow: 168 70% 45%;
+}
+
+.inv-site { background: hsl(var(--inv-paper)); color: hsl(var(--inv-ink)); }
+.inv-grid-bg {
+  background-image:
+    linear-gradient(hsl(var(--inv-line) / 0.7) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--inv-line) / 0.7) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, #000 30%, transparent 75%);
+}
+.inv-aurora {
+  background: radial-gradient(60% 50% at 15% 20%, hsl(var(--inv-leaf-soft) / 0.20), transparent 60%),
+              radial-gradient(50% 45% at 85% 10%, hsl(var(--inv-glow) / 0.16), transparent 60%),
+              radial-gradient(45% 40% at 70% 85%, hsl(var(--inv-sand) / 0.9), transparent 65%);
+  animation: inv-drift 18s ease-in-out infinite alternate;
+}
+@keyframes inv-drift {
+  from { transform: translate3d(0,0,0) scale(1); }
+  to   { transform: translate3d(0,-18px,0) scale(1.06); }
+}
+@keyframes inv-rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes inv-draw { to { stroke-dashoffset: 0; } }
+@keyframes inv-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes inv-pulse-ring { 0% { transform: scale(.85); opacity:.55 } 70% { transform: scale(1.35); opacity:0 } 100% { opacity:0 } }
+.inv-reveal { opacity: 0; }
+.inv-reveal.inv-in { animation: inv-rise .8s cubic-bezier(.22,.85,.3,1) forwards; }
+.inv-float { animation: inv-float 7s ease-in-out infinite; }
+.inv-draw { stroke-dasharray: 1200; stroke-dashoffset: 1200; }
+.inv-in .inv-draw { animation: inv-draw 2.4s ease-out forwards; }
+.inv-card {
+  background: hsl(0 0% 100% / 0.72);
+  backdrop-filter: blur(10px);
+  border: 1px solid hsl(var(--inv-line));
+  transition: transform .45s cubic-bezier(.22,.85,.3,1), box-shadow .45s, border-color .45s;
+}
+.inv-card:hover {
+  transform: translateY(-6px);
+  border-color: hsl(var(--inv-leaf) / 0.35);
+  box-shadow: 0 20px 45px -25px hsl(var(--inv-ink) / 0.35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .inv-reveal, .inv-reveal.inv-in { opacity: 1; animation: none !important; }
+  .inv-aurora, .inv-float, .inv-draw { animation: none !important; stroke-dashoffset: 0; }
+}
