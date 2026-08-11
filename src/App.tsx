@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Institucional from "./pages/Institucional";
 import { AuthProvider } from "./contexts/AuthContext";
 import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
 import { EmailRestrictedRoute } from "./components/EmailRestrictedRoute";
@@ -131,6 +132,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/accept-invite" element={<AcceptInvite />} />
             <Route path="/demo" element={<DemoMode />} />
+            <Route path="/institucional" element={<Institucional />} />
             
             {/* Home — all authenticated roles */}
             <Route path="/" element={
