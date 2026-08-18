@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { BarChart3, TrendingDown, TrendingUp, Clock, Users, Filter, Calendar, DollarSign, Timer, UserCheck } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, CartesianGrid, LineChart, Line } from 'recharts';
 import { resolveGender } from '@/lib/genderUtils';
+import { AtestadosAnalytics } from '@/components/rh/AtestadosAnalytics';
 
 const GENDER_COLORS = { M: '#93c5fd', F: '#fbcfe8', N: '#d4d4d8' };
 
@@ -56,7 +57,7 @@ const AnalisesIndicadores = () => {
     try {
       const [empRes, certRes, timeRes, vacRes, termRes, trainRes, asoRes] = await Promise.all([
         supabase.from('employees').select('id, status, data_admissao, departamento, salario, data_nascimento, cargo, nome, sexo'),
-        supabase.from('employee_certificates').select('dias, data_inicio, employee_id'),
+        supabase.from('employee_certificates').select('dias, data_inicio, data_fim, data_retorno, motivo, cid, employee_id'),
         supabase.from('time_records').select('horas_extras, employee_id, data'),
         supabase.from('employee_vacations').select('employee_id, data_inicio, data_fim, status'),
         supabase.from('employee_terminations').select('*, employees(departamento, cargo, nome)'),
@@ -456,6 +457,7 @@ const AnalisesIndicadores = () => {
             <TabsTrigger value="pessoas" className="text-xs sm:text-sm">Pessoas</TabsTrigger>
             <TabsTrigger value="genero" className="text-xs sm:text-sm">Gênero</TabsTrigger>
             <TabsTrigger value="desligamentos" className="text-xs sm:text-sm">Desligamentos</TabsTrigger>
+            <TabsTrigger value="atestados" className="text-xs sm:text-sm">Atestados</TabsTrigger>
             <TabsTrigger value="operacional" className="text-xs sm:text-sm">Operacional</TabsTrigger>
             <TabsTrigger value="financeiro" className="text-xs sm:text-sm">Financeiro</TabsTrigger>
           </TabsList>
@@ -654,6 +656,10 @@ const AnalisesIndicadores = () => {
                 )}
               </ChartCard>
             </div>
+          </TabsContent>
+
+          <TabsContent value="atestados" className="mt-4">
+            <AtestadosAnalytics certs={filteredCerts} employees={filteredEmps} />
           </TabsContent>
 
           <TabsContent value="operacional" className="mt-4">

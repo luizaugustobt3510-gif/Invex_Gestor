@@ -484,6 +484,41 @@ export type Database = {
         }
         Relationships: []
       }
+      certificate_reasons: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          id: string
+          is_default: boolean
+          motivo: string
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          motivo: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          motivo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificate_reasons_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_appointments: {
         Row: {
           attendance_type: string | null
@@ -1139,10 +1174,12 @@ export type Database = {
       employee_certificates: {
         Row: {
           arquivo_url: string | null
+          cid: string | null
           company_id: string
           created_at: string
           data_fim: string
           data_inicio: string
+          data_retorno: string | null
           dias: number
           employee_id: string
           id: string
@@ -1150,10 +1187,12 @@ export type Database = {
         }
         Insert: {
           arquivo_url?: string | null
+          cid?: string | null
           company_id: string
           created_at?: string
           data_fim: string
           data_inicio: string
+          data_retorno?: string | null
           dias: number
           employee_id: string
           id?: string
@@ -1161,10 +1200,12 @@ export type Database = {
         }
         Update: {
           arquivo_url?: string | null
+          cid?: string | null
           company_id?: string
           created_at?: string
           data_fim?: string
           data_inicio?: string
+          data_retorno?: string | null
           dias?: number
           employee_id?: string
           id?: string

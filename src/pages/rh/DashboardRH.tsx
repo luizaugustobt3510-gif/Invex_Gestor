@@ -21,7 +21,7 @@ import { resolveGender } from '@/lib/genderUtils';
 const notaEmoji: Record<number, string> = { 1: '😞', 2: '😐', 3: '🙂', 4: '😃' };
 
 interface AlertItem {
-  type: 'ferias' | 'treinamento' | 'aso' | 'banco_horas' | 'absenteismo' | 'turnover' | 'risco_trabalhista';
+  type: 'ferias' | 'treinamento' | 'aso' | 'banco_horas' | 'absenteismo' | 'turnover' | 'risco_trabalhista' | 'atestado';
   message: string;
   severity: 'critical' | 'warning' | 'info';
   route: string;
@@ -74,10 +74,11 @@ const DashboardRH = () => {
       const em30dias = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
       const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
-      const [empRes, vacRes, certRes, timeRes, evalRes, trainRes, asoRes, termRes, catalogRes, allVacRes] = await Promise.all([
+      const [empRes, vacRes, certRes, activeCertRes, timeRes, evalRes, trainRes, asoRes, termRes, catalogRes, allVacRes] = await Promise.all([
         supabase.from('employees').select('*').order('nome'),
         supabase.from('employee_vacations').select('*, employees(nome)').gte('data_inicio', hoje).lte('data_inicio', em30dias),
-        supabase.from('employee_certificates').select('dias, data_inicio, employee_id').gte('data_inicio', inicioMes),
+        supabase.from('employee_certificates').select('dias, data_inicio, data_fim, data_retorno, motivo, cid, employee_id').gte('data_inicio', inicioMes),
+        supabase.from('employee_certificates').select('employee_id, data_inicio, data_fim, data_retorno, motivo').gte('data_fim', hoje),
         supabase.from('time_records').select('employee_id, horas_extras').gte('data', inicioMes),
         supabase.from('performance_evaluations').select('employee_id, nota, created_at').order('created_at', { ascending: false }),
         supabase.from('employee_trainings').select('employee_id, data_validade, trainings(nome, obrigatorio)').not('data_validade', 'is', null),
@@ -257,6 +258,27 @@ const DashboardRH = () => {
       const feriasPendingIds = [...vacAlerts].filter(id => !riscoIds.includes(id));
       if (feriasPendingIds.length > 0) {
         newAlerts.push({ type: 'ferias', message: `${feriasPendingIds.length} colaborador(es) com férias pendentes`, severity: 'warning', route: '/rh/ferias', count: feriasPendingIds.length, actionable: true, employeeIds: feriasPendingIds });
+      }
+
+      // Atestados em andamento — colaboradores que retornam do afastamento
+      const activeCerts = (activeCertRes.data || []).filter((c: any) => {
+        const retorno = c.data_retorno || c.data_fim;
+        return retorno && retorno >= hoje;
+      });
+      if (activeCerts.length > 0) {
+        const returningIds = [...new Set(activeCerts.map((c: any) => c.employee_id))] as string[];
+        const proximoRetorno = activeCerts
+          .map((c: any) => c.data_retorno || c.data_fim)
+          .sort()[0];
+        const retornoLabel = proximoRetorno ? new Date(proximoRetorno + 'T00:00:00').toLocaleDateString('pt-BR') : '';
+        newAlerts.push({
+          type: 'atestado',
+          message: `${returningIds.length} colaborador(es) afastado(s) por atestado — próximo retorno em ${retornoLabel}`,
+          severity: 'warning',
+          route: '/rh/atestados',
+          count: returningIds.length,
+          actionable: false,
+        });
       }
 
       // Info alerts
