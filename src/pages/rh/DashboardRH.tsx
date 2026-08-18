@@ -21,7 +21,7 @@ import { resolveGender } from '@/lib/genderUtils';
 const notaEmoji: Record<number, string> = { 1: '😞', 2: '😐', 3: '🙂', 4: '😃' };
 
 interface AlertItem {
-  type: 'ferias' | 'treinamento' | 'aso' | 'banco_horas' | 'absenteismo' | 'turnover' | 'risco_trabalhista';
+  type: 'ferias' | 'treinamento' | 'aso' | 'banco_horas' | 'absenteismo' | 'turnover' | 'risco_trabalhista' | 'atestado';
   message: string;
   severity: 'critical' | 'warning' | 'info';
   route: string;
