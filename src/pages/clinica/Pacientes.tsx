@@ -235,10 +235,21 @@ export default function Pacientes() {
     load();
   };
 
-  const filtered = patients.filter(p =>
-    !search.trim() || p.nome.toLowerCase().includes(search.toLowerCase())
-    || (p.cpf || '').includes(search)
-  );
+  const filtered = patients.filter(p => {
+    const matchSearch = !search.trim() || p.nome.toLowerCase().includes(search.toLowerCase())
+      || (p.cpf || '').includes(search);
+    if (!matchSearch) return false;
+    if (dateFrom || dateTo) {
+      if (!p.created_at) return false;
+      const day = p.created_at.slice(0, 10);
+      if (dateFrom && day < dateFrom) return false;
+      if (dateTo && day > dateTo) return false;
+    }
+    return true;
+  });
+
+  const formatCadastro = (v?: string | null) =>
+    v ? new Date(v).toLocaleDateString('pt-BR') : '-';
 
   return (
     <MainLayout>
