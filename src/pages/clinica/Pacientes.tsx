@@ -27,6 +27,7 @@ interface Patient {
   height_cm: number | null;
   weight_kg: number | null;
   is_active: boolean;
+  created_at?: string | null;
 }
 
 // ----- Masks & helpers -----
