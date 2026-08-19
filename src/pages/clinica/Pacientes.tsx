@@ -349,13 +349,14 @@ export default function Pacientes() {
             {loading ? (
               <div className="text-center text-muted-foreground py-8">Carregando...</div>
             ) : filtered.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">Nenhum paciente cadastrado.</div>
+              <div className="text-center text-muted-foreground py-8">Nenhum paciente encontrado.</div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>CPF</TableHead>
+                    <TableHead>Cadastro</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -364,6 +365,7 @@ export default function Pacientes() {
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">{p.nome}</TableCell>
                       <TableCell>{p.cpf || '-'}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{formatCadastro(p.created_at)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end items-center gap-1 flex-nowrap whitespace-nowrap">
                           <Button asChild size="sm" variant="outline" className="h-8 px-2 gap-1 text-xs">
