@@ -139,17 +139,11 @@ Deno.serve(async (req) => {
       return json({ error: "Paciente inválido" }, 400);
     }
 
-    const { data: company } = await supabase
-      .from("companies")
-      .select("name, cnpj")
-      .eq("id", effectiveCompanyId)
-      .single();
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("nome, email")
-      .eq("user_id", userId)
-      .maybeSingle();
+    // Consultas em paralelo (reduz latência)
+    const [{ data: company }, { data: profile }] = await Promise.all([
+      supabase.from("companies").select("name, cnpj").eq("id", effectiveCompanyId).single(),
+      supabase.from("profiles").select("nome, email").eq("user_id", userId).maybeSingle(),
+    ]);
     const createdByName = profile?.nome || profile?.email || "Usuário";
 
     // Insert anamnese record
