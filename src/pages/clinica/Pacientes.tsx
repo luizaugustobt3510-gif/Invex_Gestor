@@ -325,9 +325,24 @@ export default function Pacientes() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><User className="w-4 h-4" /> Lista de pacientes</CardTitle>
-            <div className="relative pt-2">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input className="pl-9" placeholder="Buscar por nome ou CPF..." value={search} onChange={e => setSearch(e.target.value)} />
+            <div className="flex flex-col md:flex-row md:items-end gap-3 pt-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input className="pl-9" placeholder="Buscar por nome ou CPF..." value={search} onChange={e => setSearch(e.target.value)} />
+              </div>
+              <div className="flex items-end gap-2">
+                <div>
+                  <Label className="text-xs">Cadastro de</Label>
+                  <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">até</Label>
+                  <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+                </div>
+                {(dateFrom || dateTo) && (
+                  <Button variant="ghost" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); }}>Limpar</Button>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent>
