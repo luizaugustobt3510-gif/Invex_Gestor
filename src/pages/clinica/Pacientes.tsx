@@ -27,6 +27,7 @@ interface Patient {
   height_cm: number | null;
   weight_kg: number | null;
   is_active: boolean;
+  created_at?: string | null;
 }
 
 // ----- Masks & helpers -----
@@ -99,6 +100,8 @@ export default function Pacientes() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -232,10 +235,21 @@ export default function Pacientes() {
     load();
   };
 
-  const filtered = patients.filter(p =>
-    !search.trim() || p.nome.toLowerCase().includes(search.toLowerCase())
-    || (p.cpf || '').includes(search)
-  );
+  const filtered = patients.filter(p => {
+    const matchSearch = !search.trim() || p.nome.toLowerCase().includes(search.toLowerCase())
+      || (p.cpf || '').includes(search);
+    if (!matchSearch) return false;
+    if (dateFrom || dateTo) {
+      if (!p.created_at) return false;
+      const day = p.created_at.slice(0, 10);
+      if (dateFrom && day < dateFrom) return false;
+      if (dateTo && day > dateTo) return false;
+    }
+    return true;
+  });
+
+  const formatCadastro = (v?: string | null) =>
+    v ? new Date(v).toLocaleDateString('pt-BR') : '-';
 
   return (
     <MainLayout>
@@ -311,22 +325,38 @@ export default function Pacientes() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><User className="w-4 h-4" /> Lista de pacientes</CardTitle>
-            <div className="relative pt-2">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input className="pl-9" placeholder="Buscar por nome ou CPF..." value={search} onChange={e => setSearch(e.target.value)} />
+            <div className="flex flex-col md:flex-row md:items-end gap-3 pt-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input className="pl-9" placeholder="Buscar por nome ou CPF..." value={search} onChange={e => setSearch(e.target.value)} />
+              </div>
+              <div className="flex items-end gap-2">
+                <div>
+                  <Label className="text-xs">Cadastro de</Label>
+                  <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">até</Label>
+                  <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+                </div>
+                {(dateFrom || dateTo) && (
+                  <Button variant="ghost" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); }}>Limpar</Button>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="text-center text-muted-foreground py-8">Carregando...</div>
             ) : filtered.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">Nenhum paciente cadastrado.</div>
+              <div className="text-center text-muted-foreground py-8">Nenhum paciente encontrado.</div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>CPF</TableHead>
+                    <TableHead>Cadastro</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -335,6 +365,7 @@ export default function Pacientes() {
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">{p.nome}</TableCell>
                       <TableCell>{p.cpf || '-'}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{formatCadastro(p.created_at)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end items-center gap-1 flex-nowrap whitespace-nowrap">
                           <Button asChild size="sm" variant="outline" className="h-8 px-2 gap-1 text-xs">

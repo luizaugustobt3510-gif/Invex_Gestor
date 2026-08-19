@@ -22,16 +22,16 @@ async function optimizeSignature(dataUrl: string): Promise<string> {
     const bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
 
-    let best = dataUrl;
-    for (const width of [SIG_MAX_WIDTH, 300, 220, 160]) {
-      const img = await IsImage.decode(bytes);
-      if (img.width > width) img.resize(width, IsImage.RESIZE_AUTO);
-      const out = await img.encode(9); // PNG com compressão máxima
-      const candidate = toDataUrl(out);
-      if (candidate.length < best.length) best = candidate;
-      if (out.length <= SIG_MAX_BYTES) break;
+    // Decodifica UMA única vez (decode/encode é a parte cara)
+    const img = await IsImage.decode(bytes);
+    if (img.width > SIG_MAX_WIDTH) img.resize(SIG_MAX_WIDTH, IsImage.RESIZE_AUTO);
+    let out = await img.encode(6); // compressão equilibrada (bem mais rápida que 9)
+    if (out.length > SIG_MAX_BYTES && img.width > 220) {
+      img.resize(220, IsImage.RESIZE_AUTO);
+      out = await img.encode(6);
     }
-    return best;
+    const candidate = toDataUrl(out);
+    return candidate.length < dataUrl.length ? candidate : dataUrl;
   } catch (_e) {
     return dataUrl;
   }
@@ -139,17 +139,11 @@ Deno.serve(async (req) => {
       return json({ error: "Paciente inválido" }, 400);
     }
 
-    const { data: company } = await supabase
-      .from("companies")
-      .select("name, cnpj")
-      .eq("id", effectiveCompanyId)
-      .single();
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("nome, email")
-      .eq("user_id", userId)
-      .maybeSingle();
+    // Consultas em paralelo (reduz latência)
+    const [{ data: company }, { data: profile }] = await Promise.all([
+      supabase.from("companies").select("name, cnpj").eq("id", effectiveCompanyId).single(),
+      supabase.from("profiles").select("nome, email").eq("user_id", userId).maybeSingle(),
+    ]);
     const createdByName = profile?.nome || profile?.email || "Usuário";
 
     // Insert anamnese record
