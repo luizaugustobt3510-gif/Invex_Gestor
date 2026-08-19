@@ -61,6 +61,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
 /** Removes characters that are invalid in file names on Android/iOS/Windows. */
 export function sanitizeFileName(name: string): string {
   return (name || '')
+    // Remove acentos (evita nomes com "UTF-8''" / %C3%A7 vindos do Content-Disposition)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    // Somente ASCII seguro
+    .replace(/[^\x20-\x7E]/g, '')
     .replace(/[\\/:*?"<>|]/g, '-')
     .replace(/\s+/g, ' ')
     .trim();
