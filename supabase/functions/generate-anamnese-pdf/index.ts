@@ -442,6 +442,15 @@ Deno.serve(async (req) => {
     doc.setFont("helvetica", "normal");
     doc.text(`Responsável: ${createdByName}`, margin, y);
     doc.text(`ID: ${anamneseNumber}`, pageWidth - margin, y, { align: "right" });
+    y += 4;
+    doc.setFontSize(7);
+    doc.setTextColor(90);
+    doc.text(
+      `Documento assinado digitalmente em ${stampDate} - IP ${clientIp} - Código de validação ${verificationCode}`,
+      margin,
+      y
+    );
+    doc.setTextColor(0, 0, 0);
 
     const pdfBytes = doc.output("arraybuffer");
     const pdfBuffer = new Uint8Array(pdfBytes);
