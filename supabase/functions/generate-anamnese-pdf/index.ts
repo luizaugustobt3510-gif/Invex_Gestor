@@ -174,6 +174,11 @@ Deno.serve(async (req) => {
     const contentWidth = pageWidth - margin * 2;
     let y = 20;
 
+    // Paleta (cabeçalho em verde-petróleo)
+    const HEADER: [number, number, number] = [16, 78, 71];
+    const SECTION: [number, number, number] = [16, 78, 71];
+    const ROW_ALT: [number, number, number] = [242, 247, 246];
+
     const ensureSpace = (needed: number) => {
       if (y + needed > pageHeight - 20) {
         doc.addPage();
@@ -181,26 +186,44 @@ Deno.serve(async (req) => {
       }
     };
 
-    doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
-    doc.text("ANAMNESE DIGITAL", pageWidth / 2, y, { align: "center" });
-    y += 10;
-
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
     const anamneseNumber = anamnese.id.substring(0, 8).toUpperCase();
     const dt = new Date(anamnese.created_at);
-    doc.text(`Nº ${anamneseNumber}`, margin, y);
+
+    // Faixa de cabeçalho colorida
+    doc.setFillColor(...HEADER);
+    doc.rect(0, 0, pageWidth, 26, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("ANAMNESE DIGITAL", margin, 13);
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Nº ${anamneseNumber}`, margin, 20);
     doc.text(
       `${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR").slice(0, 5)}`,
       pageWidth - margin,
-      y,
+      20,
       { align: "right" }
     );
-    y += 6;
-    doc.setDrawColor(200);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 8;
+    doc.setTextColor(0, 0, 0);
+    y = 36;
+
+    const sectionTitle = (label: string) => {
+      ensureSpace(10);
+      doc.setTextColor(...SECTION);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text(label, margin, y);
+      y += 2;
+      doc.setDrawColor(...SECTION);
+      doc.setLineWidth(0.5);
+      doc.line(margin, y, pageWidth - margin, y);
+      doc.setLineWidth(0.2);
+      doc.setTextColor(0, 0, 0);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+    };
 
     // Clinic
     doc.setFontSize(11);
