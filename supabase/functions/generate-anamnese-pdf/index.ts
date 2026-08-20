@@ -226,12 +226,7 @@ Deno.serve(async (req) => {
     };
 
     // Clinic
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("CLÍNICA", margin, y);
-    y += 5;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    sectionTitle("CLÍNICA");
     doc.text(company?.name || "-", margin, y);
     if (company?.cnpj) {
       y += 4;
@@ -240,12 +235,7 @@ Deno.serve(async (req) => {
     y += 8;
 
     // Patient
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("PACIENTE", margin, y);
-    y += 5;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    sectionTitle("PACIENTE");
     doc.text(`Nome: ${patient.nome}`, margin, y); y += 4;
     if (patient.cpf) { doc.text(`CPF: ${patient.cpf}`, margin, y); y += 4; }
     if (patient.birth_date) { doc.text(`Nascimento: ${new Date(patient.birth_date + "T00:00:00").toLocaleDateString("pt-BR")}`, margin, y); y += 4; }
@@ -254,45 +244,42 @@ Deno.serve(async (req) => {
     y += 4;
 
     // Exam
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("TIPO DE EXAME", margin, y);
-    y += 5;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    sectionTitle("TIPO DE EXAME");
     doc.text(body.exam_type, margin, y);
-    if (body.template_name) { y += 4; doc.text(`Modelo: ${body.template_name}`, margin, y); }
     y += 8;
 
-    // Q&A
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("PERGUNTAS E RESPOSTAS", margin, y);
-    y += 6;
+    // Q&A — linhas alternadas, pergunta destacada e resposta indentada
+    sectionTitle("PERGUNTAS E RESPOSTAS");
 
-    doc.setFontSize(9);
+    const qIndent = 8;
+    let idx = 0;
     for (const r of body.responses) {
-      const qLines = doc.splitTextToSize(`• ${r.question}`, contentWidth);
+      idx++;
+      const num = `${idx}.`;
+      const qLines = doc.splitTextToSize(String(r.question), contentWidth - qIndent);
       const aText = r.answer && String(r.answer).trim().length ? String(r.answer) : "—";
-      const aLines = doc.splitTextToSize(`   ${aText}`, contentWidth);
-      ensureSpace((qLines.length + aLines.length) * 5 + 3);
+      const aLines = doc.splitTextToSize(`R: ${aText}`, contentWidth - qIndent);
+      const blockH = (qLines.length + aLines.length) * 4.6 + 4;
+      ensureSpace(blockH + 2);
+      if (idx % 2 === 1) {
+        doc.setFillColor(...ROW_ALT);
+        doc.rect(margin - 2, y - 3.6, contentWidth + 4, blockH, "F");
+      }
+      doc.setFontSize(9);
       doc.setFont("helvetica", "bold");
-      doc.text(qLines, margin, y);
-      y += qLines.length * 5;
+      doc.setTextColor(...SECTION);
+      doc.text(num, margin, y);
+      doc.setTextColor(0, 0, 0);
+      doc.text(qLines, margin + qIndent, y);
+      y += qLines.length * 4.6;
       doc.setFont("helvetica", "normal");
-      doc.text(aLines, margin, y);
-      y += aLines.length * 5 + 2;
+      doc.text(aLines, margin + qIndent, y);
+      y += aLines.length * 4.6 + 4;
     }
 
     if (body.observations) {
       y += 4;
-      ensureSpace(20);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text("OBSERVAÇÕES", margin, y);
-      y += 5;
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
+      sectionTitle("OBSERVAÇÕES");
       const oLines = doc.splitTextToSize(body.observations, contentWidth);
       ensureSpace(oLines.length * 5);
       doc.text(oLines, margin, y);
