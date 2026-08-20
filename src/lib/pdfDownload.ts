@@ -76,6 +76,12 @@ export function sanitizeFileName(name: string): string {
  *   "Nome do Paciente - DD-MM-AAAA - HH-MM.pdf"
  * e.g. "João da Silva - 30-07-2026 - 08-35.pdf"
  */
+/** Anamnese file name: apenas o nome do paciente, ex.: "Joao da Silva.pdf" */
+export function buildPatientPdfFilename(patientName?: string | null): string {
+  const nome = sanitizeFileName(patientName || 'Documento') || 'Documento';
+  return `${nome}.pdf`;
+}
+
 export function buildPdfFilename(patientName?: string | null, date: Date = new Date()): string {
   const nome = sanitizeFileName(patientName || 'Documento') || 'Documento';
   const d = `${pad(date.getDate())}-${pad(date.getMonth() + 1)}-${date.getFullYear()}`;
