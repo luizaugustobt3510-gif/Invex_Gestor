@@ -348,6 +348,16 @@ Deno.serve(async (req) => {
           y += 3.5;
           doc.text(sig.credencial, sigX + sigW / 2, y, { align: "center" });
         }
+        y += 4;
+        doc.setFontSize(6.5);
+        doc.setTextColor(90);
+        doc.text("Assinado digitalmente", sigX + sigW / 2, y, { align: "center" });
+        y += 3;
+        doc.text(`${stampDate} - IP ${clientIp}`, sigX + sigW / 2, y, { align: "center" });
+        y += 3;
+        doc.text(`Validação: ${verificationCode}`, sigX + sigW / 2, y, { align: "center" });
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(9);
       } catch (_e) { /* ignore signature draw errors */ }
     };
 
