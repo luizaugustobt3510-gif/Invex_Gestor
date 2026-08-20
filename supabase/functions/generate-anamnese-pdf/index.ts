@@ -174,6 +174,11 @@ Deno.serve(async (req) => {
     const contentWidth = pageWidth - margin * 2;
     let y = 20;
 
+    // Paleta (cabeçalho em verde-petróleo)
+    const HEADER: [number, number, number] = [16, 78, 71];
+    const SECTION: [number, number, number] = [16, 78, 71];
+    const ROW_ALT: [number, number, number] = [242, 247, 246];
+
     const ensureSpace = (needed: number) => {
       if (y + needed > pageHeight - 20) {
         doc.addPage();
@@ -181,34 +186,47 @@ Deno.serve(async (req) => {
       }
     };
 
-    doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
-    doc.text("ANAMNESE DIGITAL", pageWidth / 2, y, { align: "center" });
-    y += 10;
-
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
     const anamneseNumber = anamnese.id.substring(0, 8).toUpperCase();
     const dt = new Date(anamnese.created_at);
-    doc.text(`Nº ${anamneseNumber}`, margin, y);
+
+    // Faixa de cabeçalho colorida
+    doc.setFillColor(...HEADER);
+    doc.rect(0, 0, pageWidth, 26, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("ANAMNESE DIGITAL", margin, 13);
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Nº ${anamneseNumber}`, margin, 20);
     doc.text(
       `${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR").slice(0, 5)}`,
       pageWidth - margin,
-      y,
+      20,
       { align: "right" }
     );
-    y += 6;
-    doc.setDrawColor(200);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 8;
+    doc.setTextColor(0, 0, 0);
+    y = 36;
+
+    const sectionTitle = (label: string) => {
+      ensureSpace(10);
+      doc.setTextColor(...SECTION);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text(label, margin, y);
+      y += 2;
+      doc.setDrawColor(...SECTION);
+      doc.setLineWidth(0.5);
+      doc.line(margin, y, pageWidth - margin, y);
+      doc.setLineWidth(0.2);
+      doc.setTextColor(0, 0, 0);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+    };
 
     // Clinic
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("CLÍNICA", margin, y);
-    y += 5;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    sectionTitle("CLÍNICA");
     doc.text(company?.name || "-", margin, y);
     if (company?.cnpj) {
       y += 4;
@@ -217,12 +235,7 @@ Deno.serve(async (req) => {
     y += 8;
 
     // Patient
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("PACIENTE", margin, y);
-    y += 5;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    sectionTitle("PACIENTE");
     doc.text(`Nome: ${patient.nome}`, margin, y); y += 4;
     if (patient.cpf) { doc.text(`CPF: ${patient.cpf}`, margin, y); y += 4; }
     if (patient.birth_date) { doc.text(`Nascimento: ${new Date(patient.birth_date + "T00:00:00").toLocaleDateString("pt-BR")}`, margin, y); y += 4; }
@@ -231,45 +244,42 @@ Deno.serve(async (req) => {
     y += 4;
 
     // Exam
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("TIPO DE EXAME", margin, y);
-    y += 5;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    sectionTitle("TIPO DE EXAME");
     doc.text(body.exam_type, margin, y);
-    if (body.template_name) { y += 4; doc.text(`Modelo: ${body.template_name}`, margin, y); }
     y += 8;
 
-    // Q&A
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("PERGUNTAS E RESPOSTAS", margin, y);
-    y += 6;
+    // Q&A — linhas alternadas, pergunta destacada e resposta indentada
+    sectionTitle("PERGUNTAS E RESPOSTAS");
 
-    doc.setFontSize(9);
+    const qIndent = 8;
+    let idx = 0;
     for (const r of body.responses) {
-      const qLines = doc.splitTextToSize(`• ${r.question}`, contentWidth);
+      idx++;
+      const num = `${idx}.`;
+      const qLines = doc.splitTextToSize(String(r.question), contentWidth - qIndent);
       const aText = r.answer && String(r.answer).trim().length ? String(r.answer) : "—";
-      const aLines = doc.splitTextToSize(`   ${aText}`, contentWidth);
-      ensureSpace((qLines.length + aLines.length) * 5 + 3);
+      const aLines = doc.splitTextToSize(`R: ${aText}`, contentWidth - qIndent);
+      const blockH = (qLines.length + aLines.length) * 4.6 + 4;
+      ensureSpace(blockH + 2);
+      if (idx % 2 === 1) {
+        doc.setFillColor(...ROW_ALT);
+        doc.rect(margin - 2, y - 3.6, contentWidth + 4, blockH, "F");
+      }
+      doc.setFontSize(9);
       doc.setFont("helvetica", "bold");
-      doc.text(qLines, margin, y);
-      y += qLines.length * 5;
+      doc.setTextColor(...SECTION);
+      doc.text(num, margin, y);
+      doc.setTextColor(0, 0, 0);
+      doc.text(qLines, margin + qIndent, y);
+      y += qLines.length * 4.6;
       doc.setFont("helvetica", "normal");
-      doc.text(aLines, margin, y);
-      y += aLines.length * 5 + 2;
+      doc.text(aLines, margin + qIndent, y);
+      y += aLines.length * 4.6 + 4;
     }
 
     if (body.observations) {
       y += 4;
-      ensureSpace(20);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text("OBSERVAÇÕES", margin, y);
-      y += 5;
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
+      sectionTitle("OBSERVAÇÕES");
       const oLines = doc.splitTextToSize(body.observations, contentWidth);
       ensureSpace(oLines.length * 5);
       doc.text(oLines, margin, y);
@@ -302,6 +312,23 @@ Deno.serve(async (req) => {
       return out;
     };
 
+    // Validação da assinatura digital (IP + código de verificação)
+    const clientIp =
+      (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
+      req.headers.get("cf-connecting-ip") ||
+      req.headers.get("x-real-ip") ||
+      "não identificado";
+    const digestBuf = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(`${anamnese.id}|${userId}|${anamnese.created_at}|${clientIp}`)
+    );
+    const verificationCode = Array.from(new Uint8Array(digestBuf))
+      .slice(0, 8)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("")
+      .toUpperCase();
+    const stampDate = `${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR").slice(0, 8)}`;
+
     const drawSignature = async (sig: { url?: string; name?: string; credencial?: string }) => {
       const dataUrl = await loadSignature(sig.url);
       if (!dataUrl) return;
@@ -321,6 +348,16 @@ Deno.serve(async (req) => {
           y += 3.5;
           doc.text(sig.credencial, sigX + sigW / 2, y, { align: "center" });
         }
+        y += 4;
+        doc.setFontSize(6.5);
+        doc.setTextColor(90);
+        doc.text("Assinado digitalmente", sigX + sigW / 2, y, { align: "center" });
+        y += 3;
+        doc.text(`${stampDate} - IP ${clientIp}`, sigX + sigW / 2, y, { align: "center" });
+        y += 3;
+        doc.text(`Validação: ${verificationCode}`, sigX + sigW / 2, y, { align: "center" });
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(9);
       } catch (_e) { /* ignore signature draw errors */ }
     };
 
@@ -405,6 +442,15 @@ Deno.serve(async (req) => {
     doc.setFont("helvetica", "normal");
     doc.text(`Responsável: ${createdByName}`, margin, y);
     doc.text(`ID: ${anamneseNumber}`, pageWidth - margin, y, { align: "right" });
+    y += 4;
+    doc.setFontSize(7);
+    doc.setTextColor(90);
+    doc.text(
+      `Documento assinado digitalmente em ${stampDate} - IP ${clientIp} - Código de validação ${verificationCode}`,
+      margin,
+      y
+    );
+    doc.setTextColor(0, 0, 0);
 
     const pdfBytes = doc.output("arraybuffer");
     const pdfBuffer = new Uint8Array(pdfBytes);
