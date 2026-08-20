@@ -312,6 +312,23 @@ Deno.serve(async (req) => {
       return out;
     };
 
+    // Validação da assinatura digital (IP + código de verificação)
+    const clientIp =
+      (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
+      req.headers.get("cf-connecting-ip") ||
+      req.headers.get("x-real-ip") ||
+      "não identificado";
+    const digestBuf = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(`${anamnese.id}|${userId}|${anamnese.created_at}|${clientIp}`)
+    );
+    const verificationCode = Array.from(new Uint8Array(digestBuf))
+      .slice(0, 8)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("")
+      .toUpperCase();
+    const stampDate = `${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR").slice(0, 8)}`;
+
     const drawSignature = async (sig: { url?: string; name?: string; credencial?: string }) => {
       const dataUrl = await loadSignature(sig.url);
       if (!dataUrl) return;
