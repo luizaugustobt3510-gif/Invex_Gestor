@@ -100,8 +100,9 @@ export default function Pacientes() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const today = new Date().toLocaleDateString('en-CA');
+  const [dateFrom, setDateFrom] = useState(today);
+  const [dateTo, setDateTo] = useState(today);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -349,7 +350,11 @@ export default function Pacientes() {
             {loading ? (
               <div className="text-center text-muted-foreground py-8">Carregando...</div>
             ) : filtered.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">Nenhum paciente encontrado.</div>
+              <div className="text-center text-muted-foreground py-8">
+                {dateFrom === today && dateTo === today && !search.trim()
+                  ? 'Nenhum paciente cadastrado hoje.'
+                  : 'Nenhum paciente encontrado.'}
+              </div>
             ) : (
               <Table>
                 <TableHeader>

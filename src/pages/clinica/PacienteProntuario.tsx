@@ -16,7 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { toast } from 'sonner';
-import { downloadPdfFromUrl, buildPdfFilename, openUrlSafely } from '@/lib/pdfDownload';
+import { downloadPdfFromUrl, buildPatientPdfFilename, openUrlSafely } from '@/lib/pdfDownload';
 import { Link as RouterLink } from 'react-router-dom';
 
 interface Patient {
@@ -407,7 +407,7 @@ export default function PacienteProntuario() {
                             {a.pdf_path && (
                               <Button size="sm" variant="outline" onClick={async () => {
                                 const { data } = await supabase.storage.from('anamnese-pdfs').createSignedUrl(a.pdf_path!, 3600);
-                                if (data?.signedUrl) await downloadPdfFromUrl(data.signedUrl, buildPdfFilename(patient?.nome, new Date(a.created_at)));
+                                if (data?.signedUrl) await downloadPdfFromUrl(data.signedUrl, buildPatientPdfFilename(patient?.nome));
                                 else toast.error('Não foi possível abrir o PDF');
                               }}>
                                 <Download className="w-3.5 h-3.5 mr-1" /> PDF
