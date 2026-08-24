@@ -157,7 +157,7 @@ const AtualizarEstoque = () => {
 
   const handleBulkEdit = async () => {
     if (selectedIds.length === 0) return;
-    const payload: Record<string, unknown> = {};
+    const payload: { unidade?: string; minimo?: number; maximo?: number } = {};
     if (bulkUnidade.trim()) payload.unidade = bulkUnidade.trim();
     if (bulkMinimo.trim() !== '') {
       const n = Number(bulkMinimo);
@@ -190,7 +190,7 @@ const AtualizarEstoque = () => {
           action: 'bulk_update_material',
           entity_type: 'material',
           entity_id: null,
-          details: { ids: selectedIds, changes: payload },
+          details: { ids: selectedIds, changes: { ...payload } },
         });
       }
 
