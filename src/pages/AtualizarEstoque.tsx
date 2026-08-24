@@ -348,7 +348,65 @@ const AtualizarEstoque = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Delete Dialog */}
+      <Dialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir {selectedIds.length} material(is)</DialogTitle>
+            <DialogDescription>
+              Esta ação não pode ser desfeita. Os materiais abaixo serão excluídos permanentemente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-48 overflow-y-auto rounded-md border p-2 text-sm space-y-1">
+            {selectedItems.map(i => (
+              <div key={i.id} className="truncate">{i.codigo} — {i.material}</div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkDeleteOpen(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleBulkDelete} disabled={bulkLoading}>
+              {bulkLoading ? 'Excluindo...' : 'Excluir todos'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Edit Dialog */}
+      <Dialog open={bulkEditOpen} onOpenChange={setBulkEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar {selectedIds.length} material(is)</DialogTitle>
+            <DialogDescription>
+              Preencha apenas os campos que deseja aplicar a todos os selecionados.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Unidade</Label>
+              <Input value={bulkUnidade} onChange={(e) => setBulkUnidade(e.target.value)} placeholder="Deixe vazio para não alterar" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Mínimo</Label>
+                <Input type="number" min="0" value={bulkMinimo} onChange={(e) => setBulkMinimo(e.target.value)} placeholder="—" />
+              </div>
+              <div className="space-y-2">
+                <Label>Máximo</Label>
+                <Input type="number" min="0" value={bulkMaximo} onChange={(e) => setBulkMaximo(e.target.value)} placeholder="—" />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkEditOpen(false)}>Cancelar</Button>
+            <Button onClick={handleBulkEdit} disabled={bulkLoading}>
+              {bulkLoading ? 'Aplicando...' : 'Aplicar a todos'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
+
   );
 };
 
