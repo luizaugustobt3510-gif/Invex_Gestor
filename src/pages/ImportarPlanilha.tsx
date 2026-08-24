@@ -11,6 +11,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { readExcelFile, writeExcelFromAoa } from '@/lib/excelUtils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface ImportRow {
   rowNum: number;
@@ -28,6 +39,7 @@ interface ImportRow {
 interface ImportResult {
   created: number;
   updated: number;
+  deleted?: number;
   errors: { row: number; message: string }[];
 }
 
@@ -36,7 +48,7 @@ const ImportarPlanilha = () => {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<ImportRow[]>([]);
-  const [mode, setMode] = useState<'create_update' | 'create_only' | 'update_only'>('create_update');
+  const [mode, setMode] = useState<'create_update' | 'create_only' | 'update_only' | 'replace_all'>('create_update');
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [fileName, setFileName] = useState('');
@@ -114,16 +126,28 @@ const ImportarPlanilha = () => {
       if (!companyId) throw new Error('Empresa não encontrada');
 
       // Get existing materials for this company
-      const { data: existingMaterials } = await supabase
-        .from('materials')
-        .select('id, codigo')
-        .eq('company_id', companyId);
-
-      const existingMap = new Map((existingMaterials || []).map(m => [m.codigo, m.id]));
-
       let created = 0;
       let updated = 0;
+      let deleted = 0;
       const errors: { row: number; message: string }[] = [];
+
+      let existingMap = new Map<string, string>();
+
+      if (mode === 'replace_all') {
+        const { data: removed, error: delError } = await supabase
+          .from('materials')
+          .delete()
+          .eq('company_id', companyId)
+          .select('id');
+        if (delError) throw new Error(`Não foi possível excluir os cadastros atuais: ${delError.message}`);
+        deleted = removed?.length || 0;
+      } else {
+        const { data: existingMaterials } = await supabase
+          .from('materials')
+          .select('id, codigo')
+          .eq('company_id', companyId);
+        existingMap = new Map((existingMaterials || []).map(m => [m.codigo, m.id]));
+      }
 
       for (const row of rows) {
         if (row.error) {
@@ -204,8 +228,11 @@ const ImportarPlanilha = () => {
         }
       }
 
-      setResult({ created, updated, errors });
-      toast({ title: 'Importação concluída!', description: `${created} criados, ${updated} atualizados, ${errors.length} erros.` });
+      setResult({ created, updated, deleted, errors });
+      toast({
+        title: 'Importação concluída!',
+        description: `${deleted > 0 ? `${deleted} excluídos, ` : ''}${created} criados, ${updated} atualizados, ${errors.length} erros.`,
+      });
     } catch (err: any) {
       toast({ title: 'Erro', description: err?.message || 'Erro ao importar.', variant: 'destructive' });
     } finally {
@@ -248,6 +275,7 @@ const ImportarPlanilha = () => {
                   <SelectItem value="create_update">Criar e atualizar existentes</SelectItem>
                   <SelectItem value="create_only">Somente criar novos</SelectItem>
                   <SelectItem value="update_only">Somente atualizar existentes</SelectItem>
+                  <SelectItem value="replace_all">Excluir cadastrados e importar novos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -265,9 +293,31 @@ const ImportarPlanilha = () => {
                   <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4 text-primary" /> {validRows.length} válidos</span>
                   {errorRows.length > 0 && <span className="flex items-center gap-1"><AlertTriangle className="w-4 h-4 text-destructive" /> {errorRows.length} com erro</span>}
                 </div>
-                <Button onClick={handleImport} disabled={importing || validRows.length === 0}>
-                  {importing ? 'Importando...' : `Importar ${validRows.length} produto(s)`}
-                </Button>
+                {mode === 'replace_all' ? (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" disabled={importing || validRows.length === 0}>
+                        {importing ? 'Importando...' : `Excluir tudo e importar ${validRows.length}`}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir todos os produtos cadastrados?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Todos os materiais atuais da empresa serão excluídos permanentemente e substituídos pelos {validRows.length} itens da planilha. Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleImport}>Excluir e importar</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : (
+                  <Button onClick={handleImport} disabled={importing || validRows.length === 0}>
+                    {importing ? 'Importando...' : `Importar ${validRows.length} produto(s)`}
+                  </Button>
+                )}
               </div>
 
               <div className="border rounded-lg overflow-x-auto max-h-[400px] overflow-y-auto">
@@ -318,6 +368,12 @@ const ImportarPlanilha = () => {
             <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
               <h3 className="font-semibold text-lg">Resultado da Importação</h3>
               <div className="flex gap-6">
+                {!!result.deleted && (
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-destructive">{result.deleted}</p>
+                    <p className="text-sm text-muted-foreground">Excluídos</p>
+                  </div>
+                )}
                 <div className="text-center">
                   <p className="text-2xl font-bold text-primary">{result.created}</p>
                   <p className="text-sm text-muted-foreground">Criados</p>
