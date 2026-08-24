@@ -36,7 +36,7 @@ const ImportarPlanilha = () => {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<ImportRow[]>([]);
-  const [mode, setMode] = useState<'create_update' | 'create_only' | 'update_only'>('create_update');
+  const [mode, setMode] = useState<'create_update' | 'create_only' | 'update_only' | 'replace_all'>('create_update');
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [fileName, setFileName] = useState('');
@@ -114,16 +114,28 @@ const ImportarPlanilha = () => {
       if (!companyId) throw new Error('Empresa não encontrada');
 
       // Get existing materials for this company
-      const { data: existingMaterials } = await supabase
-        .from('materials')
-        .select('id, codigo')
-        .eq('company_id', companyId);
-
-      const existingMap = new Map((existingMaterials || []).map(m => [m.codigo, m.id]));
-
       let created = 0;
       let updated = 0;
+      let deleted = 0;
       const errors: { row: number; message: string }[] = [];
+
+      let existingMap = new Map<string, string>();
+
+      if (mode === 'replace_all') {
+        const { data: removed, error: delError } = await supabase
+          .from('materials')
+          .delete()
+          .eq('company_id', companyId)
+          .select('id');
+        if (delError) throw new Error(`Não foi possível excluir os cadastros atuais: ${delError.message}`);
+        deleted = removed?.length || 0;
+      } else {
+        const { data: existingMaterials } = await supabase
+          .from('materials')
+          .select('id, codigo')
+          .eq('company_id', companyId);
+        existingMap = new Map((existingMaterials || []).map(m => [m.codigo, m.id]));
+      }
 
       for (const row of rows) {
         if (row.error) {
