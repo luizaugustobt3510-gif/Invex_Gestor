@@ -28,6 +28,7 @@ interface ImportRow {
 interface ImportResult {
   created: number;
   updated: number;
+  deleted?: number;
   errors: { row: number; message: string }[];
 }
 
@@ -216,8 +217,11 @@ const ImportarPlanilha = () => {
         }
       }
 
-      setResult({ created, updated, errors });
-      toast({ title: 'Importação concluída!', description: `${created} criados, ${updated} atualizados, ${errors.length} erros.` });
+      setResult({ created, updated, deleted, errors });
+      toast({
+        title: 'Importação concluída!',
+        description: `${deleted > 0 ? `${deleted} excluídos, ` : ''}${created} criados, ${updated} atualizados, ${errors.length} erros.`,
+      });
     } catch (err: any) {
       toast({ title: 'Erro', description: err?.message || 'Erro ao importar.', variant: 'destructive' });
     } finally {
