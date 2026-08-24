@@ -235,6 +235,25 @@ const AtualizarEstoque = () => {
             </Select>
           </div>
 
+          {selectedIds.length > 0 && (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-lg border bg-muted/40 p-3">
+              <span className="text-sm font-medium flex-1">
+                {selectedIds.length} material(is) selecionado(s)
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={() => setBulkEditOpen(true)}>
+                  <Pencil className="w-4 h-4 mr-1" /> Editar selecionados
+                </Button>
+                <Button variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)}>
+                  <Trash2 className="w-4 h-4 mr-1" /> Excluir selecionados
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedIds([])}>
+                  Limpar seleção
+                </Button>
+              </div>
+            </div>
+          )}
+
           {inventoryLoading ? (
             <div className="text-center py-8 text-muted-foreground">Carregando...</div>
           ) : filteredItems.length === 0 ? (
@@ -244,6 +263,13 @@ const AtualizarEstoque = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[44px]">
+                      <Checkbox
+                        checked={allFilteredSelected}
+                        onCheckedChange={toggleAll}
+                        aria-label="Selecionar todos"
+                      />
+                    </TableHead>
                     <TableHead>Código</TableHead>
                     <TableHead>Material</TableHead>
                     <TableHead>Unidade</TableHead>
@@ -256,10 +282,18 @@ const AtualizarEstoque = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredItems.map((item) => (
-                    <TableRow key={item.codigo}>
+                    <TableRow key={item.codigo} data-state={selectedIds.includes(item.id) ? 'selected' : undefined}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.includes(item.id)}
+                          onCheckedChange={() => toggleItem(item.id)}
+                          aria-label={`Selecionar ${item.material}`}
+                        />
+                      </TableCell>
                       <TableCell className="font-mono">{item.codigo}</TableCell>
                       <TableCell className="font-medium max-w-xs truncate">{item.material}</TableCell>
                       <TableCell>{item.unidade}</TableCell>
+
                       <TableCell className="text-right">{item.quantidade}</TableCell>
                       <TableCell className="text-right">{item.minimo}</TableCell>
                       <TableCell className="text-right">{item.maximo}</TableCell>
