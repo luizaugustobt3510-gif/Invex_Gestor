@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useInventoryData, InventoryItem } from '@/hooks/useInventoryData';
 import { EditMaterialDialog } from '@/components/EditMaterialDialog';
-import { Package, Save, Search, RefreshCw, Edit, Trash2 } from 'lucide-react';
+import { Package, Save, Search, RefreshCw, Edit, Trash2, Pencil } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const AtualizarEstoque = () => {
@@ -22,6 +24,13 @@ const AtualizarEstoque = () => {
   const [editItem, setEditItem] = useState<InventoryItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<InventoryItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [bulkUnidade, setBulkUnidade] = useState('');
+  const [bulkMinimo, setBulkMinimo] = useState('');
+  const [bulkMaximo, setBulkMaximo] = useState('');
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   useEffect(() => {
     const initialQuantities: Record<string, string> = {};
@@ -30,6 +39,7 @@ const AtualizarEstoque = () => {
     });
     setQuantities(initialQuantities);
   }, [inventoryData]);
+
 
   const handleQuantityChange = (codigo: string, value: string) => {
     setQuantities(prev => ({ ...prev, [codigo]: value }));
