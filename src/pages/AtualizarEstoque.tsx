@@ -91,7 +91,7 @@ const AtualizarEstoque = () => {
     }
   };
 
-  const filteredItems = inventoryData
+  const filteredItems = useMemo(() => inventoryData
     .filter(item =>
       String(item.codigo).toLowerCase().includes(searchTerm.toLowerCase()) ||
       String(item.material).toLowerCase().includes(searchTerm.toLowerCase())
@@ -101,7 +101,110 @@ const AtualizarEstoque = () => {
         return String(a.material).localeCompare(String(b.material), 'pt-BR', { sensitivity: 'base' });
       }
       return String(a.codigo).localeCompare(String(b.codigo), 'pt-BR', { numeric: true, sensitivity: 'base' });
-    });
+    }), [inventoryData, searchTerm, sortBy]);
+
+  const selectedItems = useMemo(
+    () => inventoryData.filter(i => selectedIds.includes(i.id)),
+    [inventoryData, selectedIds]
+  );
+  const allFilteredSelected = filteredItems.length > 0 && filteredItems.every(i => selectedIds.includes(i.id));
+
+  const toggleItem = (id: string) => {
+    setSelectedIds(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
+  };
+
+  const toggleAll = () => {
+    if (allFilteredSelected) {
+      const ids = filteredItems.map(i => i.id);
+      setSelectedIds(prev => prev.filter(id => !ids.includes(id)));
+    } else {
+      setSelectedIds(prev => Array.from(new Set([...prev, ...filteredItems.map(i => i.id)])));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    setBulkLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('materials')
+        .delete()
+        .in('id', selectedIds)
+        .select('id');
+      if (error) throw error;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('audit_log').insert({
+          user_id: user.id,
+          action: 'bulk_delete_material',
+          entity_type: 'material',
+          entity_id: null,
+          details: { ids: selectedIds, total: data?.length ?? 0 },
+        });
+      }
+
+      toast({ title: `${data?.length ?? 0} material(is) excluído(s) com sucesso!` });
+      setSelectedIds([]);
+      setBulkDeleteOpen(false);
+      refetch();
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err?.message || 'Erro ao excluir materiais.', variant: 'destructive' });
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const handleBulkEdit = async () => {
+    if (selectedIds.length === 0) return;
+    const payload: Record<string, unknown> = {};
+    if (bulkUnidade.trim()) payload.unidade = bulkUnidade.trim();
+    if (bulkMinimo.trim() !== '') {
+      const n = Number(bulkMinimo);
+      if (isNaN(n) || n < 0) { toast({ title: 'Mínimo inválido.', variant: 'destructive' }); return; }
+      payload.minimo = n;
+    }
+    if (bulkMaximo.trim() !== '') {
+      const n = Number(bulkMaximo);
+      if (isNaN(n) || n < 0) { toast({ title: 'Máximo inválido.', variant: 'destructive' }); return; }
+      payload.maximo = n;
+    }
+    if (Object.keys(payload).length === 0) {
+      toast({ title: 'Preencha ao menos um campo para aplicar.', variant: 'destructive' });
+      return;
+    }
+
+    setBulkLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('materials')
+        .update(payload)
+        .in('id', selectedIds)
+        .select('id');
+      if (error) throw error;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('audit_log').insert({
+          user_id: user.id,
+          action: 'bulk_update_material',
+          entity_type: 'material',
+          entity_id: null,
+          details: { ids: selectedIds, changes: payload },
+        });
+      }
+
+      toast({ title: `${data?.length ?? 0} material(is) atualizado(s)!` });
+      setBulkEditOpen(false);
+      setBulkUnidade(''); setBulkMinimo(''); setBulkMaximo('');
+      refetch();
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err?.message || 'Erro ao atualizar materiais.', variant: 'destructive' });
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
 
   return (
     <MainLayout>
