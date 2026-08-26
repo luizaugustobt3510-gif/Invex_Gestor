@@ -136,6 +136,47 @@ export type Database = {
           },
         ]
       }
+      anamnese_quick_answers: {
+        Row: {
+          company_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anamnese_quick_answers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       anamnese_templates: {
         Row: {
           company_id: string
@@ -2629,6 +2670,41 @@ export type Database = {
           },
         ]
       }
+      material_groups: {
+        Row: {
+          company_id: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_groups_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       material_requests: {
         Row: {
           codigo: string
@@ -2687,6 +2763,7 @@ export type Database = {
           codigo: string
           company_id: string
           created_at: string
+          group_id: string | null
           id: string
           localizacao: string | null
           material: string
@@ -2703,6 +2780,7 @@ export type Database = {
           codigo: string
           company_id: string
           created_at?: string
+          group_id?: string | null
           id?: string
           localizacao?: string | null
           material: string
@@ -2719,6 +2797,7 @@ export type Database = {
           codigo?: string
           company_id?: string
           created_at?: string
+          group_id?: string | null
           id?: string
           localizacao?: string | null
           material?: string
@@ -2737,6 +2816,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "materials_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "material_groups"
             referencedColumns: ["id"]
           },
         ]
