@@ -17,6 +17,8 @@ export interface InventoryItem {
   valorTotal: number;
   status: string;
   curva: string;
+  groupId: string | null;
+  groupName: string;
 }
 
 export interface InventorySummary {
