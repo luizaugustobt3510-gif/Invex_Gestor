@@ -99,6 +99,7 @@ import Reposicao from "./pages/logistica/Reposicao";
 import CurvaABCInteligente from "./pages/logistica/CurvaABCInteligente";
 import EstoqueInteligente from "./pages/logistica/EstoqueInteligente";
 import EstoqueSetores from "./pages/logistica/EstoqueSetores";
+import ControleValidades from "./pages/logistica/ControleValidades";
 
 import DashboardManutencao from "./pages/manutencao/DashboardManutencao";
 import CadastroManutencao from "./pages/manutencao/CadastroManutencao";
@@ -156,6 +157,7 @@ const App = () => (
             <Route path="/importar-planilha" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><ImportarPlanilha /></RoleProtectedRoute>} />
             <Route path="/recontagem" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><Recontagem /></RoleProtectedRoute>} />
             <Route path="/itens-criticos" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><ItensCriticos /></RoleProtectedRoute>} />
+            <Route path="/controle-validades" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><ControleValidades /></RoleProtectedRoute>} />
             <Route path="/reposicao" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><Reposicao /></RoleProtectedRoute>} />
             <Route path="/conferencia-temperatura" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'manutencao', 'usuario almox']} moduleKey="conferencia_temperatura"><ConferenciaTemperatura /></RoleProtectedRoute>} />
 
