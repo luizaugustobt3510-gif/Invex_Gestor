@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMaterialGroups } from '@/hooks/useMaterialGroups';
 import { Package, Save } from 'lucide-react';
 
 interface MaterialForm {
@@ -18,14 +20,16 @@ interface MaterialForm {
   minimo: string;
   maximo: string;
   preco: string;
+  group_id: string;
 }
 
 const CadastrarMaterial = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const { groups, seedDefaults, loading: loadingGroups } = useMaterialGroups();
   const [formData, setFormData] = useState<MaterialForm>({
     codigo: '', material: '', unidade: '', localizacao: '', validade: '',
-    quantidade: '', minimo: '', maximo: '', preco: '',
+    quantidade: '', minimo: '', maximo: '', preco: '', group_id: '',
   });
 
   const handleChange = (field: keyof MaterialForm, value: string) => {
@@ -37,6 +41,11 @@ const CadastrarMaterial = () => {
     
     if (!formData.codigo || !formData.material || !formData.unidade) {
       toast({ title: 'Campos obrigatórios', description: 'Preencha código, material e unidade.', variant: 'destructive' });
+      return;
+    }
+
+    if (!formData.group_id) {
+      toast({ title: 'Grupo obrigatório', description: 'Selecione o grupo do material (ex.: Medicamentos, Limpeza).', variant: 'destructive' });
       return;
     }
 
@@ -66,12 +75,13 @@ const CadastrarMaterial = () => {
         minimo: Number(formData.minimo) || 0,
         maximo: Number(formData.maximo) || 0,
         preco: Number(formData.preco) || 0,
-      });
+        group_id: formData.group_id,
+      } as any);
 
       if (error) throw error;
 
       toast({ title: 'Sucesso!', description: 'Material cadastrado com sucesso.' });
-      setFormData({ codigo: '', material: '', unidade: '', localizacao: '', validade: '', quantidade: '', minimo: '', maximo: '', preco: '' });
+      setFormData({ codigo: '', material: '', unidade: '', localizacao: '', validade: '', quantidade: '', minimo: '', maximo: '', preco: '', group_id: '' });
     } catch (err: any) {
       toast({ title: 'Erro', description: err?.message || 'Erro ao cadastrar material.', variant: 'destructive' });
     } finally {
@@ -102,6 +112,24 @@ const CadastrarMaterial = () => {
               <div className="space-y-2">
                 <Label htmlFor="unidade">Unidade *</Label>
                 <Input id="unidade" value={formData.unidade} onChange={(e) => handleChange('unidade', e.target.value)} placeholder="Ex: UNIDADE, CX, PCT" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="group_id">Grupo *</Label>
+                <Select value={formData.group_id} onValueChange={(v) => handleChange('group_id', v)}>
+                  <SelectTrigger id="group_id">
+                    <SelectValue placeholder={loadingGroups ? 'Carregando...' : 'Selecione o grupo'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groups.map(g => (
+                      <SelectItem key={g.id} value={g.id}>{g.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!loadingGroups && groups.length === 0 && (
+                  <Button type="button" variant="outline" size="sm" onClick={seedDefaults}>
+                    Criar grupos padrão
+                  </Button>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="localizacao">Localização</Label>
