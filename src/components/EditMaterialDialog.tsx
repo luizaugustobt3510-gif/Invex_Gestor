@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { InventoryItem } from '@/hooks/useInventoryData';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMaterialGroups } from '@/hooks/useMaterialGroups';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -20,7 +22,10 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
   const [maximo, setMaximo] = useState('');
   const [quantidade, setQuantidade] = useState('');
   const [unidade, setUnidade] = useState('');
+  const [validade, setValidade] = useState('');
+  const [groupId, setGroupId] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const { groups } = useMaterialGroups();
 
   useEffect(() => {
     if (item) {
@@ -29,6 +34,8 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
       setMaximo(String(item.maximo));
       setQuantidade(String(item.quantidade));
       setUnidade(item.unidade || 'UNIDADE');
+      setValidade(item.validade ? String(item.validade).slice(0, 10) : '');
+      setGroupId(item.groupId || '');
     }
   }, [item]);
 
@@ -55,7 +62,9 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
           maximo: numMax,
           quantidade: numQtd,
           unidade: unidade.trim() || 'UNIDADE',
-        })
+          validade: validade || null,
+          group_id: groupId || null,
+        } as any)
         .eq('id', item.id);
 
       // Audit log
@@ -97,6 +106,25 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
             <div className="space-y-2">
               <Label>Unidade</Label>
               <Input value={unidade} onChange={(e) => setUnidade(e.target.value)} placeholder="UNIDADE" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Grupo</Label>
+                <Select value={groupId} onValueChange={setGroupId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o grupo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groups.map(g => (
+                      <SelectItem key={g.id} value={g.id}>{g.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Validade</Label>
+                <Input type="date" value={validade} onChange={(e) => setValidade(e.target.value)} />
+              </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-2">

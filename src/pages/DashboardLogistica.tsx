@@ -5,6 +5,8 @@ import { printList } from "@/lib/printUtils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useCurvaABCData, ABCResult } from "@/hooks/useCurvaABCData";
 import { useInventoryData, InventoryItem } from "@/hooks/useInventoryData";
+import { getValidadeInfo } from "@/lib/validade";
+import { CalendarClock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { MainLayout } from "@/components/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -146,6 +148,17 @@ const DashboardLogistica = () => {
     return filtered;
   }, [inventoryData, searchQuery, statusFilter]);
 
+  const validadeStats = (() => {
+    let vencido = 0, critico = 0, atencao = 0;
+    inventoryData.forEach(i => {
+      const st = getValidadeInfo(i.validade).status;
+      if (st === 'vencido') vencido++;
+      else if (st === 'critico') critico++;
+      else if (st === 'atencao') atencao++;
+    });
+    return { vencido, critico, atencao };
+  })();
+
   const alertCount = summary.total_abaixo;
   const criticalCount = summary.total_zerado;
   const isHealthy = alertCount === 0 && criticalCount === 0;
@@ -272,6 +285,27 @@ const DashboardLogistica = () => {
                   <p className="text-sm text-muted-foreground">
                     Valor total das divergências: R$ {concSummary.valorDiv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {(validadeStats.vencido > 0 || validadeStats.critico > 0 || validadeStats.atencao > 0) && (
+            <Card
+              className={`border-2 cursor-pointer hover:shadow-md transition-all ${validadeStats.vencido > 0 ? 'border-destructive/40 bg-destructive/5' : 'border-warning/40 bg-warning/5'}`}
+              onClick={() => navigate('/controle-validades')}
+            >
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="p-3 rounded-full bg-warning/10">
+                  <CalendarClock className="w-6 h-6 text-warning" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-sm font-bold text-foreground mb-1">Alertas de validade</h2>
+                  <div className="flex flex-wrap gap-3 text-sm">
+                    <span className="text-destructive">{validadeStats.vencido} vencido(s)</span>
+                    <span className="text-destructive">{validadeStats.critico} vence(m) em 30 dias</span>
+                    <span className="text-warning">{validadeStats.atencao} vence(m) em 90 dias</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -257,10 +257,16 @@ export default function NovaAnamnese() {
         toast.error(`Responda: ${q.text}`); return;
       }
     }
-    const responses = visibleQuestions.map(q => ({
-      question: q.text,
-      answer: parseAnswerValues(answers[q.id]).join(', '),
-    }));
+    const responses = visibleQuestions
+      .map(q => ({
+        required: !!q.required,
+        question: q.text,
+        answer: parseAnswerValues(answers[q.id]).join(', '),
+      }))
+      // Omite perguntas NÃO obrigatórias deixadas em branco
+      .filter(r => r.required || r.answer.trim().length > 0)
+      .map(({ question, answer }) => ({ question, answer }));
+
 
     // Resolve signature (padrão: usada na anamnese e na receita)
     const resolveSig = (onFly: boolean, padRef: any, sigId: string) => {

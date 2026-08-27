@@ -149,6 +149,13 @@ const logisticsGroups: MenuGroup[] = [
         submoduleKey: "logistica.estoque",
       },
       {
+        path: "/controle-validades",
+        label: "Controle de Validades",
+        icon: <CalendarClock className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox"],
+        submoduleKey: "logistica.estoque",
+      },
+      {
         path: "/reposicao",
         label: "Reposição",
         icon: <RefreshCw className="w-4 h-4" />,

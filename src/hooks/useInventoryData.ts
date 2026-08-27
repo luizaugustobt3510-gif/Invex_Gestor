@@ -88,6 +88,10 @@ export const useInventoryData = () => {
 
       if (matError) throw matError;
 
+      const { data: groupRows } = await (supabase.from('material_groups' as any) as any)
+        .select('id, nome').eq('company_id', roleData.company_id);
+      const groupMap = new Map<string, string>(((groupRows || []) as any[]).map((g: any) => [g.id, g.nome]));
+
       // Carrega Curva ABC para calcular mín/máx inteligente (substitui valores da planilha)
       const { data: abcRow } = await supabase
         .from('curva_abc_data')
@@ -136,6 +140,8 @@ export const useInventoryData = () => {
           valorTotal: qty * preco,
           status,
           curva: abc?.classe || 'C',
+          groupId: (m as any).group_id || null,
+          groupName: (m as any).group_id ? (groupMap.get((m as any).group_id) || '') : '',
         };
       });
 
