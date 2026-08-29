@@ -8,7 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Building, Edit, RefreshCw, Plus, Users, ShieldCheck, ShieldOff, Trash2, DollarSign, History, KeyRound } from 'lucide-react';
+import { Building, Edit, RefreshCw, Plus, Users, ShieldCheck, ShieldOff, Trash2, DollarSign, History, KeyRound, FileText } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { FaturaDialog } from '@/components/FaturaDialog';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { COMPANY_TYPES, COMPANY_TYPE_LABELS, COMPANY_TYPE_TEMPLATES, type CompanyType } from '@/config/companyTypeTemplates';
@@ -67,6 +69,9 @@ const daysBetween = (fromISO: string) => {
 
 const GestaoEmpresas = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isMaster = user?.role === 'superadm';
+  const [faturaCompany, setFaturaCompany] = useState<Company | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [editCompany, setEditCompany] = useState<Company | null>(null);
@@ -360,6 +365,11 @@ const GestaoEmpresas = () => {
                             <Button variant="ghost" size="sm" title="Histórico financeiro" onClick={() => openHistory(c)}>
                               <History className="w-4 h-4" />
                             </Button>
+                            {isMaster && (
+                              <Button variant="ghost" size="sm" title="Gerar fatura (PDF)" onClick={() => setFaturaCompany(c)}>
+                                <FileText className="w-4 h-4 text-primary" />
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm" title="Métodos de autenticação" onClick={() => {
                               const m = (c as any).auth_methods || { email: true, google: false, microsoft: false };
                               setAuthMethods({ email: !!m.email, google: !!m.google, microsoft: !!m.microsoft });
@@ -707,6 +717,9 @@ const GestaoEmpresas = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {isMaster && (
+        <FaturaDialog company={faturaCompany} onOpenChange={(o) => { if (!o) setFaturaCompany(null); }} />
+      )}
     </MainLayout>
   );
 };
