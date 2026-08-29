@@ -72,6 +72,7 @@ export default function NovaAnamnese() {
   const [rxTipo, setRxTipo] = useState('simples');
   const [rxContent, setRxContent] = useState('');
   const [quickMeds, setQuickMeds] = useState<Array<{ id: string; title: string; content: string }>>([]);
+  const [quickAnswers, setQuickAnswers] = useState<Array<{ id: string; title: string; content: string }>>([]);
 
   useEffect(() => {
     if (!user?.companyId) return;
