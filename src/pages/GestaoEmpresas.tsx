@@ -69,6 +69,9 @@ const daysBetween = (fromISO: string) => {
 
 const GestaoEmpresas = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isMaster = user?.role === 'superadm';
+  const [faturaCompany, setFaturaCompany] = useState<Company | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [editCompany, setEditCompany] = useState<Company | null>(null);
