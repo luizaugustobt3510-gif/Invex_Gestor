@@ -717,6 +717,9 @@ const GestaoEmpresas = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {isMaster && (
+        <FaturaDialog company={faturaCompany} onOpenChange={(o) => { if (!o) setFaturaCompany(null); }} />
+      )}
     </MainLayout>
   );
 };
