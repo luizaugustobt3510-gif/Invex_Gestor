@@ -412,13 +412,16 @@ export default function NovaAnamnese() {
       }
       case 'texto_longo':
         return (
-          <Textarea
-            autoFocus rows={5}
-            className="mt-4 text-base"
-            value={val}
-            onChange={e => setAnswer(q, e.target.value)}
-            placeholder="Digite sua resposta..."
-          />
+          <div className="mt-4 space-y-2">
+            <Textarea
+              autoFocus rows={5}
+              className="text-base"
+              value={val}
+              onChange={e => setAnswer(q, e.target.value)}
+              placeholder="Digite sua resposta..."
+            />
+            {renderQuickAnswers(q, val)}
+          </div>
         );
       case 'numero':
         return (
@@ -432,15 +435,39 @@ export default function NovaAnamnese() {
         );
       default:
         return (
-          <Input
-            autoFocus
-            className="mt-4 h-14 text-lg"
-            value={val}
-            onChange={e => setAnswer(q, e.target.value)}
-            placeholder="Digite sua resposta..."
-          />
+          <div className="mt-4 space-y-2">
+            <Input
+              autoFocus
+              className="h-14 text-lg"
+              value={val}
+              onChange={e => setAnswer(q, e.target.value)}
+              placeholder="Digite sua resposta..."
+            />
+            {renderQuickAnswers(q, val)}
+          </div>
         );
     }
+  };
+
+  // Respostas rápidas — apenas em perguntas de texto curto e longo
+  const renderQuickAnswers = (q: Question, val: string) => {
+    if (quickAnswers.length === 0) return null;
+    return (
+      <div className="flex flex-wrap gap-2">
+        {quickAnswers.map(qa => (
+          <Button
+            key={qa.id}
+            type="button"
+            size="sm"
+            variant="outline"
+            className="text-xs"
+            onClick={() => setAnswer(q, val ? `${val.trim()} ${qa.content}` : qa.content)}
+          >
+            {qa.title}
+          </Button>
+        ))}
+      </div>
+    );
   };
 
   const requiresManualNext = (q?: Question) =>
