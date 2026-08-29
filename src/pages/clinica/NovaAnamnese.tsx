@@ -103,6 +103,13 @@ export default function NovaAnamnese() {
         .eq('is_active', true)
         .order('title');
       setQuickMeds((qm || []) as any);
+
+      const { data: qa } = await (supabase.from('anamnese_quick_answers' as any) as any)
+        .select('id, title, content')
+        .eq('company_id', user.companyId)
+        .eq('is_active', true)
+        .order('title');
+      setQuickAnswers((qa || []) as any);
     })();
   }, [user?.companyId]);
 
