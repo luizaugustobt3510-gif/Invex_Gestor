@@ -365,6 +365,11 @@ const GestaoEmpresas = () => {
                             <Button variant="ghost" size="sm" title="Histórico financeiro" onClick={() => openHistory(c)}>
                               <History className="w-4 h-4" />
                             </Button>
+                            {isMaster && (
+                              <Button variant="ghost" size="sm" title="Gerar fatura (PDF)" onClick={() => setFaturaCompany(c)}>
+                                <FileText className="w-4 h-4 text-primary" />
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm" title="Métodos de autenticação" onClick={() => {
                               const m = (c as any).auth_methods || { email: true, google: false, microsoft: false };
                               setAuthMethods({ email: !!m.email, google: !!m.google, microsoft: !!m.microsoft });
