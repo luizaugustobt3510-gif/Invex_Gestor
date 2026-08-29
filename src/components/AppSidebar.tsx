@@ -391,6 +391,12 @@ const clinicaGroups: MenuGroup[] = [
         icon: <ClipboardList className="w-4 h-4" />,
         allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro"],
       },
+      {
+        path: "/clinica/anamnese/rapidas",
+        label: "Respostas Rápidas",
+        icon: <FileText className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro"],
+      },
     ],
   },
   {
