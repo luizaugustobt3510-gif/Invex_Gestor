@@ -607,6 +607,7 @@ const DashboardLogistica = () => {
                   const filtros: string[] = [];
                   if (searchQuery) filtros.push(`Busca: "${searchQuery}"`);
                   if (statusFilter) filtros.push(`Status: ${statusFilter}`);
+                  if (groupFilter) filtros.push(`Grupo: ${groupFilter}`);
                   printList<InventoryItem>({
                     title: 'Materiais — Logística',
                     subtitle: filtros.join(' · '),
