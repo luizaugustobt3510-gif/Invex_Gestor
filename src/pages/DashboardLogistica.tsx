@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit, Thermometer, TrendingUp, Trash2, Printer } from "lucide-react";
+import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit, Thermometer, TrendingUp, Trash2, Printer, Layers } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { printList } from "@/lib/printUtils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useCurvaABCData, ABCResult } from "@/hooks/useCurvaABCData";
@@ -24,6 +25,7 @@ const DashboardLogistica = () => {
   const { data: inventoryData, summary, loading, error, refetch } = useInventoryData();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [groupFilter, setGroupFilter] = useState<string | null>(null);
   const [editItem, setEditItem] = useState<InventoryItem | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteItem, setDeleteItem] = useState<InventoryItem | null>(null);
@@ -145,8 +147,52 @@ const DashboardLogistica = () => {
         return true;
       });
     }
+    if (groupFilter) {
+      filtered = filtered.filter(item => (item.groupName || 'Sem grupo') === groupFilter);
+    }
     return filtered;
-  }, [inventoryData, searchQuery, statusFilter]);
+  }, [inventoryData, searchQuery, statusFilter, groupFilter]);
+
+  // Lista de grupos disponíveis (para o filtro)
+  const groupList = useMemo(() => {
+    const map = new Map<string, number>();
+    inventoryData.forEach(i => {
+      const nome = i.groupName || 'Sem grupo';
+      map.set(nome, (map.get(nome) || 0) + 1);
+    });
+    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+  }, [inventoryData]);
+
+  // Gráfico: valor total em estoque por grupo (respeita busca/status)
+  const groupValueChart = useMemo(() => {
+    const map = new Map<string, { nome: string; itens: number; valor: number }>();
+    filteredData.forEach(i => {
+      const nome = i.groupName || 'Sem grupo';
+      const g = map.get(nome) || { nome, itens: 0, valor: 0 };
+      g.itens++;
+      g.valor += i.valorTotal;
+      map.set(nome, g);
+    });
+    return [...map.values()].sort((a, b) => b.valor - a.valor).slice(0, 8);
+  }, [filteredData]);
+
+  // Gráfico: vencimentos (quantidade e valor por status de validade)
+  const validadeChart = useMemo(() => {
+    const base = [
+      { status: 'vencido', label: 'Vencidos', cor: 'hsl(0 84% 60%)', itens: 0, valor: 0 },
+      { status: 'critico', label: 'Vencem em 30d', cor: 'hsl(25 95% 53%)', itens: 0, valor: 0 },
+      { status: 'atencao', label: 'Vencem em 90d', cor: 'hsl(45 93% 47%)', itens: 0, valor: 0 },
+      { status: 'ok', label: 'OK (>90d)', cor: 'hsl(142 76% 36%)', itens: 0, valor: 0 },
+      { status: 'sem_validade', label: 'Sem validade', cor: 'hsl(220 9% 46%)', itens: 0, valor: 0 },
+    ];
+    filteredData.forEach(i => {
+      const st = getValidadeInfo(i.validade).status;
+      const bucket = base.find(b => b.status === st)!;
+      bucket.itens++;
+      bucket.valor += i.valorTotal;
+    });
+    return base;
+  }, [filteredData]);
 
   const validadeStats = (() => {
     let vencido = 0, critico = 0, atencao = 0;
@@ -414,13 +460,126 @@ const DashboardLogistica = () => {
             </Card>
           </div>
 
+          {/* Filtro por grupo de materiais */}
+          {groupList.length > 1 && (
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Layers className="w-4 h-4 text-primary" />
+                  <h2 className="text-sm font-bold text-foreground">Filtrar por grupo</h2>
+                  {groupFilter && (
+                    <Button size="sm" variant="ghost" className="h-6 text-xs ml-auto" onClick={() => setGroupFilter(null)}>
+                      Limpar ✕
+                    </Button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {groupList.map(([nome, qtd]) => (
+                    <Badge
+                      key={nome}
+                      variant={groupFilter === nome ? 'default' : 'outline'}
+                      className="cursor-pointer select-none"
+                      onClick={() => setGroupFilter(groupFilter === nome ? null : nome)}
+                    >
+                      {nome} ({qtd})
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Gráficos: Valor por grupo + Vencimentos */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <h2 className="text-sm font-bold text-foreground mb-1">Valor em estoque por grupo</h2>
+                <p className="text-xs text-muted-foreground mb-3">Soma do valor total dos itens de cada grupo</p>
+                {groupValueChart.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-8 text-center">Sem dados para exibir.</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={groupValueChart} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                      <XAxis type="number" tickFormatter={(v: number) => `R$ ${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11 }} />
+                      <YAxis dataKey="nome" type="category" width={120} tick={{ fontSize: 11 }} />
+                      <Tooltip
+                        formatter={(value: number, name: string) =>
+                          name === 'valor'
+                            ? [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Valor total']
+                            : [value, name]
+                        }
+                        labelFormatter={(label: string) => `Grupo: ${label}`}
+                      />
+                      <Bar dataKey="valor" fill="hsl(142 76% 36%)" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+                <div className="mt-3 space-y-1">
+                  {groupValueChart.map(g => (
+                    <div key={g.nome} className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground truncate">{g.nome} · {g.itens} item(ns)</span>
+                      <span className="font-medium text-foreground">R$ {g.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <h2 className="text-sm font-bold text-foreground mb-1">Vencimentos</h2>
+                <p className="text-xs text-muted-foreground mb-3">Itens e valores por situação de validade</p>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={validadeChart} margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={0} angle={-15} textAnchor="end" height={50} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip
+                      formatter={(value: number, name: string, props: any) =>
+                        name === 'itens'
+                          ? [`${value} item(ns) · R$ ${Number(props?.payload?.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Itens / Valor']
+                          : [value, name]
+                      }
+                    />
+                    <Bar dataKey="itens" radius={[4, 4, 0, 0]}>
+                      {validadeChart.map(v => (
+                        <Cell key={v.status} fill={v.cor} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+                <div className="mt-3 grid grid-cols-2 gap-1">
+                  {validadeChart.map(v => (
+                    <div key={v.status} className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: v.cor }} />
+                        {v.label}
+                      </span>
+                      <span className="font-medium text-foreground">
+                        {v.itens} · R$ {v.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Active Filters */}
-          {statusFilter && (
+          {(statusFilter || groupFilter) && (
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm text-muted-foreground">Filtro:</span>
-              <Badge variant="secondary" className="cursor-pointer" onClick={() => setStatusFilter(null)}>
-                {statusFilter} ✕
-              </Badge>
+              {statusFilter && (
+                <Badge variant="secondary" className="cursor-pointer" onClick={() => setStatusFilter(null)}>
+                  {statusFilter} ✕
+                </Badge>
+              )}
+              {groupFilter && (
+                <Badge variant="secondary" className="cursor-pointer" onClick={() => setGroupFilter(null)}>
+                  Grupo: {groupFilter} ✕
+                </Badge>
+              )}
             </div>
           )}
 
@@ -448,6 +607,7 @@ const DashboardLogistica = () => {
                   const filtros: string[] = [];
                   if (searchQuery) filtros.push(`Busca: "${searchQuery}"`);
                   if (statusFilter) filtros.push(`Status: ${statusFilter}`);
+                  if (groupFilter) filtros.push(`Grupo: ${groupFilter}`);
                   printList<InventoryItem>({
                     title: 'Materiais — Logística',
                     subtitle: filtros.join(' · '),
