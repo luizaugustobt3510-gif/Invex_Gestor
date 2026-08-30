@@ -147,8 +147,52 @@ const DashboardLogistica = () => {
         return true;
       });
     }
+    if (groupFilter) {
+      filtered = filtered.filter(item => (item.groupName || 'Sem grupo') === groupFilter);
+    }
     return filtered;
-  }, [inventoryData, searchQuery, statusFilter]);
+  }, [inventoryData, searchQuery, statusFilter, groupFilter]);
+
+  // Lista de grupos disponíveis (para o filtro)
+  const groupList = useMemo(() => {
+    const map = new Map<string, number>();
+    inventoryData.forEach(i => {
+      const nome = i.groupName || 'Sem grupo';
+      map.set(nome, (map.get(nome) || 0) + 1);
+    });
+    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+  }, [inventoryData]);
+
+  // Gráfico: valor total em estoque por grupo (respeita busca/status)
+  const groupValueChart = useMemo(() => {
+    const map = new Map<string, { nome: string; itens: number; valor: number }>();
+    filteredData.forEach(i => {
+      const nome = i.groupName || 'Sem grupo';
+      const g = map.get(nome) || { nome, itens: 0, valor: 0 };
+      g.itens++;
+      g.valor += i.valorTotal;
+      map.set(nome, g);
+    });
+    return [...map.values()].sort((a, b) => b.valor - a.valor).slice(0, 8);
+  }, [filteredData]);
+
+  // Gráfico: vencimentos (quantidade e valor por status de validade)
+  const validadeChart = useMemo(() => {
+    const base = [
+      { status: 'vencido', label: 'Vencidos', cor: 'hsl(0 84% 60%)', itens: 0, valor: 0 },
+      { status: 'critico', label: 'Vencem em 30d', cor: 'hsl(25 95% 53%)', itens: 0, valor: 0 },
+      { status: 'atencao', label: 'Vencem em 90d', cor: 'hsl(45 93% 47%)', itens: 0, valor: 0 },
+      { status: 'ok', label: 'OK (>90d)', cor: 'hsl(142 76% 36%)', itens: 0, valor: 0 },
+      { status: 'sem_validade', label: 'Sem validade', cor: 'hsl(220 9% 46%)', itens: 0, valor: 0 },
+    ];
+    filteredData.forEach(i => {
+      const st = getValidadeInfo(i.validade).status;
+      const bucket = base.find(b => b.status === st)!;
+      bucket.itens++;
+      bucket.valor += i.valorTotal;
+    });
+    return base;
+  }, [filteredData]);
 
   const validadeStats = (() => {
     let vencido = 0, critico = 0, atencao = 0;
