@@ -212,6 +212,20 @@ const FitnessTreinos = () => {
       })),
       xp_ganho: xp,
     });
+
+    // Persiste as cargas usadas na ficha (para o próximo treino já vir preenchido)
+    const cargasParaSalvar = session.exercises
+      .map(e => {
+        const n = e.cargaReal ? parseFloat(String(e.cargaReal).replace(',', '.')) : NaN;
+        return Number.isFinite(n) && n > 0 && n !== e.carga_kg ? { id: e.id, carga_kg: n } : null;
+      })
+      .filter(Boolean) as { id: string; carga_kg: number }[];
+    if (cargasParaSalvar.length) {
+      await Promise.all(cargasParaSalvar.map(c =>
+        supabase.from('fitness_workout_exercises').update({ carga_kg: c.carga_kg }).eq('id', c.id)
+      ));
+    }
+
     await upsertToday({ treino_feito: true });
     if (profile) {
       const hojeStr = new Date().toISOString().slice(0, 10);
