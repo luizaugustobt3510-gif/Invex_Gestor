@@ -503,6 +503,28 @@ const EditorFicha = ({ workoutId, onClose }: { workoutId: string; onClose: () =>
             </button>
           ))}
         </div>
+        <label className="text-[10px] uppercase tracking-wide text-slate-400 mt-3 block">Dias da semana</label>
+        <div className="flex flex-wrap gap-1.5 mt-1.5">
+          {DIAS_SEMANA.map(d => {
+            const sel = (w.dias_semana || []).includes(d.v);
+            return (
+              <button
+                key={d.v}
+                onClick={() => {
+                  const atual = w.dias_semana || [];
+                  const novo = sel ? atual.filter(x => x !== d.v) : [...atual, d.v].sort((a, b) => a - b);
+                  salvarFicha({ dias_semana: novo });
+                }}
+                className={`text-[11px] h-9 px-3 rounded-full border ${
+                  sel ? 'bg-fuchsia-400/15 border-fuchsia-400 text-fuchsia-200' : 'border-slate-700 text-slate-400'
+                }`}
+              >
+                {d.l}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[10px] text-slate-500 mt-1.5">Toque para marcar/desmarcar os dias desta ficha.</p>
       </FitnessCard>
 
       <div className="flex items-center justify-between mb-2">
