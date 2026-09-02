@@ -700,24 +700,33 @@ const SessaoTreino = ({
     }
   };
 
+  const concluir = (id: string) => {
+    const ex = exs.find(e => e.id === id);
+    if (!ex) return;
+    const updated: ActiveSessionExercise[] = exs.map(e =>
+      e.id === id ? { ...e, feito: true, pulado: false } : e
+    );
+    const idx = exs.findIndex(e => e.id === id);
+    const next = updated.findIndex((e, i) => i > idx && !e.feito && !e.pulado);
+    const faltamExercicios = next >= 0;
+    patch({
+      exercises: updated,
+      currentIndex: next >= 0 ? next : session.currentIndex,
+      // pergunta ao usuário se quer descansar (não inicia sozinho)
+      pendingRestSeg: faltamExercicios ? (ex.descanso_seg || 60) : null,
+      pendingRestExercicio: faltamExercicios ? ex.nome : null,
+      restEndsAt: null,
+    });
+  };
+
   const toggleDone = (id: string) => {
     const ex = exs.find(e => e.id === id);
     if (!ex) return;
-    const newDone = !ex.feito;
-    const updated: ActiveSessionExercise[] = exs.map(e =>
-      e.id === id ? { ...e, feito: newDone, pulado: false } : e
-    );
-    let nextIdx = session.currentIndex;
-    let restEnd: number | null = session.restEndsAt || null;
-    if (newDone) {
-      if (ex.tipo === 'musculacao' && ex.descanso_seg) {
-        restEnd = Date.now() + ex.descanso_seg * 1000;
-      }
-      // avança para o próximo não feito
-      const next = updated.findIndex((e, i) => i > session.currentIndex && !e.feito);
-      nextIdx = next >= 0 ? next : session.currentIndex;
+    if (ex.feito) {
+      patch({ exercises: exs.map(e => e.id === id ? { ...e, feito: false } : e) });
+      return;
     }
-    patch({ exercises: updated, currentIndex: nextIdx, restEndsAt: restEnd });
+    concluir(id);
   };
 
   const pularEx = (id: string) => {
@@ -730,19 +739,25 @@ const SessaoTreino = ({
   const proximoEx = () => {
     const atual = exs[session.currentIndex];
     if (!atual) return;
-    const updated = exs.map(e =>
-      e.id === atual.id ? { ...e, feito: true, pulado: false } : e
-    );
-    let restEnd: number | null = session.restEndsAt || null;
-    if (atual.tipo === 'musculacao' && atual.descanso_seg) {
-      restEnd = Date.now() + atual.descanso_seg * 1000;
-    }
-    const next = updated.findIndex((e, i) => i > session.currentIndex && !e.feito && !e.pulado);
-    patch({
-      exercises: updated,
-      currentIndex: next >= 0 ? next : session.currentIndex,
-      restEndsAt: restEnd,
-    });
+    concluir(atual.id);
+  };
+
+  /* --- Descanso opcional --- */
+  const iniciarDescanso = (segs: number) => {
+    patch({ restEndsAt: Date.now() + segs * 1000, pendingRestSeg: null, pendingRestExercicio: null });
+  };
+  const dispensarDescanso = () => {
+    patch({ pendingRestSeg: null, pendingRestExercicio: null, restEndsAt: null });
+  };
+  const addDescanso = (segs: number) => {
+    const base = session.restEndsAt && session.restEndsAt > Date.now() ? session.restEndsAt : Date.now();
+    patch({ restEndsAt: base + segs * 1000 });
+  };
+
+  /* --- Progressão de carga --- */
+  const aplicarSugestao = (id: string, valor: number) => {
+    patch({ exercises: exs.map(e => e.id === id ? { ...e, cargaReal: String(valor) } : e) });
+    toast.success(`Progressão aplicada: ${valor}kg 📈`);
   };
 
   const moveEx = (idx: number, dir: -1 | 1) => {
