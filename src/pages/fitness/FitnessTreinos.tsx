@@ -892,6 +892,9 @@ const SessaoTreino = ({
           const delta = (Number.isFinite(cargaAtualNum) && ex.cargaUltima != null)
             ? cargaAtualNum - ex.cargaUltima
             : null;
+          const sugestao = ex.tipo === 'musculacao' ? sugerirProgressao(ex.cargaUltima) : null;
+          const mostrarSugestao = sugestao != null && !ex.feito && !ex.pulado &&
+            (!Number.isFinite(cargaAtualNum) || cargaAtualNum < sugestao);
           return (
             <FitnessCard
               key={ex.id}
