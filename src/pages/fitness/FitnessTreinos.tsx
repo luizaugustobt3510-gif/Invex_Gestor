@@ -677,6 +677,16 @@ const SessaoTreino = ({
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
   }, []);
 
+  // Aviso quando o descanso termina
+  useEffect(() => {
+    const end = session?.restEndsAt;
+    if (!end) return;
+    const ms = end - Date.now();
+    if (ms <= 0) return;
+    const t = setTimeout(() => toast.success('Descanso concluído — bora pro próximo! 💪'), ms);
+    return () => clearTimeout(t);
+  }, [session?.restEndsAt]);
+
   if (!session) {
     return <FitnessLayout hideNav><div className="text-center py-20 text-cyan-300">Sem treino ativo</div></FitnessLayout>;
   }
