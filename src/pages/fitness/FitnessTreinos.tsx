@@ -184,8 +184,8 @@ const FitnessTreinos = () => {
         intensidade: e.intensidade,
         ordem: i,
         feito: false,
-        cargaReal: e.carga_kg != null ? String(e.carga_kg) : '',
-        cargaUltima: ultimasCargas.get(e.nome) ?? null,
+        cargaReal: e.carga_kg != null && e.carga_kg > 0 ? String(e.carga_kg) : '',
+        cargaUltima: ultimasCargas.get(e.nome) ?? (e.carga_kg && e.carga_kg > 0 ? e.carga_kg : null),
       })),
       userId: au.id,
     };
