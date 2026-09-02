@@ -49,6 +49,18 @@ const TIPOS: { v: 'musculacao' | 'cardio' | 'alongamento'; l: string; icon: any 
   { v: 'alongamento', l: 'Alongamento', icon: StretchHorizontal },
 ];
 
+export const DIAS_SEMANA = [
+  { v: 0, l: 'Dom' }, { v: 1, l: 'Seg' }, { v: 2, l: 'Ter' }, { v: 3, l: 'Qua' },
+  { v: 4, l: 'Qui' }, { v: 5, l: 'Sex' }, { v: 6, l: 'Sáb' },
+];
+
+/** Sugestão de progressão de carga a partir da última carga registrada */
+export const sugerirProgressao = (ultima?: number | null) => {
+  if (ultima == null || !Number.isFinite(ultima) || ultima <= 0) return null;
+  const inc = ultima < 10 ? 1 : ultima < 30 ? 2 : 2.5;
+  return Math.round((ultima + inc) * 2) / 2;
+};
+
 const isExpired = (w: Workout) => w.expires_at && new Date(w.expires_at).getTime() < Date.now();
 const daysUntil = (iso?: string | null) => {
   if (!iso) return null;
