@@ -329,7 +329,12 @@ const FitnessTreinos = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold truncate">{w.nome}</p>
-                    <p className="text-[11px] text-slate-400 truncate">{w.grupo_muscular || 'Sem grupo'}</p>
+                    <p className="text-[11px] text-slate-400 truncate">
+                      {w.grupo_muscular || 'Sem grupo'}
+                      {w.dias_semana?.length
+                        ? ` · ${w.dias_semana.map(d => DIAS_SEMANA.find(x => x.v === d)?.l).join(', ')}`
+                        : ''}
+                    </p>
                   </div>
                   <button onClick={() => { setActiveId(w.id); setView('edit'); }} className="p-2 text-slate-400 hover:text-cyan-300" aria-label="Editar">
                     <Pencil className="w-4 h-4" />
