@@ -815,11 +815,43 @@ const SessaoTreino = ({
         </div>
       </FitnessCard>
 
+      {/* Pergunta de descanso ao concluir um exercício */}
+      {!!session.pendingRestSeg && descansoSeg === 0 && (
+        <FitnessCard glow="fuchsia" className="mb-3 !py-3">
+          <p className="text-[10px] uppercase tracking-widest text-fuchsia-300 text-center">
+            {session.pendingRestExercicio ? `${session.pendingRestExercicio} concluído` : 'Exercício concluído'}
+          </p>
+          <p className="text-sm font-bold text-center mt-0.5 mb-2.5">Quer descansar antes do próximo?</p>
+          <div className="grid grid-cols-3 gap-1.5">
+            {[Math.max(15, session.pendingRestSeg), 60, 90].filter((v, i, a) => a.indexOf(v) === i).map(s => (
+              <button
+                key={s}
+                onClick={() => iniciarDescanso(s)}
+                className="h-10 rounded-lg text-xs font-bold text-slate-900 active:scale-95"
+                style={{ background: 'linear-gradient(90deg, #22d3ee, #67e8f9)' }}
+              >
+                {s}s
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={dispensarDescanso}
+            className="w-full mt-1.5 h-10 rounded-lg text-xs font-semibold bg-slate-800/60 border border-slate-700 text-slate-300 active:scale-95"
+          >
+            Sem descanso — seguir direto
+          </button>
+        </FitnessCard>
+      )}
+
       {descansoSeg > 0 && (
         <FitnessCard glow="fuchsia" className="mb-3 text-center !py-3">
           <p className="text-[10px] uppercase tracking-widest text-fuchsia-300">Descanso</p>
-          <p className="text-2xl font-black tabular-nums">{fmt(descansoSeg)}</p>
-          <button onClick={() => patch({ restEndsAt: null })} className="text-[11px] text-slate-400 mt-1 underline">pular descanso</button>
+          <p className="text-4xl font-black tabular-nums">{fmt(descansoSeg)}</p>
+          <div className="flex gap-1.5 justify-center mt-2">
+            <button onClick={() => addDescanso(30)} className="h-9 px-3 rounded-lg text-[11px] font-semibold bg-slate-800/60 border border-slate-700">+30s</button>
+            <button onClick={() => addDescanso(-15)} className="h-9 px-3 rounded-lg text-[11px] font-semibold bg-slate-800/60 border border-slate-700">-15s</button>
+            <button onClick={() => patch({ restEndsAt: null })} className="h-9 px-3 rounded-lg text-[11px] font-semibold bg-emerald-500/15 border border-emerald-400/40 text-emerald-300">Pular</button>
+          </div>
         </FitnessCard>
       )}
 
