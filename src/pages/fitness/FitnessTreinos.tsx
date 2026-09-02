@@ -24,6 +24,7 @@ interface Workout {
   ativo: boolean;
   created_at?: string;
   expires_at?: string | null;
+  dias_semana?: number[] | null;
 }
 interface Exercise {
   id: string;
@@ -47,6 +48,18 @@ const TIPOS: { v: 'musculacao' | 'cardio' | 'alongamento'; l: string; icon: any 
   { v: 'cardio', l: 'Cardio', icon: Heart },
   { v: 'alongamento', l: 'Alongamento', icon: StretchHorizontal },
 ];
+
+export const DIAS_SEMANA = [
+  { v: 0, l: 'Dom' }, { v: 1, l: 'Seg' }, { v: 2, l: 'Ter' }, { v: 3, l: 'Qua' },
+  { v: 4, l: 'Qui' }, { v: 5, l: 'Sex' }, { v: 6, l: 'Sáb' },
+];
+
+/** Sugestão de progressão de carga a partir da última carga registrada */
+export const sugerirProgressao = (ultima?: number | null) => {
+  if (ultima == null || !Number.isFinite(ultima) || ultima <= 0) return null;
+  const inc = ultima < 10 ? 1 : ultima < 30 ? 2 : 2.5;
+  return Math.round((ultima + inc) * 2) / 2;
+};
 
 const isExpired = (w: Workout) => w.expires_at && new Date(w.expires_at).getTime() < Date.now();
 const daysUntil = (iso?: string | null) => {
@@ -171,8 +184,8 @@ const FitnessTreinos = () => {
         intensidade: e.intensidade,
         ordem: i,
         feito: false,
-        cargaReal: e.carga_kg != null ? String(e.carga_kg) : '',
-        cargaUltima: ultimasCargas.get(e.nome) ?? null,
+        cargaReal: e.carga_kg != null && e.carga_kg > 0 ? String(e.carga_kg) : '',
+        cargaUltima: ultimasCargas.get(e.nome) ?? (e.carga_kg && e.carga_kg > 0 ? e.carga_kg : null),
       })),
       userId: au.id,
     };
@@ -199,6 +212,20 @@ const FitnessTreinos = () => {
       })),
       xp_ganho: xp,
     });
+
+    // Persiste as cargas usadas na ficha (para o próximo treino já vir preenchido)
+    const cargasParaSalvar = session.exercises
+      .map(e => {
+        const n = e.cargaReal ? parseFloat(String(e.cargaReal).replace(',', '.')) : NaN;
+        return Number.isFinite(n) && n > 0 && n !== e.carga_kg ? { id: e.id, carga_kg: n } : null;
+      })
+      .filter(Boolean) as { id: string; carga_kg: number }[];
+    if (cargasParaSalvar.length) {
+      await Promise.all(cargasParaSalvar.map(c =>
+        supabase.from('fitness_workout_exercises').update({ carga_kg: c.carga_kg }).eq('id', c.id)
+      ));
+    }
+
     await upsertToday({ treino_feito: true });
     if (profile) {
       const hojeStr = new Date().toISOString().slice(0, 10);
@@ -316,7 +343,12 @@ const FitnessTreinos = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold truncate">{w.nome}</p>
-                    <p className="text-[11px] text-slate-400 truncate">{w.grupo_muscular || 'Sem grupo'}</p>
+                    <p className="text-[11px] text-slate-400 truncate">
+                      {w.grupo_muscular || 'Sem grupo'}
+                      {w.dias_semana?.length
+                        ? ` · ${w.dias_semana.map(d => DIAS_SEMANA.find(x => x.v === d)?.l).join(', ')}`
+                        : ''}
+                    </p>
                   </div>
                   <button onClick={() => { setActiveId(w.id); setView('edit'); }} className="p-2 text-slate-400 hover:text-cyan-300" aria-label="Editar">
                     <Pencil className="w-4 h-4" />
@@ -490,6 +522,28 @@ const EditorFicha = ({ workoutId, onClose }: { workoutId: string; onClose: () =>
             </button>
           ))}
         </div>
+        <label className="text-[10px] uppercase tracking-wide text-slate-400 mt-3 block">Dias da semana</label>
+        <div className="flex flex-wrap gap-1.5 mt-1.5">
+          {DIAS_SEMANA.map(d => {
+            const sel = (w.dias_semana || []).includes(d.v);
+            return (
+              <button
+                key={d.v}
+                onClick={() => {
+                  const atual = w.dias_semana || [];
+                  const novo = sel ? atual.filter(x => x !== d.v) : [...atual, d.v].sort((a, b) => a - b);
+                  salvarFicha({ dias_semana: novo });
+                }}
+                className={`text-[11px] h-9 px-3 rounded-full border ${
+                  sel ? 'bg-fuchsia-400/15 border-fuchsia-400 text-fuchsia-200' : 'border-slate-700 text-slate-400'
+                }`}
+              >
+                {d.l}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[10px] text-slate-500 mt-1.5">Toque para marcar/desmarcar os dias desta ficha.</p>
       </FitnessCard>
 
       <div className="flex items-center justify-between mb-2">
@@ -623,6 +677,16 @@ const SessaoTreino = ({
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
   }, []);
 
+  // Aviso quando o descanso termina
+  useEffect(() => {
+    const end = session?.restEndsAt;
+    if (!end) return;
+    const ms = end - Date.now();
+    if (ms <= 0) return;
+    const t = setTimeout(() => toast.success('Descanso concluído — bora pro próximo! 💪'), ms);
+    return () => clearTimeout(t);
+  }, [session?.restEndsAt]);
+
   if (!session) {
     return <FitnessLayout hideNav><div className="text-center py-20 text-cyan-300">Sem treino ativo</div></FitnessLayout>;
   }
@@ -646,24 +710,33 @@ const SessaoTreino = ({
     }
   };
 
+  const concluir = (id: string) => {
+    const ex = exs.find(e => e.id === id);
+    if (!ex) return;
+    const updated: ActiveSessionExercise[] = exs.map(e =>
+      e.id === id ? { ...e, feito: true, pulado: false } : e
+    );
+    const idx = exs.findIndex(e => e.id === id);
+    const next = updated.findIndex((e, i) => i > idx && !e.feito && !e.pulado);
+    const faltamExercicios = next >= 0;
+    patch({
+      exercises: updated,
+      currentIndex: next >= 0 ? next : session.currentIndex,
+      // pergunta ao usuário se quer descansar (não inicia sozinho)
+      pendingRestSeg: faltamExercicios ? (ex.descanso_seg || 60) : null,
+      pendingRestExercicio: faltamExercicios ? ex.nome : null,
+      restEndsAt: null,
+    });
+  };
+
   const toggleDone = (id: string) => {
     const ex = exs.find(e => e.id === id);
     if (!ex) return;
-    const newDone = !ex.feito;
-    const updated: ActiveSessionExercise[] = exs.map(e =>
-      e.id === id ? { ...e, feito: newDone, pulado: false } : e
-    );
-    let nextIdx = session.currentIndex;
-    let restEnd: number | null = session.restEndsAt || null;
-    if (newDone) {
-      if (ex.tipo === 'musculacao' && ex.descanso_seg) {
-        restEnd = Date.now() + ex.descanso_seg * 1000;
-      }
-      // avança para o próximo não feito
-      const next = updated.findIndex((e, i) => i > session.currentIndex && !e.feito);
-      nextIdx = next >= 0 ? next : session.currentIndex;
+    if (ex.feito) {
+      patch({ exercises: exs.map(e => e.id === id ? { ...e, feito: false } : e) });
+      return;
     }
-    patch({ exercises: updated, currentIndex: nextIdx, restEndsAt: restEnd });
+    concluir(id);
   };
 
   const pularEx = (id: string) => {
@@ -676,19 +749,25 @@ const SessaoTreino = ({
   const proximoEx = () => {
     const atual = exs[session.currentIndex];
     if (!atual) return;
-    const updated = exs.map(e =>
-      e.id === atual.id ? { ...e, feito: true, pulado: false } : e
-    );
-    let restEnd: number | null = session.restEndsAt || null;
-    if (atual.tipo === 'musculacao' && atual.descanso_seg) {
-      restEnd = Date.now() + atual.descanso_seg * 1000;
-    }
-    const next = updated.findIndex((e, i) => i > session.currentIndex && !e.feito && !e.pulado);
-    patch({
-      exercises: updated,
-      currentIndex: next >= 0 ? next : session.currentIndex,
-      restEndsAt: restEnd,
-    });
+    concluir(atual.id);
+  };
+
+  /* --- Descanso opcional --- */
+  const iniciarDescanso = (segs: number) => {
+    patch({ restEndsAt: Date.now() + segs * 1000, pendingRestSeg: null, pendingRestExercicio: null });
+  };
+  const dispensarDescanso = () => {
+    patch({ pendingRestSeg: null, pendingRestExercicio: null, restEndsAt: null });
+  };
+  const addDescanso = (segs: number) => {
+    const base = session.restEndsAt && session.restEndsAt > Date.now() ? session.restEndsAt : Date.now();
+    patch({ restEndsAt: base + segs * 1000 });
+  };
+
+  /* --- Progressão de carga --- */
+  const aplicarSugestao = (id: string, valor: number) => {
+    patch({ exercises: exs.map(e => e.id === id ? { ...e, cargaReal: String(valor) } : e) });
+    toast.success(`Progressão aplicada: ${valor}kg 📈`);
   };
 
   const moveEx = (idx: number, dir: -1 | 1) => {
@@ -746,11 +825,43 @@ const SessaoTreino = ({
         </div>
       </FitnessCard>
 
+      {/* Pergunta de descanso ao concluir um exercício */}
+      {!!session.pendingRestSeg && descansoSeg === 0 && (
+        <FitnessCard glow="fuchsia" className="mb-3 !py-3">
+          <p className="text-[10px] uppercase tracking-widest text-fuchsia-300 text-center">
+            {session.pendingRestExercicio ? `${session.pendingRestExercicio} concluído` : 'Exercício concluído'}
+          </p>
+          <p className="text-sm font-bold text-center mt-0.5 mb-2.5">Quer descansar antes do próximo?</p>
+          <div className="grid grid-cols-3 gap-1.5">
+            {[Math.max(15, session.pendingRestSeg), 60, 90].filter((v, i, a) => a.indexOf(v) === i).map(s => (
+              <button
+                key={s}
+                onClick={() => iniciarDescanso(s)}
+                className="h-10 rounded-lg text-xs font-bold text-slate-900 active:scale-95"
+                style={{ background: 'linear-gradient(90deg, #22d3ee, #67e8f9)' }}
+              >
+                {s}s
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={dispensarDescanso}
+            className="w-full mt-1.5 h-10 rounded-lg text-xs font-semibold bg-slate-800/60 border border-slate-700 text-slate-300 active:scale-95"
+          >
+            Sem descanso — seguir direto
+          </button>
+        </FitnessCard>
+      )}
+
       {descansoSeg > 0 && (
         <FitnessCard glow="fuchsia" className="mb-3 text-center !py-3">
           <p className="text-[10px] uppercase tracking-widest text-fuchsia-300">Descanso</p>
-          <p className="text-2xl font-black tabular-nums">{fmt(descansoSeg)}</p>
-          <button onClick={() => patch({ restEndsAt: null })} className="text-[11px] text-slate-400 mt-1 underline">pular descanso</button>
+          <p className="text-4xl font-black tabular-nums">{fmt(descansoSeg)}</p>
+          <div className="flex gap-1.5 justify-center mt-2">
+            <button onClick={() => addDescanso(30)} className="h-9 px-3 rounded-lg text-[11px] font-semibold bg-slate-800/60 border border-slate-700">+30s</button>
+            <button onClick={() => addDescanso(-15)} className="h-9 px-3 rounded-lg text-[11px] font-semibold bg-slate-800/60 border border-slate-700">-15s</button>
+            <button onClick={() => patch({ restEndsAt: null })} className="h-9 px-3 rounded-lg text-[11px] font-semibold bg-emerald-500/15 border border-emerald-400/40 text-emerald-300">Pular</button>
+          </div>
         </FitnessCard>
       )}
 
@@ -781,6 +892,9 @@ const SessaoTreino = ({
           const delta = (Number.isFinite(cargaAtualNum) && ex.cargaUltima != null)
             ? cargaAtualNum - ex.cargaUltima
             : null;
+          const sugestao = ex.tipo === 'musculacao' ? sugerirProgressao(ex.cargaUltima) : null;
+          const mostrarSugestao = sugestao != null && !ex.feito && !ex.pulado &&
+            (!Number.isFinite(cargaAtualNum) || cargaAtualNum < sugestao);
           return (
             <FitnessCard
               key={ex.id}
