@@ -24,6 +24,7 @@ interface Workout {
   ativo: boolean;
   created_at?: string;
   expires_at?: string | null;
+  dias_semana?: number[] | null;
 }
 interface Exercise {
   id: string;
