@@ -8,7 +8,13 @@ import { Sparkles, Plus, Trash2, Save, Wand2, Pencil, ArrowLeft, Loader2 } from 
 import { toast } from 'sonner';
 
 type Exercicio = { nome: string; series: number; repeticoes: string; descanso_seg: number };
-type DiaTreino = { dia: number; foco: string; exercicios: Exercicio[]; cardio: string };
+type DiaTreino = { dia: number; foco: string; exercicios: Exercicio[]; cardio: string; dias_semana?: number[] };
+
+const DIAS_SEMANA = [
+  { v: 0, l: 'Dom' }, { v: 1, l: 'Seg' }, { v: 2, l: 'Ter' }, { v: 3, l: 'Qua' },
+  { v: 4, l: 'Qui' }, { v: 5, l: 'Sex' }, { v: 6, l: 'Sáb' },
+];
+
 type Plano = {
   aba: 'geracao_inteligente_treino';
   modo: 'ia' | 'manual';
