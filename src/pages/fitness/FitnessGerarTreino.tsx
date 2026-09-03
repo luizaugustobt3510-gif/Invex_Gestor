@@ -391,19 +391,19 @@ const FitnessGerarTreino = () => {
 
       <FitnessCard className="mb-3">
         <h2 className="text-sm font-bold mb-3">⏱️ Frequência & duração</h2>
-        <div className="grid grid-cols-3 gap-2">
-          <Field label="Dias/sem">
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5, 6, 7].map(n => (
-                <button key={n} onClick={() => setForm({ ...form, dias_por_semana: n })}
-                  className={`flex-1 h-11 rounded-lg border text-sm font-bold ${form.dias_por_semana === n ? 'bg-cyan-400/15 border-cyan-400 text-cyan-200' : 'border-slate-700 text-slate-400'}`}>
-                  {n}
-                </button>
-              ))}
-            </div>
-          </Field>
-
+        <Field label="Dias/sem" className="mb-3">
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5, 6, 7].map(n => (
+              <button key={n} onClick={() => setForm({ ...form, dias_por_semana: n })}
+                className={`flex-1 h-11 rounded-lg border text-sm font-bold ${form.dias_por_semana === n ? 'bg-cyan-400/15 border-cyan-400 text-cyan-200' : 'border-slate-700 text-slate-400'}`}>
+                {n}
+              </button>
+            ))}
+          </div>
+        </Field>
+        <div className="grid grid-cols-2 gap-2">
           <Field label="Treino (min)">
+
             <input type="number" min={15} max={180} step={5} value={form.tempo_treino_min}
               onChange={e => setForm({ ...form, tempo_treino_min: parseInt(e.target.value) || 60 })}
               className="w-full h-11 px-3 rounded-lg bg-slate-800/60 border border-slate-700 text-center text-base focus:border-cyan-400 focus:outline-none" />
