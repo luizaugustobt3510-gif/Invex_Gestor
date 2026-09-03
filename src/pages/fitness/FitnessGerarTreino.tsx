@@ -393,10 +393,16 @@ const FitnessGerarTreino = () => {
         <h2 className="text-sm font-bold mb-3">⏱️ Frequência & duração</h2>
         <div className="grid grid-cols-3 gap-2">
           <Field label="Dias/sem">
-            <input type="number" min={1} max={7} value={form.dias_por_semana}
-              onChange={e => setForm({ ...form, dias_por_semana: Math.min(7, Math.max(1, parseInt(e.target.value) || 1)) })}
-              className="w-full h-11 px-3 rounded-lg bg-slate-800/60 border border-slate-700 text-center text-base focus:border-cyan-400 focus:outline-none" />
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5, 6, 7].map(n => (
+                <button key={n} onClick={() => setForm({ ...form, dias_por_semana: n })}
+                  className={`flex-1 h-11 rounded-lg border text-sm font-bold ${form.dias_por_semana === n ? 'bg-cyan-400/15 border-cyan-400 text-cyan-200' : 'border-slate-700 text-slate-400'}`}>
+                  {n}
+                </button>
+              ))}
+            </div>
           </Field>
+
           <Field label="Treino (min)">
             <input type="number" min={15} max={180} step={5} value={form.tempo_treino_min}
               onChange={e => setForm({ ...form, tempo_treino_min: parseInt(e.target.value) || 60 })}
