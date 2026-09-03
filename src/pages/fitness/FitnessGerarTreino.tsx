@@ -253,6 +253,29 @@ const FitnessGerarTreino = () => {
                 </button>
               </div>
 
+              <div className="mb-2">
+                <label className="text-[10px] uppercase tracking-wide text-slate-400 block mb-1">Dias da semana</label>
+                <div className="flex gap-1">
+                  {DIAS_SEMANA.map(d => {
+                    const sel = (dia.dias_semana || []).includes(d.v);
+                    return (
+                      <button
+                        key={d.v}
+                        onClick={() => {
+                          const atual = dia.dias_semana || [];
+                          const novo = sel ? atual.filter(x => x !== d.v) : [...atual, d.v].sort((a, b) => a - b);
+                          updateDia(di, { dias_semana: novo });
+                        }}
+                        className={`flex-1 h-9 rounded-lg border text-[11px] font-bold ${sel ? 'bg-fuchsia-400/15 border-fuchsia-400 text-fuchsia-200' : 'border-slate-700 text-slate-400'}`}
+                      >
+                        {d.l}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+
               <div className="space-y-2">
                 {dia.exercicios.map((ex, ei) => (
                   <div key={ei} className="rounded-lg border border-slate-700/60 bg-slate-900/40 p-2">
