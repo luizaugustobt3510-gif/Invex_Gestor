@@ -8,7 +8,13 @@ import { Sparkles, Plus, Trash2, Save, Wand2, Pencil, ArrowLeft, Loader2 } from 
 import { toast } from 'sonner';
 
 type Exercicio = { nome: string; series: number; repeticoes: string; descanso_seg: number };
-type DiaTreino = { dia: number; foco: string; exercicios: Exercicio[]; cardio: string };
+type DiaTreino = { dia: number; foco: string; exercicios: Exercicio[]; cardio: string; dias_semana?: number[] };
+
+const DIAS_SEMANA = [
+  { v: 0, l: 'Dom' }, { v: 1, l: 'Seg' }, { v: 2, l: 'Ter' }, { v: 3, l: 'Qua' },
+  { v: 4, l: 'Qui' }, { v: 5, l: 'Sex' }, { v: 6, l: 'Sáb' },
+];
+
 type Plano = {
   aba: 'geracao_inteligente_treino';
   modo: 'ia' | 'manual';
@@ -149,10 +155,12 @@ const FitnessGerarTreino = () => {
             nome,
             grupo_muscular: dia.foco || null,
             cor: cores[(dia.dia - 1) % cores.length],
-          })
+            dias_semana: dia.dias_semana?.length ? dia.dias_semana : null,
+          } as any)
           .select()
           .single();
         if (e1) throw e1;
+
         if (dia.exercicios?.length) {
           const rows = dia.exercicios.map((ex, i) => ({
             workout_id: (wk as any).id,
@@ -246,6 +254,29 @@ const FitnessGerarTreino = () => {
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
+
+              <div className="mb-2">
+                <label className="text-[10px] uppercase tracking-wide text-slate-400 block mb-1">Dias da semana</label>
+                <div className="flex gap-1">
+                  {DIAS_SEMANA.map(d => {
+                    const sel = (dia.dias_semana || []).includes(d.v);
+                    return (
+                      <button
+                        key={d.v}
+                        onClick={() => {
+                          const atual = dia.dias_semana || [];
+                          const novo = sel ? atual.filter(x => x !== d.v) : [...atual, d.v].sort((a, b) => a - b);
+                          updateDia(di, { dias_semana: novo });
+                        }}
+                        className={`flex-1 h-9 rounded-lg border text-[11px] font-bold ${sel ? 'bg-fuchsia-400/15 border-fuchsia-400 text-fuchsia-200' : 'border-slate-700 text-slate-400'}`}
+                      >
+                        {d.l}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
 
               <div className="space-y-2">
                 {dia.exercicios.map((ex, ei) => (
@@ -385,13 +416,19 @@ const FitnessGerarTreino = () => {
 
       <FitnessCard className="mb-3">
         <h2 className="text-sm font-bold mb-3">⏱️ Frequência & duração</h2>
-        <div className="grid grid-cols-3 gap-2">
-          <Field label="Dias/sem">
-            <input type="number" min={1} max={7} value={form.dias_por_semana}
-              onChange={e => setForm({ ...form, dias_por_semana: Math.min(7, Math.max(1, parseInt(e.target.value) || 1)) })}
-              className="w-full h-11 px-3 rounded-lg bg-slate-800/60 border border-slate-700 text-center text-base focus:border-cyan-400 focus:outline-none" />
-          </Field>
+        <Field label="Dias/sem" className="mb-3">
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5, 6, 7].map(n => (
+              <button key={n} onClick={() => setForm({ ...form, dias_por_semana: n })}
+                className={`flex-1 h-11 rounded-lg border text-sm font-bold ${form.dias_por_semana === n ? 'bg-cyan-400/15 border-cyan-400 text-cyan-200' : 'border-slate-700 text-slate-400'}`}>
+                {n}
+              </button>
+            ))}
+          </div>
+        </Field>
+        <div className="grid grid-cols-2 gap-2">
           <Field label="Treino (min)">
+
             <input type="number" min={15} max={180} step={5} value={form.tempo_treino_min}
               onChange={e => setForm({ ...form, tempo_treino_min: parseInt(e.target.value) || 60 })}
               className="w-full h-11 px-3 rounded-lg bg-slate-800/60 border border-slate-700 text-center text-base focus:border-cyan-400 focus:outline-none" />

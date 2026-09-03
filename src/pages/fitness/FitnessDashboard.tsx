@@ -266,6 +266,41 @@ const FitnessDashboard = () => {
         </FitnessCard>
       </Link>
 
+      {/* Macros do dia */}
+      <FitnessCard className="mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-semibold">Metas de hoje</span>
+          <Link to="/fitness/alimentacao" className="text-[10px] text-cyan-300">registrar refeição</Link>
+        </div>
+        <div className="space-y-2.5">
+          {([
+            { label: 'Proteínas', v: mealTotals.proteinas, m: mealMeta?.proteinas, c: '#34d399' },
+            { label: 'Carboidratos', v: mealTotals.carboidratos, m: mealMeta?.carboidratos, c: '#f59e0b' },
+            { label: 'Gorduras', v: mealTotals.gorduras, m: mealMeta?.gorduras, c: '#e879f9' },
+            { label: 'Água (ml)', v: agua, m: aguaMeta, c: '#22d3ee' },
+          ] as const).map(item => {
+            const meta = item.m && item.m > 0 ? item.m : null;
+            const pct = meta ? Math.min(100, (item.v / meta) * 100) : 0;
+            return (
+              <div key={item.label}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] text-slate-300">{item.label}</span>
+                  <span className="text-[11px] text-slate-400">
+                    {Math.round(item.v)}{meta ? ` / ${Math.round(meta)}` : ''}
+                    {item.label === 'Água (ml)' ? '' : ' g'}
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full bg-slate-800/60 overflow-hidden">
+                  <div className="h-full transition-all duration-300" style={{ width: `${pct}%`, background: item.c }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {!mealMeta && (
+          <p className="text-[10px] text-slate-500 mt-2">Calcule suas metas no Processo de Emagrecimento.</p>
+        )}
+      </FitnessCard>
 
 
       <FitnessCard className="mb-4">
