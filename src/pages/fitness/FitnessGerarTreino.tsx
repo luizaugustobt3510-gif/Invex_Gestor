@@ -155,10 +155,12 @@ const FitnessGerarTreino = () => {
             nome,
             grupo_muscular: dia.foco || null,
             cor: cores[(dia.dia - 1) % cores.length],
-          })
+            dias_semana: dia.dias_semana?.length ? dia.dias_semana : null,
+          } as any)
           .select()
           .single();
         if (e1) throw e1;
+
         if (dia.exercicios?.length) {
           const rows = dia.exercicios.map((ex, i) => ({
             workout_id: (wk as any).id,
