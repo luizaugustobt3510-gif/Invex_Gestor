@@ -964,7 +964,17 @@ const SessaoTreino = ({
                   </button>
                 )}
               </div>
+              {mostrarSugestao && (
+                <button
+                  onClick={() => aplicarSugestao(ex.id, sugestao!)}
+                  className="mt-2 w-full h-8 rounded-lg border border-emerald-400/40 bg-emerald-500/10 text-[11px] font-semibold text-emerald-300 flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  Progredir para {sugestao}kg (antes {ex.cargaUltima}kg)
+                </button>
+              )}
             </FitnessCard>
+
           );
         })}
         {exs.length === 0 && (
