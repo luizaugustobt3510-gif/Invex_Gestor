@@ -8,7 +8,8 @@ import { useFitnessProfile } from '@/hooks/useFitnessProfile';
 import { useFitnessDailyLog } from '@/hooks/useFitnessDailyLog';
 import {
   Plus, Dumbbell, Play, Trash2, Check, Pause, X, Timer, ChevronRight, Pencil, Sparkles,
-  ArrowUp, ArrowDown, SkipForward, AlertTriangle, Heart, StretchHorizontal,
+  ArrowUp, ArrowDown, SkipForward, AlertTriangle, Heart, StretchHorizontal, TrendingUp,
+
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
