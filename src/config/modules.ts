@@ -47,6 +47,7 @@ export const MODULES_CATALOG: ModuleDef[] = [
     route: '/logistica/dashboard',
     submodules: [
       { key: 'logistica.dashboard', label: 'Dashboard' },
+      { key: 'logistica.indicadores', label: 'Indicadores' },
       { key: 'logistica.estoque', label: 'Estoque' },
       { key: 'logistica.ordem_compra', label: 'Ordens de Compra' },
       { key: 'logistica.conciliacao_estoque', label: 'Conciliação de Estoque' },
