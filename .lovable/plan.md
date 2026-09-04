@@ -1,38 +1,23 @@
-## Rodada 1 — Correções
+# Área de Downloads no site do Invex
 
-### 1. Bug FK stock_movements ao dispensar
-**Causa:** o trigger `apply_patient_consumption` é `BEFORE INSERT` em `patient_consumptions` e insere em `stock_movements` referenciando `NEW.id`. O FK `stock_movements_patient_consumption_fkey` não é `DEFERRABLE`, então o check acontece imediatamente e falha (linha-pai ainda não existe).
-**Fix:** migração — `ALTER CONSTRAINT ... DEFERRABLE INITIALLY DEFERRED`.
+Adicionar uma seção de downloads na página pública de divulgação (/institucional), onde você pode publicar arquivos com um nome amigável (ex: "Baixe o app de fitness", "Baixe a versão desktop") e os visitantes baixam com um clique.
 
-### 2. Anamnese — cascata (múltiplas respostas ativam pergunta) + múltipla escolha
-- Extender tipo `Question`:
-  - novo campo `conditions?: { questionId: string; values: string[] }[]` (compat: mantém `condition.equals` legado).
-  - novo `type: 'multi_escolha'` (array de opções, resposta serializada como JSON `["a","b"]`).
-- `AnamneseModelos.tsx`: editor de condições com selects de pergunta-alvo + checkboxes das respostas possíveis. Editor de opções para `multi_escolha`.
-- `NovaAnamnese.tsx`:
-  - Avaliação: pergunta visível se todas as `conditions` casam (qualquer valor da lista bate) ou não há condições. Mantém compat com `condition.equals`.
-  - Render `multi_escolha` como grid de toggles (sem auto-advance, botão "Continuar").
-  - Serializa/deserializa como JSON.
+## O que você vai ter
 
-### 3. Enquadramento
-Anamnese: container `min-h-[calc(100dvh-...)]` com `flex-col`, área da pergunta com `flex-1 overflow-y-auto`, sticky footer com botões. Cabe em tela pequena com rolagem interna.
+1. **Seção "Downloads" no site** — cards com nome, descrição curta, tamanho do arquivo e botão de baixar. Aparece só se houver arquivos publicados.
+2. **Painel de gerenciamento (só Super Administrador)** — nova página no menu do painel Super Admin para:
+   - enviar um arquivo (APK, instalador, PDF, ZIP etc., até 50 MB)
+   - definir título, descrição e ordem de exibição
+   - ativar/desativar sem apagar
+   - excluir em definitivo (arquivo removido do armazenamento também)
+3. **Contagem de downloads** por item, visível apenas no painel.
 
-### 4. ADM deletar/editar pacientes e anamneses
-- `Pacientes.tsx`: botões editar/excluir visíveis para `super_admin` / `admin_empresa`. Excluir → hardDeleteById('patients', id) com confirmação; bloqueia se houver anamneses/evoluções ligadas (mostra motivo).
-- `PacienteProntuario.tsx` aba Anamneses: botão excluir para admins → `anamneses` + tentativa de remover PDF do storage.
+## Detalhes técnicos
 
-### 5. Agrupar solicitações (1 pedido = 1 card com N itens)
-- Migração: `ALTER TABLE material_requests ADD COLUMN request_group_id uuid` + índice.
-- `SolicitarMaterial.tsx`: ao enviar o carrinho, gera 1 `request_group_id` (uuid client-side) aplicado a todos os itens do lote.
-- `ListarSolicitacoes.tsx`: agrupa por `request_group_id` (fallback: solicitações antigas sem group_id continuam como cards individuais). Card do pedido mostra header (solicitante, setor, data, total de itens) e lista expansível. Ações "Aceitar tudo" / "Entregar tudo" iteram nos itens; ações por item continuam disponíveis.
-
-### Arquivos afetados
-- Migração SQL (FK deferrable + coluna request_group_id).
-- `src/pages/clinica/AnamneseModelos.tsx`
-- `src/pages/clinica/NovaAnamnese.tsx`
-- `src/pages/clinica/Pacientes.tsx`
-- `src/pages/clinica/PacienteProntuario.tsx`
-- `src/pages/SolicitarMaterial.tsx`
-- `src/pages/ListarSolicitacoes.tsx`
-
-Rodada 2 (depois desta aprovar): novo módulo **Receituário** (simples/comum) com frases rápidas, PDF e histórico, integrado a paciente/anamnese.
+- Tabela `public.app_downloads`: `id`, `titulo`, `descricao`, `arquivo_path`, `arquivo_nome`, `tamanho_bytes`, `content_type`, `ordem`, `ativo`, `downloads_count`, `created_at`, `created_by`.
+- GRANTs: `SELECT` para `anon` e `authenticated`; `ALL` para `service_role`. RLS ligada: leitura pública apenas de `ativo = true`; escrita/alteração/remoção somente para `superadm` (via função de verificação de papel já existente no projeto).
+- Bucket de storage público `app-downloads` com políticas: leitura pública; insert/update/delete apenas superadm.
+- Página nova `src/pages/superadmin/GestaoDownloads.tsx` + rota protegida por `superadm`, item no menu lateral do Super Admin.
+- Seção nova em `src/pages/Institucional.tsx` consumindo a lista pública ordenada por `ordem`, com link direto para a URL pública do storage e `download` no anchor.
+- Incremento de `downloads_count` via função RPC `security definer` chamada no clique (falha silenciosa não bloqueia o download).
+- Nada existente é alterado além da inclusão da seção e das rotas/menu — módulos e fluxos atuais permanecem intactos.
