@@ -101,6 +101,7 @@ import CurvaABCInteligente from "./pages/logistica/CurvaABCInteligente";
 import EstoqueInteligente from "./pages/logistica/EstoqueInteligente";
 import EstoqueSetores from "./pages/logistica/EstoqueSetores";
 import ControleValidades from "./pages/logistica/ControleValidades";
+import IndicadoresLogistica from "./pages/logistica/IndicadoresLogistica";
 
 import DashboardManutencao from "./pages/manutencao/DashboardManutencao";
 import CadastroManutencao from "./pages/manutencao/CadastroManutencao";
@@ -145,6 +146,7 @@ const App = () => (
             
             {/* === LOGÍSTICA === */}
             <Route path="/logistica/dashboard" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.dashboard"><DashboardLogistica /></RoleProtectedRoute>} />
+            <Route path="/logistica/indicadores" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.indicadores"><IndicadoresLogistica /></RoleProtectedRoute>} />
             <Route path="/cadastrar-material" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica" submoduleKey="logistica.estoque"><CadastrarMaterial /></RoleProtectedRoute>} />
             <Route path="/atualizar-estoque" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica" submoduleKey="logistica.estoque"><AtualizarEstoque /></RoleProtectedRoute>} />
             <Route path="/gerar-oc" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica" submoduleKey="logistica.ordem_compra"><GerarOC /></RoleProtectedRoute>} />
