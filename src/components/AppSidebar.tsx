@@ -301,6 +301,13 @@ const logisticsGroups: MenuGroup[] = [
         submoduleKey: "logistica.curva_abc",
       },
       {
+        path: "/logistica/indicadores",
+        label: "Indicadores",
+        icon: <BarChart3 className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "usuario almox"],
+        submoduleKey: "logistica.indicadores",
+      },
+      {
         path: "/estoque-setores",
         label: "Estoque por Setor",
         icon: <Building2 className="w-4 h-4" />,
