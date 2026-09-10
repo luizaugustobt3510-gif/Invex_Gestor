@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Institucional from "./pages/Institucional";
+import ValidarReceita from "./pages/ValidarReceita";
 import { AuthProvider } from "./contexts/AuthContext";
 import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
 import { EmailRestrictedRoute } from "./components/EmailRestrictedRoute";
@@ -136,6 +137,8 @@ const App = () => (
             <Route path="/accept-invite" element={<AcceptInvite />} />
             <Route path="/demo" element={<DemoMode />} />
             <Route path="/institucional" element={<Institucional />} />
+            <Route path="/validar" element={<ValidarReceita />} />
+            <Route path="/validar/:codigo" element={<ValidarReceita />} />
             
             {/* Home — all authenticated roles */}
             <Route path="/" element={

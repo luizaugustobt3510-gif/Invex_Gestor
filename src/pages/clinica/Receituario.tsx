@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { DocumentSignaturePicker, DocumentSignatureValue } from '@/components/DocumentSignaturePicker';
 import { printHtmlDocument, buildPdfFilename } from '@/lib/pdfDownload';
+import QRCode from 'qrcode';
 
 interface Patient { id: string; nome: string; cpf: string | null; birth_date: string | null; }
 
@@ -34,6 +35,10 @@ interface Prescription {
   observacoes: string | null;
   professional_name: string | null;
   professional_signature: string | null;
+  tecnico_name: string | null;
+  tecnico_signature: string | null;
+  validation_code: string | null;
+  doc_hash: string | null;
   created_by: string | null;
   created_by_name: string | null;
   created_at: string;
@@ -51,6 +56,19 @@ const TEMPLATE_PLACEHOLDER =
   '1) Medicamento — dosagem\n    Tomar ___ a cada ___ horas por ___ dias.\n\n2) Medicamento — dosagem\n    ...';
 
 interface QuickMed { id: string; title: string; content: string }
+
+const gerarCodigo = () => {
+  const alfabeto = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const bytes = new Uint8Array(12);
+  crypto.getRandomValues(bytes);
+  const raw = Array.from(bytes, b => alfabeto[b % alfabeto.length]).join('');
+  return `${raw.slice(0, 4)}-${raw.slice(4, 8)}-${raw.slice(8, 12)}`;
+};
+
+const gerarHash = async (texto: string) => {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32).toUpperCase();
+};
 
 export default function Receituario() {
   const { user } = useAuth();
@@ -73,6 +91,8 @@ export default function Receituario() {
   const [obs, setObs] = useState('');
   const [profName, setProfName] = useState(user?.nome || '');
   const [profSig, setProfSig] = useState<DocumentSignatureValue>({ mode: 'none' });
+  const [tecName, setTecName] = useState('');
+  const [tecSig, setTecSig] = useState<DocumentSignatureValue>({ mode: 'none' });
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -127,6 +147,8 @@ export default function Receituario() {
     setObs('');
     setProfName(user?.nome || '');
     setProfSig({ mode: 'none' });
+    setTecName('');
+    setTecSig({ mode: 'none' });
   };
 
   const openEdit = (rx: Prescription) => {
@@ -135,6 +157,8 @@ export default function Receituario() {
     setContent(rx.content || '');
     setObs(rx.observacoes || '');
     setProfName(rx.professional_name || user?.nome || '');
+    setTecName(rx.tecnico_name || '');
+    setTecSig(rx.tecnico_signature ? { mode: 'now', dataUrl: rx.tecnico_signature } : { mode: 'none' });
     if (rx.professional_signature) {
       setProfSig({ mode: 'now', dataUrl: rx.professional_signature });
     } else {
@@ -147,6 +171,14 @@ export default function Receituario() {
     if (v.mode === 'saved') {
       const label = [v.nome, v.credencial].filter(Boolean).join(' — ');
       if (label) setProfName(label);
+    }
+  };
+
+  const handleTecSigChange = (v: DocumentSignatureValue) => {
+    setTecSig(v);
+    if (v.mode === 'saved') {
+      const label = [v.nome, v.credencial].filter(Boolean).join(' — ');
+      if (label) setTecName(label);
     }
   };
 
@@ -175,6 +207,13 @@ export default function Receituario() {
           : profSig.mode === 'saved'
             ? profSig.signedUrl || null
             : null,
+      tecnico_name: tecName.trim() || null,
+      tecnico_signature:
+        tecSig.mode === 'now'
+          ? tecSig.dataUrl || null
+          : tecSig.mode === 'saved'
+            ? tecSig.signedUrl || null
+            : null,
     };
     let error: any = null;
     if (editingId) {
@@ -182,6 +221,8 @@ export default function Receituario() {
         .update(payload).eq('id', editingId);
       error = res.error;
     } else {
+      payload.validation_code = gerarCodigo();
+      payload.doc_hash = await gerarHash(`${patientId}|${content.trim()}|${payload.validation_code}`);
       payload.created_by = uidUser;
       payload.created_by_name = user.nome || null;
       const res = await (supabase.from('prescriptions' as any) as any).insert(payload);
@@ -204,13 +245,24 @@ export default function Receituario() {
     loadItems(patientId);
   };
 
-  const printRx = (rx: Prescription) => {
+  const printRx = async (rx: Prescription) => {
     const dt = new Date(rx.created_at);
     const dataStr = dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR').slice(0, 5);
     const esc = (s: string) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const sigImg = rx.professional_signature
       ? `<img src="${rx.professional_signature}" style="max-height:80px;" />`
       : '';
+    const tecSigImg = rx.tecnico_signature
+      ? `<img src="${rx.tecnico_signature}" style="max-height:70px;" />`
+      : '';
+    const validarUrl = `${window.location.origin}/validar/${rx.validation_code || ''}`;
+    let qrImg = '';
+    if (rx.validation_code) {
+      try {
+        const qr = await QRCode.toDataURL(validarUrl, { margin: 1, width: 160 });
+        qrImg = `<img src="${qr}" style="width:110px;height:110px;" alt="QR Code de validação" />`;
+      } catch { /* segue sem QR */ }
+    }
     const docTitle = buildPdfFilename(patient?.nome, dt).replace(/\.pdf$/, '');
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(docTitle)}</title>
       <style>
@@ -219,8 +271,15 @@ export default function Receituario() {
         .muted { color:#555; font-size: 12px; }
         .box { border:1px solid #ddd; border-radius:8px; padding:16px; margin-top:16px; }
         pre { white-space: pre-wrap; font-family: inherit; font-size: 14px; line-height: 1.5; margin:0; }
-        .sig { margin-top: 60px; text-align:center; }
-        .sig .line { border-top:1px solid #333; width: 320px; margin: 0 auto 6px; }
+        .sigs { margin-top: 56px; display:flex; gap:24px; justify-content:center; flex-wrap:wrap; }
+        .sig { text-align:center; min-width: 260px; }
+        .sig .line { border-top:1px solid #333; width: 260px; margin: 0 auto 6px; }
+        .sig .role { font-size: 11px; color:#555; }
+        .valid { margin-top: 32px; display:flex; gap:14px; align-items:center; justify-content:center;
+                 border:1px solid #ddd; border-radius:8px; padding:12px; }
+        .valid .info { font-size: 11px; color:#333; line-height:1.5; }
+        .code { font-family: monospace; font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+        .footer { margin-top: 24px; text-align:center; font-size: 11px; color:#666; }
         @media print { body { padding: 24px; } }
       </style></head><body>
       <h1>Receita Médica</h1>
@@ -234,11 +293,31 @@ export default function Receituario() {
         <pre>${esc(rx.content)}</pre>
       </div>
       ${rx.observacoes ? `<div class="box"><div class="muted" style="margin-bottom:8px;">Observações</div><pre>${esc(rx.observacoes)}</pre></div>` : ''}
-      <div class="sig">
-        ${sigImg}
-        <div class="line"></div>
-        <div>${esc(rx.professional_name || rx.created_by_name || '')}</div>
+      <div class="sigs">
+        <div class="sig">
+          ${sigImg}
+          <div class="line"></div>
+          <div>${esc(rx.professional_name || rx.created_by_name || '')}</div>
+          <div class="role">Médico responsável</div>
+        </div>
+        ${rx.tecnico_name || tecSigImg ? `<div class="sig">
+          ${tecSigImg}
+          <div class="line"></div>
+          <div>${esc(rx.tecnico_name || '')}</div>
+          <div class="role">Técnico responsável</div>
+        </div>` : ''}
       </div>
+      ${rx.validation_code ? `<div class="valid">
+        ${qrImg}
+        <div class="info">
+          <div><strong>Validação do documento</strong></div>
+          <div>Aponte a câmera para o QR Code ou acesse ${esc(window.location.origin)}/validar</div>
+          <div>Código: <span class="code">${esc(rx.validation_code)}</span></div>
+          ${rx.doc_hash ? `<div>Resumo (SHA-256): ${esc(rx.doc_hash)}</div>` : ''}
+          <div>Assinado eletronicamente nos termos da MP 2.200-2/2001 (ICP-Brasil).</div>
+        </div>
+      </div>` : ''}
+      <div class="footer">Tecnologia Invex Gestor 2026</div>
       </body></html>`;
     const ok = printHtmlDocument(html, docTitle);
     if (!ok) toast.error('Não foi possível abrir a impressão');
@@ -376,7 +455,7 @@ export default function Receituario() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <Label>Profissional {profSig.mode !== 'saved' && <span className="text-destructive">*</span>}</Label>
+                <Label>Médico responsável {profSig.mode !== 'saved' && <span className="text-destructive">*</span>}</Label>
                 <Input
                   value={profName}
                   onChange={e => setProfName(e.target.value)}
@@ -391,7 +470,36 @@ export default function Receituario() {
                 </p>
               </div>
               <div>
-                <DocumentSignaturePicker onChange={handleSigChange} />
+                <DocumentSignaturePicker
+                  label="Assinatura do médico"
+                  signatureType="medico"
+                  highlight
+                  onChange={handleSigChange}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <Label>Técnico responsável (opcional)</Label>
+                <Input
+                  value={tecName}
+                  onChange={e => setTecName(e.target.value)}
+                  placeholder="Nome / registro do técnico"
+                  readOnly={tecSig.mode === 'saved'}
+                  className={tecSig.mode === 'saved' ? 'bg-muted' : ''}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Preenchido automaticamente quando você escolhe uma assinatura de técnico.
+                </p>
+              </div>
+              <div>
+                <DocumentSignaturePicker
+                  label="Assinatura do técnico"
+                  signatureType="tecnico"
+                  defaultMode="none"
+                  onChange={handleTecSigChange}
+                />
               </div>
             </div>
 
