@@ -23,6 +23,12 @@ interface Props {
   onChange: (v: DocumentSignatureValue) => void;
   /** Filter saved signatures by sector id (optional) */
   sectorId?: string;
+  /** Filter saved signatures by type (medico | tecnico) */
+  signatureType?: 'medico' | 'tecnico';
+  /** Highlight the box in yellow (used for the doctor signature) */
+  highlight?: boolean;
+  /** Start with no signature selected */
+  defaultMode?: DocumentSignatureMode;
 }
 
 interface SavedSig {
@@ -33,10 +39,12 @@ interface SavedSig {
   is_default: boolean;
   sector_id: string | null;
   is_shared?: boolean;
+  signature_type?: string | null;
+  is_active?: boolean | null;
   _signed?: string;
 }
 
-export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sectorId }: Props) {
+export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sectorId, signatureType, highlight, defaultMode }: Props) {
   const { user } = useAuth();
   const [mode, setMode] = useState<DocumentSignatureMode>('saved');
   const [sigs, setSigs] = useState<SavedSig[]>([]);
