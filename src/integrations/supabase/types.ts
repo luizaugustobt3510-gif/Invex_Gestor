@@ -3452,13 +3452,17 @@ export type Database = {
           created_at: string
           created_by: string | null
           created_by_name: string | null
+          doc_hash: string | null
           id: string
           observacoes: string | null
           patient_id: string
           professional_name: string | null
           professional_signature: string | null
+          tecnico_name: string | null
+          tecnico_signature: string | null
           tipo: string
           updated_at: string
+          validation_code: string | null
         }
         Insert: {
           company_id: string
@@ -3466,13 +3470,17 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_name?: string | null
+          doc_hash?: string | null
           id?: string
           observacoes?: string | null
           patient_id: string
           professional_name?: string | null
           professional_signature?: string | null
+          tecnico_name?: string | null
+          tecnico_signature?: string | null
           tipo?: string
           updated_at?: string
+          validation_code?: string | null
         }
         Update: {
           company_id?: string
@@ -3480,13 +3488,17 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_name?: string | null
+          doc_hash?: string | null
           id?: string
           observacoes?: string | null
           patient_id?: string
           professional_name?: string | null
           professional_signature?: string | null
+          tecnico_name?: string | null
+          tecnico_signature?: string | null
           tipo?: string
           updated_at?: string
+          validation_code?: string | null
         }
         Relationships: [
           {
@@ -4566,13 +4578,18 @@ export type Database = {
           company_id: string
           created_at: string
           credencial: string | null
+          icp_serie: string | null
+          icp_titular: string | null
+          icp_validade: string | null
           id: string
           image_url: string
+          is_active: boolean
           is_default: boolean
           is_shared: boolean
           nome: string
           sector_id: string | null
           sector_nome: string | null
+          signature_type: string
           updated_at: string
           user_id: string
         }
@@ -4580,13 +4597,18 @@ export type Database = {
           company_id: string
           created_at?: string
           credencial?: string | null
+          icp_serie?: string | null
+          icp_titular?: string | null
+          icp_validade?: string | null
           id?: string
           image_url: string
+          is_active?: boolean
           is_default?: boolean
           is_shared?: boolean
           nome: string
           sector_id?: string | null
           sector_nome?: string | null
+          signature_type?: string
           updated_at?: string
           user_id: string
         }
@@ -4594,13 +4616,18 @@ export type Database = {
           company_id?: string
           created_at?: string
           credencial?: string | null
+          icp_serie?: string | null
+          icp_titular?: string | null
+          icp_validade?: string | null
           id?: string
           image_url?: string
+          is_active?: boolean
           is_default?: boolean
           is_shared?: boolean
           nome?: string
           sector_id?: string | null
           sector_nome?: string | null
+          signature_type?: string
           updated_at?: string
           user_id?: string
         }
@@ -4729,6 +4756,7 @@ export type Database = {
         Args: { _company_id: string; _module_key: string; _user_id: string }
         Returns: boolean
       }
+      validate_prescription: { Args: { _codigo: string }; Returns: Json }
     }
     Enums: {
       app_role:
