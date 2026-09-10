@@ -46,7 +46,7 @@ interface SavedSig {
 
 export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sectorId, signatureType, highlight, defaultMode }: Props) {
   const { user } = useAuth();
-  const [mode, setMode] = useState<DocumentSignatureMode>('saved');
+  const [mode, setMode] = useState<DocumentSignatureMode>(defaultMode || 'saved');
   const [sigs, setSigs] = useState<SavedSig[]>([]);
   const [sigId, setSigId] = useState('');
   const padRef = useRef<SignaturePadHandle>(null);
@@ -55,7 +55,7 @@ export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sector
     (async () => {
       const { data: authUser } = await supabase.auth.getUser();
       if (!authUser.user) return;
-      const cols = 'id, nome, credencial, image_url, is_default, sector_id, is_shared';
+      const cols = 'id, nome, credencial, image_url, is_default, sector_id, is_shared, signature_type, is_active';
       const [ownRes, sharedRes] = await Promise.all([
         supabase
           .from('user_signatures')
@@ -92,8 +92,11 @@ export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sector
         return { ...s, _signed: signed?.signedUrl || '' };
       }));
       setSigs(withUrls);
-      const def = withUrls.find(s => s.is_default) || withUrls[0];
-      if (def) {
+      const usable = withUrls
+        .filter(s => s.is_active !== false)
+        .filter(s => (signatureType ? (s.signature_type || 'medico') === signatureType : true));
+      const def = usable.find(s => s.is_default) || usable[0];
+      if (def && (defaultMode || 'saved') === 'saved') {
         setSigId(def.id);
         emit('saved', undefined, def);
       } else {
@@ -105,7 +108,10 @@ export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sector
   }, [user?.companyId]);
 
 
-  const filtered = sectorId ? sigs.filter(s => !s.sector_id || s.sector_id === sectorId) : sigs;
+  const filtered = sigs
+    .filter(s => s.is_active !== false)
+    .filter(s => (signatureType ? (s.signature_type || 'medico') === signatureType : true))
+    .filter(s => (sectorId ? (!s.sector_id || s.sector_id === sectorId) : true));
 
   const emit = (m: DocumentSignatureMode, dataUrl?: string, saved?: SavedSig) => {
     if (m === 'none') return onChange({ mode: 'none' });
@@ -141,7 +147,7 @@ export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sector
   };
 
   return (
-    <div className="rounded-lg border p-3 bg-muted/20 space-y-2">
+    <div className={`rounded-lg border p-3 space-y-2 ${highlight ? 'border-warning bg-warning-light' : 'bg-muted/20'}`}>
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <Label className="text-sm font-medium">{label}</Label>
         <div className="flex gap-1 flex-wrap">
