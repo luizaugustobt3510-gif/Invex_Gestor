@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
-import { PenLine, Trash2, Upload, Star, Loader2, Plus, Image as ImageIcon, Users } from 'lucide-react';
+import { PenLine, Trash2, Upload, Star, Loader2, Plus, Image as ImageIcon, Users, Stethoscope, Wrench, Eye, EyeOff, Save } from 'lucide-react';
 
 interface Signature {
   id: string;
@@ -20,6 +20,11 @@ interface Signature {
   image_url: string;
   is_default: boolean;
   is_shared: boolean;
+  is_active: boolean;
+  signature_type: string | null;
+  icp_titular: string | null;
+  icp_serie: string | null;
+  icp_validade: string | null;
   sector_id: string | null;
   sector_nome: string | null;
   created_at: string;
@@ -37,10 +42,18 @@ export default function Assinaturas() {
   const [nome, setNome] = useState('');
   const [credencial, setCredencial] = useState('');
   const [sectorId, setSectorId] = useState<string>('');
+  const [tipo, setTipo] = useState<'medico' | 'tecnico'>('medico');
+  const [icpTitular, setIcpTitular] = useState('');
+  const [icpSerie, setIcpSerie] = useState('');
+  const [icpValidade, setIcpValidade] = useState('');
   const [mode, setMode] = useState<'draw' | 'upload'>('draw');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [urlsCache, setUrlsCache] = useState<Record<string, string>>({});
   const [myUserId, setMyUserId] = useState('');
+  const [editing, setEditing] = useState<Signature | null>(null);
+  const [editNome, setEditNome] = useState('');
+  const [editCred, setEditCred] = useState('');
+  const [editTipo, setEditTipo] = useState<'medico' | 'tecnico'>('medico');
   const padRef = useRef<SignaturePadHandle>(null);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadm';
 
@@ -61,7 +74,7 @@ export default function Assinaturas() {
     setSectors((secRes.data as Sector[]) || []);
     if (sigRes.error) toast.error('Erro ao carregar assinaturas');
     else {
-      const merged = [...((sigRes.data || []) as Signature[]), ...((sharedRes.data || []) as Signature[])];
+      const merged = [...((sigRes.data || []) as unknown as Signature[]), ...((sharedRes.data || []) as unknown as Signature[])];
       const rows = merged.filter((s, i) => merged.findIndex(x => x.id === s.id) === i);
       setItems(rows);
       const cache: Record<string, string> = {};
@@ -87,6 +100,33 @@ export default function Assinaturas() {
     }
   };
 
+  const toggleActive = async (item: Signature) => {
+    const { error } = await (supabase.from('user_signatures') as any)
+      .update({ is_active: !(item.is_active ?? true) })
+      .eq('id', item.id);
+    if (error) toast.error('Erro ao atualizar', { description: error.message });
+    else {
+      toast.success((item.is_active ?? true) ? 'Assinatura desativada' : 'Assinatura ativada');
+      load();
+    }
+  };
+
+  const openEdit = (item: Signature) => {
+    setEditing(item);
+    setEditNome(item.nome);
+    setEditCred(item.credencial || '');
+    setEditTipo((item.signature_type as 'medico' | 'tecnico') || 'medico');
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    if (!editNome.trim()) { toast.error('Informe o nome'); return; }
+    const { error } = await (supabase.from('user_signatures') as any)
+      .update({ nome: editNome.trim(), credencial: editCred.trim() || null, signature_type: editTipo })
+      .eq('id', editing.id);
+    if (error) toast.error('Erro ao salvar', { description: error.message });
+    else { toast.success('Assinatura atualizada'); setEditing(null); load(); }
+  };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [user?.companyId]);
 
@@ -94,6 +134,10 @@ export default function Assinaturas() {
     setNome('');
     setCredencial('');
     setSectorId('');
+    setTipo('medico');
+    setIcpTitular('');
+    setIcpSerie('');
+    setIcpValidade('');
     setUploadFile(null);
     setMode('draw');
     padRef.current?.clear();
@@ -127,13 +171,18 @@ export default function Assinaturas() {
       }
 
       const sector = sectors.find(s => s.id === sectorId);
-      const { error } = await supabase.from('user_signatures').insert({
+      const { error } = await (supabase.from('user_signatures') as any).insert({
         user_id: authUser.user.id,
         company_id: user.companyId,
         nome: nome.trim(),
         credencial: credencial.trim() || null,
         image_url: imagePath,
         is_default: items.length === 0,
+        signature_type: tipo,
+        is_active: true,
+        icp_titular: icpTitular.trim() || null,
+        icp_serie: icpSerie.trim() || null,
+        icp_validade: icpValidade || null,
         sector_id: sectorId || null,
         sector_nome: sector?.nome || null,
       });
@@ -171,7 +220,7 @@ export default function Assinaturas() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-3 flex-wrap">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <PenLine className="w-5 h-5" /> Minhas Assinaturas Eletrônicas
+              <PenLine className="w-5 h-5" /> Assinaturas Eletrônicas
             </CardTitle>
             {!showForm && (
               <Button size="sm" onClick={() => setShowForm(true)}>
@@ -182,7 +231,17 @@ export default function Assinaturas() {
           <CardContent>
             {showForm && (
               <div className="space-y-4 rounded-lg border p-3 sm:p-4 bg-muted/20 mb-4">
-                <div className="grid gap-3 sm:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-4">
+                  <div className="space-y-1.5">
+                    <Label>Tipo *</Label>
+                    <Select value={tipo} onValueChange={(v) => setTipo(v as 'medico' | 'tecnico')}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="medico">Médico</SelectItem>
+                        <SelectItem value="tecnico">Técnico</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="space-y-1.5">
                     <Label>Nome *</Label>
                     <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Dr. João Silva" />
@@ -199,6 +258,21 @@ export default function Assinaturas() {
                         {sectors.map(s => (<SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>))}
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="space-y-1.5">
+                    <Label>Titular do certificado (ICP-Brasil)</Label>
+                    <Input value={icpTitular} onChange={(e) => setIcpTitular(e.target.value)} placeholder="Nome no certificado" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Série do certificado</Label>
+                    <Input value={icpSerie} onChange={(e) => setIcpSerie(e.target.value)} placeholder="Número de série" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Validade do certificado</Label>
+                    <Input type="date" value={icpValidade} onChange={(e) => setIcpValidade(e.target.value)} />
                   </div>
                 </div>
 
@@ -242,8 +316,11 @@ export default function Assinaturas() {
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {items.map((s) => (
-                  <div key={s.id} className="rounded-lg border bg-card p-3 space-y-2">
+                {items.map((s) => {
+                  const ativa = s.is_active ?? true;
+                  const medico = (s.signature_type || 'medico') === 'medico';
+                  return (
+                  <div key={s.id} className={`rounded-lg border bg-card p-3 space-y-2 ${!ativa ? 'opacity-60' : ''}`}>
                     <div className="aspect-[3/1] w-full rounded bg-white flex items-center justify-center overflow-hidden border">
                       {urlsCache[s.id] ? (
                         <img src={urlsCache[s.id]} alt={s.nome} className="max-h-full max-w-full object-contain" />
@@ -251,53 +328,96 @@ export default function Assinaturas() {
                         <ImageIcon className="w-6 h-6 text-muted-foreground" />
                       )}
                     </div>
-                    <div className="text-center text-xs">
+                    <div className="text-center text-xs space-y-1">
+                      <div className="flex justify-center gap-1 flex-wrap">
+                        <Badge variant={medico ? 'default' : 'secondary'} className="gap-1 text-[10px]">
+                          {medico ? <Stethoscope className="w-3 h-3" /> : <Wrench className="w-3 h-3" />}
+                          {medico ? 'Médico' : 'Técnico'}
+                        </Badge>
+                        {!ativa && <Badge variant="outline" className="text-[10px]">Inativa</Badge>}
+                        {s.is_shared && (
+                          <Badge className="gap-1 text-[10px]">
+                            <Users className="w-3 h-3" /> Padrão da empresa
+                          </Badge>
+                        )}
+                      </div>
                       <div className="font-medium">{s.nome}</div>
                       {s.credencial && <div className="text-muted-foreground">{s.credencial}</div>}
                       {s.sector_nome && <div className="text-muted-foreground">Setor: {s.sector_nome}</div>}
-                      {s.is_shared && (
-                        <Badge className="mt-1 gap-1 text-[10px]">
-                          <Users className="w-3 h-3" /> Padrão da empresa
-                        </Badge>
-                      )}
+                      {s.icp_titular && <div className="text-muted-foreground">ICP: {s.icp_titular}</div>}
                     </div>
-                    {s.user_id === myUserId ? (
-                      <div className="flex items-center justify-between gap-2 pt-1">
-                        {s.is_default ? (
-                          <Badge variant="secondary" className="gap-1 text-[10px]">
-                            <Star className="w-3 h-3" /> Padrão
-                          </Badge>
-                        ) : (
-                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setDefault(s.id)}>
-                            <Star className="w-3 h-3 mr-1" /> Definir padrão
+
+                    {editing?.id === s.id ? (
+                      <div className="space-y-2 pt-1">
+                        <Input value={editNome} onChange={e => setEditNome(e.target.value)} placeholder="Nome" className="h-8 text-xs" />
+                        <Input value={editCred} onChange={e => setEditCred(e.target.value)} placeholder="CRM / Registro" className="h-8 text-xs" />
+                        <Select value={editTipo} onValueChange={(v) => setEditTipo(v as 'medico' | 'tecnico')}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="medico">Médico</SelectItem>
+                            <SelectItem value="tecnico">Técnico</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <div className="flex gap-2">
+                          <Button size="sm" className="h-7 text-xs flex-1" onClick={saveEdit}>
+                            <Save className="w-3 h-3 mr-1" /> Salvar
                           </Button>
-                        )}
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => remove(s)}>
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
+                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditing(null)}>Cancelar</Button>
+                        </div>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between gap-2 pt-1">
-                        <span className="text-[10px] text-muted-foreground">Assinatura de outro usuário</span>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => remove(s)}>
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    )}
-                    {isAdmin && (
-                      <Button
-                        size="sm"
-                        variant={s.is_shared ? 'secondary' : 'outline'}
-                        className="w-full h-7 text-xs"
-                        onClick={() => toggleShared(s)}
-                      >
-                        <Users className="w-3 h-3 mr-1" />
-                        {s.is_shared ? 'Remover da equipe' : 'Liberar para a equipe'}
-                      </Button>
-                    )}
+                      <>
+                        {s.user_id === myUserId ? (
+                          <div className="flex items-center justify-between gap-2 pt-1">
+                            {s.is_default ? (
+                              <Badge variant="secondary" className="gap-1 text-[10px]">
+                                <Star className="w-3 h-3" /> Padrão
+                              </Badge>
+                            ) : (
+                              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setDefault(s.id)}>
+                                <Star className="w-3 h-3 mr-1" /> Definir padrão
+                              </Button>
+                            )}
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => remove(s)}>
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between gap-2 pt-1">
+                            <span className="text-[10px] text-muted-foreground">Assinatura de outro usuário</span>
+                            {isAdmin && (
+                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => remove(s)}>
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        )}
 
+                        {isAdmin && (
+                          <div className="grid grid-cols-2 gap-2">
+                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => openEdit(s)}>
+                              <PenLine className="w-3 h-3 mr-1" /> Editar
+                            </Button>
+                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleActive(s)}>
+                              {ativa ? <EyeOff className="w-3 h-3 mr-1" /> : <Eye className="w-3 h-3 mr-1" />}
+                              {ativa ? 'Desativar' : 'Ativar'}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={s.is_shared ? 'secondary' : 'outline'}
+                              className="col-span-2 h-7 text-xs"
+                              onClick={() => toggleShared(s)}
+                            >
+                              <Users className="w-3 h-3 mr-1" />
+                              {s.is_shared ? 'Remover da equipe' : 'Liberar para a equipe'}
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
