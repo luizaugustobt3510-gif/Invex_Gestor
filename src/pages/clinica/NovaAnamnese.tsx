@@ -64,6 +64,7 @@ export default function NovaAnamnese() {
   const [anamSignatureId, setAnamSignatureId] = useState<string>('');
   const [anamSignOnFly, setAnamSignOnFly] = useState(false);
   const anamPadRef = useRef<any>(null);
+  const [tecName, setTecName] = useState('');
 
   const [patientPopoverOpen, setPatientPopoverOpen] = useState(false);
 
