@@ -794,6 +794,16 @@ export default function NovaAnamnese() {
                   ) : (
                     <InlineSignaturePad refObj={inlinePadRef} />
                   )}
+                  {rxEnabled && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Técnico responsável (opcional)</Label>
+                      <Input
+                        value={tecName}
+                        onChange={e => setTecName(e.target.value)}
+                        placeholder="Nome do técnico"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {rxEnabled && (
