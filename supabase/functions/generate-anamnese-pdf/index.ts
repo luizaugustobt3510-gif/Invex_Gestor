@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "npm:jspdf@2.5.2";
+import QRCode from "npm:qrcode@1.5.4";
 import { Image as IsImage } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
 
 const MAX_PDF_BYTES = 1024 * 1024; // 1 MB
@@ -57,6 +58,7 @@ interface AnamneseInput {
   anamnese_signature_image_url?: string;
   anamnese_signature_name?: string;
   anamnese_signature_credencial?: string;
+  tecnico_name?: string;
   prescription?: { tipo?: string; content: string } | null;
 }
 
@@ -417,6 +419,53 @@ Deno.serve(async (req) => {
       // Assinatura da receita
       await drawSignature(rxSig);
 
+      // Código de validação + resumo do documento (mesmo padrão do Receituário)
+      const alfabeto = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      const rnd = crypto.getRandomValues(new Uint8Array(10));
+      const rxCode = Array.from(rnd).map((n) => alfabeto[n % alfabeto.length]).join("");
+      const hashBuf = await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(`${patient.id}|${rxContent}|${rxCode}`)
+      );
+      const rxHash = Array.from(new Uint8Array(hashBuf))
+        .map((b) => b.toString(16).padStart(2, "0")).join("");
+
+      const origin = req.headers.get("origin") || "https://invexgestor.site";
+      const validarUrl = `${origin}/validar/${rxCode}`;
+
+      // Bloco de validação com QR Code
+      ensureSpace(42);
+      y += 6;
+      const boxY = y;
+      const boxH = 34;
+      doc.setDrawColor(200);
+      doc.rect(margin, boxY, contentWidth, boxH);
+      let qrDrawn = false;
+      try {
+        const qrDataUrl: string = await QRCode.toDataURL(validarUrl, { margin: 1, width: 160 });
+        doc.addImage(qrDataUrl, "PNG", margin + 3, boxY + 3, 28, 28, undefined, "FAST");
+        qrDrawn = true;
+      } catch (_e) { /* segue sem QR */ }
+      const infoX = margin + (qrDrawn ? 35 : 4);
+      let ty = boxY + 8;
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "bold");
+      doc.text("Validação do documento", infoX, ty); ty += 4;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.text(`Aponte a câmera para o QR Code ou acesse ${origin}/validar`, infoX, ty); ty += 3.6;
+      doc.text(`Código: ${rxCode}`, infoX, ty); ty += 3.6;
+      const hashLines = doc.splitTextToSize(`Resumo (SHA-256): ${rxHash}`, contentWidth - (infoX - margin) - 4);
+      doc.text(hashLines, infoX, ty); ty += hashLines.length * 3.4;
+      doc.text("Assinado eletronicamente nos termos da MP 2.200-2/2001 (ICP-Brasil).", infoX, ty);
+      y = boxY + boxH + 4;
+      doc.setFontSize(7.5);
+      doc.setTextColor(110);
+      doc.text("Tecnologia Invex Gestor 2026", pageWidth / 2, y, { align: "center" });
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(9);
+      y += 4;
+
       // Persist prescription in the patient's record
       await supabase.from("prescriptions").insert({
         company_id: effectiveCompanyId,
@@ -426,6 +475,9 @@ Deno.serve(async (req) => {
         observacoes: `Vinculada à anamnese Nº ${anamneseNumber}`,
         professional_name: body.signature_name || createdByName,
         professional_signature: null,
+        tecnico_name: body.tecnico_name || null,
+        validation_code: rxCode,
+        doc_hash: rxHash,
         created_by: userId,
         created_by_name: createdByName,
       });
@@ -450,6 +502,8 @@ Deno.serve(async (req) => {
       margin,
       y
     );
+    y += 3.5;
+    doc.text("Tecnologia Invex Gestor 2026", pageWidth / 2, y, { align: "center" });
     doc.setTextColor(0, 0, 0);
 
     const pdfBytes = doc.output("arraybuffer");

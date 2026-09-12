@@ -64,6 +64,7 @@ export default function NovaAnamnese() {
   const [anamSignatureId, setAnamSignatureId] = useState<string>('');
   const [anamSignOnFly, setAnamSignOnFly] = useState(false);
   const anamPadRef = useRef<any>(null);
+  const [tecName, setTecName] = useState('');
 
   const [patientPopoverOpen, setPatientPopoverOpen] = useState(false);
 
@@ -313,6 +314,7 @@ export default function NovaAnamnese() {
           anamnese_signature_image_url: anam?.url,
           anamnese_signature_name: anam?.nome,
           anamnese_signature_credencial: anam?.cred,
+          tecnico_name: hasRx ? (tecName.trim() || undefined) : undefined,
           prescription: hasRx
             ? { tipo: rxTipo, content: rxContent.trim() }
             : undefined,
@@ -758,10 +760,10 @@ export default function NovaAnamnese() {
                   )}
                 </div>
 
-                <div className="rounded-lg border p-3 bg-muted/20 space-y-3">
+                <div className={`rounded-lg border p-3 space-y-3 ${rxEnabled ? 'border-warning bg-warning-light' : 'bg-muted/20'}`}>
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <Label className="text-sm font-medium">
-                      {rxEnabled ? 'Assinatura da receita' : 'Assinatura do profissional'}
+                      {rxEnabled ? 'Assinatura do médico (receita)' : 'Assinatura do profissional'}
                     </Label>
                     <div className="flex gap-1">
                       <Button type="button" size="sm" variant={!signOnFly ? 'default' : 'outline'} onClick={() => setSignOnFly(false)}>
@@ -791,6 +793,16 @@ export default function NovaAnamnese() {
                     )
                   ) : (
                     <InlineSignaturePad refObj={inlinePadRef} />
+                  )}
+                  {rxEnabled && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Técnico responsável (opcional)</Label>
+                      <Input
+                        value={tecName}
+                        onChange={e => setTecName(e.target.value)}
+                        placeholder="Nome do técnico"
+                      />
+                    </div>
                   )}
                 </div>
 
