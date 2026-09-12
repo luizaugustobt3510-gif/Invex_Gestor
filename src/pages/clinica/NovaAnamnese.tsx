@@ -314,6 +314,7 @@ export default function NovaAnamnese() {
           anamnese_signature_image_url: anam?.url,
           anamnese_signature_name: anam?.nome,
           anamnese_signature_credencial: anam?.cred,
+          tecnico_name: hasRx ? (tecName.trim() || undefined) : undefined,
           prescription: hasRx
             ? { tipo: rxTipo, content: rxContent.trim() }
             : undefined,
