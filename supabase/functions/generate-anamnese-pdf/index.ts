@@ -502,6 +502,8 @@ Deno.serve(async (req) => {
       margin,
       y
     );
+    y += 3.5;
+    doc.text("Tecnologia Invex Gestor 2026", pageWidth / 2, y, { align: "center" });
     doc.setTextColor(0, 0, 0);
 
     const pdfBytes = doc.output("arraybuffer");
