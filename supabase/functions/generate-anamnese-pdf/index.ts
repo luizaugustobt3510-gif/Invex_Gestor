@@ -58,6 +58,7 @@ interface AnamneseInput {
   anamnese_signature_image_url?: string;
   anamnese_signature_name?: string;
   anamnese_signature_credencial?: string;
+  tecnico_name?: string;
   prescription?: { tipo?: string; content: string } | null;
 }
 
