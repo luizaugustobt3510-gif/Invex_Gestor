@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "npm:jspdf@2.5.2";
+import QRCode from "npm:qrcode@1.5.4";
 import { Image as IsImage } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
 
 const MAX_PDF_BYTES = 1024 * 1024; // 1 MB
