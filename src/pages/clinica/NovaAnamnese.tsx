@@ -67,6 +67,24 @@ export default function NovaAnamnese() {
   const anamPadRef = useRef<any>(null);
   const [tecName, setTecName] = useState('');
   const [tecSig, setTecSig] = useState<DocumentSignatureValue>({ mode: 'none' });
+  const [medName, setMedName] = useState('');
+  const [medSig, setMedSig] = useState<DocumentSignatureValue>({ mode: 'none' });
+
+  const handleMedSigChange = (v: DocumentSignatureValue) => {
+    setMedSig(v);
+    if (v.mode === 'saved') {
+      const label = [v.nome, v.credencial].filter(Boolean).join(' — ');
+      if (label) setMedName(label);
+    }
+  };
+
+  const handleTecSigChange = (v: DocumentSignatureValue) => {
+    setTecSig(v);
+    if (v.mode === 'saved') {
+      const label = [v.nome, v.credencial].filter(Boolean).join(' — ');
+      if (label) setTecName(label);
+    }
+  };
 
   const [patientPopoverOpen, setPatientPopoverOpen] = useState(false);
 
