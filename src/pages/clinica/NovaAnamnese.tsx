@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import type { Question } from './AnamneseModelos';
 import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
+import { DocumentSignaturePicker, DocumentSignatureValue } from '@/components/DocumentSignaturePicker';
 
 // Small local component to bridge ref to inline pad
 function InlineSignaturePad({ refObj }: { refObj: React.MutableRefObject<any> }) {
