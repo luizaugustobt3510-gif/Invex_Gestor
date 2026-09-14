@@ -333,14 +333,17 @@ Deno.serve(async (req) => {
       .toUpperCase();
     const stampDate = `${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR").slice(0, 8)}`;
 
-    const drawSignature = async (sig: { url?: string; name?: string; credencial?: string }) => {
+    const drawSignature = async (
+      sig: { url?: string; name?: string; credencial?: string },
+      align: "left" | "right" = "right",
+    ) => {
       const dataUrl = await loadSignature(sig.url);
       if (!dataUrl) return;
       try {
         ensureSpace(50);
         y += 8;
         const sigW = 60, sigH = 25;
-        const sigX = pageWidth - margin - sigW;
+        const sigX = align === "left" ? margin : pageWidth - margin - sigW;
         doc.addImage(dataUrl, "PNG", sigX, y, sigW, sigH, undefined, "FAST");
         y += sigH + 2;
         doc.setDrawColor(120);
