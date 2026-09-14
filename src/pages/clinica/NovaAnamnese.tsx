@@ -800,17 +800,27 @@ export default function NovaAnamnese() {
                   ) : (
                     <InlineSignaturePad refObj={inlinePadRef} />
                   )}
-                  {rxEnabled && (
+                </div>
+
+                {rxEnabled && (
+                  <div className="space-y-2">
+                    <DocumentSignaturePicker
+                      label="Assinatura do técnico (receita)"
+                      signatureType="tecnico"
+                      defaultMode="none"
+                      onChange={setTecSig}
+                    />
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Técnico responsável (opcional)</Label>
+                      <Label className="text-xs">Nome do técnico responsável (opcional)</Label>
                       <Input
                         value={tecName}
                         onChange={e => setTecName(e.target.value)}
                         placeholder="Nome do técnico"
                       />
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
 
                 {rxEnabled && (
                   <div className="rounded-lg border p-3 bg-muted/20 space-y-3">
