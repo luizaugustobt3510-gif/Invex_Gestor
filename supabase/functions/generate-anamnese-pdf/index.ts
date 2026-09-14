@@ -425,7 +425,13 @@ Deno.serve(async (req) => {
       await drawSignature(rxSig);
 
       // Técnico responsável (bloco separado do médico)
-      if (body.tecnico_name?.trim()) {
+      if (body.tecnico_signature_image_url) {
+        await drawSignature({
+          url: body.tecnico_signature_image_url,
+          name: body.tecnico_name || undefined,
+          credencial: body.tecnico_signature_credencial || "Técnico responsável",
+        }, "left");
+      } else if (body.tecnico_name?.trim()) {
         ensureSpace(20);
         y += 8;
         const tW = 60;
