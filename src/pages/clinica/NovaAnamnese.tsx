@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import type { Question } from './AnamneseModelos';
 import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
+import { DocumentSignaturePicker, DocumentSignatureValue } from '@/components/DocumentSignaturePicker';
 
 // Small local component to bridge ref to inline pad
 function InlineSignaturePad({ refObj }: { refObj: React.MutableRefObject<any> }) {
@@ -65,6 +66,7 @@ export default function NovaAnamnese() {
   const [anamSignOnFly, setAnamSignOnFly] = useState(false);
   const anamPadRef = useRef<any>(null);
   const [tecName, setTecName] = useState('');
+  const [tecSig, setTecSig] = useState<DocumentSignatureValue>({ mode: 'none' });
 
   const [patientPopoverOpen, setPatientPopoverOpen] = useState(false);
 
@@ -314,7 +316,11 @@ export default function NovaAnamnese() {
           anamnese_signature_image_url: anam?.url,
           anamnese_signature_name: anam?.nome,
           anamnese_signature_credencial: anam?.cred,
-          tecnico_name: hasRx ? (tecName.trim() || undefined) : undefined,
+          tecnico_name: hasRx ? (tecName.trim() || tecSig.nome || undefined) : undefined,
+          tecnico_signature_image_url: hasRx
+            ? (tecSig.mode === 'now' ? tecSig.dataUrl : tecSig.mode === 'saved' ? tecSig.signedUrl : undefined)
+            : undefined,
+          tecnico_signature_credencial: hasRx ? tecSig.credencial : undefined,
           prescription: hasRx
             ? { tipo: rxTipo, content: rxContent.trim() }
             : undefined,
@@ -794,17 +800,27 @@ export default function NovaAnamnese() {
                   ) : (
                     <InlineSignaturePad refObj={inlinePadRef} />
                   )}
-                  {rxEnabled && (
+                </div>
+
+                {rxEnabled && (
+                  <div className="space-y-2">
+                    <DocumentSignaturePicker
+                      label="Assinatura do técnico (receita)"
+                      signatureType="tecnico"
+                      defaultMode="none"
+                      onChange={setTecSig}
+                    />
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Técnico responsável (opcional)</Label>
+                      <Label className="text-xs">Nome do técnico responsável (opcional)</Label>
                       <Input
                         value={tecName}
                         onChange={e => setTecName(e.target.value)}
                         placeholder="Nome do técnico"
                       />
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
 
                 {rxEnabled && (
                   <div className="rounded-lg border p-3 bg-muted/20 space-y-3">

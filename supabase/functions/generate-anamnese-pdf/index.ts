@@ -59,6 +59,8 @@ interface AnamneseInput {
   anamnese_signature_name?: string;
   anamnese_signature_credencial?: string;
   tecnico_name?: string;
+  tecnico_signature_image_url?: string;
+  tecnico_signature_credencial?: string;
   prescription?: { tipo?: string; content: string } | null;
 }
 
@@ -331,14 +333,17 @@ Deno.serve(async (req) => {
       .toUpperCase();
     const stampDate = `${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR").slice(0, 8)}`;
 
-    const drawSignature = async (sig: { url?: string; name?: string; credencial?: string }) => {
+    const drawSignature = async (
+      sig: { url?: string; name?: string; credencial?: string },
+      align: "left" | "right" = "right",
+    ) => {
       const dataUrl = await loadSignature(sig.url);
       if (!dataUrl) return;
       try {
         ensureSpace(50);
         y += 8;
         const sigW = 60, sigH = 25;
-        const sigX = pageWidth - margin - sigW;
+        const sigX = align === "left" ? margin : pageWidth - margin - sigW;
         doc.addImage(dataUrl, "PNG", sigX, y, sigW, sigH, undefined, "FAST");
         y += sigH + 2;
         doc.setDrawColor(120);
@@ -420,7 +425,13 @@ Deno.serve(async (req) => {
       await drawSignature(rxSig);
 
       // Técnico responsável (bloco separado do médico)
-      if (body.tecnico_name?.trim()) {
+      if (body.tecnico_signature_image_url) {
+        await drawSignature({
+          url: body.tecnico_signature_image_url,
+          name: body.tecnico_name || undefined,
+          credencial: body.tecnico_signature_credencial || "Técnico responsável",
+        }, "left");
+      } else if (body.tecnico_name?.trim()) {
         ensureSpace(20);
         y += 8;
         const tW = 60;
