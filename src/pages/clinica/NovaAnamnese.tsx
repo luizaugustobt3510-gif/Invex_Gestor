@@ -316,7 +316,11 @@ export default function NovaAnamnese() {
           anamnese_signature_image_url: anam?.url,
           anamnese_signature_name: anam?.nome,
           anamnese_signature_credencial: anam?.cred,
-          tecnico_name: hasRx ? (tecName.trim() || undefined) : undefined,
+          tecnico_name: hasRx ? (tecName.trim() || tecSig.nome || undefined) : undefined,
+          tecnico_signature_image_url: hasRx
+            ? (tecSig.mode === 'now' ? tecSig.dataUrl : tecSig.mode === 'saved' ? tecSig.signedUrl : undefined)
+            : undefined,
+          tecnico_signature_credencial: hasRx ? tecSig.credencial : undefined,
           prescription: hasRx
             ? { tipo: rxTipo, content: rxContent.trim() }
             : undefined,
