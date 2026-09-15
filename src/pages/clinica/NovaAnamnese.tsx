@@ -786,44 +786,29 @@ export default function NovaAnamnese() {
                 </div>
 
                 <div className="rounded-lg border p-3 space-y-3 bg-muted/20">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <Label className="text-sm font-medium">
-                      {rxEnabled ? 'Assinatura da anamnese' : 'Assinatura do profissional'}
-                    </Label>
-                    <div className="flex gap-1">
-                      <Button type="button" size="sm" variant={!signOnFly ? 'default' : 'outline'} onClick={() => setSignOnFly(false)}>
-                        Salva
-                      </Button>
-                      <Button type="button" size="sm" variant={signOnFly ? 'default' : 'outline'} onClick={() => setSignOnFly(true)}>
-                        Assinar agora
-                      </Button>
+                  <Label className="text-sm font-medium">Assinatura da anamnese (técnico)</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Técnico responsável</Label>
+                      <Input
+                        value={tecName}
+                        onChange={e => setTecName(e.target.value)}
+                        placeholder="Nome / registro do técnico"
+                        readOnly={tecSig.mode === 'saved'}
+                        className={tecSig.mode === 'saved' ? 'bg-muted' : ''}
+                      />
                     </div>
+                    <DocumentSignaturePicker
+                      label="Assinatura do técnico"
+                      signatureType="tecnico"
+                      onChange={handleTecSigChange}
+                    />
                   </div>
-                  {!signOnFly ? (
-                    signatures.length === 0 ? (
-                      <div className="text-xs text-muted-foreground">
-                        Você não tem assinaturas salvas. <Link to="/assinaturas" className="text-primary underline">Cadastrar</Link> ou clique em "Assinar agora".
-                      </div>
-                    ) : (
-                      <Select value={signatureId} onValueChange={setSignatureId}>
-                        <SelectTrigger><SelectValue placeholder="Selecione uma assinatura" /></SelectTrigger>
-                        <SelectContent>
-                          {signatures.map(s => (
-                            <SelectItem key={s.id} value={s.id}>
-                              {s.nome}{s.credencial ? ` — ${s.credencial}` : ''}{s.is_default ? ' (padrão)' : ''}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )
-                  ) : (
-                    <InlineSignaturePad refObj={inlinePadRef} />
-                  )}
                 </div>
 
                 {rxEnabled && (
                   <div className="rounded-lg border border-warning bg-warning-light p-3 space-y-4">
-                    <Label className="text-sm font-medium">Assinaturas da receita vinculada</Label>
+                    <Label className="text-sm font-medium">Assinatura da receita vinculada (médico)</Label>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1.5">
@@ -841,25 +826,6 @@ export default function NovaAnamnese() {
                         signatureType="medico"
                         highlight
                         onChange={handleMedSigChange}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Técnico responsável (opcional)</Label>
-                        <Input
-                          value={tecName}
-                          onChange={e => setTecName(e.target.value)}
-                          placeholder="Nome / registro do técnico"
-                          readOnly={tecSig.mode === 'saved'}
-                          className={tecSig.mode === 'saved' ? 'bg-muted' : ''}
-                        />
-                      </div>
-                      <DocumentSignaturePicker
-                        label="Assinatura do técnico"
-                        signatureType="tecnico"
-                        defaultMode="none"
-                        onChange={handleTecSigChange}
                       />
                     </div>
                   </div>
