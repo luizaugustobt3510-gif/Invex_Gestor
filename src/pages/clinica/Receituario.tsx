@@ -91,8 +91,6 @@ export default function Receituario() {
   const [obs, setObs] = useState('');
   const [profName, setProfName] = useState(user?.nome || '');
   const [profSig, setProfSig] = useState<DocumentSignatureValue>({ mode: 'none' });
-  const [tecName, setTecName] = useState('');
-  const [tecSig, setTecSig] = useState<DocumentSignatureValue>({ mode: 'none' });
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -147,8 +145,6 @@ export default function Receituario() {
     setObs('');
     setProfName(user?.nome || '');
     setProfSig({ mode: 'none' });
-    setTecName('');
-    setTecSig({ mode: 'none' });
   };
 
   const openEdit = (rx: Prescription) => {
@@ -157,8 +153,6 @@ export default function Receituario() {
     setContent(rx.content || '');
     setObs(rx.observacoes || '');
     setProfName(rx.professional_name || user?.nome || '');
-    setTecName(rx.tecnico_name || '');
-    setTecSig(rx.tecnico_signature ? { mode: 'now', dataUrl: rx.tecnico_signature } : { mode: 'none' });
     if (rx.professional_signature) {
       setProfSig({ mode: 'now', dataUrl: rx.professional_signature });
     } else {
