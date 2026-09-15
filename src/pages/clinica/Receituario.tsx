@@ -174,13 +174,6 @@ export default function Receituario() {
     }
   };
 
-  const handleTecSigChange = (v: DocumentSignatureValue) => {
-    setTecSig(v);
-    if (v.mode === 'saved') {
-      const label = [v.nome, v.credencial].filter(Boolean).join(' — ');
-      if (label) setTecName(label);
-    }
-  };
 
   const save = async () => {
     if (savingRef.current) return;
