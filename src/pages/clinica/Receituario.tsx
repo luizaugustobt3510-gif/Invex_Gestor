@@ -479,29 +479,6 @@ export default function Receituario() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <Label>Técnico responsável (opcional)</Label>
-                <Input
-                  value={tecName}
-                  onChange={e => setTecName(e.target.value)}
-                  placeholder="Nome / registro do técnico"
-                  readOnly={tecSig.mode === 'saved'}
-                  className={tecSig.mode === 'saved' ? 'bg-muted' : ''}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Preenchido automaticamente quando você escolhe uma assinatura de técnico.
-                </p>
-              </div>
-              <div>
-                <DocumentSignaturePicker
-                  label="Assinatura do técnico"
-                  signatureType="tecnico"
-                  defaultMode="none"
-                  onChange={handleTecSigChange}
-                />
-              </div>
-            </div>
 
 
             <div className="flex flex-wrap gap-2 justify-end pt-2">
