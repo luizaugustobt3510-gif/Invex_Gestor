@@ -207,13 +207,6 @@ export default function Receituario() {
           : profSig.mode === 'saved'
             ? profSig.signedUrl || null
             : null,
-      tecnico_name: tecName.trim() || null,
-      tecnico_signature:
-        tecSig.mode === 'now'
-          ? tecSig.dataUrl || null
-          : tecSig.mode === 'saved'
-            ? tecSig.signedUrl || null
-            : null,
     };
     let error: any = null;
     if (editingId) {
