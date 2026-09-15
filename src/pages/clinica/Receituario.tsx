@@ -91,8 +91,6 @@ export default function Receituario() {
   const [obs, setObs] = useState('');
   const [profName, setProfName] = useState(user?.nome || '');
   const [profSig, setProfSig] = useState<DocumentSignatureValue>({ mode: 'none' });
-  const [tecName, setTecName] = useState('');
-  const [tecSig, setTecSig] = useState<DocumentSignatureValue>({ mode: 'none' });
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -147,8 +145,6 @@ export default function Receituario() {
     setObs('');
     setProfName(user?.nome || '');
     setProfSig({ mode: 'none' });
-    setTecName('');
-    setTecSig({ mode: 'none' });
   };
 
   const openEdit = (rx: Prescription) => {
@@ -157,8 +153,6 @@ export default function Receituario() {
     setContent(rx.content || '');
     setObs(rx.observacoes || '');
     setProfName(rx.professional_name || user?.nome || '');
-    setTecName(rx.tecnico_name || '');
-    setTecSig(rx.tecnico_signature ? { mode: 'now', dataUrl: rx.tecnico_signature } : { mode: 'none' });
     if (rx.professional_signature) {
       setProfSig({ mode: 'now', dataUrl: rx.professional_signature });
     } else {
@@ -174,13 +168,6 @@ export default function Receituario() {
     }
   };
 
-  const handleTecSigChange = (v: DocumentSignatureValue) => {
-    setTecSig(v);
-    if (v.mode === 'saved') {
-      const label = [v.nome, v.credencial].filter(Boolean).join(' — ');
-      if (label) setTecName(label);
-    }
-  };
 
   const save = async () => {
     if (savingRef.current) return;
@@ -206,13 +193,6 @@ export default function Receituario() {
           ? profSig.dataUrl || null
           : profSig.mode === 'saved'
             ? profSig.signedUrl || null
-            : null,
-      tecnico_name: tecName.trim() || null,
-      tecnico_signature:
-        tecSig.mode === 'now'
-          ? tecSig.dataUrl || null
-          : tecSig.mode === 'saved'
-            ? tecSig.signedUrl || null
             : null,
     };
     let error: any = null;
@@ -479,29 +459,6 @@ export default function Receituario() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <Label>Técnico responsável (opcional)</Label>
-                <Input
-                  value={tecName}
-                  onChange={e => setTecName(e.target.value)}
-                  placeholder="Nome / registro do técnico"
-                  readOnly={tecSig.mode === 'saved'}
-                  className={tecSig.mode === 'saved' ? 'bg-muted' : ''}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Preenchido automaticamente quando você escolhe uma assinatura de técnico.
-                </p>
-              </div>
-              <div>
-                <DocumentSignaturePicker
-                  label="Assinatura do técnico"
-                  signatureType="tecnico"
-                  defaultMode="none"
-                  onChange={handleTecSigChange}
-                />
-              </div>
-            </div>
 
 
             <div className="flex flex-wrap gap-2 justify-end pt-2">
