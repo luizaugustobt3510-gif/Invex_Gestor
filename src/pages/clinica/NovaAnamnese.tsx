@@ -789,10 +789,10 @@ export default function NovaAnamnese() {
                   )}
                 </div>
 
-                <div className={`rounded-lg border p-3 space-y-3 ${rxEnabled ? 'border-warning bg-warning-light' : 'bg-muted/20'}`}>
+                <div className="rounded-lg border p-3 space-y-3 bg-muted/20">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <Label className="text-sm font-medium">
-                      {rxEnabled ? 'Assinatura do médico (receita)' : 'Assinatura do profissional'}
+                      {rxEnabled ? 'Assinatura da anamnese' : 'Assinatura do profissional'}
                     </Label>
                     <div className="flex gap-1">
                       <Button type="button" size="sm" variant={!signOnFly ? 'default' : 'outline'} onClick={() => setSignOnFly(false)}>
@@ -826,63 +826,49 @@ export default function NovaAnamnese() {
                 </div>
 
                 {rxEnabled && (
-                  <div className="space-y-2">
-                    <DocumentSignaturePicker
-                      label="Assinatura do técnico (receita)"
-                      signatureType="tecnico"
-                      defaultMode="none"
-                      onChange={setTecSig}
-                    />
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Nome do técnico responsável (opcional)</Label>
-                      <Input
-                        value={tecName}
-                        onChange={e => setTecName(e.target.value)}
-                        placeholder="Nome do técnico"
+                  <div className="rounded-lg border border-warning bg-warning-light p-3 space-y-4">
+                    <Label className="text-sm font-medium">Assinaturas da receita vinculada</Label>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Médico responsável</Label>
+                        <Input
+                          value={medName}
+                          onChange={e => setMedName(e.target.value)}
+                          placeholder="Nome / CRM"
+                          readOnly={medSig.mode === 'saved'}
+                          className={medSig.mode === 'saved' ? 'bg-muted' : ''}
+                        />
+                      </div>
+                      <DocumentSignaturePicker
+                        label="Assinatura do médico"
+                        signatureType="medico"
+                        highlight
+                        onChange={handleMedSigChange}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Técnico responsável (opcional)</Label>
+                        <Input
+                          value={tecName}
+                          onChange={e => setTecName(e.target.value)}
+                          placeholder="Nome / registro do técnico"
+                          readOnly={tecSig.mode === 'saved'}
+                          className={tecSig.mode === 'saved' ? 'bg-muted' : ''}
+                        />
+                      </div>
+                      <DocumentSignaturePicker
+                        label="Assinatura do técnico"
+                        signatureType="tecnico"
+                        defaultMode="none"
+                        onChange={handleTecSigChange}
                       />
                     </div>
                   </div>
                 )}
 
-
-                {rxEnabled && (
-                  <div className="rounded-lg border p-3 bg-muted/20 space-y-3">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <Label className="text-sm font-medium">Assinatura da anamnese</Label>
-                      <div className="flex gap-1">
-                        <Button type="button" size="sm" variant={!anamSignOnFly ? 'default' : 'outline'} onClick={() => setAnamSignOnFly(false)}>
-                          Salva
-                        </Button>
-                        <Button type="button" size="sm" variant={anamSignOnFly ? 'default' : 'outline'} onClick={() => setAnamSignOnFly(true)}>
-                          Assinar agora
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Como há receita vinculada, escolha a assinatura que sairá na página da anamnese.
-                    </p>
-                    {!anamSignOnFly ? (
-                      signatures.length === 0 ? (
-                        <div className="text-xs text-muted-foreground">
-                          Você não tem assinaturas salvas. <Link to="/assinaturas" className="text-primary underline">Cadastrar</Link> ou clique em "Assinar agora".
-                        </div>
-                      ) : (
-                        <Select value={anamSignatureId} onValueChange={setAnamSignatureId}>
-                          <SelectTrigger><SelectValue placeholder="Selecione uma assinatura" /></SelectTrigger>
-                          <SelectContent>
-                            {signatures.map(s => (
-                              <SelectItem key={s.id} value={s.id}>
-                                {s.nome}{s.credencial ? ` — ${s.credencial}` : ''}{s.is_default ? ' (padrão)' : ''}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )
-                    ) : (
-                      <InlineSignaturePad refObj={anamPadRef} />
-                    )}
-                  </div>
-                )}
 
 
                 <div className={`flex items-center gap-2 rounded p-3 text-sm ${
