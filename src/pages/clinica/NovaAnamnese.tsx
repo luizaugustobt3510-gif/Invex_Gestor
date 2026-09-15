@@ -112,7 +112,7 @@ export default function NovaAnamnese() {
       }));
       setSignatures(withUrls);
       const def = withUrls.find(s => s.is_default);
-      if (def) { setSignatureId(def.id); setAnamSignatureId(def.id); }
+      if (def) setSignatureId(def.id);
 
       const { data: qm } = await (supabase.from('prescription_quick_items' as any) as any)
         .select('id, title, content')
