@@ -315,7 +315,12 @@ export default function NovaAnamnese() {
 
     const main = resolveSig(signOnFly, inlinePadRef, signatureId);
     const hasRx = rxEnabled && !!rxContent.trim();
-    const anam = hasRx ? resolveSig(anamSignOnFly, anamPadRef, anamSignatureId) : null;
+
+    // Receita vinculada: assinatura do médico vem do seletor próprio (com fallback para a da anamnese)
+    const medUrl = medSig.mode === 'now' ? medSig.dataUrl : medSig.mode === 'saved' ? medSig.signedUrl : undefined;
+    const rxDoctor = hasRx && medUrl
+      ? { url: medUrl, name: medName.trim() || medSig.nome, cred: medSig.credencial }
+      : { url: main?.url, name: medName.trim() || main?.nome, cred: main?.cred };
 
     setSaving(true);
     try {
