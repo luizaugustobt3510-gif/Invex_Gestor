@@ -23,6 +23,7 @@ interface Patient {
   id: string; company_id: string; nome: string; cpf: string | null;
   birth_date: string | null; phone: string | null; email: string | null;
   gender: string | null; address: string | null; notes: string | null;
+  height_cm: number | null; weight_kg: number | null;
 }
 
 interface MRecord {
@@ -294,6 +295,9 @@ export default function PacienteProntuario() {
               <CardContent className="grid grid-cols-2 gap-4 pt-6">
                 <div><Label>Nascimento</Label><div className="text-sm">{patient.birth_date || '-'}</div></div>
                 <div><Label>Sexo</Label><div className="text-sm">{patient.gender || '-'}</div></div>
+                <div><Label>Altura</Label><div className="text-sm">{patient.height_cm != null ? `${patient.height_cm} cm` : '-'}</div></div>
+                <div><Label>Peso</Label><div className="text-sm">{patient.weight_kg != null ? `${patient.weight_kg} kg` : '-'}</div></div>
+                <div><Label>IMC</Label><div className="text-sm">{patient.height_cm && patient.weight_kg ? (Number(patient.weight_kg) / Math.pow(Number(patient.height_cm) / 100, 2)).toFixed(1) : '-'}</div></div>
                 <div><Label>E-mail</Label><div className="text-sm">{patient.email || '-'}</div></div>
                 <div><Label>Endereço</Label><div className="text-sm">{patient.address || '-'}</div></div>
                 <div className="col-span-2"><Label>Observações</Label><div className="text-sm whitespace-pre-wrap">{patient.notes || '-'}</div></div>
