@@ -23,6 +23,7 @@ interface Patient {
   id: string; company_id: string; nome: string; cpf: string | null;
   birth_date: string | null; phone: string | null; email: string | null;
   gender: string | null; address: string | null; notes: string | null;
+  height_cm: number | null; weight_kg: number | null;
 }
 
 interface MRecord {
