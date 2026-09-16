@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
     // Load patient (must belong to same company)
     const { data: patient } = await supabase
       .from("patients")
-      .select("id, company_id, nome, cpf, birth_date, phone, email, gender")
+      .select("id, company_id, nome, cpf, birth_date, phone, email, gender, height_cm, weight_kg")
       .eq("id", body.patient_id)
       .maybeSingle();
     if (!patient || patient.company_id !== effectiveCompanyId) {
@@ -244,6 +244,13 @@ Deno.serve(async (req) => {
     if (patient.cpf) { doc.text(`CPF: ${patient.cpf}`, margin, y); y += 4; }
     if (patient.birth_date) { doc.text(`Nascimento: ${new Date(patient.birth_date + "T00:00:00").toLocaleDateString("pt-BR")}`, margin, y); y += 4; }
     if (patient.gender) { doc.text(`Sexo: ${patient.gender}`, margin, y); y += 4; }
+    // Altura e peso
+    if (patient.height_cm || patient.weight_kg) {
+      const parts: string[] = [];
+      if (patient.height_cm) parts.push(`Altura: ${patient.height_cm} cm`);
+      if (patient.weight_kg) parts.push(`Peso: ${patient.weight_kg} kg`);
+      doc.text(parts.join("   |   ",), margin, y); y += 4;
+    }
     if (patient.phone) { doc.text(`Telefone: ${patient.phone}`, margin, y); y += 4; }
     y += 4;
 
