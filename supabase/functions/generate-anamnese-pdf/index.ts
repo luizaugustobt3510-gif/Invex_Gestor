@@ -368,19 +368,18 @@ Deno.serve(async (req) => {
       } catch (_e) { /* ignore signature draw errors */ }
     };
 
+    // Receita: apenas médico
     const rxSig = {
       url: body.signature_image_url,
       name: body.signature_name,
       credencial: body.signature_credencial,
     };
-    // Quando há receita vinculada, a anamnese pode ter assinatura própria
-    const anamSig = body.anamnese_signature_image_url
-      ? {
-          url: body.anamnese_signature_image_url,
-          name: body.anamnese_signature_name,
-          credencial: body.anamnese_signature_credencial,
-        }
-      : rxSig;
+    // Anamnese: apenas técnico
+    const anamSig = {
+      url: body.anamnese_signature_image_url,
+      name: body.anamnese_signature_name,
+      credencial: body.anamnese_signature_credencial,
+    };
 
     // Assinatura da ANAMNESE (sempre na página da anamnese, antes da receita)
     await drawSignature(anamSig);
