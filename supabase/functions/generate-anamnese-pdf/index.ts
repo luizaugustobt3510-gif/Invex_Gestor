@@ -249,7 +249,7 @@ Deno.serve(async (req) => {
       const parts: string[] = [];
       if (patient.height_cm) parts.push(`Altura: ${patient.height_cm} cm`);
       if (patient.weight_kg) parts.push(`Peso: ${patient.weight_kg} kg`);
-      doc.text(parts.join("   |   ",), margin, y); y += 4;
+      doc.text(parts.join("   |   "), margin, y); y += 4;
     }
     if (patient.phone) { doc.text(`Telefone: ${patient.phone}`, margin, y); y += 4; }
     y += 4;
