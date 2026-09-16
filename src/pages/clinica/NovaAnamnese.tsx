@@ -293,30 +293,13 @@ export default function NovaAnamnese() {
       .map(({ question, answer }) => ({ question, answer }));
 
 
-    // Resolve signature (padrão: usada na anamnese e na receita)
-    const resolveSig = (onFly: boolean, padRef: any, sigId: string) => {
-      if (onFly && padRef.current) {
-        const dataUrl = padRef.current.toDataURL?.();
-        if (dataUrl && dataUrl.length > 200) {
-          return { url: dataUrl as string, source: 'inline', nome: undefined as string | undefined, cred: undefined as string | undefined };
-        }
-        return null;
-      }
-      const sig = signatures.find(s => s.id === sigId);
-      if (sig?._signed) {
-        return { url: sig._signed as string, source: 'saved', nome: sig.nome as string, cred: (sig.credencial || undefined) as string | undefined };
-      }
-      return null;
-    };
 
-    const main = resolveSig(signOnFly, inlinePadRef, signatureId);
     const hasRx = rxEnabled && !!rxContent.trim();
 
-    // Receita vinculada: assinatura do médico vem do seletor próprio (com fallback para a da anamnese)
+    // Anamnese: assinada apenas pelo técnico
+    const tecUrl = tecSig.mode === 'now' ? tecSig.dataUrl : tecSig.mode === 'saved' ? tecSig.signedUrl : undefined;
+    // Receita vinculada: assinada apenas pelo médico
     const medUrl = medSig.mode === 'now' ? medSig.dataUrl : medSig.mode === 'saved' ? medSig.signedUrl : undefined;
-    const rxDoctor = hasRx && medUrl
-      ? { url: medUrl, name: medName.trim() || medSig.nome, cred: medSig.credencial }
-      : { url: main?.url, name: medName.trim() || main?.nome, cred: main?.cred };
 
     setSaving(true);
     try {
@@ -328,18 +311,13 @@ export default function NovaAnamnese() {
           exam_type: examType,
           responses,
           observations: observations || undefined,
-          signature_image_url: rxDoctor.url,
-          signature_source: main?.source,
-          signature_name: rxDoctor.name,
-          signature_credencial: rxDoctor.cred,
-          anamnese_signature_image_url: hasRx ? main?.url : undefined,
-          anamnese_signature_name: hasRx ? main?.nome : undefined,
-          anamnese_signature_credencial: hasRx ? main?.cred : undefined,
-          tecnico_name: hasRx ? (tecName.trim() || tecSig.nome || undefined) : undefined,
-          tecnico_signature_image_url: hasRx
-            ? (tecSig.mode === 'now' ? tecSig.dataUrl : tecSig.mode === 'saved' ? tecSig.signedUrl : undefined)
-            : undefined,
-          tecnico_signature_credencial: hasRx ? tecSig.credencial : undefined,
+          signature_image_url: hasRx ? medUrl : undefined,
+          signature_source: medSig.mode === 'saved' ? 'saved' : medSig.mode === 'now' ? 'inline' : undefined,
+          signature_name: hasRx ? (medName.trim() || medSig.nome) : undefined,
+          signature_credencial: hasRx ? medSig.credencial : undefined,
+          anamnese_signature_image_url: tecUrl,
+          anamnese_signature_name: tecName.trim() || tecSig.nome,
+          anamnese_signature_credencial: tecSig.credencial,
           prescription: hasRx
             ? { tipo: rxTipo, content: rxContent.trim() }
             : undefined,
