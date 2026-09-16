@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [afkBlocked, setAfkBlocked] = useState(false);
   const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const INACTIVITY_TIMEOUT = 20 * 60 * 1000; // 20 minutos
+  const INACTIVITY_TIMEOUT = 4 * 60 * 60 * 1000; // 4 horas
 
   const performLogout = useCallback(async () => {
     await supabase.auth.signOut();
