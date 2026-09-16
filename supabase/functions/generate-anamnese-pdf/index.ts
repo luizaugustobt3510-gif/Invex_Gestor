@@ -480,7 +480,7 @@ Deno.serve(async (req) => {
         observacoes: `Vinculada à anamnese Nº ${anamneseNumber}`,
         professional_name: body.signature_name || createdByName,
         professional_signature: null,
-        tecnico_name: body.tecnico_name || null,
+        tecnico_name: null,
         validation_code: rxCode,
         doc_hash: rxHash,
         created_by: userId,
