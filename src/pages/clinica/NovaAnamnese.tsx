@@ -293,21 +293,6 @@ export default function NovaAnamnese() {
       .map(({ question, answer }) => ({ question, answer }));
 
 
-    // Resolve signature (padrão: usada na anamnese e na receita)
-    const resolveSig = (onFly: boolean, padRef: any, sigId: string) => {
-      if (onFly && padRef.current) {
-        const dataUrl = padRef.current.toDataURL?.();
-        if (dataUrl && dataUrl.length > 200) {
-          return { url: dataUrl as string, source: 'inline', nome: undefined as string | undefined, cred: undefined as string | undefined };
-        }
-        return null;
-      }
-      const sig = signatures.find(s => s.id === sigId);
-      if (sig?._signed) {
-        return { url: sig._signed as string, source: 'saved', nome: sig.nome as string, cred: (sig.credencial || undefined) as string | undefined };
-      }
-      return null;
-    };
 
     const hasRx = rxEnabled && !!rxContent.trim();
 
