@@ -420,34 +420,8 @@ Deno.serve(async (req) => {
       }
       y += 4;
 
-      // Assinatura da receita
+      // Assinatura da receita (somente médico)
       await drawSignature(rxSig);
-
-      // Técnico responsável (bloco separado do médico)
-      if (body.tecnico_signature_image_url) {
-        await drawSignature({
-          url: body.tecnico_signature_image_url,
-          name: body.tecnico_name || undefined,
-          credencial: body.tecnico_signature_credencial || "Técnico responsável",
-        }, "left");
-      } else if (body.tecnico_name?.trim()) {
-        ensureSpace(20);
-        y += 8;
-        const tW = 60;
-        const tX = margin;
-        doc.setDrawColor(120);
-        doc.line(tX, y, tX + tW, y);
-        y += 4;
-        doc.setFontSize(8);
-        doc.text(body.tecnico_name.trim(), tX + tW / 2, y, { align: "center" });
-        y += 3.5;
-        doc.setFontSize(6.5);
-        doc.setTextColor(90);
-        doc.text("Técnico responsável", tX + tW / 2, y, { align: "center" });
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(9);
-        y += 3;
-      }
 
 
       // Código de validação + resumo do documento (mesmo padrão do Receituário)
