@@ -8,9 +8,36 @@ const corsHeaders = {
 
 const PROTECTED_EMAIL = "luiz@invex.com";
 
+// Proteção simples contra abuso: 20 requisições por minuto por origem.
+const RATE_LIMIT = 20;
+const RATE_WINDOW_MS = 60_000;
+const rateBuckets = new Map<string, { count: number; resetAt: number }>();
+
+function isRateLimited(key: string): boolean {
+  const now = Date.now();
+  const bucket = rateBuckets.get(key);
+  if (!bucket || now > bucket.resetAt) {
+    rateBuckets.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+  bucket.count++;
+  return bucket.count > RATE_LIMIT;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  const clientKey =
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    req.headers.get("authorization")?.slice(-24) ||
+    "anon";
+  if (isRateLimited(clientKey)) {
+    return new Response(
+      JSON.stringify({ error: "Muitas tentativas. Aguarde um minuto e tente novamente." }),
+      { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 
   try {
