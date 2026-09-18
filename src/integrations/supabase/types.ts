@@ -297,6 +297,45 @@ export type Database = {
           },
         ]
       }
+      anatomical_regions: {
+        Row: {
+          categoria: string
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          lado: string | null
+          nome: string
+          ordem: number
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          lado?: string | null
+          nome: string
+          ordem?: number
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          lado?: string | null
+          nome?: string
+          ordem?: number
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
