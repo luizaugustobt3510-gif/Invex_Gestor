@@ -22,6 +22,8 @@ import {
 import type { Question } from './AnamneseModelos';
 import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
 import { DocumentSignaturePicker, DocumentSignatureValue } from '@/components/DocumentSignaturePicker';
+import { SeletorAnatomico } from '@/components/clinica/SeletorAnatomico';
+import { useAnatomicalRegions } from '@/hooks/useAnatomicalRegions';
 
 // Small local component to bridge ref to inline pad
 function InlineSignaturePad({ refObj }: { refObj: React.MutableRefObject<any> }) {
@@ -41,6 +43,7 @@ type Phase = 'setup' | 'questions' | 'review';
 
 export default function NovaAnamnese() {
   const { user } = useAuth();
+  const { regions: anatomicalRegions } = useAnatomicalRegions(true);
   const navigate = useNavigate();
   const params = useParams<{ patientId?: string }>();
   const [sp] = useSearchParams();
@@ -282,15 +285,25 @@ export default function NovaAnamnese() {
         toast.error(`Responda: ${q.text}`); return;
       }
     }
+    const regionName = (slug: string) =>
+      anatomicalRegions.find(r => r.slug === slug)?.nome || slug;
+
     const responses = visibleQuestions
-      .map(q => ({
-        required: !!q.required,
-        question: q.text,
-        answer: parseAnswerValues(answers[q.id]).join(', '),
-      }))
+      .map(q => {
+        const vals = parseAnswerValues(answers[q.id]);
+        const isAnatomy = q.type === 'localizacao_anatomica';
+        return {
+          required: !!q.required,
+          question: q.text,
+          // Texto legível para exibição/PDF
+          answer: (isAnatomy ? vals.map(regionName) : vals).join(', '),
+          // Resposta estruturada (slugs) preservada no registro da anamnese
+          regions: isAnatomy ? vals : undefined,
+        };
+      })
       // Omite perguntas NÃO obrigatórias deixadas em branco
       .filter(r => r.required || r.answer.trim().length > 0)
-      .map(({ question, answer }) => ({ question, answer }));
+      .map(({ question, answer, regions }) => (regions ? { question, answer, regions } : { question, answer }));
 
 
 
@@ -340,6 +353,23 @@ export default function NovaAnamnese() {
   const renderActiveInput = (q: Question) => {
     const val = answers[q.id] || '';
     switch (q.type) {
+      case 'localizacao_anatomica': {
+        const selectedSlugs = parseAnswerValues(val);
+        return (
+          <div className="mt-4 space-y-2">
+            {q.description && (
+              <div className="text-sm text-muted-foreground">{q.description}</div>
+            )}
+            <SeletorAnatomico
+              regions={anatomicalRegions}
+              value={selectedSlugs}
+              multiple={q.allowMultiple !== false}
+              categorias={q.categorias}
+              onChange={(slugs) => setAnswer(q, slugs.length ? JSON.stringify(slugs) : '')}
+            />
+          </div>
+        );
+      }
       case 'sim_nao':
         return (
           <div className="grid grid-cols-2 gap-3 md:gap-4 mt-4">
@@ -687,7 +717,10 @@ export default function NovaAnamnese() {
                         <div className="text-sm font-medium">{q.text}</div>
                         <div className="text-sm text-foreground/80 break-words">
                           {(() => {
-                            const shown = parseAnswerValues(answers[q.id]).join(', ');
+                            const vals = parseAnswerValues(answers[q.id]);
+                            const shown = (q.type === 'localizacao_anatomica'
+                              ? vals.map(s => anatomicalRegions.find(r => r.slug === s)?.nome || s)
+                              : vals).join(', ');
                             return shown || <span className="text-muted-foreground italic">sem resposta</span>;
                           })()}
                         </div>

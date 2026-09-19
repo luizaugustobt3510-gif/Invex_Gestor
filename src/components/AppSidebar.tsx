@@ -404,6 +404,12 @@ const clinicaGroups: MenuGroup[] = [
         icon: <FileText className="w-4 h-4" />,
         allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro"],
       },
+      {
+        path: "/clinica/anamnese/regioes",
+        label: "Regiões Anatômicas",
+        icon: <ClipboardList className="w-4 h-4" />,
+        allowedRoles: ["admin"],
+      },
     ],
   },
   {

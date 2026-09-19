@@ -12,11 +12,12 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Pencil, ArrowUp, ArrowDown, ClipboardList, GitBranch, Copy } from 'lucide-react';
+import { CATEGORIA_LABELS } from '@/components/clinica/anatomyMaps';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-export type AnswerType = 'sim_nao' | 'texto_curto' | 'texto_longo' | 'numero' | 'lista' | 'multi_escolha';
+export type AnswerType = 'sim_nao' | 'texto_curto' | 'texto_longo' | 'numero' | 'lista' | 'multi_escolha' | 'localizacao_anatomica';
 
 export interface QuestionCondition {
   /** id of the source question (must appear earlier) */
@@ -30,6 +31,12 @@ export interface Question {
   text: string;
   type: AnswerType;
   required: boolean;
+  /** Descrição/instrução opcional exibida abaixo da pergunta. */
+  description?: string;
+  /** `localizacao_anatomica`: permite selecionar várias regiões (padrão: true). */
+  allowMultiple?: boolean;
+  /** `localizacao_anatomica`: categorias disponíveis (vazio = todas). */
+  categorias?: string[];
   /** Options for `lista` and `multi_escolha`. */
   options?: string[];
   /** Legacy field kept for backwards compatibility with older templates. */
@@ -53,6 +60,7 @@ const ANSWER_TYPES: { value: AnswerType; label: string }[] = [
   { value: 'texto_curto', label: 'Texto curto' },
   { value: 'texto_longo', label: 'Texto longo' },
   { value: 'numero', label: 'Número' },
+  { value: 'localizacao_anatomica', label: 'Localização anatômica' },
 ];
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -375,8 +383,50 @@ export default function AnamneseModelos() {
                                       onChange={e => updateQ(q.id, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                                     />
                                   </div>
-                                )}
-                                <div className="md:col-span-3 flex items-center gap-2 mt-1">
+                                 )}
+                                 {q.type === 'localizacao_anatomica' && (
+                                   <>
+                                     <div className="md:col-span-6">
+                                       <Label className="text-xs">Descrição / instrução (opcional)</Label>
+                                       <Input
+                                         value={q.description || ''}
+                                         placeholder="Ex.: Toque nas regiões onde há dor"
+                                         onChange={e => updateQ(q.id, { description: e.target.value })}
+                                       />
+                                     </div>
+                                     <div className="md:col-span-6">
+                                       <Label className="text-xs">Categorias disponíveis (nenhuma marcada = todas)</Label>
+                                       <div className="flex flex-wrap gap-2 mt-1">
+                                         {Object.keys(CATEGORIA_LABELS).map(cat => {
+                                           const on = (q.categorias || []).includes(cat);
+                                           return (
+                                             <Button
+                                               key={cat}
+                                               type="button"
+                                               size="sm"
+                                               variant={on ? 'default' : 'outline'}
+                                               onClick={() => {
+                                                 const cur = q.categorias || [];
+                                                 const next = on ? cur.filter(c => c !== cat) : [...cur, cat];
+                                                 updateQ(q.id, { categorias: next.length ? next : undefined });
+                                               }}
+                                             >
+                                               {CATEGORIA_LABELS[cat]}
+                                             </Button>
+                                           );
+                                         })}
+                                       </div>
+                                     </div>
+                                     <div className="md:col-span-6 flex items-center gap-2">
+                                       <Switch
+                                         checked={q.allowMultiple !== false}
+                                         onCheckedChange={(v) => updateQ(q.id, { allowMultiple: v })}
+                                       />
+                                       <Label className="mb-0 text-xs">Permitir múltiplas regiões</Label>
+                                     </div>
+                                   </>
+                                 )}
+                                 <div className="md:col-span-3 flex items-center gap-2 mt-1">
                                   <Switch checked={q.required} onCheckedChange={(v) => updateQ(q.id, { required: v })} />
                                   <Label className="mb-0 text-xs">Obrigatória</Label>
                                 </div>
