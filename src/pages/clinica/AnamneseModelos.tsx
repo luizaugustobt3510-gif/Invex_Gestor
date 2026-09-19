@@ -383,8 +383,50 @@ export default function AnamneseModelos() {
                                       onChange={e => updateQ(q.id, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                                     />
                                   </div>
-                                )}
-                                <div className="md:col-span-3 flex items-center gap-2 mt-1">
+                                 )}
+                                 {q.type === 'localizacao_anatomica' && (
+                                   <>
+                                     <div className="md:col-span-6">
+                                       <Label className="text-xs">Descrição / instrução (opcional)</Label>
+                                       <Input
+                                         value={q.description || ''}
+                                         placeholder="Ex.: Toque nas regiões onde há dor"
+                                         onChange={e => updateQ(q.id, { description: e.target.value })}
+                                       />
+                                     </div>
+                                     <div className="md:col-span-6">
+                                       <Label className="text-xs">Categorias disponíveis (nenhuma marcada = todas)</Label>
+                                       <div className="flex flex-wrap gap-2 mt-1">
+                                         {Object.keys(CATEGORIA_LABELS).map(cat => {
+                                           const on = (q.categorias || []).includes(cat);
+                                           return (
+                                             <Button
+                                               key={cat}
+                                               type="button"
+                                               size="sm"
+                                               variant={on ? 'default' : 'outline'}
+                                               onClick={() => {
+                                                 const cur = q.categorias || [];
+                                                 const next = on ? cur.filter(c => c !== cat) : [...cur, cat];
+                                                 updateQ(q.id, { categorias: next.length ? next : undefined });
+                                               }}
+                                             >
+                                               {CATEGORIA_LABELS[cat]}
+                                             </Button>
+                                           );
+                                         })}
+                                       </div>
+                                     </div>
+                                     <div className="md:col-span-6 flex items-center gap-2">
+                                       <Switch
+                                         checked={q.allowMultiple !== false}
+                                         onCheckedChange={(v) => updateQ(q.id, { allowMultiple: v })}
+                                       />
+                                       <Label className="mb-0 text-xs">Permitir múltiplas regiões</Label>
+                                     </div>
+                                   </>
+                                 )}
+                                 <div className="md:col-span-3 flex items-center gap-2 mt-1">
                                   <Switch checked={q.required} onCheckedChange={(v) => updateQ(q.id, { required: v })} />
                                   <Label className="mb-0 text-xs">Obrigatória</Label>
                                 </div>
