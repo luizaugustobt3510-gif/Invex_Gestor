@@ -22,6 +22,8 @@ import {
 import type { Question } from './AnamneseModelos';
 import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
 import { DocumentSignaturePicker, DocumentSignatureValue } from '@/components/DocumentSignaturePicker';
+import { SeletorAnatomico } from '@/components/clinica/SeletorAnatomico';
+import { useAnatomicalRegions } from '@/hooks/useAnatomicalRegions';
 
 // Small local component to bridge ref to inline pad
 function InlineSignaturePad({ refObj }: { refObj: React.MutableRefObject<any> }) {
