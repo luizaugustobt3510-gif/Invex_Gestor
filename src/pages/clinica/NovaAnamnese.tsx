@@ -717,7 +717,10 @@ export default function NovaAnamnese() {
                         <div className="text-sm font-medium">{q.text}</div>
                         <div className="text-sm text-foreground/80 break-words">
                           {(() => {
-                            const shown = parseAnswerValues(answers[q.id]).join(', ');
+                            const vals = parseAnswerValues(answers[q.id]);
+                            const shown = (q.type === 'localizacao_anatomica'
+                              ? vals.map(s => anatomicalRegions.find(r => r.slug === s)?.nome || s)
+                              : vals).join(', ');
                             return shown || <span className="text-muted-foreground italic">sem resposta</span>;
                           })()}
                         </div>

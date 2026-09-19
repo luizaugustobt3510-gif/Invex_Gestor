@@ -76,6 +76,7 @@ import Pacientes from "./pages/clinica/Pacientes";
 import PacienteProntuario from "./pages/clinica/PacienteProntuario";
 import Agenda from "./pages/clinica/Agenda";
 import AnamneseModelos from "./pages/clinica/AnamneseModelos";
+import RegioesAnatomicas from "./pages/clinica/RegioesAnatomicas";
 import AnamneseRespostasRapidas from "./pages/clinica/AnamneseRespostasRapidas";
 import NovaAnamnese from "./pages/clinica/NovaAnamnese";
 import Evolucao from "./pages/clinica/Evolucao";
