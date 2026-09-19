@@ -285,15 +285,25 @@ export default function NovaAnamnese() {
         toast.error(`Responda: ${q.text}`); return;
       }
     }
+    const regionName = (slug: string) =>
+      anatomicalRegions.find(r => r.slug === slug)?.nome || slug;
+
     const responses = visibleQuestions
-      .map(q => ({
-        required: !!q.required,
-        question: q.text,
-        answer: parseAnswerValues(answers[q.id]).join(', '),
-      }))
+      .map(q => {
+        const vals = parseAnswerValues(answers[q.id]);
+        const isAnatomy = q.type === 'localizacao_anatomica';
+        return {
+          required: !!q.required,
+          question: q.text,
+          // Texto legível para exibição/PDF
+          answer: (isAnatomy ? vals.map(regionName) : vals).join(', '),
+          // Resposta estruturada (slugs) preservada no registro da anamnese
+          regions: isAnatomy ? vals : undefined,
+        };
+      })
       // Omite perguntas NÃO obrigatórias deixadas em branco
       .filter(r => r.required || r.answer.trim().length > 0)
-      .map(({ question, answer }) => ({ question, answer }));
+      .map(({ question, answer, regions }) => (regions ? { question, answer, regions } : { question, answer }));
 
 
 
