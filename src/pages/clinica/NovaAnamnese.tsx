@@ -43,6 +43,7 @@ type Phase = 'setup' | 'questions' | 'review';
 
 export default function NovaAnamnese() {
   const { user } = useAuth();
+  const { regions: anatomicalRegions } = useAnatomicalRegions(true);
   const navigate = useNavigate();
   const params = useParams<{ patientId?: string }>();
   const [sp] = useSearchParams();
