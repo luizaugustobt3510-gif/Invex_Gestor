@@ -353,6 +353,23 @@ export default function NovaAnamnese() {
   const renderActiveInput = (q: Question) => {
     const val = answers[q.id] || '';
     switch (q.type) {
+      case 'localizacao_anatomica': {
+        const selectedSlugs = parseAnswerValues(val);
+        return (
+          <div className="mt-4 space-y-2">
+            {q.description && (
+              <div className="text-sm text-muted-foreground">{q.description}</div>
+            )}
+            <SeletorAnatomico
+              regions={anatomicalRegions}
+              value={selectedSlugs}
+              multiple={q.allowMultiple !== false}
+              categorias={q.categorias}
+              onChange={(slugs) => setAnswer(q, slugs.length ? JSON.stringify(slugs) : '')}
+            />
+          </div>
+        );
+      }
       case 'sim_nao':
         return (
           <div className="grid grid-cols-2 gap-3 md:gap-4 mt-4">
