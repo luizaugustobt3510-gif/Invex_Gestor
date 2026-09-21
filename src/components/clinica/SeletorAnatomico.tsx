@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import { ANATOMY_MAPS, CATEGORIA_LABELS, AnatomyShape } from './anatomyMaps';
+import { CATEGORIA_LABELS } from './anatomyMaps';
 import type { AnatomicalRegion } from '@/hooks/useAnatomicalRegions';
+import { useAnatomicalMaps } from '@/hooks/useAnatomicalMaps';
 
 export interface SeletorAnatomicoProps {
   regions: AnatomicalRegion[];
@@ -19,13 +20,14 @@ export interface SeletorAnatomicoProps {
 
 /**
  * Seletor Anatômico reutilizável.
- * - Ilustração SVG interativa para categorias que possuem mapa (ex.: cabeça).
- * - Lista de regiões clicáveis para as demais categorias.
- * - Seleção múltipla, remoção individual e persistência ao trocar de visualização.
+ * - Usa as imagens anatômicas cadastradas pelo administrador, com áreas desenhadas.
+ * - Lista de regiões clicáveis sempre disponível como alternativa/complemento.
  */
 export function SeletorAnatomico({
   regions, value, onChange, multiple = true, categorias, disabled,
 }: SeletorAnatomicoProps) {
+  const { maps } = useAnatomicalMaps(true);
+
   const allowed = useMemo(
     () => (categorias && categorias.length
       ? regions.filter(r => categorias.includes(r.categoria))
@@ -39,9 +41,19 @@ export function SeletorAnatomico({
     return m;
   }, [allowed]);
 
-  const maps = useMemo(
-    () => ANATOMY_MAPS.filter(m => allowed.some(r => r.categoria === m.categoria)),
-    [allowed],
+  const byId = useMemo(() => {
+    const m: Record<string, AnatomicalRegion> = {};
+    allowed.forEach(r => { m[r.id] = r; });
+    return m;
+  }, [allowed]);
+
+  const usableMaps = useMemo(
+    () => maps.filter(m =>
+      !!m.imageUrl
+      && (!categorias || categorias.length === 0 || categorias.includes(m.categoria))
+      && m.regions.some(r => byId[r.region_id]),
+    ),
+    [maps, categorias, byId],
   );
 
   const groups = useMemo(() => {
@@ -50,88 +62,65 @@ export function SeletorAnatomico({
     return g;
   }, [allowed]);
 
-  const [mapKey, setMapKey] = useState(() => maps[0]?.key || '');
-  const activeMap = maps.find(m => m.key === mapKey) || maps[0];
-  const [viewKey, setViewKey] = useState(() => activeMap?.views[0]?.key || '');
-  const activeView = activeMap?.views.find(v => v.key === viewKey) || activeMap?.views[0];
+  const [mapId, setMapId] = useState<string>('');
+  const activeMap = usableMaps.find(m => m.id === mapId) || usableMaps[0];
 
-  const toggle = (slug: string) => {
-    if (disabled || !bySlug[slug]) return;
+  const toggle = (slug?: string) => {
+    if (disabled || !slug || !bySlug[slug]) return;
     const has = value.includes(slug);
     if (has) onChange(value.filter(s => s !== slug));
     else onChange(multiple ? [...value, slug] : [slug]);
-  };
-
-  const shapeProps = (s: AnatomyShape) => {
-    const known = !!bySlug[s.slug];
-    const on = value.includes(s.slug);
-    return {
-      className: known
-        ? `cursor-pointer transition-all ${on ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`
-        : 'opacity-20 pointer-events-none',
-      fill: on ? 'hsl(var(--primary))' : 'hsl(var(--muted))',
-      stroke: on ? 'hsl(var(--primary))' : 'hsl(var(--border))',
-      strokeWidth: 1.5,
-      onClick: () => toggle(s.slug),
-    };
-  };
-
-  const renderShape = (s: AnatomyShape) => {
-    const props = shapeProps(s);
-    const title = <title>{bySlug[s.slug]?.nome || s.slug}</title>;
-    switch (s.type) {
-      case 'ellipse':
-        return <ellipse key={s.slug + s.cx} cx={s.cx} cy={s.cy} rx={s.rx} ry={s.ry} {...props}>{title}</ellipse>;
-      case 'circle':
-        return <circle key={s.slug + s.cx} cx={s.cx} cy={s.cy} r={s.r} {...props}>{title}</circle>;
-      case 'rect':
-        return <rect key={s.slug + s.x} x={s.x} y={s.y} width={s.w} height={s.h} rx={s.rx ?? 6} {...props}>{title}</rect>;
-      default:
-        return <path key={s.slug + s.d.slice(0, 8)} d={s.d} {...props}>{title}</path>;
-    }
   };
 
   const selected = value.map(s => bySlug[s]).filter(Boolean) as AnatomicalRegion[];
 
   return (
     <div className="space-y-4">
-      {activeMap && activeView && (
+      {activeMap && (
         <div className="rounded-lg border p-3 bg-muted/20">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-            <div className="flex gap-1 flex-wrap">
-              {maps.map(m => (
+          {usableMaps.length > 1 && (
+            <div className="flex gap-1 flex-wrap mb-2">
+              {usableMaps.map(m => (
                 <Button
-                  key={m.key} type="button" size="sm"
-                  variant={m.key === activeMap.key ? 'default' : 'outline'}
-                  onClick={() => { setMapKey(m.key); setViewKey(m.views[0].key); }}
+                  key={m.id} type="button" size="sm"
+                  variant={m.id === activeMap.id ? 'default' : 'outline'}
+                  onClick={() => setMapId(m.id)}
                 >
-                  {m.label}
+                  {m.nome}{m.vista ? ` · ${m.vista}` : ''}
                 </Button>
               ))}
             </div>
-            <div className="flex gap-1 flex-wrap">
-              {activeMap.views.map(v => (
-                <Button
-                  key={v.key} type="button" size="sm"
-                  variant={v.key === activeView.key ? 'secondary' : 'ghost'}
-                  onClick={() => setViewKey(v.key)}
-                >
-                  {v.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-          <div className="flex justify-center">
+          )}
+          <div className="relative w-full max-w-[380px] mx-auto select-none">
+            <img
+              src={activeMap.imageUrl!}
+              alt={`Mapa anatômico — ${activeMap.nome}`}
+              className="w-full h-auto rounded-md pointer-events-none"
+            />
             <svg
-              viewBox={activeMap.viewBox}
-              className="w-full max-w-[260px] h-auto touch-manipulation select-none"
-              role="img"
-              aria-label={`Seletor anatômico — ${activeMap.label} (${activeView.label})`}
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              className="absolute inset-0 w-full h-full touch-manipulation"
             >
-              {activeView.outline.map((d, i) => (
-                <path key={i} d={d} fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth={2} />
-              ))}
-              {activeView.shapes.map(renderShape)}
+              {activeMap.regions.map(mr => {
+                const region = byId[mr.region_id];
+                if (!region || mr.points.length < 3) return null;
+                const on = value.includes(region.slug);
+                return (
+                  <polygon
+                    key={mr.id}
+                    points={mr.points.map(p => `${p.x},${p.y}`).join(' ')}
+                    onClick={() => toggle(region.slug)}
+                    className={disabled ? '' : 'cursor-pointer transition-all'}
+                    fill={on ? 'hsl(var(--primary) / 0.55)' : 'hsl(var(--primary) / 0.12)'}
+                    stroke={on ? 'hsl(var(--primary))' : 'hsl(var(--primary) / 0.5)'}
+                    strokeWidth={0.5}
+                    vectorEffect="non-scaling-stroke"
+                  >
+                    <title>{region.nome}</title>
+                  </polygon>
+                );
+              })}
             </svg>
           </div>
           <p className="text-xs text-muted-foreground text-center mt-2">

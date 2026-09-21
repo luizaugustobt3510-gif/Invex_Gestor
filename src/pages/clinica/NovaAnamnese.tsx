@@ -506,7 +506,8 @@ export default function NovaAnamnese() {
   };
 
   const requiresManualNext = (q?: Question) =>
-    !!q && (q.type === 'texto_curto' || q.type === 'texto_longo' || q.type === 'numero' || q.type === 'multi_escolha');
+    !!q && (q.type === 'texto_curto' || q.type === 'texto_longo' || q.type === 'numero'
+      || q.type === 'multi_escolha' || q.type === 'localizacao_anatomica');
 
   return (
     <MainLayout>

@@ -15,6 +15,20 @@
       "when": 1789758056807,
       "tag": "0001_create_anatomical_regions",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789993014931,
+      "tag": "0002_create_anatomical_maps",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789993036165,
+      "tag": "0003_anatomical_maps_storage_policies",
+      "breakpoints": true
     }
   ]
 }
