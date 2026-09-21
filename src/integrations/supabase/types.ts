@@ -297,6 +297,90 @@ export type Database = {
           },
         ]
       }
+      anatomical_map_regions: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          map_id: string
+          points: Json
+          region_id: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          map_id: string
+          points?: Json
+          region_id: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          map_id?: string
+          points?: Json
+          region_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anatomical_map_regions_map_id_fkey"
+            columns: ["map_id"]
+            isOneToOne: false
+            referencedRelation: "anatomical_maps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anatomical_map_regions_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "anatomical_regions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      anatomical_maps: {
+        Row: {
+          categoria: string
+          company_id: string
+          created_at: string
+          id: string
+          image_path: string | null
+          is_active: boolean
+          nome: string
+          ordem: number
+          updated_at: string
+          vista: string
+        }
+        Insert: {
+          categoria?: string
+          company_id: string
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          is_active?: boolean
+          nome: string
+          ordem?: number
+          updated_at?: string
+          vista?: string
+        }
+        Update: {
+          categoria?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          is_active?: boolean
+          nome?: string
+          ordem?: number
+          updated_at?: string
+          vista?: string
+        }
+        Relationships: []
+      }
       anatomical_regions: {
         Row: {
           categoria: string
