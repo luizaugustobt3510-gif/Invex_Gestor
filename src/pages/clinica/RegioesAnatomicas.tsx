@@ -105,6 +105,18 @@ export default function RegioesAnatomicas() {
   return (
     <MainLayout>
       <div className="max-w-5xl mx-auto space-y-4">
+        <Tabs defaultValue="regioes">
+          <TabsList>
+            <TabsTrigger value="regioes">Regiões</TabsTrigger>
+            <TabsTrigger value="mapas">Mapas anatômicos</TabsTrigger>
+          </TabsList>
+          <TabsContent value="mapas" className="mt-4">
+            <Card>
+              <CardHeader><CardTitle className="text-base">Mapas anatômicos</CardTitle></CardHeader>
+              <CardContent><MapasAnatomicos /></CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="regioes" className="mt-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
             <CardTitle className="flex items-center gap-2">
