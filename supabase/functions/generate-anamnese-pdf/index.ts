@@ -273,29 +273,83 @@ Deno.serve(async (req) => {
     sectionTitle("PERGUNTAS E RESPOSTAS");
 
     const qIndent = 8;
+    const IMG_W = 55; // mm — miniatura compacta da imagem anatômica
     let idx = 0;
+    let subIdx = 0;
     for (const r of body.responses) {
-      idx++;
-      const num = `${idx}.`;
-      const qLines = doc.splitTextToSize(String(r.question), contentWidth - qIndent);
+      const isSub = !!r.parent_question;
+      if (isSub) subIdx++; else { idx++; subIdx = 0; }
+      const left = margin + (isSub ? 6 : 0);
+      const width = contentWidth - (isSub ? 6 : 0);
+      const num = isSub ? `${idx}.${subIdx}` : `${idx}.`;
+
+      // Cabeçalho do desdobramento: liga visualmente à pergunta de origem
+      const linkLines = isSub
+        ? doc.splitTextToSize(
+            `Desdobramento de: "${r.parent_question}"${r.parent_trigger ? ` = ${r.parent_trigger}` : ""}`,
+            width - qIndent,
+          )
+        : [];
+
+      const qLines = doc.splitTextToSize(String(r.question), width - qIndent);
       const aText = r.answer && String(r.answer).trim().length ? String(r.answer) : "—";
-      const aLines = doc.splitTextToSize(`R: ${aText}`, contentWidth - qIndent);
-      const blockH = (qLines.length + aLines.length) * 4.6 + 4;
-      ensureSpace(blockH + 2);
-      if (idx % 2 === 1) {
-        doc.setFillColor(...ROW_ALT);
-        doc.rect(margin - 2, y - 3.6, contentWidth + 4, blockH, "F");
+      const aLines = doc.splitTextToSize(`R: ${aText}`, width - qIndent);
+
+      // Altura da imagem anatômica (proporção preservada)
+      let imgH = 0;
+      let imgProps: { w: number; h: number } | null = null;
+      if (r.image) {
+        try {
+          const p = doc.getImageProperties(r.image);
+          imgProps = { w: p.width, h: p.height };
+          imgH = (IMG_W * p.height) / p.width + 3;
+        } catch (_e) { imgProps = null; imgH = 0; }
       }
+
+      const blockH = (linkLines.length * 3.8) + (qLines.length + aLines.length) * 4.6 + imgH + 4;
+      ensureSpace(blockH + 2);
+
+      if (isSub) {
+        // Faixa de conexão à esquerda + fundo suave
+        doc.setFillColor(235, 243, 241);
+        doc.rect(left - 2, y - 3.6, width + 4, blockH, "F");
+        doc.setDrawColor(...SECTION);
+        doc.setLineWidth(0.8);
+        doc.line(left - 2, y - 3.6, left - 2, y - 3.6 + blockH);
+        doc.setLineWidth(0.2);
+      } else if (idx % 2 === 1) {
+        doc.setFillColor(...ROW_ALT);
+        doc.rect(left - 2, y - 3.6, width + 4, blockH, "F");
+      }
+
+      if (linkLines.length) {
+        doc.setFontSize(7.5);
+        doc.setFont("helvetica", "italic");
+        doc.setTextColor(...SECTION);
+        doc.text(linkLines, left + qIndent, y);
+        y += linkLines.length * 3.8;
+        doc.setTextColor(0, 0, 0);
+      }
+
       doc.setFontSize(9);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...SECTION);
-      doc.text(num, margin, y);
+      doc.text(num, left, y);
       doc.setTextColor(0, 0, 0);
-      doc.text(qLines, margin + qIndent, y);
+      doc.text(qLines, left + qIndent, y);
       y += qLines.length * 4.6;
       doc.setFont("helvetica", "normal");
-      doc.text(aLines, margin + qIndent, y);
-      y += aLines.length * 4.6 + 4;
+      doc.text(aLines, left + qIndent, y);
+      y += aLines.length * 4.6;
+
+      if (r.image && imgProps) {
+        const h = (IMG_W * imgProps.h) / imgProps.w;
+        try {
+          doc.addImage(r.image, "JPEG", left + qIndent, y, IMG_W, h, undefined, "FAST");
+        } catch (_e) { /* ignora falha de imagem */ }
+        y += h + 3;
+      }
+      y += 4;
     }
 
     if (body.observations) {
