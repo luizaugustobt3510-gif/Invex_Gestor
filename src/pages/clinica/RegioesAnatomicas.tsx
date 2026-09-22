@@ -171,6 +171,8 @@ export default function RegioesAnatomicas() {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+        </Tabs>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-lg">
