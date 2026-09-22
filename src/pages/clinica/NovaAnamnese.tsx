@@ -24,6 +24,8 @@ import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
 import { DocumentSignaturePicker, DocumentSignatureValue } from '@/components/DocumentSignaturePicker';
 import { SeletorAnatomico } from '@/components/clinica/SeletorAnatomico';
 import { useAnatomicalRegions } from '@/hooks/useAnatomicalRegions';
+import { useAnatomicalMaps } from '@/hooks/useAnatomicalMaps';
+import { buildAnatomySnapshot } from '@/lib/anatomySnapshot';
 
 // Small local component to bridge ref to inline pad
 function InlineSignaturePad({ refObj }: { refObj: React.MutableRefObject<any> }) {
@@ -44,6 +46,7 @@ type Phase = 'setup' | 'questions' | 'review';
 export default function NovaAnamnese() {
   const { user } = useAuth();
   const { regions: anatomicalRegions } = useAnatomicalRegions(true);
+  const { maps: anatomicalMaps } = useAnatomicalMaps(true);
   const navigate = useNavigate();
   const params = useParams<{ patientId?: string }>();
   const [sp] = useSearchParams();
