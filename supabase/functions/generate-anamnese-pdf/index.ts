@@ -49,7 +49,16 @@ interface AnamneseInput {
   template_id?: string | null;
   template_name?: string;
   exam_type: string;
-  responses: { question: string; answer: string }[];
+  responses: {
+    question: string;
+    answer: string;
+    regions?: string[];
+    /** Miniatura JPEG (data URL) da imagem anatômica com as áreas marcadas */
+    image?: string;
+    /** Pergunta que originou esta (fluxo condicional) */
+    parent_question?: string;
+    parent_trigger?: string;
+  }[];
   observations?: string;
   signature_image_url?: string;
   signature_source?: string;
