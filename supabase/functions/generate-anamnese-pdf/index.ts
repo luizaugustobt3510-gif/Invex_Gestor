@@ -168,7 +168,8 @@ Deno.serve(async (req) => {
         template_id: body.template_id || null,
         template_name: body.template_name || null,
         exam_type: body.exam_type,
-        responses: body.responses,
+        // A miniatura da imagem não é gravada no registro (apenas usada no PDF)
+        responses: body.responses.map(({ image: _img, ...rest }) => rest),
         observations: body.observations || null,
         signature_image_url: body.signature_image_url || null,
         signature_source: body.signature_source || null,
