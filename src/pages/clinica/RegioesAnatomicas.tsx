@@ -14,6 +14,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useAnatomicalRegions, AnatomicalRegion } from '@/hooks/useAnatomicalRegions';
 import { CATEGORIA_LABELS, LADO_LABELS } from '@/components/clinica/anatomyMaps';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MapasAnatomicos } from '@/components/clinica/MapasAnatomicos';
 
 const CATEGORIAS = Object.keys(CATEGORIA_LABELS);
 const LADOS = ['nao_aplica', 'direito', 'esquerdo', 'bilateral'];
@@ -169,6 +171,8 @@ export default function RegioesAnatomicas() {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+        </Tabs>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-lg">
