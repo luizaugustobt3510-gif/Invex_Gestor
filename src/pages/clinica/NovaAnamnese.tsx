@@ -291,10 +291,27 @@ export default function NovaAnamnese() {
     const regionName = (slug: string) =>
       anatomicalRegions.find(r => r.slug === slug)?.nome || slug;
 
-    const responses = visibleQuestions
+    // Pergunta de origem (quando esta pergunta só apareceu por causa de outra resposta)
+    const parentOf = (q: Question): { question: string; trigger: string } | undefined => {
+      const all = template.questions;
+      if (q.conditions?.length) {
+        const c = q.conditions[0];
+        const src = all.find(p => p.id === c.questionId);
+        if (src) return { question: src.text, trigger: (c.values || []).join(' / ') };
+      }
+      if (q.condition?.equals) {
+        const i = all.findIndex(p => p.id === q.id);
+        const src = i > 0 ? all[i - 1] : null;
+        if (src) return { question: src.text, trigger: q.condition.equals };
+      }
+      return undefined;
+    };
+
+    const base = visibleQuestions
       .map(q => {
         const vals = parseAnswerValues(answers[q.id]);
         const isAnatomy = q.type === 'localizacao_anatomica';
+        const parent = parentOf(q);
         return {
           required: !!q.required,
           question: q.text,
@@ -302,11 +319,27 @@ export default function NovaAnamnese() {
           answer: (isAnatomy ? vals.map(regionName) : vals).join(', '),
           // Resposta estruturada (slugs) preservada no registro da anamnese
           regions: isAnatomy ? vals : undefined,
+          parent_question: parent?.question,
+          parent_trigger: parent?.trigger,
         };
       })
       // Omite perguntas NÃO obrigatórias deixadas em branco
-      .filter(r => r.required || r.answer.trim().length > 0)
-      .map(({ question, answer, regions }) => (regions ? { question, answer, regions } : { question, answer }));
+      .filter(r => r.required || r.answer.trim().length > 0);
+
+    const responses = await Promise.all(base.map(async (r) => {
+      const out: Record<string, unknown> = { question: r.question, answer: r.answer };
+      if (r.parent_question) {
+        out.parent_question = r.parent_question;
+        if (r.parent_trigger) out.parent_trigger = r.parent_trigger;
+      }
+      if (r.regions) {
+        out.regions = r.regions;
+        const ids = anatomicalRegions.filter(a => r.regions!.includes(a.slug)).map(a => a.id);
+        const snap = await buildAnatomySnapshot(anatomicalMaps, ids);
+        if (snap) out.image = snap;
+      }
+      return out;
+    }));
 
 
 
