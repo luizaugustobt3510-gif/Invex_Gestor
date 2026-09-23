@@ -42,12 +42,15 @@ export async function buildAnatomySnapshot(
 ): Promise<string | null> {
   if (!selectedRegionIds.length) return null;
   const map = maps.find(
-    m => m.imageUrl && m.regions.some(r => selectedRegionIds.includes(r.region_id) && r.points.length >= 3),
+    m => (m.image_path || m.imageUrl) &&
+      m.regions.some(r => selectedRegionIds.includes(r.region_id) && r.points.length >= 3),
   );
-  if (!map?.imageUrl) return null;
+  if (!map) return null;
 
   try {
-    const img = await loadImage(map.imageUrl);
+    const src = await resolveImageSource(map);
+    if (!src) return null;
+    const img = await loadImage(src);
     const scale = Math.min(1, MAX_WIDTH / (img.naturalWidth || MAX_WIDTH));
     const w = Math.max(1, Math.round((img.naturalWidth || MAX_WIDTH) * scale));
     const h = Math.max(1, Math.round((img.naturalHeight || MAX_WIDTH) * scale));
