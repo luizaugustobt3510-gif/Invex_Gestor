@@ -556,6 +556,13 @@ const financeiroGroups: MenuGroup[] = [
         submoduleKey: "financeiro.lancamentos",
       },
       {
+        path: "/financeiro/importar",
+        label: "Importar Lançamentos",
+        icon: <Receipt className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro"],
+        submoduleKey: "financeiro.lancamentos",
+      },
+      {
         path: "/financeiro/fluxo-caixa",
         label: "Fluxo de Caixa",
         icon: <DollarSign className="w-4 h-4" />,
