@@ -158,7 +158,11 @@ const ImportarFinanceiro = () => {
       if (novas.length) {
         const { data: inserted } = await supabase
           .from('financial_categories')
-          .insert(novas.map(nome => ({ company_id: user.companyId!, nome, tipo: 'ambos' })))
+          .insert(novas.map(nome => ({
+            company_id: user.companyId!,
+            nome,
+            tipo: valid.find(r => r.categoria.trim().toLowerCase() === nome.toLowerCase())?.tipo || 'despesa',
+          })))
           .select('id, nome');
         (inserted || []).forEach(c => catMap.set(c.nome.trim().toLowerCase(), c.id));
       }
