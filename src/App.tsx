@@ -85,6 +85,7 @@ import Receituario from "./pages/clinica/Receituario";
 import PrescricaoRapidas from "./pages/clinica/PrescricaoRapidas";
 import DashboardFinanceiro from "./pages/financeiro/DashboardFinanceiro";
 import Lancamentos from "./pages/financeiro/Lancamentos";
+import ImportarFinanceiro from "./pages/financeiro/ImportarFinanceiro";
 import FluxoCaixa from "./pages/financeiro/FluxoCaixa";
 import RelatoriosFinanceiros from "./pages/financeiro/RelatoriosFinanceiros";
 import DRE from "./pages/financeiro/DRE";
