@@ -1,15 +1,35 @@
-import type { AnatomicalMap } from '@/hooks/useAnatomicalMaps';
+import { supabase } from '@/integrations/supabase/client';
+import { ANATOMICAL_MAPS_BUCKET, type AnatomicalMap } from '@/hooks/useAnatomicalMaps';
 
 const MAX_WIDTH = 520; // px — suficiente para ~55mm impressos, mantém o PDF leve
 
-const loadImage = (url: string) =>
+const loadImage = (src: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('imagem indisponível'));
-    img.src = url;
+    img.src = src;
   });
+
+const blobToDataUrl = (blob: Blob) =>
+  new Promise<string>((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result));
+    fr.onerror = () => reject(new Error('falha ao ler imagem'));
+    fr.readAsDataURL(blob);
+  });
+
+/**
+ * Baixa a imagem do storage como data URL. Evita canvas "tainted" por CORS,
+ * que fazia o snapshot falhar silenciosamente e o PDF sair sem a figura.
+ */
+async function resolveImageSource(map: AnatomicalMap): Promise<string | null> {
+  if (map.image_path) {
+    const { data } = await supabase.storage.from(ANATOMICAL_MAPS_BUCKET).download(map.image_path);
+    if (data) return blobToDataUrl(data);
+  }
+  return map.imageUrl || null;
+}
 
 /**
  * Gera uma miniatura (JPEG comprimido) da imagem anatômica com as áreas
