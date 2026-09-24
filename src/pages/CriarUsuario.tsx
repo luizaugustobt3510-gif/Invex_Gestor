@@ -26,6 +26,7 @@ const CriarUsuario = () => {
     username: '',
     senha: '',
   });
+  const [trocarSenha, setTrocarSenha] = useState(true);
   const [modo, setModo] = useState<'email' | 'usuario'>('email');
 
   useEffect(() => {
@@ -86,6 +87,7 @@ const CriarUsuario = () => {
             email: modo === 'email' ? email : undefined,
             username: modo === 'usuario' ? username : undefined,
             password: modo === 'usuario' ? formData.senha : undefined,
+            must_change_password: modo === 'usuario' ? trocarSenha : undefined,
             nome, cargo,
             role: roleMap[autenticacao] || 'solicitante',
             company_id: isSuperAdmin ? formData.company_id : undefined,
@@ -148,6 +150,10 @@ const CriarUsuario = () => {
                   <Label htmlFor="senha">Senha inicial *</Label>
                   <Input id="senha" type="text" value={formData.senha} onChange={(e) => setFormData(p => ({ ...p, senha: e.target.value }))} placeholder="Mínimo 6 caracteres" />
                 </div>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" className="h-4 w-4 accent-primary" checked={trocarSenha} onChange={(e) => setTrocarSenha(e.target.checked)} />
+                  Exigir troca de senha no primeiro acesso
+                </label>
               </>
             )}
             <div className="space-y-2">

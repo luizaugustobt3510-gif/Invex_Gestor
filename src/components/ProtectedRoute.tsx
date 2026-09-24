@@ -19,6 +19,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+  if (user.mustChangePassword) return <Navigate to="/accept-invite?primeiro-acesso=1" replace />;
 
   return <>{children}</>;
 };

@@ -33,6 +33,7 @@ interface User {
   email: string;
   role: UserRole;
   companyId: string | null;
+  mustChangePassword?: boolean;
 }
 
 interface AuthContextType {
@@ -70,6 +71,7 @@ async function loadUserProfile(supabaseUser: SupabaseUser): Promise<User | null>
     email: profile?.email || supabaseUser.email || '',
     role: dbToUiRole[dbRole] || 'solicitante',
     companyId: roleData?.company_id || profile?.company_id || null,
+    mustChangePassword: supabaseUser.user_metadata?.must_change_password === true,
   };
 }
 
