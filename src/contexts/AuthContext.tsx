@@ -2,6 +2,9 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef, Re
 import { supabase } from '@/integrations/supabase/client';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
+// eslint-disable-next-line react-refresh/only-export-components
+export const USERNAME_DOMAIN = 'usuarios.invexgestor.local';
+
 // DB roles from app_role enum
 type DbRole = 'super_admin' | 'admin_empresa' | 'usuario_almox' | 'solicitante' | 'logistica' | 'rh' | 'financeiro' | 'visualizador' | 'manutencao' | 'fitness_user' | 'clinica' | 'enfermagem' | 'enfermeiro' | 'recepcionista';
 
