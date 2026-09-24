@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
     if (username) {
       const r = await supabase.auth.admin.createUser({
         email, password, email_confirm: true,
-        user_metadata: { nome, username, invited_by: caller.id },
+        user_metadata: { nome, username, invited_by: caller.id, must_change_password: body.must_change_password === true },
       });
       invited = r.data; inviteErr = r.error;
     } else {

@@ -17,6 +17,7 @@ export const EmailRestrictedRoute = ({ allowedEmails, children, redirectTo = '/'
 
   if (isLoading) return null;
   if (!user) return <Navigate to="/login" replace />;
+  if (user.mustChangePassword) return <Navigate to="/accept-invite?primeiro-acesso=1" replace />;
 
   const allow = allowedEmails.map(e => e.toLowerCase()).includes((user.email || '').toLowerCase());
   if (!allow) return <Navigate to={redirectTo} replace />;

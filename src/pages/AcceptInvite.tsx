@@ -13,6 +13,7 @@ const AcceptInvite = () => {
   const [loading, setLoading] = useState(false);
   const [senha, setSenha] = useState('');
   const [senha2, setSenha2] = useState('');
+  const primeiroAcesso = new URLSearchParams(window.location.search).has('primeiro-acesso');
   const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -50,7 +51,7 @@ const AcceptInvite = () => {
     if (senha !== senha2) return toast.error('As senhas não conferem.');
 
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password: senha });
+    const { error } = await supabase.auth.updateUser({ password: senha, data: { must_change_password: false } });
     if (error) {
       setLoading(false);
       toast.error(error.message);
@@ -70,7 +71,7 @@ const AcceptInvite = () => {
     }
     setLoading(false);
     toast.success('Conta ativada! Redirecionando...');
-    setTimeout(() => navigate('/', { replace: true }), 800);
+    setTimeout(() => { window.location.href = '/'; }, 800);
   };
 
   if (!ready) {
@@ -90,7 +91,7 @@ const AcceptInvite = () => {
           </div>
           <h1 className="text-2xl font-bold">Bem-vindo ao Invex</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {email ? `Você foi convidado como ${email}.` : 'Defina sua senha para ativar sua conta.'}
+            {primeiroAcesso ? 'Primeiro acesso: defina uma nova senha para continuar.' : email ? `Você foi convidado como ${email}.` : 'Defina sua senha para ativar sua conta.'}
           </p>
         </div>
         <form onSubmit={submit} className="space-y-4">

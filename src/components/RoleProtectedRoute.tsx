@@ -25,6 +25,7 @@ export const RoleProtectedRoute = ({ children, allowedRoles, moduleKey, submodul
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+  if (user.mustChangePassword) return <Navigate to="/accept-invite?primeiro-acesso=1" replace />;
 
   // If a moduleKey is provided, granting that module via user_module_permissions
   // bypasses the role check (granted module = full access). Otherwise, role gates.
