@@ -23,7 +23,10 @@ const CriarUsuario = () => {
     cargo: '',
     autenticacao: '',
     company_id: '',
+    username: '',
+    senha: '',
   });
+  const [modo, setModo] = useState<'email' | 'usuario'>('email');
 
   useEffect(() => {
     if (!isSuperAdmin) return;
@@ -42,7 +45,12 @@ const CriarUsuario = () => {
     const autenticacao = formData.autenticacao || '';
 
     if (!nome) return toast({ title: 'Campo obrigatório', description: 'Informe o nome.', variant: 'destructive' });
-    if (!email) return toast({ title: 'Campo obrigatório', description: 'Informe o e-mail.', variant: 'destructive' });
+    const username = formData.username.trim().toLowerCase();
+    if (modo === 'email' && !email) return toast({ title: 'Campo obrigatório', description: 'Informe o e-mail.', variant: 'destructive' });
+    if (modo === 'usuario') {
+      if (!/^[a-z0-9._-]{3,40}$/.test(username)) return toast({ title: 'Usuário inválido', description: 'Use 3 a 40 letras minúsculas, números, ponto, hífen ou sublinhado (sem espaços).', variant: 'destructive' });
+      if (formData.senha.length < 6) return toast({ title: 'Senha curta', description: 'A senha deve ter pelo menos 6 caracteres.', variant: 'destructive' });
+    }
     if (!autenticacao) return toast({ title: 'Campo obrigatório', description: 'Selecione o perfil.', variant: 'destructive' });
     if (isSuperAdmin && !formData.company_id) return toast({ title: 'Campo obrigatório', description: 'Selecione a empresa.', variant: 'destructive' });
 
@@ -75,7 +83,10 @@ const CriarUsuario = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({
-            email, nome, cargo,
+            email: modo === 'email' ? email : undefined,
+            username: modo === 'usuario' ? username : undefined,
+            password: modo === 'usuario' ? formData.senha : undefined,
+            nome, cargo,
             role: roleMap[autenticacao] || 'solicitante',
             company_id: isSuperAdmin ? formData.company_id : undefined,
             redirect_to: `${window.location.origin}/accept-invite`,
@@ -84,8 +95,8 @@ const CriarUsuario = () => {
       );
       const result = await response.json();
       if (result.ok) {
-        toast({ title: 'Convite enviado!', description: result.msg });
-        setFormData({ email: '', nome: '', cargo: '', autenticacao: '', company_id: '' });
+        toast({ title: modo === 'usuario' ? 'Usuário criado!' : 'Convite enviado!', description: result.msg });
+        setFormData({ email: '', nome: '', cargo: '', autenticacao: '', company_id: '', username: '', senha: '' });
       } else {
         toast({ title: 'Erro', description: result.error || 'Erro ao enviar convite.', variant: 'destructive' });
       }
@@ -115,9 +126,30 @@ const CriarUsuario = () => {
               <Input id="nome" value={formData.nome} onChange={(e) => setFormData(p => ({ ...p, nome: e.target.value }))} placeholder="Nome completo" />
             </div>
             <div className="space-y-2">
+              <Label>Forma de acesso</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button type="button" variant={modo === 'email' ? 'default' : 'outline'} onClick={() => setModo('email')}>Convite por e-mail</Button>
+                <Button type="button" variant={modo === 'usuario' ? 'default' : 'outline'} onClick={() => setModo('usuario')}>Nome de usuário</Button>
+              </div>
+            </div>
+            {modo === 'email' ? (
+            <div className="space-y-2">
               <Label htmlFor="email">E-mail real *</Label>
               <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData(p => ({ ...p, email: e.target.value }))} placeholder="usuario@empresa.com" />
             </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Nome de usuário *</Label>
+                  <Input id="username" autoCapitalize="none" autoCorrect="off" value={formData.username} onChange={(e) => setFormData(p => ({ ...p, username: e.target.value.toLowerCase().replace(/\s/g, '') }))} placeholder="ex: maria.enf" />
+                  <p className="text-xs text-muted-foreground">A pessoa entra digitando este usuário no campo de login.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="senha">Senha inicial *</Label>
+                  <Input id="senha" type="text" value={formData.senha} onChange={(e) => setFormData(p => ({ ...p, senha: e.target.value }))} placeholder="Mínimo 6 caracteres" />
+                </div>
+              </>
+            )}
             <div className="space-y-2">
               <Label htmlFor="cargo">Cargo</Label>
               <Input id="cargo" value={formData.cargo} onChange={(e) => setFormData(p => ({ ...p, cargo: e.target.value }))} placeholder="Ex: Analista, Coordenador" />
@@ -156,7 +188,7 @@ const CriarUsuario = () => {
             </div>
             <Button type="submit" className="w-full gap-2" disabled={loading}>
               <Send className="w-4 h-4" />
-              {loading ? 'Enviando convite...' : 'Enviar convite'}
+              {loading ? 'Salvando...' : modo === 'usuario' ? 'Criar usuário' : 'Enviar convite'}
             </Button>
           </form>
         </CardContent>
