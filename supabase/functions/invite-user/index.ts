@@ -104,7 +104,8 @@ Deno.serve(async (req) => {
       invited_at: new Date().toISOString(),
       created_by: caller.id,
       provider: "email",
-      email_verified: false,
+      email_verified: !!username,
+      accepted_invite_at: username ? new Date().toISOString() : undefined,
     }, { onConflict: "user_id" });
 
     // Insert role
@@ -114,7 +115,7 @@ Deno.serve(async (req) => {
       company_id: companyId,
     }, { onConflict: "user_id,role" });
 
-    return json({ ok: true, msg: `Convite enviado para ${email}.` });
+    return json({ ok: true, msg: username ? `Usuário "${username}" criado. Já pode entrar com usuário e senha.` : `Convite enviado para ${email}.` });
   } catch (err) {
     return json({ error: "Erro interno: " + (err as Error).message }, 500);
   }
