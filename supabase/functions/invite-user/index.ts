@@ -36,12 +36,24 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const email = String(body.email || "").trim().toLowerCase();
+    const username = body.username ? String(body.username).trim().toLowerCase() : "";
+    const password = body.password ? String(body.password) : "";
+    const email = username
+      ? `${username}@usuarios.invexgestor.local`
+      : String(body.email || "").trim().toLowerCase();
     const nome = String(body.nome || "").trim();
     const role = String(body.role || "solicitante");
     const cargo = body.cargo ? String(body.cargo).trim() : null;
     const requestedCompanyId = typeof body.company_id === "string" ? body.company_id : null;
     const redirectTo = String(body.redirect_to || "");
+
+    if (username) {
+      if (!/^[a-z0-9._-]{3,40}$/.test(username)) {
+        return json({ error: "Usuário inválido: use 3 a 40 letras minúsculas, números, ponto, hífen ou sublinhado." }, 400);
+      }
+      if (password.length < 6) return json({ error: "A senha deve ter pelo menos 6 caracteres." }, 400);
+      if (role === "super_admin") return json({ error: "Perfil não permitido para login por usuário." }, 400);
+    }
 
     if (!email || !nome) return json({ error: "Informe nome e e-mail." }, 400);
 
@@ -50,21 +62,31 @@ Deno.serve(async (req) => {
       : callerRole.company_id;
     if (!companyId) return json({ error: "Empresa não identificada." }, 400);
 
-    // Check if user already exists
-    const { data: listRes } = await supabase.auth.admin.listUsers();
+    const { data: listRes } = await supabase.auth.admin.listUsers({ perPage: 1000 });
     const existing = listRes?.users?.find((u) => u.email?.toLowerCase() === email);
     if (existing) {
-      return json({ error: "Já existe um usuário com este e-mail." }, 400);
+      return json({ error: username ? "Este nome de usuário já está em uso." : "Já existe um usuário com este e-mail." }, 400);
     }
 
-    // Send invite (Supabase creates the auth.user in "invited" state and emails link)
-    const { data: invited, error: inviteErr } = await supabase.auth.admin.inviteUserByEmail(email, {
-      redirectTo: redirectTo || undefined,
-      data: { nome, invited_by: caller.id },
-    });
+    // deno-lint-ignore no-explicit-any
+    let invited: any = null;
+    let inviteErr: { message: string } | null = null;
+    if (username) {
+      const r = await supabase.auth.admin.createUser({
+        email, password, email_confirm: true,
+        user_metadata: { nome, username, invited_by: caller.id },
+      });
+      invited = r.data; inviteErr = r.error;
+    } else {
+      const r = await supabase.auth.admin.inviteUserByEmail(email, {
+        redirectTo: redirectTo || undefined,
+        data: { nome, invited_by: caller.id },
+      });
+      invited = r.data; inviteErr = r.error;
+    }
 
     if (inviteErr || !invited?.user) {
-      return json({ error: inviteErr?.message || "Falha ao enviar convite." }, 400);
+      return json({ error: inviteErr?.message || "Falha ao criar usuário." }, 400);
     }
 
     // handle_new_user trigger already created the profile row. Update with company + invite meta.
@@ -82,7 +104,8 @@ Deno.serve(async (req) => {
       invited_at: new Date().toISOString(),
       created_by: caller.id,
       provider: "email",
-      email_verified: false,
+      email_verified: !!username,
+      accepted_invite_at: username ? new Date().toISOString() : undefined,
     }, { onConflict: "user_id" });
 
     // Insert role
@@ -92,7 +115,7 @@ Deno.serve(async (req) => {
       company_id: companyId,
     }, { onConflict: "user_id,role" });
 
-    return json({ ok: true, msg: `Convite enviado para ${email}.` });
+    return json({ ok: true, msg: username ? `Usuário "${username}" criado. Já pode entrar com usuário e senha.` : `Convite enviado para ${email}.` });
   } catch (err) {
     return json({ error: "Erro interno: " + (err as Error).message }, 500);
   }

@@ -154,15 +154,15 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-muted-foreground text-xs sm:text-sm">Email</Label>
+              <Label htmlFor="email" className="text-muted-foreground text-xs sm:text-sm">E-mail ou usuário</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  id="email" type="email" placeholder="seu@email.com" value={email}
+                  id="email" type="text" placeholder="seu@email.com ou usuário" value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onBlur={(e) => lookupMethods(e.target.value)}
                   className="pl-10 h-11 sm:h-12 rounded-xl text-base"
-                  disabled={loading} autoComplete="email" inputMode="email"
+                  disabled={loading} autoComplete="username" autoCapitalize="none" autoCorrect="off"
                 />
               </div>
             </div>

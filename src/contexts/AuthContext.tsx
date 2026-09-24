@@ -2,6 +2,9 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef, Re
 import { supabase } from '@/integrations/supabase/client';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
+// eslint-disable-next-line react-refresh/only-export-components
+export const USERNAME_DOMAIN = 'usuarios.invexgestor.local';
+
 // DB roles from app_role enum
 type DbRole = 'super_admin' | 'admin_empresa' | 'usuario_almox' | 'solicitante' | 'logistica' | 'rh' | 'financeiro' | 'visualizador' | 'manutencao' | 'fitness_user' | 'clinica' | 'enfermagem' | 'enfermeiro' | 'recepcionista';
 
@@ -132,11 +135,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, senha: string): Promise<{ success: boolean; message: string }> => {
-    const emailNormalizado = email.trim().toLowerCase();
+    let emailNormalizado = email.trim().toLowerCase();
     const senhaNormalizada = String(senha).trim();
 
-    if (!emailNormalizado) return { success: false, message: 'Por favor, informe o e-mail.' };
+    if (!emailNormalizado) return { success: false, message: 'Por favor, informe o e-mail ou usuário.' };
     if (!senhaNormalizada) return { success: false, message: 'Por favor, informe a senha.' };
+
+    // Login por nome de usuário: mapeia para o e-mail interno
+    if (!emailNormalizado.includes('@')) {
+      if (!/^[a-z0-9._-]{3,40}$/.test(emailNormalizado)) {
+        return { success: false, message: 'Usuário inválido.' };
+      }
+      emailNormalizado = `${emailNormalizado}@${USERNAME_DOMAIN}`;
+    }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(emailNormalizado)) return { success: false, message: 'Por favor, informe um e-mail válido.' };
