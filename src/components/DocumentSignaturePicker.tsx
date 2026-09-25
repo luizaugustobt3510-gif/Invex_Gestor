@@ -41,6 +41,7 @@ interface SavedSig {
   is_shared?: boolean;
   signature_type?: string | null;
   is_active?: boolean | null;
+  linked_user_id?: string | null;
   _signed?: string;
 }
 
@@ -55,7 +56,7 @@ export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sector
     (async () => {
       const { data: authUser } = await supabase.auth.getUser();
       if (!authUser.user) return;
-      const cols = 'id, nome, credencial, image_url, is_default, sector_id, is_shared, signature_type, is_active';
+      const cols = 'id, nome, credencial, image_url, is_default, sector_id, is_shared, signature_type, is_active, linked_user_id';
       const [ownRes, sharedRes] = await Promise.all([
         supabase
           .from('user_signatures')
@@ -71,7 +72,13 @@ export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sector
           : Promise.resolve({ data: [] as any[] }),
       ]);
       const merged = [...((ownRes.data || []) as SavedSig[]), ...(((sharedRes as any).data || []) as SavedSig[])];
-      const rows = merged.filter((s, i) => merged.findIndex(x => x.id === s.id) === i);
+      const me = authUser.user.id;
+      let rows = merged.filter((s, i) => merged.findIndex(x => x.id === s.id) === i);
+      // Técnicos: assinatura vinculada a outro usuário nunca aparece; se houver
+      // assinatura técnica vinculada a mim, mostro só as minhas.
+      rows = rows.filter(s => (s.signature_type || 'medico') !== 'tecnico' || !s.linked_user_id || s.linked_user_id === me);
+      const mineTec = rows.some(s => (s.signature_type || 'medico') === 'tecnico' && s.linked_user_id === me);
+      if (mineTec) rows = rows.filter(s => (s.signature_type || 'medico') !== 'tecnico' || s.linked_user_id === me);
       const withUrls = await Promise.all(rows.map(async (s) => {
         if (s.image_url.startsWith('data:')) return { ...s, _signed: s.image_url };
         // Download via storage client and inline as data URL — this avoids CORS issues
@@ -95,7 +102,7 @@ export function DocumentSignaturePicker({ label = 'Assinatura', onChange, sector
       const usable = withUrls
         .filter(s => s.is_active !== false)
         .filter(s => (signatureType ? (s.signature_type || 'medico') === signatureType : true));
-      const def = usable.find(s => s.is_default) || usable[0];
+      const def = usable.find(s => s.linked_user_id) || usable.find(s => s.is_default) || usable[0];
       if (def && (defaultMode || 'saved') === 'saved') {
         setSigId(def.id);
         emit('saved', undefined, def);

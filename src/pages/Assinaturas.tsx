@@ -27,6 +27,7 @@ interface Signature {
   icp_validade: string | null;
   sector_id: string | null;
   sector_nome: string | null;
+  linked_user_id?: string | null;
   created_at: string;
 }
 
@@ -54,6 +55,7 @@ export default function Assinaturas() {
   const [editNome, setEditNome] = useState('');
   const [editCred, setEditCred] = useState('');
   const [editTipo, setEditTipo] = useState<'medico' | 'tecnico'>('medico');
+  const [members, setMembers] = useState<{ user_id: string; nome: string }[]>([]);
   const padRef = useRef<SignaturePadHandle>(null);
   const isAdmin = user?.role === 'admin' || user?.role === 'superadm';
 
@@ -72,6 +74,10 @@ export default function Assinaturas() {
       supabase.from('sectors').select('id, nome').eq('company_id', user.companyId).order('nome'),
     ]);
     setSectors((secRes.data as Sector[]) || []);
+    if (isAdmin) {
+      const { data: profs } = await supabase.from('profiles').select('user_id, nome, email').eq('company_id', user.companyId).order('nome');
+      setMembers(((profs || []) as any[]).map(p => ({ user_id: p.user_id, nome: p.nome || p.email || 'Sem nome' })));
+    }
     if (sigRes.error) toast.error('Erro ao carregar assinaturas');
     else {
       const merged = [...((sigRes.data || []) as unknown as Signature[]), ...((sharedRes.data || []) as unknown as Signature[])];
@@ -109,6 +115,15 @@ export default function Assinaturas() {
       toast.success((item.is_active ?? true) ? 'Assinatura desativada' : 'Assinatura ativada');
       load();
     }
+  };
+
+  const linkUser = async (item: Signature, userId: string) => {
+    const linked = userId === 'none' ? null : userId;
+    const { error } = await (supabase.from('user_signatures') as any)
+      .update({ linked_user_id: linked, ...(linked ? { is_shared: true } : {}) })
+      .eq('id', item.id);
+    if (error) toast.error('Erro ao vincular', { description: error.message });
+    else { toast.success(linked ? 'Assinatura vinculada ao usuário' : 'Vínculo removido'); load(); }
   };
 
   const openEdit = (item: Signature) => {
@@ -346,6 +361,19 @@ export default function Assinaturas() {
                       {s.sector_nome && <div className="text-muted-foreground">Setor: {s.sector_nome}</div>}
                       {s.icp_titular && <div className="text-muted-foreground">ICP: {s.icp_titular}</div>}
                     </div>
+
+                    {isAdmin && !medico && (
+                      <div className="space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">Usuário dono desta assinatura</Label>
+                        <Select value={s.linked_user_id || 'none'} onValueChange={(v) => linkUser(s, v)}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Sem vínculo (todos veem)</SelectItem>
+                            {members.map(m => <SelectItem key={m.user_id} value={m.user_id}>{m.nome}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
 
                     {editing?.id === s.id ? (
                       <div className="space-y-2 pt-1">
