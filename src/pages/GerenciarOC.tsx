@@ -230,6 +230,8 @@ const GerenciarOC = () => {
   const handleExcluir = async (orderId: string) => {
     setActionLoading(orderId);
     try {
+      // Estorna lançamento financeiro vinculado (se houver)
+      await supabase.from('financial_entries').update({ status: 'cancelado' }).eq('origem', 'compras').eq('origem_id', orderId);
       // Delete items first
       await supabase.from('purchase_order_items').delete().eq('purchase_order_id', orderId);
       const { error } = await supabase.from('purchase_orders').delete().eq('id', orderId);
