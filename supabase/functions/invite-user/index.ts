@@ -108,12 +108,15 @@ Deno.serve(async (req) => {
       accepted_invite_at: username ? new Date().toISOString() : undefined,
     }, { onConflict: "user_id" });
 
-    // Insert role
-    await supabase.from("user_roles").upsert({
+    // Insert role (unique key is user_id + company_id)
+    const { error: roleErr } = await supabase.from("user_roles").upsert({
       user_id: invited.user.id,
       role,
       company_id: companyId,
-    }, { onConflict: "user_id,role" });
+    }, { onConflict: "user_id,company_id" });
+    if (roleErr) {
+      return json({ error: "Usuário criado, mas falhou ao atribuir o perfil: " + roleErr.message }, 500);
+    }
 
     return json({ ok: true, msg: username ? `Usuário "${username}" criado. Já pode entrar com usuário e senha.` : `Convite enviado para ${email}.` });
   } catch (err) {
