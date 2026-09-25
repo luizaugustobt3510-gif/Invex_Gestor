@@ -4709,6 +4709,7 @@ export type Database = {
           is_active: boolean
           is_default: boolean
           is_shared: boolean
+          linked_user_id: string | null
           nome: string
           sector_id: string | null
           sector_nome: string | null
@@ -4728,6 +4729,7 @@ export type Database = {
           is_active?: boolean
           is_default?: boolean
           is_shared?: boolean
+          linked_user_id?: string | null
           nome: string
           sector_id?: string | null
           sector_nome?: string | null
@@ -4747,6 +4749,7 @@ export type Database = {
           is_active?: boolean
           is_default?: boolean
           is_shared?: boolean
+          linked_user_id?: string | null
           nome?: string
           sector_id?: string | null
           sector_nome?: string | null
