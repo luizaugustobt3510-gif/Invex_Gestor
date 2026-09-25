@@ -8,7 +8,8 @@
 
 ## Financeiro
 - [x] Importar entradas e saídas de um mês por planilha (modelo + conferência)
-- [ ] Vendas e ordens de compra gerando lançamentos automáticos
+- [x] Vendas e ordens de compra gerando lançamentos automáticos
+- [x] Super Admin: atalho "Convidar / Criar Usuário" no menu
 
 ## Acessos
 - [ ] Revisão: nenhum usuário vê dados de outra empresa nem módulos sem acesso
