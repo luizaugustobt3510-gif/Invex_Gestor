@@ -169,6 +169,36 @@ const GerenciarOC = () => {
 
       if (error) throw error;
 
+      // Lançamento financeiro automático (despesa pendente), sem duplicar
+      try {
+        const order = orders.find((o) => o.id === orderId);
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        const { data: existing } = await supabase
+          .from('financial_entries')
+          .select('id')
+          .eq('company_id', cid)
+          .eq('origem', 'compras')
+          .eq('origem_id', orderId)
+          .limit(1);
+        if (order && authUser && !(existing && existing.length)) {
+          const hoje = new Date().toISOString().split('T')[0];
+          const { error: finErr } = await supabase.from('financial_entries').insert({
+            company_id: cid,
+            user_id: authUser.id,
+            tipo: 'despesa',
+            descricao: `OC ${orderId.substring(0, 8).toUpperCase()} - ${order.fornecedor}`,
+            valor: Number(order.total || 0),
+            data: hoje,
+            data_vencimento: hoje,
+            status: 'pendente',
+            origem: 'compras',
+            origem_id: orderId,
+            observacoes: `Condição de pagamento: ${order.cond_pagto || '-'}`,
+          } as any);
+          if (finErr) toast({ title: 'Atenção', description: 'Estoque atualizado, mas a despesa não foi lançada no financeiro.', variant: 'destructive' });
+        }
+      } catch { /* não bloqueia a entrada */ }
+
       toast({ title: 'Sucesso!', description: 'Entrada no estoque realizada com sucesso.' });
       fetchOrders();
     } catch {
