@@ -43,6 +43,13 @@
       "when": 1790464010647,
       "tag": "0005_restrict_fitness_achievements_read",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790464160821,
+      "tag": "0006_sector_members_admin",
+      "breakpoints": true
     }
   ]
 }

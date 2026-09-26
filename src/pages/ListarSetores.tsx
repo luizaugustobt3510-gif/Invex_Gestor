@@ -6,6 +6,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Building2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { EquipeSetorDialog } from '@/components/EquipeSetorDialog';
+import { useAuth } from '@/contexts/AuthContext';
+import { Users } from 'lucide-react';
 
 interface Setor {
   id: string;
@@ -17,6 +20,10 @@ const ListarSetores = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [setores, setSetores] = useState<Setor[]>([]);
+  const [companyId, setCompanyId] = useState('');
+  const [equipe, setEquipe] = useState<Setor | null>(null);
+  const { user: authUser } = useAuth();
+  const canManage = authUser?.role === 'admin' || authUser?.role === 'superadm';
 
   const fetchSetores = async () => {
     setLoading(true);
@@ -33,6 +40,7 @@ const ListarSetores = () => {
         .single();
 
       if (!roleData?.company_id) return;
+      setCompanyId(roleData.company_id);
 
       const { data, error } = await supabase
         .from('sectors')
@@ -81,6 +89,7 @@ const ListarSetores = () => {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>Descrição</TableHead>
+                    <TableHead className="text-right">Equipe</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -88,6 +97,7 @@ const ListarSetores = () => {
                     <TableRow key={setor.id}>
                       <TableCell className="font-medium">{setor.nome}</TableCell>
                       <TableCell>{setor.descricao || '-'}</TableCell>
+                      <TableCell className="text-right"><Button variant="outline" size="sm" onClick={() => setEquipe(setor)}><Users className="w-4 h-4 mr-1" />Equipe</Button></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -96,6 +106,7 @@ const ListarSetores = () => {
           )}
         </CardContent>
       </Card>
+      <EquipeSetorDialog open={!!equipe} onOpenChange={(v) => !v && setEquipe(null)} sector={equipe} companyId={companyId} canManage={canManage} />
     </MainLayout>
   );
 };

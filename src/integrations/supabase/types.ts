@@ -4009,6 +4009,48 @@ export type Database = {
           },
         ]
       }
+      sector_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          is_admin: boolean
+          sector_id: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          sector_id: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+          sector_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sector_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sector_members_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sector_stock: {
         Row: {
           company_id: string
@@ -4848,6 +4890,14 @@ export type Database = {
       }
       is_company_member: {
         Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_sector_admin: {
+        Args: { _sector_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_sector_admin_of_user: {
+        Args: { _admin: string; _company_id: string; _target: string }
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
