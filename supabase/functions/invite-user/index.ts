@@ -47,6 +47,9 @@ Deno.serve(async (req) => {
     const requestedCompanyId = typeof body.company_id === "string" ? body.company_id : null;
     const redirectTo = String(body.redirect_to || "");
 
+    const allowedRoles = new Set(["admin_empresa","usuario_almox","solicitante","logistica","rh","financeiro","visualizador","manutencao","clinica","enfermagem","enfermeiro","recepcionista"]);
+    if (!allowedRoles.has(role)) return json({ error: "Perfil não permitido." }, 400);
+
     if (username) {
       if (!/^[a-z0-9._-]{3,40}$/.test(username)) {
         return json({ error: "Usuário inválido: use 3 a 40 letras minúsculas, números, ponto, hífen ou sublinhado." }, 400);

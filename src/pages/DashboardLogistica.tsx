@@ -178,6 +178,12 @@ const DashboardLogistica = () => {
   const criticalCount = summary.total_zerado;
   const isHealthy = alertCount === 0 && criticalCount === 0;
 
+  const csvCell = (v: unknown) => {
+    let t = String(v ?? '');
+    if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+    return /[;"\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+  };
+
   const handleExportReport = () => {
     try {
       const csvContent = [
@@ -186,7 +192,7 @@ const DashboardLogistica = () => {
           item.codigo, item.material, item.quantidade,
           item.preco.toFixed(2), item.valorTotal.toFixed(2), item.status
         ])
-      ].map(row => row.join(';')).join('\n');
+      ].map(row => row.map(csvCell).join(';')).join('\n');
 
       const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');

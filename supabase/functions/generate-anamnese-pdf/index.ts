@@ -130,7 +130,8 @@ Deno.serve(async (req) => {
       "super_admin", "admin_empresa", "clinica",
       "enfermagem", "enfermeiro", "recepcionista",
     ]);
-    const hasAllowedRole = rolesList.some((r) => allowed.has(r.role));
+    const hasAllowedRole = rolesList.some((r) =>
+      allowed.has(r.role) && (r.role === "super_admin" || r.company_id === effectiveCompanyId));
     if (!hasAllowedRole) {
       return json({
         error: `Sem permissão para gerar anamnese (perfil: ${rolesList.map(r => r.role).join(", ") || "nenhum"})`,
@@ -371,7 +372,14 @@ Deno.serve(async (req) => {
         if (url.startsWith("data:")) {
           out = await optimizeSignature(url);
         } else {
-          const resp = await fetch(url);
+          const supaHost = new URL(Deno.env.get("SUPABASE_URL")!).host;
+          let parsed: URL;
+          try { parsed = new URL(url); } catch { sigCache.set(url, null); return null; }
+          if (parsed.protocol !== "https:" || parsed.host !== supaHost || !parsed.pathname.startsWith("/storage/v1/")) {
+            sigCache.set(url, null);
+            return null;
+          }
+          const resp = await fetch(parsed.toString(), { redirect: "error" });
           if (resp.ok) {
             const buf = new Uint8Array(await resp.arrayBuffer());
             let base64 = "";
