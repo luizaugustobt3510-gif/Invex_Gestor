@@ -4851,6 +4851,10 @@ export type Database = {
     }
     Functions: {
       check_setup_needed: { Args: never; Returns: boolean }
+      company_is_not_blocked: {
+        Args: { _company_id: string }
+        Returns: boolean
+      }
       deliver_material_request: {
         Args: { _request_id: string; _sector_id?: string }
         Returns: string
