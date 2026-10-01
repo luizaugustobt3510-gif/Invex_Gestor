@@ -78,6 +78,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { useIsNursingAdmin } from "@/hooks/useIsNursingAdmin";
 
 interface MenuItem {
   path: string;
@@ -1055,6 +1056,7 @@ export function AppSidebar() {
     saveSidebarScroll();
     navigate(path);
   };
+  const { isNursingAdmin } = useIsNursingAdmin();
 
   const handleLogout = () => {
     logout();
