@@ -3,6 +3,7 @@ import { jsPDF } from "npm:jspdf@2.5.2";
 import QRCode from "npm:qrcode@1.5.4";
 import { Image as IsImage } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
 
+const TZ = "America/Sao_Paulo";
 const MAX_PDF_BYTES = 1024 * 1024; // 1 MB
 const SIG_MAX_WIDTH = 420; // px — suficiente para 60mm impressos
 const SIG_MAX_BYTES = 120 * 1024; // orçamento por assinatura
@@ -45,6 +46,8 @@ const corsHeaders = {
 };
 
 interface AnamneseInput {
+  /** Quando informado, edita a anamnese existente e regera o PDF */
+  anamnese_id?: string;
   patient_id: string;
   template_id?: string | null;
   template_name?: string;
@@ -160,25 +163,38 @@ Deno.serve(async (req) => {
     ]);
     const createdByName = profile?.nome || profile?.email || "Usuário";
 
-    // Insert anamnese record
-    const { data: anamnese, error: insErr } = await supabase
-      .from("anamneses")
-      .insert({
-        company_id: effectiveCompanyId,
-        patient_id: patient.id,
-        template_id: body.template_id || null,
-        template_name: body.template_name || null,
-        exam_type: body.exam_type,
-        // A miniatura da imagem não é gravada no registro (apenas usada no PDF)
-        responses: body.responses.map(({ image: _img, ...rest }) => rest),
-        observations: body.observations || null,
-        signature_image_url: body.signature_image_url || null,
-        signature_source: body.signature_source || null,
-        created_by: userId,
-        created_by_name: createdByName,
-      })
-      .select("id, created_at")
-      .single();
+    const record = {
+
+          company_id: effectiveCompanyId,
+          patient_id: patient.id,
+          template_id: body.template_id || null,
+          template_name: body.template_name || null,
+          exam_type: body.exam_type,
+          // A miniatura da imagem não é gravada no registro (apenas usada no PDF)
+          responses: body.responses.map(({ image: _img, ...rest }) => rest),
+          observations: body.observations || null,
+          signature_image_url: body.signature_image_url || null,
+          signature_source: body.signature_source || null,
+          created_by: userId,
+          created_by_name: createdByName,
+        };
+    let anamnese: { id: string; created_at: string } | null = null;
+    let insErr: unknown = null;
+    if (body.anamnese_id) {
+      const { data: existing } = await supabase
+        .from("anamneses").select("id, company_id, patient_id, created_at")
+        .eq("id", body.anamnese_id).maybeSingle();
+      if (!existing || existing.company_id !== effectiveCompanyId || existing.patient_id !== patient.id) {
+        return json({ error: "Anamnese inválida" }, 400);
+      }
+      const { created_by: _cb, created_by_name: _cbn, ...upd } = record;
+      const { error } = await supabase.from("anamneses").update(upd).eq("id", existing.id);
+      insErr = error;
+      anamnese = { id: existing.id, created_at: existing.created_at };
+    } else {
+      const { data, error } = await supabase.from("anamneses").insert(record).select("id, created_at").single();
+      insErr = error; anamnese = data;
+    }
     if (insErr || !anamnese) return json({ error: "Falha ao registrar anamnese" }, 500);
 
     // Build PDF
@@ -203,6 +219,7 @@ Deno.serve(async (req) => {
 
     const anamneseNumber = anamnese.id.substring(0, 8).toUpperCase();
     const dt = new Date(anamnese.created_at);
+    const editedAt = body.anamnese_id ? new Date() : null;
 
     // Faixa de cabeçalho colorida
     doc.setFillColor(...HEADER);
@@ -215,11 +232,17 @@ Deno.serve(async (req) => {
     doc.setFont("helvetica", "normal");
     doc.text(`Nº ${anamneseNumber}`, margin, 20);
     doc.text(
-      `${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR").slice(0, 5)}`,
+      `${dt.toLocaleDateString("pt-BR", { timeZone: TZ })} ${dt.toLocaleTimeString("pt-BR", { timeZone: TZ }).slice(0, 5)}`,
       pageWidth - margin,
       20,
       { align: "right" }
     );
+    if (editedAt) {
+      doc.text(
+        `Editada em ${editedAt.toLocaleDateString("pt-BR", { timeZone: TZ })} ${editedAt.toLocaleTimeString("pt-BR", { timeZone: TZ }).slice(0, 5)}`,
+        pageWidth - margin, 13, { align: "right" },
+      );
+    }
     doc.setTextColor(0, 0, 0);
     y = 36;
 
@@ -410,7 +433,7 @@ Deno.serve(async (req) => {
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("")
       .toUpperCase();
-    const stampDate = `${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR").slice(0, 8)}`;
+    const stampDate = `${dt.toLocaleDateString("pt-BR", { timeZone: TZ })} ${dt.toLocaleTimeString("pt-BR", { timeZone: TZ }).slice(0, 8)}`;
 
     const drawSignature = async (
       sig: { url?: string; name?: string; credencial?: string },
@@ -488,7 +511,7 @@ Deno.serve(async (req) => {
       doc.setFontSize(9);
       doc.text(`Paciente: ${patient.nome}`, margin, y); y += 4;
       if (patient.cpf) { doc.text(`CPF: ${patient.cpf}`, margin, y); y += 4; }
-      doc.text(`Data: ${dt.toLocaleDateString("pt-BR")}`, margin, y);
+      doc.text(`Data: ${dt.toLocaleDateString("pt-BR", { timeZone: TZ })}`, margin, y);
       y += 8;
       doc.setFontSize(10);
       const rxLines = doc.splitTextToSize(rxContent, contentWidth);

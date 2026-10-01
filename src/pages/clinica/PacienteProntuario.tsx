@@ -417,6 +417,13 @@ export default function PacienteProntuario() {
                                 <Download className="w-3.5 h-3.5 mr-1" /> PDF
                               </Button>
                             )}
+                            {hasAnamnese && (
+                              <Button size="sm" variant="outline" asChild>
+                                <RouterLink to={`/clinica/anamnese/nova?patient=${id}&edit=${a.id}`}>
+                                  <Pencil className="w-3.5 h-3.5 mr-1" /> Editar
+                                </RouterLink>
+                              </Button>
+                            )}
                             {isAdmin && (
                               <Button
                                 size="sm"
