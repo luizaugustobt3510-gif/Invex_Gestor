@@ -51,6 +51,8 @@ export default function NovaAnamnese() {
   const params = useParams<{ patientId?: string }>();
   const [sp] = useSearchParams();
   const initialPatient = params.patientId || sp.get('patient') || '';
+  const editId = sp.get('edit') || '';
+  const pendingEdit = useRef<{ answers: Record<string, string>; examType: string } | null>(null);
 
   const [patients, setPatients] = useState<Patient[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -145,11 +147,46 @@ export default function NovaAnamnese() {
 
   useEffect(() => {
     if (template) {
-      setExamType(template.exam_type);
-      setAnswers({});
+      if (pendingEdit.current) {
+        setExamType(pendingEdit.current.examType);
+        setAnswers(pendingEdit.current.answers);
+        pendingEdit.current = null;
+      } else {
+        setExamType(template.exam_type);
+        setAnswers({});
+      }
       setIdx(0);
     }
-  }, [templateId]);
+  }, [templateId, template]);
+
+  // Modo edição: carrega a anamnese existente e preenche as respostas
+  const editLoaded = useRef(false);
+  useEffect(() => {
+    if (!editId || editLoaded.current || !templates.length) return;
+    editLoaded.current = true;
+    (async () => {
+      const { data, error } = await supabase.from('anamneses')
+        .select('id, patient_id, template_id, exam_type, observations, responses')
+        .eq('id', editId).maybeSingle();
+      if (error || !data) { toast.error('Anamnese não encontrada'); return; }
+      const tpl = templates.find(t => t.id === data.template_id);
+      if (!tpl) { toast.error('O modelo desta anamnese não está mais ativo'); return; }
+      const resp = (Array.isArray(data.responses) ? data.responses : []) as any[];
+      const ans: Record<string, string> = {};
+      for (const q of tpl.questions) {
+        const r = resp.find(x => x?.question === q.text);
+        if (!r) continue;
+        if (Array.isArray(r.regions)) ans[q.id] = JSON.stringify(r.regions);
+        else if (q.type === 'multi_escolha' && r.answer) ans[q.id] = JSON.stringify(String(r.answer).split(', ').filter(Boolean));
+        else ans[q.id] = String(r.answer ?? '');
+      }
+      pendingEdit.current = { answers: ans, examType: data.exam_type };
+      setPatientId(data.patient_id);
+      setObservations(data.observations || '');
+      setTemplateId(tpl.id);
+      toast.info('Editando anamnese — revise e salve para regerar o PDF');
+    })();
+  }, [editId, templates]);
 
   // Parse a stored answer into the set of selected values (works for single or multi).
   const parseAnswerValues = (raw: string | undefined): string[] => {
@@ -354,6 +391,7 @@ export default function NovaAnamnese() {
     try {
       const { data, error } = await supabase.functions.invoke('generate-anamnese-pdf', {
         body: {
+          anamnese_id: editId || undefined,
           patient_id: patientId,
           template_id: template.id,
           template_name: template.name,
@@ -374,7 +412,7 @@ export default function NovaAnamnese() {
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      toast.success('Anamnese salva com sucesso');
+      toast.success(editId ? 'Anamnese atualizada e PDF regerado' : 'Anamnese salva com sucesso');
       const pdfUrl = (data as any)?.pdf_url;
       if (pdfUrl) await downloadPdfFromUrl(pdfUrl, buildPatientPdfFilename(selectedPatient?.nome));
       navigate(`/clinica/pacientes/${patientId}`);
