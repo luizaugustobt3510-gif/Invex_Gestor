@@ -85,6 +85,7 @@ interface MenuItem {
   icon: React.ReactNode;
   allowedRoles: UserRole[];
   submoduleKey?: string; // composite key like "logistica.estoque"
+  requireNursingAdmin?: boolean;
 }
 
 interface MenuGroup {
@@ -386,6 +387,13 @@ const clinicaGroups: MenuGroup[] = [
     allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro"],
     moduleKey: "anamnese",
     items: [
+      {
+        path: "/clinica/enfermagem/dashboard",
+        label: "Dashboard Enfermagem",
+        icon: <ClipboardList className="w-4 h-4" />,
+        allowedRoles: ["admin", "clinica", "enfermagem", "enfermeiro"],
+        requireNursingAdmin: true,
+      },
       {
         path: "/clinica/anamnese/nova",
         label: "Nova Anamnese",
@@ -1060,6 +1068,7 @@ export function AppSidebar() {
   const filterItems = (items: MenuItem[]): MenuItem[] => {
     return items.filter((item) => {
       if (!hasPermission(item.allowedRoles)) return false;
+      if (item.requireNursingAdmin && !isNursingAdmin) return false;
       if (item.submoduleKey && !canAccessModule(item.submoduleKey)) return false;
       return true;
     });
