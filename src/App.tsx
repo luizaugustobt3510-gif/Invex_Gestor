@@ -79,6 +79,7 @@ import AnamneseModelos from "./pages/clinica/AnamneseModelos";
 import RegioesAnatomicas from "./pages/clinica/RegioesAnatomicas";
 import AnamneseRespostasRapidas from "./pages/clinica/AnamneseRespostasRapidas";
 import NovaAnamnese from "./pages/clinica/NovaAnamnese";
+import DashboardEnfermagem from "./pages/clinica/DashboardEnfermagem";
 import Evolucao from "./pages/clinica/Evolucao";
 import EvolucaoMensagens from "./pages/clinica/EvolucaoMensagens";
 import Receituario from "./pages/clinica/Receituario";
@@ -248,6 +249,7 @@ const App = () => (
             <Route path="/clinica/anamnese/rapidas" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'enfermagem', 'enfermeiro']} moduleKey="anamnese"><AnamneseRespostasRapidas /></RoleProtectedRoute>} />
             <Route path="/clinica/anamnese/nova" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'enfermagem', 'enfermeiro']} moduleKey="anamnese"><NovaAnamnese /></RoleProtectedRoute>} />
             <Route path="/clinica/anamnese/nova/:patientId" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'enfermagem', 'enfermeiro']} moduleKey="anamnese"><NovaAnamnese /></RoleProtectedRoute>} />
+            <Route path="/clinica/enfermagem/dashboard" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'enfermagem', 'enfermeiro']}><DashboardEnfermagem /></RoleProtectedRoute>} />
             <Route path="/clinica/anamnese/regioes" element={<RoleProtectedRoute allowedRoles={['admin']} moduleKey="anamnese"><RegioesAnatomicas /></RoleProtectedRoute>} />
             <Route path="/clinica/evolucao" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'enfermagem', 'enfermeiro', 'recepcionista']} moduleKey="evolucao"><Evolucao /></RoleProtectedRoute>} />
             <Route path="/clinica/evolucao/:patientId" element={<RoleProtectedRoute allowedRoles={['admin', 'clinica', 'enfermagem', 'enfermeiro', 'recepcionista']} moduleKey="evolucao"><Evolucao /></RoleProtectedRoute>} />
