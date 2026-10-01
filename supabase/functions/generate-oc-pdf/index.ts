@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
 
     // OC number and date
     const ocNumber = order.id.substring(0, 8).toUpperCase();
-    const ocDate = new Date(order.created_at).toLocaleDateString("pt-BR");
+    const ocDate = new Date(order.created_at).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text(`OC Nº: ${ocNumber}`, margin, y);

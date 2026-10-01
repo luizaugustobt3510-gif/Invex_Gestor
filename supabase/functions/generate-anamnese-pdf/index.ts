@@ -237,6 +237,12 @@ Deno.serve(async (req) => {
       20,
       { align: "right" }
     );
+    if (editedAt) {
+      doc.text(
+        `Editada em ${editedAt.toLocaleDateString("pt-BR", { timeZone: TZ })} ${editedAt.toLocaleTimeString("pt-BR", { timeZone: TZ }).slice(0, 5)}`,
+        pageWidth - margin, 13, { align: "right" },
+      );
+    }
     doc.setTextColor(0, 0, 0);
     y = 36;
 
