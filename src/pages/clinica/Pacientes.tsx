@@ -224,7 +224,7 @@ export default function Pacientes() {
 
   const filtered = patients.filter(p => {
     const matchSearch = !search.trim() || p.nome.toLowerCase().includes(search.toLowerCase())
-      || (p.cpf || '').includes(search);
+      || ((p as any).nome_mae || '').toLowerCase().includes(search.toLowerCase());
     if (!matchSearch) return false;
     if (dateFrom || dateTo) {
       if (!p.created_at) return false;
@@ -310,7 +310,7 @@ export default function Pacientes() {
             <div className="flex flex-col md:flex-row md:items-end gap-3 pt-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input className="pl-9" placeholder="Buscar por nome ou CPF..." value={search} onChange={e => setSearch(e.target.value)} />
+                <Input className="pl-9" placeholder="Buscar por nome ou nome da mãe..." value={search} onChange={e => setSearch(e.target.value)} />
               </div>
               <div className="flex items-end gap-2">
                 <div>
@@ -341,7 +341,7 @@ export default function Pacientes() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
-                    <TableHead>CPF</TableHead>
+                    <TableHead>Nome da mãe</TableHead>
                     <TableHead>Cadastro</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
@@ -350,7 +350,7 @@ export default function Pacientes() {
                   {filtered.map(p => (
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">{p.nome}</TableCell>
-                      <TableCell>{p.cpf || '-'}</TableCell>
+                      <TableCell>{(p as any).nome_mae || '-'}</TableCell>
                       <TableCell className="text-muted-foreground text-sm">{formatCadastro(p.created_at)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end items-center gap-1 flex-nowrap whitespace-nowrap">
