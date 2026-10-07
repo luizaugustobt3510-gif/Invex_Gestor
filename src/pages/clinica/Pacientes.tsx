@@ -80,6 +80,7 @@ const isValidCPFDigits = (cpfStr: string) => onlyDigits(cpfStr).length === 11;
 const emptyForm = {
   nome: '',
   cpf: '',
+  nome_mae: '',
   birth_date_br: '',
   phone: '',
   email: '',
@@ -137,6 +138,7 @@ export default function Pacientes() {
     setForm({
       nome: p.nome || '',
       cpf: p.cpf || '',
+      nome_mae: (p as any).nome_mae || '',
       birth_date_br: isoToBR(p.birth_date),
       phone: p.phone || '',
       email: p.email || '',
@@ -153,7 +155,6 @@ export default function Pacientes() {
     if (!user?.companyId) return;
 
     if (!form.nome.trim()) return toast.error('Informe o nome do paciente');
-    if (!form.cpf.trim() || !isValidCPFDigits(form.cpf)) return toast.error('Informe um CPF válido (11 dígitos)');
     if (!form.gender) return toast.error('Selecione o sexo');
     if (!form.height_cm.trim() || Number(form.height_cm) <= 0) return toast.error('Informe a altura');
     if (!form.weight_kg.trim() || Number(form.weight_kg) <= 0) return toast.error('Informe o peso');
@@ -164,25 +165,10 @@ export default function Pacientes() {
       if (!iso) return toast.error('Data de nascimento inválida (use DD/MM/AAAA)');
     }
 
-    const cpfMasked = maskCPF(form.cpf);
-
-    // Duplicate CPF check within same company (excluding self on edit)
-    let dupQuery = supabase
-      .from('patients')
-      .select('id, nome')
-      .eq('company_id', user.companyId)
-      .eq('cpf', cpfMasked);
-    if (editing) dupQuery = dupQuery.neq('id', editing.id);
-    const { data: existing } = await dupQuery.maybeSingle();
-    if (existing) {
-      toast.error(`Paciente já cadastrado (${existing.nome})`);
-      return;
-    }
-
     setSaving(true);
     const payload = {
       nome: form.nome.trim(),
-      cpf: cpfMasked,
+      nome_mae: form.nome_mae.trim() || null,
       birth_date: iso,
       phone: form.phone ? maskPhone(form.phone) : null,
       email: form.email || null,
@@ -271,14 +257,9 @@ export default function Pacientes() {
                   <Label>Nome *</Label>
                   <Input value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} />
                 </div>
-                <div>
-                  <Label>CPF *</Label>
-                  <Input
-                    inputMode="numeric"
-                    placeholder="000.000.000-00"
-                    value={form.cpf}
-                    onChange={e => setForm({ ...form, cpf: maskCPF(e.target.value) })}
-                  />
+                <div className="col-span-2">
+                  <Label>Nome da mãe</Label>
+                  <Input value={form.nome_mae} onChange={e => setForm({ ...form, nome_mae: e.target.value })} />
                 </div>
                 <div>
                   <Label>Sexo *</Label>
