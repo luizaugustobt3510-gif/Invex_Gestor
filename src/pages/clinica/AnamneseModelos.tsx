@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Pencil, ArrowUp, ArrowDown, ClipboardList, GitBranch, Copy } from 'lucide-react';
-import { CATEGORIA_LABELS } from '@/components/clinica/anatomyMaps';
+import { useAnatomicalCategories } from '@/hooks/useAnatomicalCategories';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -81,6 +81,7 @@ const possibleValuesFor = (q: Question): string[] => {
 
 export default function AnamneseModelos() {
   const { user } = useAuth();
+  const { categories: anatomicalCats, labelFor: catLabelFor } = useAnatomicalCategories(true);
   const [items, setItems] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [dlgOpen, setDlgOpen] = useState(false);
@@ -397,7 +398,8 @@ export default function AnamneseModelos() {
                                      <div className="md:col-span-6">
                                        <Label className="text-xs">Categorias disponíveis (nenhuma marcada = todas)</Label>
                                        <div className="flex flex-wrap gap-2 mt-1">
-                                         {Object.keys(CATEGORIA_LABELS).map(cat => {
+                                          {anatomicalCats.map(c => {
+                                           const cat = c.slug;
                                            const on = (q.categorias || []).includes(cat);
                                            return (
                                              <Button
@@ -407,11 +409,11 @@ export default function AnamneseModelos() {
                                                variant={on ? 'default' : 'outline'}
                                                onClick={() => {
                                                  const cur = q.categorias || [];
-                                                 const next = on ? cur.filter(c => c !== cat) : [...cur, cat];
+                                                 const next = on ? cur.filter(x => x !== cat) : [...cur, cat];
                                                  updateQ(q.id, { categorias: next.length ? next : undefined });
                                                }}
                                              >
-                                               {CATEGORIA_LABELS[cat]}
+                                               {catLabelFor(cat)}
                                              </Button>
                                            );
                                          })}
