@@ -32,6 +32,12 @@ const emptyForm: FormState = { nome: '', categoria: 'cabeca', lado: 'nao_aplica'
 export default function RegioesAnatomicas() {
   const { user } = useAuth();
   const { regions, loading, reload } = useAnatomicalRegions(false);
+  const { categories: catList, reload: reloadCats, labelFor } = useAnatomicalCategories(false);
+  const CATEGORIAS = catList.filter(c => c.is_active).map(c => c.slug);
+  const [catOpen, setCatOpen] = useState(false);
+  const [catEditing, setCatEditing] = useState<AnatomicalCategory | null>(null);
+  const [catForm, setCatForm] = useState({ nome: '', ordem: 0, is_active: true });
+  const [catSaving, setCatSaving] = useState(false);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<AnatomicalRegion | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -110,8 +116,59 @@ export default function RegioesAnatomicas() {
         <Tabs defaultValue="regioes">
           <TabsList>
             <TabsTrigger value="regioes">Regiões</TabsTrigger>
+            <TabsTrigger value="categorias">Categorias</TabsTrigger>
             <TabsTrigger value="mapas">Mapas anatômicos</TabsTrigger>
           </TabsList>
+          <TabsContent value="categorias" className="mt-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
+                <CardTitle className="text-base">Categorias anatômicas</CardTitle>
+                <Button onClick={() => {
+                  setCatEditing(null);
+                  setCatForm({ nome: '', ordem: (catList.reduce((m, c) => Math.max(m, c.ordem), 0) || 0) + 10, is_active: true });
+                  setCatOpen(true);
+                }} className="gap-2"><Plus className="w-4 h-4" /> Nova categoria</Button>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {catList.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8">Nenhuma categoria cadastrada.</div>
+                ) : catList.map(c => (
+                  <div key={c.id} className="flex items-center justify-between gap-2 border rounded-lg px-3 py-2">
+                    <div className="min-w-0">
+                      <span className={`text-sm font-medium truncate ${!c.is_active ? 'text-muted-foreground line-through' : ''}`}>{c.nome}</span>
+                      <div className="text-[11px] text-muted-foreground">{c.slug} · ordem {c.ordem}</div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Switch checked={c.is_active} onCheckedChange={async () => {
+                        const { error } = await supabase.from('anatomical_categories')
+                          .update({ is_active: !c.is_active }).eq('id', c.id);
+                        if (error) { toast.error(error.message); return; }
+                        toast.success(c.is_active ? 'Categoria desativada' : 'Categoria ativada');
+                        reloadCats();
+                      }} />
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => {
+                        setCatEditing(c);
+                        setCatForm({ nome: c.nome, ordem: c.ordem, is_active: c.is_active });
+                        setCatOpen(true);
+                      }}>
+                        <Pencil className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={async () => {
+                        const emUso = regions.filter(r => r.categoria === c.slug).length;
+                        if (!confirm(`Excluir a categoria "${c.nome}"?${emUso ? ` ${emUso} região(ões) continuarão com esta categoria.` : ''}`)) return;
+                        const { error } = await supabase.from('anatomical_categories').delete().eq('id', c.id);
+                        if (error) { toast.error(error.message); return; }
+                        toast.success('Categoria excluída');
+                        reloadCats();
+                      }}>
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
           <TabsContent value="mapas" className="mt-4">
             <Card>
               <CardHeader><CardTitle className="text-base">Mapas anatômicos</CardTitle></CardHeader>
@@ -129,7 +186,7 @@ export default function RegioesAnatomicas() {
                 <SelectTrigger className="h-9 w-[190px] text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todas">Todas as categorias</SelectItem>
-                  {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{CATEGORIA_LABELS[c]}</SelectItem>)}
+                  {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{labelFor(c)}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Button onClick={openNew} className="gap-2"><Plus className="w-4 h-4" /> Nova região</Button>
@@ -143,7 +200,7 @@ export default function RegioesAnatomicas() {
             ) : (
               Object.entries(grouped).map(([cat, list]) => (
                 <div key={cat} className="space-y-2">
-                  <div className="text-sm font-semibold">{CATEGORIA_LABELS[cat] || cat}</div>
+                  <div className="text-sm font-semibold">{labelFor(cat)}</div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {list.map(r => (
                       <div key={r.id} className="flex items-center justify-between gap-2 border rounded-lg px-3 py-2">
@@ -190,7 +247,7 @@ export default function RegioesAnatomicas() {
                   <Select value={form.categoria} onValueChange={v => setForm({ ...form, categoria: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{CATEGORIA_LABELS[c]}</SelectItem>)}
+                      {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{labelFor(c)}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
