@@ -297,6 +297,47 @@ export type Database = {
           },
         ]
       }
+      anatomical_categories: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          nome: string
+          ordem: number
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          nome: string
+          ordem?: number
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          nome?: string
+          ordem?: number
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anatomical_categories_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       anatomical_map_regions: {
         Row: {
           company_id: string

@@ -64,6 +64,13 @@
       "when": 1791395040256,
       "tag": "0008_add_patient_mother_name",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792090020960,
+      "tag": "0009_create_anatomical_categories",
+      "breakpoints": true
     }
   ]
 }
