@@ -278,6 +278,58 @@ export default function RegioesAnatomicas() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={catOpen} onOpenChange={setCatOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{catEditing ? 'Editar categoria' : 'Nova categoria anatômica'}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <Label>Nome *</Label>
+                <Input value={catForm.nome} onChange={e => setCatForm({ ...catForm, nome: e.target.value })} placeholder="Ex.: Coluna, Articulações..." />
+              </div>
+              <div className="grid grid-cols-2 gap-3 items-end">
+                <div>
+                  <Label>Ordem de exibição</Label>
+                  <Input type="number" value={catForm.ordem} onChange={e => setCatForm({ ...catForm, ordem: Number(e.target.value) })} />
+                </div>
+                <div className="flex items-center gap-2 pb-2">
+                  <Switch checked={catForm.is_active} onCheckedChange={v => setCatForm({ ...catForm, is_active: v })} />
+                  <Label className="mb-0">Ativa</Label>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCatOpen(false)} disabled={catSaving}>Cancelar</Button>
+              <Button disabled={catSaving} onClick={async () => {
+                if (!user?.companyId || catSaving) return;
+                if (!catForm.nome.trim()) { toast.error('Informe o nome da categoria'); return; }
+                setCatSaving(true);
+                try {
+                  const payload = { nome: catForm.nome.trim(), ordem: Number(catForm.ordem) || 0, is_active: catForm.is_active };
+                  if (catEditing) {
+                    const { error } = await supabase.from('anatomical_categories').update(payload).eq('id', catEditing.id);
+                    if (error) { toast.error(error.message); return; }
+                    toast.success('Categoria atualizada');
+                  } else {
+                    let slug = slugify(catForm.nome);
+                    if (!slug) slug = `categoria_${Date.now()}`;
+                    if (catList.some(c => c.slug === slug)) slug = `${slug}_${Date.now().toString().slice(-4)}`;
+                    const { error } = await supabase.from('anatomical_categories')
+                      .insert({ ...payload, slug, company_id: user.companyId });
+                    if (error) { toast.error(error.message); return; }
+                    toast.success('Categoria criada');
+                  }
+                  setCatOpen(false);
+                  reloadCats();
+                } finally {
+                  setCatSaving(false);
+                }
+              }}>{catSaving ? 'Salvando...' : 'Salvar'}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </MainLayout>
   );

@@ -2,9 +2,9 @@ import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import { CATEGORIA_LABELS } from './anatomyMaps';
 import type { AnatomicalRegion } from '@/hooks/useAnatomicalRegions';
 import { useAnatomicalMaps } from '@/hooks/useAnatomicalMaps';
+import { useAnatomicalCategories } from '@/hooks/useAnatomicalCategories';
 
 export interface SeletorAnatomicoProps {
   regions: AnatomicalRegion[];
@@ -27,6 +27,7 @@ export function SeletorAnatomico({
   regions, value, onChange, multiple = true, categorias, disabled,
 }: SeletorAnatomicoProps) {
   const { maps } = useAnatomicalMaps(true);
+  const { labelFor } = useAnatomicalCategories(true);
 
   const allowed = useMemo(
     () => (categorias && categorias.length
@@ -133,7 +134,7 @@ export function SeletorAnatomico({
         {Object.entries(groups).map(([cat, list]) => (
           <div key={cat}>
             <div className="text-xs font-medium text-muted-foreground mb-1.5">
-              {CATEGORIA_LABELS[cat] || cat}
+              {labelFor(cat)}
             </div>
             <div className="flex flex-wrap gap-2">
               {list.map(r => {

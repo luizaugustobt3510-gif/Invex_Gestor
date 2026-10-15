@@ -10,11 +10,9 @@ import { Plus, Trash2, Upload, Pencil, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { CATEGORIA_LABELS } from './anatomyMaps';
 import { useAnatomicalRegions } from '@/hooks/useAnatomicalRegions';
+import { useAnatomicalCategories } from '@/hooks/useAnatomicalCategories';
 import { useAnatomicalMaps, ANATOMICAL_MAPS_BUCKET, MapPoint } from '@/hooks/useAnatomicalMaps';
-
-const CATEGORIAS = Object.keys(CATEGORIA_LABELS);
 
 interface MapForm {
   nome: string; categoria: string; vista: string; ordem: number; is_active: boolean;
@@ -25,6 +23,8 @@ const emptyMap: MapForm = { nome: '', categoria: 'cabeca', vista: 'frente', orde
 export function MapasAnatomicos() {
   const { user } = useAuth();
   const { regions } = useAnatomicalRegions(true);
+  const { categories: catList, labelFor } = useAnatomicalCategories(true);
+  const CATEGORIAS = catList.map(c => c.slug);
   const { maps, loading, reload } = useAnatomicalMaps(false);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -166,7 +166,7 @@ export function MapasAnatomicos() {
       {selected && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline">{CATEGORIA_LABELS[selected.categoria] || selected.categoria}</Badge>
+            <Badge variant="outline">{labelFor(selected.categoria)}</Badge>
             <Button size="sm" variant="outline" className="gap-1" onClick={() => openEdit(selected.id)}>
               <Pencil className="w-3.5 h-3.5" /> Editar dados
             </Button>
@@ -294,7 +294,7 @@ export function MapasAnatomicos() {
                 <Select value={form.categoria} onValueChange={v => setForm({ ...form, categoria: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{CATEGORIA_LABELS[c]}</SelectItem>)}
+                    {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{labelFor(c)}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
