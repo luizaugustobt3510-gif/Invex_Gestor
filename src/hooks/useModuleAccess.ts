@@ -136,11 +136,14 @@ export function useModuleAccess() {
       // For opt-in modules, superadm/admin can access once activated.
       if (isOptIn && (user?.role === "superadm" || user?.role === "admin")) return true;
 
-      // Role matrix: default true if no row (backwards compat).
-      const roleActive = state.roleModules[dbKey] ?? true;
-      const userActive = state.userModules[dbKey] ?? true;
+      // Role matrix: once the role has ANY configured module, deny by default
+      // (only explicitly granted modules). Roles never configured keep legacy behaviour.
+      const roleConfigured = Object.keys(state.roleModules).length > 0;
+      const roleActive = state.roleModules[dbKey] ?? !roleConfigured;
+      const userOverride = state.userModules[dbKey];
       // User-level override wins over role.
-      return roleActive ? userActive : userActive === true && state.userModules[dbKey] === true;
+      if (userOverride !== undefined) return userOverride;
+      return roleActive;
     },
     [user?.role, state.companyModules, state.userModules, state.roleModules],
   );
