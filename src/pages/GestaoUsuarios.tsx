@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -123,6 +124,10 @@ const GestaoUsuarios = () => {
       });
 
       setUsers(merged);
+      const { data: sm } = await supabase.from('sector_members').select('user_id, is_admin, sectors(nome)').eq('is_admin', true);
+      const map: Record<string, string> = {};
+      (sm || []).forEach((r: any) => { map[r.user_id] = map[r.user_id] ? `${map[r.user_id]}, ${r.sectors?.nome}` : (r.sectors?.nome || 'setor'); });
+      setAdminSectors(map);
     } catch (err) {
       console.error(err);
     } finally {
