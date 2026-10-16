@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -70,8 +71,28 @@ const GestaoUsuarios = () => {
   const [createOpen, setCreateOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [formData, setFormData] = useState({ email: '', senha: '', nome: '', role: '', company_id: '' });
+  const [sectors, setSectors] = useState<{ id: string; nome: string }[]>([]);
+  const [editSectorId, setEditSectorId] = useState('');
+  const [editSectorAdmin, setEditSectorAdmin] = useState(false);
+  const [adminSectors, setAdminSectors] = useState<Record<string, string>>({});
 
   useEffect(() => { loadData(); }, []);
+
+  useEffect(() => {
+    if (!editOpen || !editUser) return;
+    const cid = editCompanyId || editUser.company_id;
+    if (!cid) { setSectors([]); return; }
+    (async () => {
+      const [s, m] = await Promise.all([
+        supabase.from('sectors').select('id, nome').eq('company_id', cid).order('nome'),
+        supabase.from('sector_members').select('sector_id, is_admin').eq('user_id', editUser.user_id).eq('company_id', cid),
+      ]);
+      setSectors((s.data as any) || []);
+      const first = (m.data || [])[0];
+      setEditSectorId(first?.sector_id || '');
+      setEditSectorAdmin(!!first?.is_admin);
+    })();
+  }, [editOpen, editUser?.user_id, editCompanyId]);
 
   const loadData = async () => {
     try {
@@ -103,6 +124,10 @@ const GestaoUsuarios = () => {
       });
 
       setUsers(merged);
+      const { data: sm } = await supabase.from('sector_members').select('user_id, is_admin, sectors(nome)').eq('is_admin', true);
+      const map: Record<string, string> = {};
+      (sm || []).forEach((r: any) => { map[r.user_id] = map[r.user_id] ? `${map[r.user_id]}, ${r.sectors?.nome}` : (r.sectors?.nome || 'setor'); });
+      setAdminSectors(map);
     } catch (err) {
       console.error(err);
     } finally {
@@ -153,6 +178,25 @@ const GestaoUsuarios = () => {
       // Company on profile
       if (editCompanyId) {
         await supabase.from('profiles').update({ company_id: editCompanyId }).eq('user_id', editUser.user_id);
+      }
+
+      // Sector membership / sector admin
+      const cid = editCompanyId || editUser.company_id;
+      if (cid) {
+        const { data: existing } = await supabase.from('sector_members')
+          .select('id, sector_id').eq('user_id', editUser.user_id).eq('company_id', cid);
+        const current = (existing || []).find(m => m.sector_id === editSectorId);
+        const others = (existing || []).filter(m => m.sector_id !== editSectorId);
+        if (others.length) {
+          const { error: delErr } = await supabase.from('sector_members').delete().in('id', others.map(o => o.id));
+          if (delErr) throw new Error('Não foi possível atualizar o setor.');
+        }
+        if (editSectorId) {
+          const { error: sErr } = current
+            ? await supabase.from('sector_members').update({ is_admin: editSectorAdmin }).eq('id', current.id)
+            : await supabase.from('sector_members').insert({ company_id: cid, sector_id: editSectorId, user_id: editUser.user_id, is_admin: editSectorAdmin });
+          if (sErr) throw new Error('Não foi possível salvar o setor do usuário.');
+        }
       }
 
       // Audit log
@@ -364,9 +408,14 @@ const GestaoUsuarios = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="text-xs">
-                            {roleLabels[u.role] || u.role}
-                          </Badge>
+                          <div className="flex flex-wrap gap-1">
+                            <Badge variant="outline" className="text-xs">
+                              {roleLabels[u.role] || u.role}
+                            </Badge>
+                            {adminSectors[u.user_id] && (
+                              <Badge variant="secondary" className="text-xs">Admin: {adminSectors[u.user_id]}</Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {u.created_at ? new Date(u.created_at).toLocaleDateString('pt-BR') : '—'}
@@ -478,6 +527,23 @@ const GestaoUsuarios = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2 rounded-md border p-3">
+                <Label>Setor</Label>
+                <Select value={editSectorId || 'none'} onValueChange={v => setEditSectorId(v === 'none' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Sem setor" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem setor</SelectItem>
+                    {sectors.map(s => (
+                      <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center justify-between pt-1">
+                  <Label htmlFor="sector-admin" className="text-sm">Admin deste setor</Label>
+                  <Switch id="sector-admin" checked={editSectorAdmin} disabled={!editSectorId} onCheckedChange={setEditSectorAdmin} />
+                </div>
+                <p className="text-xs text-muted-foreground">O admin do setor gerencia somente o próprio setor.</p>
               </div>
               <p className="text-xs text-muted-foreground">
                 As permissões por módulo são configuradas em Perfis × Módulos.
