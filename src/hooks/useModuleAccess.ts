@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { presetAllows } from "@/config/rolePresets";
 
 interface ModuleAccessState {
   companyModules: Record<string, boolean>;
@@ -136,10 +137,9 @@ export function useModuleAccess() {
       // For opt-in modules, superadm/admin can access once activated.
       if (isOptIn && (user?.role === "superadm" || user?.role === "admin")) return true;
 
-      // Role matrix: once the role has ANY configured module, deny by default
-      // (only explicitly granted modules). Roles never configured keep legacy behaviour.
-      const roleConfigured = Object.keys(state.roleModules).length > 0;
-      const roleActive = state.roleModules[dbKey] ?? !roleConfigured;
+      // Role matrix: saved value wins; otherwise use the role's safe preset (deny by default).
+      const dbRole = uiToDbRole[user?.role || ""] || user?.role || "";
+      const roleActive = state.roleModules[dbKey] ?? presetAllows(dbRole, dbKey);
       const userOverride = state.userModules[dbKey];
       // User-level override wins over role.
       if (userOverride !== undefined) return userOverride;
