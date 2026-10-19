@@ -9,6 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserPlus, Send } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { MODULES_CATALOG } from '@/config/modules';
+import { ROLE_MODULE_PRESETS } from '@/config/rolePresets';
 
 const CriarUsuario = () => {
   const { toast } = useToast();
@@ -191,6 +194,27 @@ const CriarUsuario = () => {
                   <SelectItem value="recepcionista">Recepcionista</SelectItem>
                 </SelectContent>
               </Select>
+              {formData.autenticacao && (() => {
+                const ui2db: Record<string, string> = { 'usuario almox': 'usuario_almox', fitness: 'fitness_user' };
+                const db = ui2db[formData.autenticacao] || formData.autenticacao;
+                if (db === 'admin' || db === 'superadm') {
+                  return <p className="text-xs text-muted-foreground">Acesso a todos os módulos contratados pela empresa.</p>;
+                }
+                const keys = ROLE_MODULE_PRESETS[db] || [];
+                return (
+                  <div className="rounded-md border bg-muted/30 p-2 space-y-1">
+                    <p className="text-xs text-muted-foreground">Módulos que este perfil vai acessar:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {keys.map(k => (
+                        <Badge key={k} variant="secondary" className="text-[11px]">
+                          {MODULES_CATALOG.find(m => m.key === k)?.label || k}
+                        </Badge>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">Ajustes finos: Perfis × Módulos ou Usuários × Módulos.</p>
+                  </div>
+                );
+              })()}
             </div>
             <Button type="submit" className="w-full gap-2" disabled={loading}>
               <Send className="w-4 h-4" />
