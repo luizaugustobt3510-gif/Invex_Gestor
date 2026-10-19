@@ -395,7 +395,7 @@ export default function PacienteProntuario() {
                   ) : (
                     <div className="space-y-2">
                       {anamneses.map(a => (
-                        <div key={a.id} className="flex items-center justify-between border rounded-lg px-3 py-2">
+                        <div key={a.id} className="flex flex-wrap items-center justify-between gap-3 border rounded-lg px-3 py-2">
                           <div>
                             <div className="flex items-center gap-2">
                               <Badge variant="secondary">{new Date(a.created_at).toLocaleString('pt-BR')}</Badge>
@@ -407,7 +407,7 @@ export default function PacienteProntuario() {
                               {a.created_by_name && <> · Por: {a.created_by_name}</>}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             {a.pdf_path && (
                               <Button size="sm" variant="outline" onClick={async () => {
                                 const { data } = await supabase.storage.from('anamnese-pdfs').createSignedUrl(a.pdf_path!, 3600);

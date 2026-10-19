@@ -26,6 +26,7 @@ import { SeletorAnatomico } from '@/components/clinica/SeletorAnatomico';
 import { useAnatomicalRegions } from '@/hooks/useAnatomicalRegions';
 import { useAnatomicalMaps } from '@/hooks/useAnatomicalMaps';
 import { buildAnatomySnapshot } from '@/lib/anatomySnapshot';
+import { anamneseEntryPhase, isAnamneseAnswerComplete } from '@/lib/anamneseReview';
 
 // Small local component to bridge ref to inline pad
 function InlineSignaturePad({ refObj }: { refObj: React.MutableRefObject<any> }) {
@@ -52,6 +53,9 @@ export default function NovaAnamnese() {
   const [sp] = useSearchParams();
   const initialPatient = params.patientId || sp.get('patient') || '';
   const editId = sp.get('edit') || '';
+  const addPrescription = sp.get('receita') === '1';
+  const [editLoading, setEditLoading] = useState(!!editId);
+  const reviewingAnswer = useRef(false);
   const pendingEdit = useRef<{ answers: Record<string, string>; examType: string } | null>(null);
 
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -93,7 +97,7 @@ export default function NovaAnamnese() {
   const [patientPopoverOpen, setPatientPopoverOpen] = useState(false);
 
   // Receita vinculada (opcional) — vai no mesmo PDF da anamnese
-  const [rxEnabled, setRxEnabled] = useState(false);
+  const [rxEnabled, setRxEnabled] = useState(addPrescription);
   const [rxTipo, setRxTipo] = useState('simples');
   const [rxContent, setRxContent] = useState('');
   const [quickMeds, setQuickMeds] = useState<Array<{ id: string; title: string; content: string }>>([]);
@@ -151,6 +155,7 @@ export default function NovaAnamnese() {
         setExamType(pendingEdit.current.examType);
         setAnswers(pendingEdit.current.answers);
         pendingEdit.current = null;
+        setPhase(anamneseEntryPhase(editId));
       } else {
         setExamType(template.exam_type);
         setAnswers({});
@@ -162,12 +167,13 @@ export default function NovaAnamnese() {
   // Modo edição: carrega a anamnese existente e preenche as respostas
   const editLoaded = useRef(false);
   useEffect(() => {
-    if (!editId || editLoaded.current || !templates.length) return;
+    if (!editId || !user?.companyId || editLoaded.current || !templates.length) return;
     editLoaded.current = true;
     (async () => {
+      try {
       const { data, error } = await supabase.from('anamneses')
         .select('id, patient_id, template_id, exam_type, observations, responses')
-        .eq('id', editId).maybeSingle();
+        .eq('id', editId).eq('company_id', user.companyId).maybeSingle();
       if (error || !data) { toast.error('Anamnese não encontrada'); return; }
       const tpl = templates.find(t => t.id === data.template_id);
       if (!tpl) { toast.error('O modelo desta anamnese não está mais ativo'); return; }
@@ -185,8 +191,19 @@ export default function NovaAnamnese() {
       setObservations(data.observations || '');
       setTemplateId(tpl.id);
       toast.info('Editando anamnese — revise e salve para regerar o PDF');
+      } catch {
+        toast.error('Não foi possível carregar a anamnese');
+      } finally {
+        setEditLoading(false);
+      }
     })();
-  }, [editId, templates]);
+  }, [editId, templates, user?.companyId]);
+
+  useEffect(() => {
+    if (phase === 'review' && addPrescription && !editLoading) {
+      document.getElementById('receita-vinculada')?.scrollIntoView({ block: 'center' });
+    }
+  }, [phase, addPrescription, editLoading]);
 
   // Parse a stored answer into the set of selected values (works for single or multi).
   const parseAnswerValues = (raw: string | undefined): string[] => {
@@ -230,7 +247,7 @@ export default function NovaAnamnese() {
 
   const totalQ = visibleQuestions.length;
   const activeQ = visibleQuestions[Math.min(idx, Math.max(0, totalQ - 1))];
-  const progress = totalQ === 0 ? 0 : Math.round(((idx + (phase === 'review' ? 1 : 0)) / totalQ) * 100);
+  const progress = phase === 'review' ? 100 : totalQ === 0 ? 0 : Math.round((idx / totalQ) * 100);
 
   // Ref that always reflects the *current* visible-question list. Prevents stale-closure
   // bugs where auto-advance uses an outdated totalQ after a conditional reveals/hides
@@ -240,9 +257,7 @@ export default function NovaAnamnese() {
 
   const isAnswered = (q?: Question) => {
     if (!q) return false;
-    if (!q.required) return true;
-    const vals = parseAnswerValues(answers[q.id]);
-    return vals.length > 0 && vals.some(v => v.trim().length > 0);
+    return isAnamneseAnswerComplete(q.required, answers[q.id]);
   };
 
   const allAnswered = totalQ > 0 && visibleQuestions.every(isAnswered);
@@ -262,6 +277,12 @@ export default function NovaAnamnese() {
     }
   };
 
+  const finishReview = () => {
+    if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
+    reviewingAnswer.current = false;
+    setPhase('review');
+  };
+
   const goBack = () => {
     if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
     if (phase === 'review') {
@@ -278,7 +299,7 @@ export default function NovaAnamnese() {
 
   const setAnswer = (q: Question, v: string, autoAdvance = false) => {
     setAnswers(a => ({ ...a, [q.id]: v }));
-    if (autoAdvance) {
+    if (autoAdvance && !reviewingAnswer.current) {
       if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
       autoAdvanceTimer.current = setTimeout(() => {
         // Read fresh values from the ref — the visible list may have grown/shrunk
@@ -298,6 +319,7 @@ export default function NovaAnamnese() {
 
   const jumpTo = (i: number) => {
     if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
+    reviewingAnswer.current = true;
     setPhase('questions');
     setIdx(Math.max(0, Math.min(i, Math.max(0, visibleQuestions.length - 1))));
   };
@@ -321,7 +343,7 @@ export default function NovaAnamnese() {
       toast.error('Dados incompletos'); return;
     }
     for (const q of visibleQuestions) {
-      if (q.required && !(answers[q.id] || '').toString().trim()) {
+      if (!isAnswered(q)) {
         toast.error(`Responda: ${q.text}`); return;
       }
     }
@@ -371,7 +393,7 @@ export default function NovaAnamnese() {
       }
       if (r.regions) {
         out.regions = r.regions;
-        const ids = anatomicalRegions.filter(a => r.regions!.includes(a.slug)).map(a => a.id);
+        const ids = anatomicalRegions.filter(a => r.regions?.includes(a.slug)).map(a => a.id);
         const snap = await buildAnatomySnapshot(anatomicalMaps, ids);
         if (snap) out.image = snap;
       }
@@ -592,8 +614,10 @@ export default function NovaAnamnese() {
               <ArrowLeft className="w-4 h-4 mr-1" /> Voltar
             </Link>
           </Button>
-          <h1 className="text-2xl font-bold">Nova Anamnese</h1>
+          <h1 className="text-2xl font-bold">{editId ? 'Editar Anamnese' : 'Nova Anamnese'}</h1>
         </div>
+
+        {editLoading && <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /> Carregando anamnese…</div>}
 
         {/* Progress bar — only during questions/review */}
         {phase !== 'setup' && totalQ > 0 && (
@@ -609,7 +633,7 @@ export default function NovaAnamnese() {
         )}
 
         {/* SETUP PHASE */}
-        {phase === 'setup' && (
+        {phase === 'setup' && !editLoading && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -728,11 +752,14 @@ export default function NovaAnamnese() {
               </div>
               {renderActiveInput(activeQ)}
             </CardContent>
-            <div className="flex items-center justify-between gap-2 px-6 md:px-8 py-4 border-t bg-card">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-6 md:px-8 py-4 border-t bg-card">
               <Button variant="outline" onClick={goBack} size="lg" className="gap-1">
                 <ChevronLeft className="w-4 h-4" /> Voltar
               </Button>
-              {requiresManualNext(activeQ) ? (
+              <Button onClick={finishReview} variant="outline" size="lg" className="gap-1">
+                <CheckCircle2 className="w-4 h-4" /> Finalizar revisão
+              </Button>
+              {reviewingAnswer.current ? null : requiresManualNext(activeQ) ? (
                 <Button
                   onClick={goNext}
                   disabled={!isAnswered(activeQ)}
@@ -810,14 +837,13 @@ export default function NovaAnamnese() {
                   <Textarea rows={3} className="text-base" value={observations} onChange={e => setObservations(e.target.value)} />
                 </div>
 
-                <div className="rounded-lg border border-yellow-300 bg-yellow-50/60 p-3 space-y-3">
+                <div id="receita-vinculada" className="rounded-lg border border-warning bg-warning-light p-3 space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
-                    <Label className="text-sm font-medium text-yellow-900">Receita vinculada (opcional)</Label>
+                    <Label className="text-sm font-medium">Receita vinculada (opcional)</Label>
                     <Button
                       type="button"
                       size="sm"
                       variant={rxEnabled ? 'default' : 'outline'}
-                      className={rxEnabled ? '' : 'bg-yellow-100 hover:bg-yellow-200 text-yellow-900 border-yellow-300'}
                       onClick={() => setRxEnabled(v => !v)}
                     >
                       <FileText className="w-4 h-4 mr-1" /> {rxEnabled ? 'Vinculada' : 'Adicionar receita'}
@@ -825,7 +851,7 @@ export default function NovaAnamnese() {
                   </div>
                   {rxEnabled && (
                     <div className="space-y-2">
-                      <p className="text-xs text-yellow-900/80">
+                      <p className="text-xs text-muted-foreground">
                         A receita será salva no prontuário do paciente e impressa no mesmo PDF da anamnese.
                       </p>
                       <div className="grid gap-2 md:grid-cols-[220px_1fr] md:items-start">
