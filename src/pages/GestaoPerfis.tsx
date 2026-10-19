@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Shield, RefreshCw, Search, CheckCircle2, XCircle, Users } from 'lucide-react';
 import { MODULES_CATALOG } from '@/config/modules';
+import { presetAllows } from '@/config/rolePresets';
 
 /**
  * Nova UX de Gestão de Perfis × Módulos.
@@ -180,7 +181,7 @@ const GestaoPerfis = () => {
     }
   };
 
-  const activeCount = modules.filter((m) => (matrix[`${selectedRole}::${m.key}`] ?? true)).length;
+  const activeCount = modules.filter((m) => (matrix[`${selectedRole}::${m.key}`] ?? presetAllows(selectedRole, m.key))).length;
 
   return (
     <MainLayout>
@@ -275,7 +276,7 @@ const GestaoPerfis = () => {
               <div className="grid gap-2 sm:grid-cols-2">
                 {modules.map((m) => {
                   const key = `${selectedRole}::${m.key}`;
-                  const checked = matrix[key] ?? true;
+                  const checked = matrix[key] ?? presetAllows(selectedRole, m.key);
                   const companyOn = companyModules[m.key] ?? true;
                   return (
                     <div
