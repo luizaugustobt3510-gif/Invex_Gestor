@@ -3,7 +3,7 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/s
 import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Download, Menu, QrCode, ScanLine } from 'lucide-react';
+import { Download, LogOut, Menu, QrCode, ScanLine } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface MainLayoutProps {
@@ -15,7 +15,7 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ children, onExportReport, showExport = false, showQRCode = false, showScanQR = false }: MainLayoutProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   // Determine if current user is in RH module context
@@ -72,6 +72,18 @@ export function MainLayout({ children, onExportReport, showExport = false, showQ
                 >
                   <Download className="w-4 h-4" />
                   <span className="hidden sm:inline">Exportar</span>
+                </Button>
+              )}
+              {user && (
+                <Button
+                  onClick={async () => { await logout(); navigate('/login'); }}
+                  size="sm"
+                  variant="outline"
+                  className="gap-2"
+                  aria-label="Sair"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Sair</span>
                 </Button>
               )}
             </div>
