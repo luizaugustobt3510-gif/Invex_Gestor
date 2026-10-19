@@ -21,3 +21,6 @@
 - [ ] Revisão: nenhum usuário vê dados de outra empresa nem módulos sem acesso
 - [ ] Admin de setor: altera tudo do próprio setor; ações exclusivas de admin da empresa continuam só com o admin
 - [x] Usuários criados por convite/nome de usuário aparecendo na Gestão de Usuários
+
+## Interface
+- [x] Botão "Sair" vermelho na barra superior; item "Sair" removido do fim do menu lateral

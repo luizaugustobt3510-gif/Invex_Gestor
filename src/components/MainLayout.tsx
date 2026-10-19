@@ -78,7 +78,7 @@ export function MainLayout({ children, onExportReport, showExport = false, showQ
                 <Button
                   onClick={async () => { await logout(); navigate('/login'); }}
                   size="sm"
-                  variant="outline"
+                  variant="destructive"
                   className="gap-2"
                   aria-label="Sair"
                 >
