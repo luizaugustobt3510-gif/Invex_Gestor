@@ -115,6 +115,10 @@ export default function NovaAnamnese() {
       ]);
       setPatients((pats || []) as any);
       setTemplates((tpls || []) as any);
+      if (editId && !tpls?.length) {
+        setEditLoading(false);
+        toast.error('Nenhum modelo ativo disponível para editar esta anamnese');
+      }
       const sigs = ((sigsRes as any)?.data || []) as any[];
       // Pre-sign non-http paths
       const withUrls = await Promise.all(sigs.map(async (s) => {
@@ -286,6 +290,7 @@ export default function NovaAnamnese() {
   const goBack = () => {
     if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
     if (phase === 'review') {
+      reviewingAnswer.current = true;
       setPhase('questions');
       setIdx(Math.max(0, totalQ - 1));
       return;
@@ -334,6 +339,7 @@ export default function NovaAnamnese() {
       toast.error('Este modelo não possui perguntas');
       return;
     }
+    reviewingAnswer.current = false;
     setPhase('questions');
     setIdx(0);
   };

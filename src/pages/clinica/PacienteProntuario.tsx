@@ -424,6 +424,13 @@ export default function PacienteProntuario() {
                                 </RouterLink>
                               </Button>
                             )}
+                            {hasAnamnese && (
+                              <Button size="sm" variant="outline" asChild>
+                                <RouterLink to={`/clinica/anamnese/nova?patient=${id}&edit=${a.id}&receita=1`}>
+                                  <FileText className="w-3.5 h-3.5 mr-1" /> Adicionar receita
+                                </RouterLink>
+                              </Button>
+                            )}
                             {isAdmin && (
                               <Button
                                 size="sm"
