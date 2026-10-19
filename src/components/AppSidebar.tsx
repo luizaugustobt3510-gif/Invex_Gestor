@@ -17,7 +17,6 @@ import {
   ClipboardList,
   Inbox,
   UserPlus,
-  LogOut,
   ChevronDown,
   QrCode,
   History,
@@ -1013,7 +1012,7 @@ const adminGroups: MenuGroup[] = [
 export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, hasPermission, isLoading } = useAuth();
+  const { user, hasPermission, isLoading } = useAuth();
   const { canAccessModule, loading: moduleLoading } = useModuleAccess();
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -1058,10 +1057,6 @@ export function AppSidebar() {
   };
   const { isNursingAdmin } = useIsNursingAdmin();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
 
   const isActive = (path: string) => location.pathname === path;
   const isSuperAdmin = user?.role === "superadm";
@@ -1406,16 +1401,6 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={handleLogout}
-              tooltip="Sair"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sair</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
