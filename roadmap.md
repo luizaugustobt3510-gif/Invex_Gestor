@@ -1,5 +1,11 @@
 # Roadmap
 
+## Revisão e receita da anamnese
+- [x] Edição de anamnese concluída abre diretamente na revisão
+- [x] Botão para encerrar a edição de uma resposta e voltar à revisão sem percorrer todas
+- [x] Adicionar receita à anamnese já gerada pelo prontuário
+- [x] Validar abertura e navegação com conta de enfermagem sem alterar dados clínicos; salvamento/PDF reutilizado não reexecutado
+
 ## Mapas anatômicos configuráveis
 - [x] Tabelas, acessos e armazenamento das imagens
 - [x] Editor administrativo de mapas e áreas
