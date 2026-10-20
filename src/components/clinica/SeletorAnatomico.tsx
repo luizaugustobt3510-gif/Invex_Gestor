@@ -113,8 +113,8 @@ export function SeletorAnatomico({
                     points={mr.points.map(p => `${p.x},${p.y}`).join(' ')}
                     onClick={() => toggle(region.slug)}
                     className={disabled ? '' : 'cursor-pointer transition-all'}
-                    fill={on ? 'hsl(var(--primary) / 0.55)' : 'hsl(var(--primary) / 0.12)'}
-                    stroke={on ? 'hsl(var(--primary))' : 'hsl(var(--primary) / 0.5)'}
+                    fill={`hsl(${areaHsl(mr.cor)} / ${on ? 0.55 : 0.15})`}
+                    stroke={`hsl(${areaHsl(mr.cor)} / ${on ? 1 : 0.6})`}
                     strokeWidth={0.5}
                     vectorEffect="non-scaling-stroke"
                   >

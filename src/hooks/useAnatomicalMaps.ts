@@ -9,7 +9,17 @@ export interface AnatomicalMapRegion {
   map_id: string;
   region_id: string;
   points: MapPoint[];
+  cor: string;
 }
+
+/** Cores disponíveis para as áreas do mapa (valores HSL sem hsl()). */
+export const AREA_COLORS: Record<string, { label: string; hsl: string }> = {
+  amarelo: { label: 'Amarelo', hsl: '45 95% 50%' },
+  verde: { label: 'Verde', hsl: '142 70% 40%' },
+  azul: { label: 'Azul', hsl: '217 90% 55%' },
+  vermelho: { label: 'Vermelho', hsl: '0 80% 50%' },
+};
+export const areaHsl = (cor?: string) => (AREA_COLORS[cor || ''] || AREA_COLORS.verde).hsl;
 
 export interface AnatomicalMap {
   id: string;
@@ -66,6 +76,7 @@ export function useAnatomicalMaps(onlyActive = true) {
             map_id: r.map_id,
             region_id: r.region_id,
             points: Array.isArray(r.points) ? (r.points as MapPoint[]) : [],
+            cor: r.cor || 'verde',
           })),
       } as AnatomicalMap;
     }));
