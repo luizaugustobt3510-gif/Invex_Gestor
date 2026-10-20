@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useAnatomicalRegions } from '@/hooks/useAnatomicalRegions';
 import { useAnatomicalCategories } from '@/hooks/useAnatomicalCategories';
-import { useAnatomicalMaps, ANATOMICAL_MAPS_BUCKET, MapPoint } from '@/hooks/useAnatomicalMaps';
+import { useAnatomicalMaps, ANATOMICAL_MAPS_BUCKET, MapPoint, AREA_COLORS, areaHsl } from '@/hooks/useAnatomicalMaps';
 
 interface MapForm {
   nome: string; categoria: string; vista: string; ordem: number; is_active: boolean;
@@ -37,7 +37,10 @@ export function MapasAnatomicos() {
 
   const [drawing, setDrawing] = useState(false);
   const [points, setPoints] = useState<MapPoint[]>([]);
-  const [pendingRegion, setPendingRegion] = useState<string>('');
+  const [pendingRegion, setPendingRegion] = useState<string>(() => localStorage.getItem('anatomy_last_region') || '');
+  const [pendingColor, setPendingColor] = useState<string>(() => localStorage.getItem('anatomy_last_color') || 'verde');
+  const [regionFilter, setRegionFilter] = useState('');
+  const [savingArea, setSavingArea] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const regionById = useMemo(() => {
@@ -45,6 +48,12 @@ export function MapasAnatomicos() {
     regions.forEach(r => { m[r.id] = r; });
     return m;
   }, [regions]);
+
+  const filteredRegions = useMemo(() => {
+    const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const q = norm(regionFilter.trim());
+    return regions.filter(r => !q || norm(r.nome).includes(q) || norm(labelFor(r.categoria)).includes(q));
+  }, [regions, regionFilter, labelFor]);
 
   const openNew = () => {
     setEditingId(null);
@@ -121,19 +130,27 @@ export function MapasAnatomicos() {
   };
 
   const saveArea = async () => {
-    if (!user?.companyId || !selected) return;
+    if (!user?.companyId || !selected || savingArea) return;
     if (points.length < 3) { toast.error('Marque pelo menos 3 pontos'); return; }
     if (!pendingRegion) { toast.error('Escolha a região correspondente'); return; }
-    const { error } = await supabase.from('anatomical_map_regions').insert({
-      company_id: user.companyId,
-      map_id: selected.id,
-      region_id: pendingRegion,
-      points: points as any,
-    });
-    if (error) { toast.error(error.message); return; }
-    toast.success('Área salva');
-    setPoints([]); setPendingRegion(''); setDrawing(false);
-    reload();
+    setSavingArea(true);
+    try {
+      const { error } = await supabase.from('anatomical_map_regions').insert({
+        company_id: user.companyId,
+        map_id: selected.id,
+        region_id: pendingRegion,
+        points: points as any,
+        cor: pendingColor,
+      });
+      if (error) { toast.error(error.message); return; }
+      toast.success(`Área "${regionById[pendingRegion]?.nome || ''}" salva`);
+      localStorage.setItem('anatomy_last_region', pendingRegion);
+      localStorage.setItem('anatomy_last_color', pendingColor);
+      setPoints([]); setDrawing(false); setRegionFilter('');
+      reload();
+    } finally {
+      setSavingArea(false);
+    }
   };
 
   const removeArea = async (id: string) => {
@@ -194,26 +211,57 @@ export function MapasAnatomicos() {
                     <Plus className="w-3.5 h-3.5" /> Adicionar região
                   </Button>
                 ) : (
-                  <>
-                    <Select value={pendingRegion} onValueChange={setPendingRegion}>
-                      <SelectTrigger className="h-9 w-[240px] text-xs">
-                        <SelectValue placeholder="Escolha a região" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {regions.map(r => <SelectItem key={r.id} value={r.id}>{r.nome}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <Button size="sm" onClick={saveArea} className="gap-1">
-                      <Check className="w-3.5 h-3.5" /> Salvar área ({points.length} pontos)
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setPoints(p => p.slice(0, -1))}>
-                      Desfazer ponto
-                    </Button>
-                    <Button size="sm" variant="ghost" className="gap-1"
-                      onClick={() => { setDrawing(false); setPoints([]); setPendingRegion(''); }}>
-                      <X className="w-3.5 h-3.5" /> Cancelar
-                    </Button>
-                  </>
+                  <div className="w-full space-y-2 border rounded-lg p-3">
+                    <div className="text-xs font-semibold">1. Região</div>
+                    <Input
+                      value={regionFilter}
+                      onChange={e => setRegionFilter(e.target.value)}
+                      placeholder="Filtrar regiões..."
+                      className="h-9 text-base md:text-sm"
+                    />
+                    <div className="max-h-44 overflow-y-auto border rounded-md divide-y">
+                      {filteredRegions.length === 0 && (
+                        <div className="p-2 text-xs text-muted-foreground">Nenhuma região encontrada.</div>
+                      )}
+                      {filteredRegions.map(r => (
+                        <button
+                          key={r.id} type="button"
+                          onClick={() => setPendingRegion(r.id)}
+                          className={`w-full text-left px-3 py-2 text-sm flex justify-between items-center ${pendingRegion === r.id ? 'bg-primary/10 font-semibold' : 'hover:bg-muted'}`}
+                        >
+                          <span>{r.nome} <span className="text-xs text-muted-foreground">· {labelFor(r.categoria)}</span></span>
+                          {pendingRegion === r.id && <Check className="w-4 h-4 text-primary" />}
+                        </button>
+                      ))}
+                    </div>
+                    {pendingRegion && (
+                      <div className="text-xs">Selecionada: <b>{regionById[pendingRegion]?.nome}</b></div>
+                    )}
+                    <div className="text-xs font-semibold pt-1">2. Cor da área</div>
+                    <div className="flex gap-2 flex-wrap">
+                      {Object.entries(AREA_COLORS).map(([key, c]) => (
+                        <button
+                          key={key} type="button" onClick={() => setPendingColor(key)}
+                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs ${pendingColor === key ? 'ring-2 ring-ring' : ''}`}
+                        >
+                          <span className="w-4 h-4 rounded-full" style={{ background: `hsl(${c.hsl})` }} />
+                          {c.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex gap-2 flex-wrap pt-1">
+                      <Button size="sm" onClick={saveArea} disabled={savingArea} className="gap-1">
+                        <Check className="w-3.5 h-3.5" /> {savingArea ? 'Salvando...' : `Salvar área (${points.length} pontos)`}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setPoints(p => p.slice(0, -1))}>
+                        Desfazer ponto
+                      </Button>
+                      <Button size="sm" variant="ghost" className="gap-1"
+                        onClick={() => { setDrawing(false); setPoints([]); }}>
+                        <X className="w-3.5 h-3.5" /> Cancelar
+                      </Button>
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -227,8 +275,8 @@ export function MapasAnatomicos() {
                     <polygon
                       key={mr.id}
                       points={mr.points.map(p => `${p.x},${p.y}`).join(' ')}
-                      fill="hsl(var(--primary) / 0.25)"
-                      stroke="hsl(var(--primary))"
+                      fill={`hsl(${areaHsl(mr.cor)} / 0.3)`}
+                      stroke={`hsl(${areaHsl(mr.cor)})`}
                       strokeWidth={0.5}
                       vectorEffect="non-scaling-stroke"
                     />
@@ -236,8 +284,8 @@ export function MapasAnatomicos() {
                   {points.length > 0 && (
                     <polygon
                       points={points.map(p => `${p.x},${p.y}`).join(' ')}
-                      fill="hsl(var(--destructive) / 0.2)"
-                      stroke="hsl(var(--destructive))"
+                      fill={`hsl(${areaHsl(pendingColor)} / 0.3)`}
+                      stroke={`hsl(${areaHsl(pendingColor)})`}
                       strokeWidth={0.6}
                       vectorEffect="non-scaling-stroke"
                     />
