@@ -71,6 +71,13 @@
       "when": 1792090020960,
       "tag": "0009_create_anatomical_categories",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792504495984,
+      "tag": "0010_map_region_color",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+ALTER TABLE public.anatomical_map_regions ADD COLUMN IF NOT EXISTS cor text NOT NULL DEFAULT 'verde';
