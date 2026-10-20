@@ -311,7 +311,7 @@ export function MapasAnatomicos() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {selected.regions.map(mr => (
                   <div key={mr.id} className="flex items-center justify-between gap-2 border rounded-lg px-3 py-2">
-                    <span className="text-sm truncate">
+                    <span className="text-sm truncate flex items-center gap-1.5"><span className="w-3 h-3 rounded-full shrink-0" style={{ background: `hsl(${areaHsl(mr.cor)})` }} />
                       {regionById[mr.region_id]?.nome || 'Região removida'}
                       <span className="text-muted-foreground text-xs"> · {mr.points.length} pontos</span>
                     </span>
