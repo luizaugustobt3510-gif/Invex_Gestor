@@ -341,6 +341,7 @@ export type Database = {
       anatomical_map_regions: {
         Row: {
           company_id: string
+          cor: string
           created_at: string
           id: string
           map_id: string
@@ -350,6 +351,7 @@ export type Database = {
         }
         Insert: {
           company_id: string
+          cor?: string
           created_at?: string
           id?: string
           map_id: string
@@ -359,6 +361,7 @@ export type Database = {
         }
         Update: {
           company_id?: string
+          cor?: string
           created_at?: string
           id?: string
           map_id?: string
