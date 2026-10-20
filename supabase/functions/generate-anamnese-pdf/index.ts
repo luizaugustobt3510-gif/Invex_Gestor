@@ -616,7 +616,7 @@ Deno.serve(async (req) => {
     const pdfBytes = doc.output("arraybuffer");
     const pdfBuffer = new Uint8Array(pdfBytes);
     if (pdfBuffer.length > MAX_PDF_BYTES) {
-      console.warn(`PDF acima do limite de 1MB: ${(pdfBuffer.length / 1024).toFixed(0)}KB`);
+      console.warn(`PDF acima do limite de 1,5MB: ${(pdfBuffer.length / 1024).toFixed(0)}KB`);
     }
     const filePath = `${effectiveCompanyId}/${anamnese.id}.pdf`;
     const { error: upErr } = await supabase.storage
