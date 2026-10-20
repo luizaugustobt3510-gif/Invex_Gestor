@@ -4,7 +4,7 @@ import QRCode from "npm:qrcode@1.5.4";
 import { Image as IsImage } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
 
 const TZ = "America/Sao_Paulo";
-const MAX_PDF_BYTES = 1024 * 1024; // 1 MB
+const MAX_PDF_BYTES = 1.5 * 1024 * 1024; // 1,5 MB
 const SIG_MAX_WIDTH = 420; // px — suficiente para 60mm impressos
 const SIG_MAX_BYTES = 120 * 1024; // orçamento por assinatura
 
@@ -616,7 +616,7 @@ Deno.serve(async (req) => {
     const pdfBytes = doc.output("arraybuffer");
     const pdfBuffer = new Uint8Array(pdfBytes);
     if (pdfBuffer.length > MAX_PDF_BYTES) {
-      console.warn(`PDF acima do limite de 1MB: ${(pdfBuffer.length / 1024).toFixed(0)}KB`);
+      console.warn(`PDF acima do limite de 1,5MB: ${(pdfBuffer.length / 1024).toFixed(0)}KB`);
     }
     const filePath = `${effectiveCompanyId}/${anamnese.id}.pdf`;
     const { error: upErr } = await supabase.storage
