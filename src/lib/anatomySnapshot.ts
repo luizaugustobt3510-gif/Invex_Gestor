@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { ANATOMICAL_MAPS_BUCKET, type AnatomicalMap } from '@/hooks/useAnatomicalMaps';
+import { ANATOMICAL_MAPS_BUCKET, areaHsl, type AnatomicalMap } from '@/hooks/useAnatomicalMaps';
 
 const MAX_WIDTH = 520; // px — suficiente para ~55mm impressos, mantém o PDF leve
 
@@ -66,12 +66,13 @@ export async function buildAnatomySnapshot(
     ctx.drawImage(img, 0, 0, w, h);
 
     ctx.lineWidth = Math.max(1.5, w / 260);
-    ctx.strokeStyle = '#0f6b5c';
-    ctx.fillStyle = 'rgba(16, 122, 102, 0.42)';
 
     map.regions
       .filter(r => selectedRegionIds.includes(r.region_id) && r.points.length >= 3)
       .forEach(r => {
+        const [hh, ss, ll] = areaHsl(r.cor).split(' ');
+        ctx.strokeStyle = `hsl(${hh}, ${ss}, ${ll})`;
+        ctx.fillStyle = `hsla(${hh}, ${ss}, ${ll}, 0.42)`;
         ctx.beginPath();
         r.points.forEach((p, i) => {
           const x = (p.x / 100) * w;
