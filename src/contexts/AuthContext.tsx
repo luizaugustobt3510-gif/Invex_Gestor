@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { inactivityTimeoutFor } from '@/lib/sessionInactivity';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const USERNAME_DOMAIN = 'usuarios.invexgestor.local';
@@ -78,18 +79,18 @@ async function loadUserProfile(supabaseUser: SupabaseUser): Promise<User | null>
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [afkBlocked, setAfkBlocked] = useState(false);
+  const [, setAfkBlocked] = useState(false);
   const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const INACTIVITY_TIMEOUT = 4 * 60 * 60 * 1000; // 4 horas
 
   const performLogout = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
   }, []);
 
-  // Inactivity auto-logout (desabilitado durante treino ativo)
+  // Invex Fitness fica isento; os demais usuários saem após duas horas.
   useEffect(() => {
-    if (!user || afkBlocked) {
+    const timeout = user ? inactivityTimeoutFor(user) : null;
+    if (timeout === null) {
       if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
       return;
     }
@@ -98,7 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
       inactivityTimer.current = setTimeout(() => {
         performLogout();
-      }, INACTIVITY_TIMEOUT);
+      }, timeout);
     };
 
     const events = ['mousedown', 'keydown', 'touchstart', 'scroll', 'mousemove'];
@@ -109,7 +110,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
       events.forEach(e => window.removeEventListener(e, resetTimer));
     };
-  }, [user, afkBlocked, performLogout]);
+  }, [user, performLogout]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
