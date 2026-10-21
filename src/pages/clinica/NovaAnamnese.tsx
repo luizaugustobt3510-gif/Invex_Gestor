@@ -26,6 +26,7 @@ import { SeletorAnatomico } from '@/components/clinica/SeletorAnatomico';
 import { useAnatomicalRegions } from '@/hooks/useAnatomicalRegions';
 import { useAnatomicalMaps } from '@/hooks/useAnatomicalMaps';
 import { buildAnatomySnapshot } from '@/lib/anatomySnapshot';
+import { highlightedAreaIds, regionForToken } from '@/lib/anatomyTokens';
 import { anamneseEntryPhase, isAnamneseAnswerComplete } from '@/lib/anamneseReview';
 
 // Small local component to bridge ref to inline pad
@@ -353,8 +354,8 @@ export default function NovaAnamnese() {
         toast.error(`Responda: ${q.text}`); return;
       }
     }
-    const regionName = (slug: string) =>
-      anatomicalRegions.find(r => r.slug === slug)?.nome || slug;
+    const regionName = (tok: string) =>
+      regionForToken(tok, anatomicalRegions, anatomicalMaps)?.nome || tok;
 
     // Pergunta de origem (quando esta pergunta só apareceu por causa de outra resposta)
     const parentOf = (q: Question): { question: string; trigger: string } | undefined => {
@@ -399,8 +400,8 @@ export default function NovaAnamnese() {
       }
       if (r.regions) {
         out.regions = r.regions;
-        const ids = anatomicalRegions.filter(a => r.regions?.includes(a.slug)).map(a => a.id);
-        const snap = await buildAnatomySnapshot(anatomicalMaps, ids);
+        const areaIds = [...highlightedAreaIds(r.regions, anatomicalRegions, anatomicalMaps)];
+        const snap = await buildAnatomySnapshot(anatomicalMaps, areaIds);
         if (snap) out.image = snap;
       }
       return out;
@@ -827,7 +828,7 @@ export default function NovaAnamnese() {
                           {(() => {
                             const vals = parseAnswerValues(answers[q.id]);
                             const shown = (q.type === 'localizacao_anatomica'
-                              ? vals.map(s => anatomicalRegions.find(r => r.slug === s)?.nome || s)
+                              ? vals.map(s => regionForToken(s, anatomicalRegions, anatomicalMaps)?.nome || s)
                               : vals).join(', ');
                             return shown || <span className="text-muted-foreground italic">sem resposta</span>;
                           })()}

@@ -72,8 +72,9 @@ export function SeletorAnatomico({
 
   const toggle = (slug?: string) => {
     if (disabled || !slug || !bySlug[slug]) return;
-    const has = value.includes(slug);
-    if (has) onChange(value.filter(s => s !== slug));
+    const rid = bySlug[slug].id;
+    const related = value.filter(t => t === slug || regionForToken(t, allowed, maps)?.id === rid);
+    if (related.length) onChange(value.filter(t => !related.includes(t)));
     else onChange(multiple ? [...value, slug] : [slug]);
   };
 
