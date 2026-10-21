@@ -584,3 +584,20 @@ function ConditionsEditor({
     </div>
   );
 }
+
+/** Campo de opções que preserva o texto digitado (espaços e vírgulas) e só converte em lista. */
+function OptionsInput({ options, onChange }: { options: string[]; onChange: (opts: string[]) => void }) {
+  const [text, setText] = useState(() => options.join(', '));
+  const parse = (s: string) => s.split(',').map(x => x.trim()).filter(Boolean);
+  useEffect(() => {
+    if (parse(text).join('\u0000') !== options.join('\u0000')) setText(options.join(', '));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options.join('\u0000')]);
+  return (
+    <Input
+      value={text}
+      onChange={e => { setText(e.target.value); onChange(parse(e.target.value)); }}
+      onBlur={() => setText(parse(text).join(', '))}
+    />
+  );
+}
