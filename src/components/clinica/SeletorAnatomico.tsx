@@ -1,4 +1,5 @@
 import { areaHsl } from '@/hooks/useAnatomicalMaps';
+import { areaToken, highlightedAreaIds, regionForToken } from '@/lib/anatomyTokens';
 import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -67,14 +68,36 @@ export function SeletorAnatomico({
   const [mapId, setMapId] = useState<string>('');
   const activeMap = usableMaps.find(m => m.id === mapId) || usableMaps[0];
 
+  const lit = useMemo(() => highlightedAreaIds(value, allowed, maps), [value, allowed, maps]);
+
   const toggle = (slug?: string) => {
     if (disabled || !slug || !bySlug[slug]) return;
-    const has = value.includes(slug);
-    if (has) onChange(value.filter(s => s !== slug));
+    const rid = bySlug[slug].id;
+    const related = value.filter(t => t === slug || regionForToken(t, allowed, maps)?.id === rid);
+    if (related.length) onChange(value.filter(t => !related.includes(t)));
     else onChange(multiple ? [...value, slug] : [slug]);
   };
 
-  const selected = value.map(s => bySlug[s]).filter(Boolean) as AnatomicalRegion[];
+  /** Clique no mapa: seleciona só a área desenhada clicada. */
+  const toggleArea = (areaId: string, region: AnatomicalRegion) => {
+    if (disabled) return;
+    const tok = areaToken(areaId);
+    if (value.includes(tok)) return onChange(value.filter(t => t !== tok));
+    if (value.includes(region.slug)) {
+      // Seleção antiga pelo nome: troca pelas demais áreas, removendo só esta.
+      const others = maps.flatMap(m => m.regions)
+        .filter(a => a.region_id === region.id && a.id !== areaId)
+        .map(a => areaToken(a.id));
+      return onChange([...value.filter(t => t !== region.slug), ...others]);
+    }
+    onChange(multiple ? [...value, tok] : [tok]);
+  };
+
+  const removeToken = (t: string) => !disabled && onChange(value.filter(x => x !== t));
+
+  const selected = value
+    .map(t => ({ t, r: regionForToken(t, allowed, maps) }))
+    .filter((x): x is { t: string; r: AnatomicalRegion } => !!x.r);
 
   return (
     <div className="space-y-4">
@@ -107,12 +130,12 @@ export function SeletorAnatomico({
               {activeMap.regions.map(mr => {
                 const region = byId[mr.region_id];
                 if (!region || mr.points.length < 3) return null;
-                const on = value.includes(region.slug);
+                const on = lit.has(mr.id);
                 return (
                   <polygon
                     key={mr.id}
                     points={mr.points.map(p => `${p.x},${p.y}`).join(' ')}
-                    onClick={() => toggle(region.slug)}
+                    onClick={() => toggleArea(mr.id, region)}
                     className={disabled ? '' : 'cursor-pointer transition-all'}
                     fill={`hsl(${areaHsl(mr.cor)} / ${on ? 0.55 : 0.15})`}
                     stroke={`hsl(${areaHsl(mr.cor)} / ${on ? 1 : 0.6})`}
@@ -139,7 +162,7 @@ export function SeletorAnatomico({
             </div>
             <div className="flex flex-wrap gap-2">
               {list.map(r => {
-                const on = value.includes(r.slug);
+                const on = value.includes(r.slug) || value.some(t => regionForToken(t, allowed, maps)?.id === r.id);
                 return (
                   <button
                     key={r.id}
@@ -172,11 +195,11 @@ export function SeletorAnatomico({
           <div className="text-sm text-muted-foreground italic">Nenhuma região selecionada.</div>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {selected.map(r => (
-              <Badge key={r.id} variant="secondary" className="gap-1 py-1.5 pl-3 pr-1.5 text-sm">
+            {selected.map(({ t, r }) => (
+              <Badge key={t} variant="secondary" className="gap-1 py-1.5 pl-3 pr-1.5 text-sm">
                 {r.nome}
                 {!disabled && (
-                  <button type="button" onClick={() => toggle(r.slug)} aria-label={`Remover ${r.nome}`}>
+                  <button type="button" onClick={() => removeToken(t)} aria-label={`Remover ${r.nome}`}>
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}

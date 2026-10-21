@@ -38,12 +38,13 @@ async function resolveImageSource(map: AnatomicalMap): Promise<string | null> {
  */
 export async function buildAnatomySnapshot(
   maps: AnatomicalMap[],
-  selectedRegionIds: string[],
+  /** IDs das áreas desenhadas a destacar */
+  selectedAreaIds: string[],
 ): Promise<string | null> {
-  if (!selectedRegionIds.length) return null;
+  if (!selectedAreaIds.length) return null;
   const map = maps.find(
     m => (m.image_path || m.imageUrl) &&
-      m.regions.some(r => selectedRegionIds.includes(r.region_id) && r.points.length >= 3),
+      m.regions.some(r => selectedAreaIds.includes(r.id) && r.points.length >= 3),
   );
   if (!map) return null;
 
@@ -68,7 +69,7 @@ export async function buildAnatomySnapshot(
     ctx.lineWidth = Math.max(1.5, w / 260);
 
     map.regions
-      .filter(r => selectedRegionIds.includes(r.region_id) && r.points.length >= 3)
+      .filter(r => selectedAreaIds.includes(r.id) && r.points.length >= 3)
       .forEach(r => {
         const [hh, ss, ll] = areaHsl(r.cor).split(' ');
         ctx.strokeStyle = `hsl(${hh}, ${ss}, ${ll})`;
