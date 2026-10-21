@@ -61,6 +61,9 @@ interface AnamneseInput {
     /** Pergunta que originou esta (fluxo condicional) */
     parent_question?: string;
     parent_trigger?: string;
+    /** Nome do modelo/exame (quando há anamneses combinadas) */
+    section?: string;
+    section_template_id?: string;
   }[];
   observations?: string;
   signature_image_url?: string;
@@ -300,7 +303,16 @@ Deno.serve(async (req) => {
     const IMG_W = 55; // mm — miniatura compacta da imagem anatômica
     let idx = 0;
     let subIdx = 0;
+    const sections = new Set(body.responses.map((r) => r.section || ""));
+    const multiSection = sections.size > 1;
+    let lastSection: string | null = null;
     for (const r of body.responses) {
+      if (multiSection && (r.section || "") !== lastSection) {
+        lastSection = r.section || "";
+        ensureSpace(14);
+        y += 2;
+        sectionTitle(`EXAME: ${lastSection.toUpperCase()}`);
+      }
       const isSub = !!r.parent_question;
       if (isSub) subIdx++; else { idx++; subIdx = 0; }
       const left = margin + (isSub ? 6 : 0);

@@ -27,6 +27,9 @@ import { useAnatomicalRegions } from '@/hooks/useAnatomicalRegions';
 import { useAnatomicalMaps } from '@/hooks/useAnatomicalMaps';
 import { buildAnatomySnapshot } from '@/lib/anatomySnapshot';
 import { highlightedAreaIds, regionForToken } from '@/lib/anatomyTokens';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { combineTemplates, type ExtraSection, type SectionQuestion } from '@/lib/anamneseCombine';
 import { anamneseEntryPhase, isAnamneseAnswerComplete } from '@/lib/anamneseReview';
 
 // Small local component to bridge ref to inline pad
@@ -57,7 +60,11 @@ export default function NovaAnamnese() {
   const addPrescription = sp.get('receita') === '1';
   const [editLoading, setEditLoading] = useState(!!editId);
   const reviewingAnswer = useRef(false);
-  const pendingEdit = useRef<{ answers: Record<string, string>; examType: string } | null>(null);
+  const pendingEdit = useRef<{ answers: Record<string, string>; examType: string; extras: ExtraSection[] } | null>(null);
+  const [extras, setExtras] = useState<ExtraSection[]>([]);
+  const [comboOpen, setComboOpen] = useState(false);
+  const [comboTplId, setComboTplId] = useState('');
+  const [comboSel, setComboSel] = useState<Set<string>>(new Set());
 
   const [patients, setPatients] = useState<Patient[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -147,7 +154,11 @@ export default function NovaAnamnese() {
     })();
   }, [user?.companyId]);
 
-  const template = useMemo(() => templates.find(t => t.id === templateId), [templates, templateId]);
+  const baseTemplate = useMemo(() => templates.find(t => t.id === templateId), [templates, templateId]);
+  const template = useMemo(
+    () => (baseTemplate ? { ...baseTemplate, questions: combineTemplates(baseTemplate, extras) } : undefined),
+    [baseTemplate, extras],
+  );
   const selectedPatient = useMemo(() => patients.find(p => p.id === patientId), [patients, patientId]);
   const lastPatient = useMemo(() => {
     if (!patients.length) return null;
@@ -159,15 +170,17 @@ export default function NovaAnamnese() {
       if (pendingEdit.current) {
         setExamType(pendingEdit.current.examType);
         setAnswers(pendingEdit.current.answers);
+        setExtras(pendingEdit.current.extras);
         pendingEdit.current = null;
         setPhase(anamneseEntryPhase(editId));
       } else {
-        setExamType(template.exam_type);
+        setExamType(baseTemplate!.exam_type);
         setAnswers({});
+        setExtras([]);
       }
       setIdx(0);
     }
-  }, [templateId, template]);
+  }, [templateId, baseTemplate]);
 
   // Modo edição: carrega a anamnese existente e preenche as respostas
   const editLoaded = useRef(false);
@@ -184,14 +197,31 @@ export default function NovaAnamnese() {
       if (!tpl) { toast.error('O modelo desta anamnese não está mais ativo'); return; }
       const resp = (Array.isArray(data.responses) ? data.responses : []) as any[];
       const ans: Record<string, string> = {};
-      for (const q of tpl.questions) {
-        const r = resp.find(x => x?.question === q.text);
-        if (!r) continue;
-        if (Array.isArray(r.regions)) ans[q.id] = JSON.stringify(r.regions);
-        else if (q.type === 'multi_escolha' && r.answer) ans[q.id] = JSON.stringify(String(r.answer).split(', ').filter(Boolean));
-        else ans[q.id] = String(r.answer ?? '');
+      // Exames adicionais combinados nesta anamnese
+      const extrasLoaded: ExtraSection[] = [];
+      for (const r of resp) {
+        const tid = r?.section_template_id;
+        if (!tid || tid === tpl.id || extrasLoaded.some(e => e.templateId === tid)) continue;
+        const et = templates.find(t => t.id === tid);
+        if (!et) continue;
+        const texts = new Set(resp.filter(x => x?.section_template_id === tid).map(x => x.question));
+        const ids = et.questions.filter(q => texts.has(q.text)).map(q => q.id);
+        // inclui subperguntas condicionais do mesmo modelo
+        et.questions.forEach(q => { if (q.conditions?.some(c => ids.includes(c.questionId)) || q.condition) ids.push(q.id); });
+        extrasLoaded.push({ templateId: et.id, name: et.name, questions: et.questions, selectedIds: [...new Set(ids)] });
       }
-      pendingEdit.current = { answers: ans, examType: data.exam_type };
+      const allQs: Array<{ q: Question; sid: string; key: string }> = [
+        ...tpl.questions.map(q => ({ q, sid: tpl.id, key: q.id })),
+        ...extrasLoaded.flatMap((e, i) => e.questions.map(q => ({ q, sid: e.templateId, key: `x${i}:${q.id}` }))),
+      ];
+      for (const { q, sid, key } of allQs) {
+        const r = resp.find(x => x?.question === q.text && (x?.section_template_id ? x.section_template_id === sid : sid === tpl.id));
+        if (!r) continue;
+        if (Array.isArray(r.regions)) ans[key] = JSON.stringify(r.regions);
+        else if (q.type === 'multi_escolha' && r.answer) ans[key] = JSON.stringify(String(r.answer).split(', ').filter(Boolean));
+        else ans[key] = String(r.answer ?? '');
+      }
+      pendingEdit.current = { answers: ans, examType: data.exam_type, extras: extrasLoaded };
       setPatientId(data.patient_id);
       setObservations(data.observations || '');
       setTemplateId(tpl.id);
@@ -345,6 +375,38 @@ export default function NovaAnamnese() {
     setIdx(0);
   };
 
+  const comboTpl = templates.find(t => t.id === comboTplId);
+  const openCombo = () => { setComboTplId(''); setComboSel(new Set()); setComboOpen(true); };
+  const pickComboTpl = (id: string) => {
+    setComboTplId(id);
+    const t = templates.find(x => x.id === id);
+    const used = new Set((template?.questions || []).map(q => q.text.trim().toLowerCase()));
+    // Pré-marca as perguntas que ainda não foram feitas
+    setComboSel(new Set((t?.questions || []).filter(q => !used.has(q.text.trim().toLowerCase())).map(q => q.id)));
+  };
+  const confirmCombo = () => {
+    if (!comboTpl || comboSel.size === 0) { toast.error('Selecione ao menos uma pergunta'); return; }
+    // Subperguntas seguem a pergunta de origem selecionada
+    const ids = new Set(comboSel);
+    comboTpl.questions.forEach((q, i) => {
+      if (q.conditions?.some(c => ids.has(c.questionId))) ids.add(q.id);
+      if (q.condition?.equals && i > 0 && ids.has(comboTpl.questions[i - 1].id)) ids.add(q.id);
+    });
+    const firstNew = visibleQuestions.length;
+    setExtras(prev => [...prev, { templateId: comboTpl.id, name: comboTpl.name, questions: comboTpl.questions, selectedIds: [...ids] }]);
+    setExamType(prev => `${prev} + ${comboTpl.name}`);
+    setComboOpen(false);
+    reviewingAnswer.current = false;
+    setPhase('questions');
+    setIdx(firstNew);
+    toast.success(`${comboTpl.name} adicionado. Responda as novas perguntas.`);
+  };
+  const removeExtra = (i: number) => {
+    const e = extras[i];
+    setExtras(prev => prev.filter((_, j) => j !== i));
+    setExamType(prev => prev.replace(` + ${e.name}`, ''));
+  };
+
   const submit = async (download = true) => {
     if (!patientId || !template || !examType.trim()) {
       toast.error('Dados incompletos'); return;
@@ -387,6 +449,8 @@ export default function NovaAnamnese() {
           regions: isAnatomy ? vals : undefined,
           parent_question: parent?.question,
           parent_trigger: parent?.trigger,
+          section: (q as SectionQuestion).section,
+          section_template_id: (q as SectionQuestion).sectionTemplateId,
         };
       })
       // Omite perguntas NÃO obrigatórias deixadas em branco
@@ -394,6 +458,7 @@ export default function NovaAnamnese() {
 
     const responses = await Promise.all(base.map(async (r) => {
       const out: Record<string, unknown> = { question: r.question, answer: r.answer };
+      if (extras.length) { out.section = r.section; out.section_template_id = r.section_template_id; }
       if (r.parent_question) {
         out.parent_question = r.parent_question;
         if (r.parent_trigger) out.parent_trigger = r.parent_trigger;
@@ -805,8 +870,27 @@ export default function NovaAnamnese() {
                   <div className="bg-muted/40 rounded p-3">
                     <div className="text-xs text-muted-foreground">Tipo de exame</div>
                     <div className="font-medium">{examType}</div>
-                    <div className="text-muted-foreground">Modelo: {template?.name}</div>
+                    <div className="text-muted-foreground">Modelo: {baseTemplate?.name}{extras.map(e => ` + ${e.name}`).join('')}</div>
                   </div>
+                </div>
+
+                <div className="rounded-lg border border-dashed p-3 space-y-2">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="text-sm font-medium">Exames combinados no mesmo PDF</div>
+                    <Button type="button" size="sm" variant="outline" onClick={openCombo}>
+                      + Adicionar outro exame
+                    </Button>
+                  </div>
+                  {extras.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {extras.map((e, i) => (
+                        <Badge key={i} variant="secondary" className="gap-1">
+                          {e.name} ({e.selectedIds.length})
+                          <button type="button" onClick={() => removeExtra(i)} className="ml-1 text-muted-foreground hover:text-destructive" aria-label={`Remover ${e.name}`}>×</button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -824,7 +908,7 @@ export default function NovaAnamnese() {
                         <Check className="w-3.5 h-3.5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs text-muted-foreground">Pergunta {i + 1}</div>
+                        <div className="text-xs text-muted-foreground">Pergunta {i + 1}{extras.length > 0 && (q as SectionQuestion).section ? ` · ${(q as SectionQuestion).section}` : ''}</div>
                         <div className="text-sm font-medium">{q.text}</div>
                         <div className="text-sm text-foreground/80 break-words">
                           {(() => {
@@ -983,6 +1067,46 @@ export default function NovaAnamnese() {
           </>
         )}
       </div>
+
+      <Dialog open={comboOpen} onOpenChange={setComboOpen}>
+        <DialogContent className="max-w-lg max-h-[85dvh] flex flex-col">
+          <DialogHeader><DialogTitle>Adicionar outro exame</DialogTitle></DialogHeader>
+          <div className="space-y-3 overflow-y-auto flex-1">
+            <div>
+              <Label>Modelo de anamnese</Label>
+              <Select value={comboTplId} onValueChange={pickComboTpl}>
+                <SelectTrigger><SelectValue placeholder="Escolha o modelo" /></SelectTrigger>
+                <SelectContent>
+                  {templates.filter(t => t.id !== templateId && !extras.some(e => e.templateId === t.id)).map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {comboTpl && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Marque as perguntas que quer usar (repetidas já vêm desmarcadas)</span>
+                  <button type="button" className="underline" onClick={() => setComboSel(new Set(comboTpl.questions.filter(q => !q.conditions?.length && !q.condition).map(q => q.id)))}>Todas</button>
+                </div>
+                {comboTpl.questions.filter(q => !q.conditions?.length && !q.condition).map(q => (
+                  <label key={q.id} className="flex items-start gap-2 p-2 rounded border cursor-pointer hover:bg-muted">
+                    <Checkbox
+                      checked={comboSel.has(q.id)}
+                      onCheckedChange={(v) => setComboSel(prev => { const n = new Set(prev); v ? n.add(q.id) : n.delete(q.id); return n; })}
+                    />
+                    <span className="text-sm">{q.text}{q.type === 'localizacao_anatomica' && <Badge variant="outline" className="ml-2 text-[10px]">mapa</Badge>}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setComboOpen(false)}>Cancelar</Button>
+            <Button onClick={confirmCombo} disabled={!comboTpl || comboSel.size === 0}>Adicionar perguntas</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }
