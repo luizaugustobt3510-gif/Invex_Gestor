@@ -1,4 +1,5 @@
 import { areaHsl } from '@/hooks/useAnatomicalMaps';
+import { areaToken, highlightedAreaIds, regionForToken } from '@/lib/anatomyTokens';
 import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -67,6 +68,8 @@ export function SeletorAnatomico({
   const [mapId, setMapId] = useState<string>('');
   const activeMap = usableMaps.find(m => m.id === mapId) || usableMaps[0];
 
+  const lit = useMemo(() => highlightedAreaIds(value, allowed, maps), [value, allowed, maps]);
+
   const toggle = (slug?: string) => {
     if (disabled || !slug || !bySlug[slug]) return;
     const has = value.includes(slug);
@@ -74,7 +77,26 @@ export function SeletorAnatomico({
     else onChange(multiple ? [...value, slug] : [slug]);
   };
 
-  const selected = value.map(s => bySlug[s]).filter(Boolean) as AnatomicalRegion[];
+  /** Clique no mapa: seleciona só a área desenhada clicada. */
+  const toggleArea = (areaId: string, region: AnatomicalRegion) => {
+    if (disabled) return;
+    const tok = areaToken(areaId);
+    if (value.includes(tok)) return onChange(value.filter(t => t !== tok));
+    if (value.includes(region.slug)) {
+      // Seleção antiga pelo nome: troca pelas demais áreas, removendo só esta.
+      const others = maps.flatMap(m => m.regions)
+        .filter(a => a.region_id === region.id && a.id !== areaId)
+        .map(a => areaToken(a.id));
+      return onChange([...value.filter(t => t !== region.slug), ...others]);
+    }
+    onChange(multiple ? [...value, tok] : [tok]);
+  };
+
+  const removeToken = (t: string) => !disabled && onChange(value.filter(x => x !== t));
+
+  const selected = value
+    .map(t => ({ t, r: regionForToken(t, allowed, maps) }))
+    .filter((x): x is { t: string; r: AnatomicalRegion } => !!x.r);
 
   return (
     <div className="space-y-4">
