@@ -379,9 +379,9 @@ export default function AnamneseModelos() {
                                 {(q.type === 'lista' || q.type === 'multi_escolha') && (
                                   <div className="md:col-span-6">
                                     <Label className="text-xs">Opções (separadas por vírgula)</Label>
-                                    <Input
-                                      value={(q.options || []).join(', ')}
-                                      onChange={e => updateQ(q.id, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                                    <OptionsInput
+                                      options={q.options || []}
+                                      onChange={opts => updateQ(q.id, { options: opts })}
                                     />
                                   </div>
                                  )}
@@ -582,5 +582,22 @@ function ConditionsEditor({
         <Plus className="w-3.5 h-3.5" /> Adicionar condição
       </Button>
     </div>
+  );
+}
+
+/** Campo de opções que preserva o texto digitado (espaços e vírgulas) e só converte em lista. */
+function OptionsInput({ options, onChange }: { options: string[]; onChange: (opts: string[]) => void }) {
+  const [text, setText] = useState(() => options.join(', '));
+  const parse = (s: string) => s.split(',').map(x => x.trim()).filter(Boolean);
+  useEffect(() => {
+    if (parse(text).join('\u0000') !== options.join('\u0000')) setText(options.join(', '));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options.join('\u0000')]);
+  return (
+    <Input
+      value={text}
+      onChange={e => { setText(e.target.value); onChange(parse(e.target.value)); }}
+      onBlur={() => setText(parse(text).join(', '))}
+    />
   );
 }

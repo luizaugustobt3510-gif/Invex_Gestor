@@ -41,6 +41,7 @@ export function MapasAnatomicos() {
   const [pendingColor, setPendingColor] = useState<string>(() => localStorage.getItem('anatomy_last_color') || 'verde');
   const [regionFilter, setRegionFilter] = useState('');
   const [savingArea, setSavingArea] = useState(false);
+  const [editingAreaId, setEditingAreaId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const regionById = useMemo(() => {
@@ -129,24 +130,40 @@ export function MapasAnatomicos() {
     setPoints(p => [...p, { x: Number(x.toFixed(2)), y: Number(y.toFixed(2)) }]);
   };
 
+  const startEditArea = (mr: { id: string; region_id: string; points: MapPoint[]; cor: string }) => {
+    setEditingAreaId(mr.id);
+    setPoints(mr.points.map(p => ({ ...p })));
+    setPendingRegion(mr.region_id);
+    setPendingColor(mr.cor || 'verde');
+    setRegionFilter('');
+    setDrawing(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelDrawing = () => { setDrawing(false); setPoints([]); setEditingAreaId(null); };
+
   const saveArea = async () => {
     if (!user?.companyId || !selected || savingArea) return;
     if (points.length < 3) { toast.error('Marque pelo menos 3 pontos'); return; }
     if (!pendingRegion) { toast.error('Escolha a região correspondente'); return; }
     setSavingArea(true);
     try {
-      const { error } = await supabase.from('anatomical_map_regions').insert({
-        company_id: user.companyId,
-        map_id: selected.id,
-        region_id: pendingRegion,
-        points: points as any,
-        cor: pendingColor,
-      });
+      const { error } = editingAreaId
+        ? await supabase.from('anatomical_map_regions')
+            .update({ region_id: pendingRegion, points: points as any, cor: pendingColor })
+            .eq('id', editingAreaId)
+        : await supabase.from('anatomical_map_regions').insert({
+            company_id: user.companyId,
+            map_id: selected.id,
+            region_id: pendingRegion,
+            points: points as any,
+            cor: pendingColor,
+          });
       if (error) { toast.error(error.message); return; }
-      toast.success(`Área "${regionById[pendingRegion]?.nome || ''}" salva`);
+      toast.success(`Área "${regionById[pendingRegion]?.nome || ''}" ${editingAreaId ? 'atualizada' : 'salva'}`);
       localStorage.setItem('anatomy_last_region', pendingRegion);
       localStorage.setItem('anatomy_last_color', pendingColor);
-      setPoints([]); setDrawing(false); setRegionFilter('');
+      setPoints([]); setDrawing(false); setRegionFilter(''); setEditingAreaId(null);
       reload();
     } finally {
       setSavingArea(false);
@@ -154,8 +171,10 @@ export function MapasAnatomicos() {
   };
 
   const removeArea = async (id: string) => {
+    if (!confirm('Excluir esta área?')) return;
     const { error } = await supabase.from('anatomical_map_regions').delete().eq('id', id);
     if (error) { toast.error(error.message); return; }
+    if (editingAreaId === id) cancelDrawing();
     toast.success('Área excluída');
     reload();
   };
@@ -168,7 +187,7 @@ export function MapasAnatomicos() {
             <Button
               key={m.id} type="button" size="sm"
               variant={selected?.id === m.id ? 'default' : 'outline'}
-              onClick={() => setSelectedId(m.id)}
+              onClick={() => { cancelDrawing(); setSelectedId(m.id); }}
             >
               {m.nome} · {m.vista}{!m.is_active && ' (inativo)'}
             </Button>
@@ -207,11 +226,14 @@ export function MapasAnatomicos() {
             <>
               <div className="flex items-center gap-2 flex-wrap">
                 {!drawing ? (
-                  <Button size="sm" onClick={() => { setDrawing(true); setPoints([]); }} className="gap-1">
+                  <Button size="sm" onClick={() => { setEditingAreaId(null); setDrawing(true); setPoints([]); }} className="gap-1">
                     <Plus className="w-3.5 h-3.5" /> Adicionar região
                   </Button>
                 ) : (
                   <div className="w-full space-y-2 border rounded-lg p-3">
+                    {editingAreaId && (
+                      <div className="text-xs font-semibold text-primary">Editando área existente — ajuste região, cor ou contorno e salve.</div>
+                    )}
                     <div className="text-xs font-semibold">1. Região</div>
                     <Input
                       value={regionFilter}
@@ -256,8 +278,13 @@ export function MapasAnatomicos() {
                       <Button size="sm" variant="outline" onClick={() => setPoints(p => p.slice(0, -1))}>
                         Desfazer ponto
                       </Button>
+                      {editingAreaId && (
+                        <Button size="sm" variant="outline" onClick={() => setPoints([])}>
+                          Refazer contorno
+                        </Button>
+                      )}
                       <Button size="sm" variant="ghost" className="gap-1"
-                        onClick={() => { setDrawing(false); setPoints([]); }}>
+                        onClick={cancelDrawing}>
                         <X className="w-3.5 h-3.5" /> Cancelar
                       </Button>
                     </div>
@@ -271,7 +298,7 @@ export function MapasAnatomicos() {
               >
                 <img src={selected.imageUrl} alt={selected.nome} className="w-full h-auto rounded-md pointer-events-none" />
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none">
-                  {selected.regions.map(mr => mr.points.length >= 3 && (
+                  {selected.regions.filter(mr => mr.id !== editingAreaId).map(mr => mr.points.length >= 3 && (
                     <polygon
                       key={mr.id}
                       points={mr.points.map(p => `${p.x},${p.y}`).join(' ')}
@@ -315,9 +342,14 @@ export function MapasAnatomicos() {
                       {regionById[mr.region_id]?.nome || 'Região removida'}
                       <span className="text-muted-foreground text-xs"> · {mr.points.length} pontos</span>
                     </span>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => removeArea(mr.id)}>
+                    <div className="flex shrink-0">
+                    <Button size="icon" variant="ghost" className="h-8 w-8" title="Editar área" onClick={() => startEditArea(mr)}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" title="Excluir área" onClick={() => removeArea(mr.id)}>
                       <Trash2 className="w-3.5 h-3.5 text-destructive" />
                     </Button>
+                    </div>
                   </div>
                 ))}
               </div>
