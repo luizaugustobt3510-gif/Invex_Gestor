@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it } from 'node:test';
+import { strict as assert } from 'node:assert';
 import { areaToken, highlightedAreaIds, regionForToken } from './anatomyTokens';
 
 const regions = [{ id: 'r1', slug: 'falange_distal', nome: 'Falange distal' }];
@@ -8,12 +9,12 @@ const maps = [{ regions: [
 
 describe('anatomyTokens', () => {
   it('clicar em uma área destaca só ela, mesmo com nome repetido', () => {
-    expect([...highlightedAreaIds([areaToken('a2')], regions, maps)]).toEqual(['a2']);
+    assert.deepEqual([...highlightedAreaIds([areaToken('a2')], regions, maps)], ['a2']);
   });
   it('seleção pelo nome (anamneses antigas) destaca todas as áreas da região', () => {
-    expect([...highlightedAreaIds(['falange_distal'], regions, maps)].sort()).toEqual(['a1', 'a2']);
+    assert.deepEqual([...highlightedAreaIds(['falange_distal'], regions, maps)].sort(), ['a1', 'a2']);
   });
   it('área resolve para o nome da região', () => {
-    expect(regionForToken(areaToken('a1'), regions, maps)?.nome).toBe('Falange distal');
+    assert.equal(regionForToken(areaToken('a1'), regions, maps)?.nome, 'Falange distal');
   });
 });
