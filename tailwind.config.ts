@@ -54,6 +54,10 @@ export default {
           foreground: "hsl(var(--danger-foreground))",
           light: "hsl(var(--danger-light))",
         },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+        },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
