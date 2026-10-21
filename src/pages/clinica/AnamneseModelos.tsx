@@ -379,9 +379,9 @@ export default function AnamneseModelos() {
                                 {(q.type === 'lista' || q.type === 'multi_escolha') && (
                                   <div className="md:col-span-6">
                                     <Label className="text-xs">Opções (separadas por vírgula)</Label>
-                                    <Input
-                                      value={(q.options || []).join(', ')}
-                                      onChange={e => updateQ(q.id, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                                    <OptionsInput
+                                      options={q.options || []}
+                                      onChange={opts => updateQ(q.id, { options: opts })}
                                     />
                                   </div>
                                  )}
