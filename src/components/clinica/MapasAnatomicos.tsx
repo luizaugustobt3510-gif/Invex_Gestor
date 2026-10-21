@@ -41,6 +41,7 @@ export function MapasAnatomicos() {
   const [pendingColor, setPendingColor] = useState<string>(() => localStorage.getItem('anatomy_last_color') || 'verde');
   const [regionFilter, setRegionFilter] = useState('');
   const [savingArea, setSavingArea] = useState(false);
+  const [editingAreaId, setEditingAreaId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const regionById = useMemo(() => {
@@ -129,24 +130,40 @@ export function MapasAnatomicos() {
     setPoints(p => [...p, { x: Number(x.toFixed(2)), y: Number(y.toFixed(2)) }]);
   };
 
+  const startEditArea = (mr: { id: string; region_id: string; points: MapPoint[]; cor: string }) => {
+    setEditingAreaId(mr.id);
+    setPoints(mr.points.map(p => ({ ...p })));
+    setPendingRegion(mr.region_id);
+    setPendingColor(mr.cor || 'verde');
+    setRegionFilter('');
+    setDrawing(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelDrawing = () => { setDrawing(false); setPoints([]); setEditingAreaId(null); };
+
   const saveArea = async () => {
     if (!user?.companyId || !selected || savingArea) return;
     if (points.length < 3) { toast.error('Marque pelo menos 3 pontos'); return; }
     if (!pendingRegion) { toast.error('Escolha a região correspondente'); return; }
     setSavingArea(true);
     try {
-      const { error } = await supabase.from('anatomical_map_regions').insert({
-        company_id: user.companyId,
-        map_id: selected.id,
-        region_id: pendingRegion,
-        points: points as any,
-        cor: pendingColor,
-      });
+      const { error } = editingAreaId
+        ? await supabase.from('anatomical_map_regions')
+            .update({ region_id: pendingRegion, points: points as any, cor: pendingColor })
+            .eq('id', editingAreaId)
+        : await supabase.from('anatomical_map_regions').insert({
+            company_id: user.companyId,
+            map_id: selected.id,
+            region_id: pendingRegion,
+            points: points as any,
+            cor: pendingColor,
+          });
       if (error) { toast.error(error.message); return; }
-      toast.success(`Área "${regionById[pendingRegion]?.nome || ''}" salva`);
+      toast.success(`Área "${regionById[pendingRegion]?.nome || ''}" ${editingAreaId ? 'atualizada' : 'salva'}`);
       localStorage.setItem('anatomy_last_region', pendingRegion);
       localStorage.setItem('anatomy_last_color', pendingColor);
-      setPoints([]); setDrawing(false); setRegionFilter('');
+      setPoints([]); setDrawing(false); setRegionFilter(''); setEditingAreaId(null);
       reload();
     } finally {
       setSavingArea(false);
@@ -154,8 +171,10 @@ export function MapasAnatomicos() {
   };
 
   const removeArea = async (id: string) => {
+    if (!confirm('Excluir esta área?')) return;
     const { error } = await supabase.from('anatomical_map_regions').delete().eq('id', id);
     if (error) { toast.error(error.message); return; }
+    if (editingAreaId === id) cancelDrawing();
     toast.success('Área excluída');
     reload();
   };
