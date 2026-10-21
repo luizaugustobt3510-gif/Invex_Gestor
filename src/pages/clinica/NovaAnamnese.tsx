@@ -345,7 +345,7 @@ export default function NovaAnamnese() {
     setIdx(0);
   };
 
-  const submit = async () => {
+  const submit = async (download = true) => {
     if (!patientId || !template || !examType.trim()) {
       toast.error('Dados incompletos'); return;
     }
@@ -441,9 +441,11 @@ export default function NovaAnamnese() {
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      toast.success(editId ? 'Anamnese atualizada e PDF regerado' : 'Anamnese salva com sucesso');
+      toast.success(download
+        ? (editId ? 'Anamnese atualizada e PDF regerado' : 'Anamnese finalizada com sucesso')
+        : 'Anamnese salva. Você pode editá-la depois pela ficha do paciente.');
       const pdfUrl = (data as any)?.pdf_url;
-      if (pdfUrl) await downloadPdfFromUrl(pdfUrl, buildPatientPdfFilename(selectedPatient?.nome));
+      if (download && pdfUrl) await downloadPdfFromUrl(pdfUrl, buildPatientPdfFilename(selectedPatient?.nome));
       navigate(`/clinica/pacientes/${patientId}`);
     } catch (e: any) {
       toast.error(e.message || 'Erro ao salvar anamnese');
@@ -966,9 +968,13 @@ export default function NovaAnamnese() {
                     <ChevronLeft className="w-4 h-4" /> Editar respostas
                   </Button>
                   <div className="flex flex-col md:flex-row gap-2">
-                    <Button onClick={submit} disabled={saving || !allAnswered} size="lg" className="gap-2">
+                    <Button onClick={() => submit(false)} disabled={saving || !allAnswered} size="lg" className="gap-2 bg-info text-info-foreground hover:bg-info/90">
                       {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                      <FileText className="w-4 h-4" /> Salvar e gerar PDF
+                      Salvar
+                    </Button>
+                    <Button onClick={() => submit(true)} disabled={saving || !allAnswered} size="lg" className="gap-2">
+                      {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                      <FileText className="w-4 h-4" /> Finalizar
                     </Button>
                   </div>
                 </div>
