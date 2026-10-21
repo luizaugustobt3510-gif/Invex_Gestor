@@ -187,7 +187,7 @@ export function MapasAnatomicos() {
             <Button
               key={m.id} type="button" size="sm"
               variant={selected?.id === m.id ? 'default' : 'outline'}
-              onClick={() => setSelectedId(m.id)}
+              onClick={() => { cancelDrawing(); setSelectedId(m.id); }}
             >
               {m.nome} · {m.vista}{!m.is_active && ' (inativo)'}
             </Button>
@@ -226,11 +226,14 @@ export function MapasAnatomicos() {
             <>
               <div className="flex items-center gap-2 flex-wrap">
                 {!drawing ? (
-                  <Button size="sm" onClick={() => { setDrawing(true); setPoints([]); }} className="gap-1">
+                  <Button size="sm" onClick={() => { setEditingAreaId(null); setDrawing(true); setPoints([]); }} className="gap-1">
                     <Plus className="w-3.5 h-3.5" /> Adicionar região
                   </Button>
                 ) : (
                   <div className="w-full space-y-2 border rounded-lg p-3">
+                    {editingAreaId && (
+                      <div className="text-xs font-semibold text-primary">Editando área existente — ajuste região, cor ou contorno e salve.</div>
+                    )}
                     <div className="text-xs font-semibold">1. Região</div>
                     <Input
                       value={regionFilter}
@@ -275,8 +278,13 @@ export function MapasAnatomicos() {
                       <Button size="sm" variant="outline" onClick={() => setPoints(p => p.slice(0, -1))}>
                         Desfazer ponto
                       </Button>
+                      {editingAreaId && (
+                        <Button size="sm" variant="outline" onClick={() => setPoints([])}>
+                          Refazer contorno
+                        </Button>
+                      )}
                       <Button size="sm" variant="ghost" className="gap-1"
-                        onClick={() => { setDrawing(false); setPoints([]); }}>
+                        onClick={cancelDrawing}>
                         <X className="w-3.5 h-3.5" /> Cancelar
                       </Button>
                     </div>
@@ -290,7 +298,7 @@ export function MapasAnatomicos() {
               >
                 <img src={selected.imageUrl} alt={selected.nome} className="w-full h-auto rounded-md pointer-events-none" />
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none">
-                  {selected.regions.map(mr => mr.points.length >= 3 && (
+                  {selected.regions.filter(mr => mr.id !== editingAreaId).map(mr => mr.points.length >= 3 && (
                     <polygon
                       key={mr.id}
                       points={mr.points.map(p => `${p.x},${p.y}`).join(' ')}
@@ -334,9 +342,14 @@ export function MapasAnatomicos() {
                       {regionById[mr.region_id]?.nome || 'Região removida'}
                       <span className="text-muted-foreground text-xs"> · {mr.points.length} pontos</span>
                     </span>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => removeArea(mr.id)}>
+                    <div className="flex shrink-0">
+                    <Button size="icon" variant="ghost" className="h-8 w-8" title="Editar área" onClick={() => startEditArea(mr)}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" title="Excluir área" onClick={() => removeArea(mr.id)}>
                       <Trash2 className="w-3.5 h-3.5 text-destructive" />
                     </Button>
+                    </div>
                   </div>
                 ))}
               </div>
