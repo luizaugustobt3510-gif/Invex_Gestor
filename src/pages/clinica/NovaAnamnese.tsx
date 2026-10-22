@@ -468,6 +468,8 @@ export default function NovaAnamnese() {
     };
 
     const base = visibleQuestions
+      // Perguntas puladas não entram no PDF
+      .filter(q => !skippedIds.has(q.id))
       .map(q => {
         const vals = parseAnswerValues(answers[q.id]);
         const isAnatomy = q.type === 'localizacao_anatomica';
@@ -862,6 +864,15 @@ export default function NovaAnamnese() {
               <Button variant="outline" onClick={goBack} size="lg" className="gap-1">
                 <ChevronLeft className="w-4 h-4" /> Voltar
               </Button>
+              <Button
+                variant="ghost"
+                onClick={skipQuestion}
+                size="lg"
+                className="gap-1 text-muted-foreground"
+                title="Pular esta pergunta — ela não aparecerá no PDF"
+              >
+                <SkipForward className="w-4 h-4" /> Pular
+              </Button>
               <Button onClick={finishReview} variant="outline" size="lg" className="gap-1">
                 <CheckCircle2 className="w-4 h-4" /> Finalizar revisão
               </Button>
@@ -936,14 +947,19 @@ export default function NovaAnamnese() {
                       onClick={() => jumpTo(i)}
                       className="w-full text-left flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted transition"
                     >
-                      <div className="w-6 h-6 rounded-full bg-primary/15 text-primary flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Check className="w-3.5 h-3.5" />
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${skippedIds.has(q.id) ? 'bg-warning-light text-warning' : 'bg-primary/15 text-primary'}`}>
+                        {skippedIds.has(q.id) ? <SkipForward className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs text-muted-foreground">Pergunta {i + 1}{extras.length > 0 && (q as SectionQuestion).section ? ` · ${(q as SectionQuestion).section}` : ''}</div>
+                        <div className="text-xs text-muted-foreground">
+                          Pergunta {i + 1}{extras.length > 0 && (q as SectionQuestion).section ? ` · ${(q as SectionQuestion).section}` : ''}
+                          {skippedIds.has(q.id) && <span className="ml-1.5 text-warning font-medium">· pulada (não sai no PDF)</span>}
+                        </div>
                         <div className="text-sm font-medium">{q.text}</div>
                         <div className="text-sm text-foreground/80 break-words">
-                          {(() => {
+                          {skippedIds.has(q.id) ? (
+                            <span className="text-muted-foreground italic">pulada — toque para responder</span>
+                          ) : (() => {
                             const vals = parseAnswerValues(answers[q.id]);
                             const shown = (q.type === 'localizacao_anatomica'
                               ? vals.map(s => regionForToken(s, anatomicalRegions, anatomicalMaps)?.nome || s)
