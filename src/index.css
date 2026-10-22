@@ -409,39 +409,35 @@ All colors MUST be HSL.
   .inv-aurora, .inv-float, .inv-draw { animation: none !important; stroke-dashoffset: 0; }
 }
 
-/* ===== Tela de login — cena verde-escura com vidro ===== */
+/* ===== Tela de login — fundo claro (branco + verde) com detalhes em verde ===== */
 .login-scene {
   background:
-    radial-gradient(1200px 700px at 85% -10%, hsl(150 60% 22% / .75), transparent 60%),
-    radial-gradient(900px 600px at -10% 100%, hsl(160 55% 18% / .9), transparent 60%),
-    linear-gradient(150deg, hsl(160 48% 8%), hsl(152 42% 12%) 55%, hsl(158 45% 9%));
+    radial-gradient(1100px 640px at 88% -12%, hsl(var(--primary) / .13), transparent 62%),
+    radial-gradient(900px 560px at -12% 108%, hsl(var(--primary-glow) / .16), transparent 60%),
+    linear-gradient(160deg, hsl(var(--background)), hsl(var(--primary) / .06) 55%, hsl(var(--background)));
 }
 .login-blob { position: absolute; border-radius: 9999px; filter: blur(90px); pointer-events: none; }
-.login-blob-1 { top: -140px; right: -80px; width: 480px; height: 480px; background: hsl(var(--primary-glow) / .25); animation: inv-float 9s ease-in-out infinite; }
-.login-blob-2 { bottom: -160px; left: -100px; width: 520px; height: 520px; background: hsl(158 60% 30% / .5); animation: inv-float 11s ease-in-out infinite reverse; }
-.login-blob-3 { top: 42%; left: 56%; width: 300px; height: 300px; background: hsl(142 70% 40% / .16); }
-.login-ring { position: absolute; border-radius: 9999px; border: 1px solid hsl(0 0% 100% / .07); pointer-events: none; }
+.login-blob-1 { top: -140px; right: -80px; width: 480px; height: 480px; background: hsl(var(--primary) / .14); animation: inv-float 9s ease-in-out infinite; }
+.login-blob-2 { bottom: -160px; left: -100px; width: 520px; height: 520px; background: hsl(var(--primary-glow) / .16); animation: inv-float 11s ease-in-out infinite reverse; }
+.login-blob-3 { top: 42%; left: 56%; width: 300px; height: 300px; background: hsl(var(--primary) / .07); }
+.login-ring { position: absolute; border-radius: 9999px; border: 1px solid hsl(var(--primary) / .12); pointer-events: none; }
 .login-ring-1 { top: 8%; left: 6%; width: 220px; height: 220px; }
 .login-ring-2 { bottom: 12%; right: 8%; width: 320px; height: 320px; }
-.login-ring-3 { top: 56%; left: 11%; width: 120px; height: 120px; border-color: hsl(0 0% 100% / .05); }
+.login-ring-3 { top: 56%; left: 11%; width: 120px; height: 120px; border-color: hsl(var(--primary) / .08); }
 .login-glass {
-  background: hsl(0 0% 100% / .86);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-  border: 1px solid hsl(0 0% 100% / .55);
-  box-shadow: 0 30px 80px -20px hsl(160 60% 5% / .6), inset 0 1px 0 hsl(0 0% 100% / .8);
+  background: hsl(var(--card) / .9);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid hsl(var(--primary) / .16);
+  box-shadow: 0 28px 70px -30px hsl(var(--primary) / .4), 0 2px 12px -6px hsl(var(--inv-ink) / .12), inset 0 1px 0 hsl(var(--card));
 }
-.login-input { background: hsl(0 0% 100% / .75); border-color: hsl(160 30% 15% / .12); }
+.login-input { background: hsl(var(--card)); border-color: hsl(var(--primary) / .18); }
 .login-input:focus { border-color: hsl(var(--primary)); box-shadow: 0 0 0 3px hsl(var(--primary) / .15); }
-.login-ghost-btn { background: hsl(0 0% 100% / .55); border: 1px solid hsl(160 30% 15% / .1); }
-.login-ghost-btn:hover { background: hsl(0 0% 100% / .85); }
-.login-ghost-btn:active { background: hsl(0 0% 100% / .95); }
-.login-line { background: hsl(160 30% 15% / .1); }
-.login-phrase {
-  background: linear-gradient(100deg, hsl(0 0% 100% / .9), hsl(0 0% 100% / .28));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.login-footer { color: hsl(0 0% 100% / .5); }
+.login-ghost-btn { background: hsl(var(--card)); border: 1px solid hsl(var(--primary) / .18); }
+.login-ghost-btn:hover { background: hsl(var(--primary) / .06); border-color: hsl(var(--primary) / .32); }
+.login-ghost-btn:active { background: hsl(var(--primary) / .1); }
+.login-line { background: hsl(var(--primary) / .14); }
+.login-footer { color: hsl(var(--muted-foreground)); }
 @media (prefers-reduced-motion: reduce) {
   .login-blob { animation: none !important; }
 }
