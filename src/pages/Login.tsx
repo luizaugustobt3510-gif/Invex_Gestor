@@ -121,17 +121,17 @@ const Login = () => {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-primary/8 rounded-full blur-3xl" />
         <div className="relative z-10 px-16 max-w-lg">
-          <div className="mb-8">
-            <img src={invexLogo} alt="Invex Gestor Soluções" className="h-28 w-auto" />
-            <div className="mt-4 h-1 w-16 bg-primary rounded-full" />
+          <div className="bg-card border border-border rounded-3xl shadow-xl shadow-primary/10 px-10 py-9 text-center">
+            <img src={invexLogo} alt="Invex Gestor Soluções" className="h-20 w-auto mx-auto" />
+            <div className="mt-5 h-1 w-14 bg-primary rounded-full mx-auto" />
+            <p className="mt-5 text-xl font-medium text-foreground leading-snug">
+              Controle inteligente de operações.
+            </p>
           </div>
-          <p className="text-2xl font-light text-foreground leading-relaxed">
-            Controle inteligente de estoque e operações
-          </p>
-          <p className="mt-6 text-muted-foreground text-sm leading-relaxed">
+          <p className="mt-6 text-muted-foreground text-sm leading-relaxed text-center">
             Gerencie seu inventário, monitore movimentações e tome decisões estratégicas com dados em tempo real.
           </p>
-          <div className="mt-10 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             {['Estoque', 'Logística', 'Financeiro', 'Gestão de Pessoas', 'Vendas'].map((item) => (
               <span key={item} className="px-4 py-1.5 rounded-full text-xs font-medium border border-border text-muted-foreground bg-muted/50">
                 {item}
@@ -143,9 +143,12 @@ const Login = () => {
 
       <div className="flex-1 flex items-center justify-center px-5 py-8 sm:p-12 safe-area-inset">
         <div className="w-full max-w-md">
-          <div className="lg:hidden mb-8 text-center">
-            <img src={invexLogo} alt="Invex Gestor Soluções" className="h-20 w-auto mx-auto" />
-            <p className="mt-2 text-muted-foreground text-xs sm:text-sm">Controle inteligente de estoque e operações</p>
+          <div className="lg:hidden mb-8">
+            <div className="bg-card border border-border rounded-2xl shadow-md shadow-primary/5 px-6 py-5 text-center">
+              <img src={invexLogo} alt="Invex Gestor Soluções" className="h-14 w-auto mx-auto" />
+              <div className="mt-3 h-0.5 w-10 bg-primary rounded-full mx-auto" />
+              <p className="mt-3 text-sm font-medium text-foreground">Controle inteligente de operações.</p>
+            </div>
           </div>
 
           <div className="mb-6 sm:mb-8">
