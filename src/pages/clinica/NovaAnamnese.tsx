@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import { downloadPdfFromUrl, buildPatientPdfFilename } from '@/lib/pdfDownload';
 import {
   ArrowLeft, FileText, Loader2, Check, ChevronRight, ChevronLeft,
-  User, ClipboardList, Pencil, CheckCircle2, ChevronsUpDown, History,
+  User, ClipboardList, Pencil, CheckCircle2, ChevronsUpDown, History, SkipForward,
 } from 'lucide-react';
 import type { Question } from './AnamneseModelos';
 import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
@@ -72,6 +72,8 @@ export default function NovaAnamnese() {
   const [templateId, setTemplateId] = useState<string>('');
   const [examType, setExamType] = useState('');
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  // Perguntas puladas pelo usuário: não bloqueiam o avanço e não saem no PDF
+  const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
   const [observations, setObservations] = useState('');
   const [saving, setSaving] = useState(false);
   const [phase, setPhase] = useState<Phase>('setup');
@@ -171,12 +173,16 @@ export default function NovaAnamnese() {
         setExamType(pendingEdit.current.examType);
         setAnswers(pendingEdit.current.answers);
         setExtras(pendingEdit.current.extras);
+        // Perguntas sem resposta salva voltam como "puladas" para não bloquear a regravação
+        const ans = pendingEdit.current.answers;
+        setSkippedIds(new Set(template.questions.filter(q => !(ans[q.id] || '').trim()).map(q => q.id)));
         pendingEdit.current = null;
         setPhase(anamneseEntryPhase(editId));
       } else {
         setExamType(baseTemplate!.exam_type);
         setAnswers({});
         setExtras([]);
+        setSkippedIds(new Set());
       }
       setIdx(0);
     }
@@ -292,6 +298,7 @@ export default function NovaAnamnese() {
 
   const isAnswered = (q?: Question) => {
     if (!q) return false;
+    if (skippedIds.has(q.id)) return true;
     return isAnamneseAnswerComplete(q.required, answers[q.id]);
   };
 
@@ -305,6 +312,24 @@ export default function NovaAnamnese() {
       toast.error('Responda a pergunta para continuar');
       return;
     }
+    if (idx + 1 >= totalQ) {
+      setPhase('review');
+    } else {
+      setIdx(idx + 1);
+    }
+  };
+
+  // Pula a pergunta atual: limpa a resposta, marca como pulada e avança.
+  // Perguntas puladas não aparecem no PDF.
+  const skipQuestion = () => {
+    if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
+    if (!activeQ) return;
+    setSkippedIds(prev => new Set(prev).add(activeQ.id));
+    setAnswers(a => {
+      const n = { ...a };
+      delete n[activeQ.id];
+      return n;
+    });
     if (idx + 1 >= totalQ) {
       setPhase('review');
     } else {
@@ -335,6 +360,13 @@ export default function NovaAnamnese() {
 
   const setAnswer = (q: Question, v: string, autoAdvance = false) => {
     setAnswers(a => ({ ...a, [q.id]: v }));
+    // Responder (ou voltar a responder) tira a pergunta da lista de puladas
+    setSkippedIds(prev => {
+      if (!prev.has(q.id)) return prev;
+      const n = new Set(prev);
+      n.delete(q.id);
+      return n;
+    });
     if (autoAdvance && !reviewingAnswer.current) {
       if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
       autoAdvanceTimer.current = setTimeout(() => {
