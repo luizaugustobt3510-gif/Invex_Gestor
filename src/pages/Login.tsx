@@ -1,3 +1,5 @@
+// ============= Full file contents =============
+
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -115,176 +117,169 @@ const Login = () => {
   const showOAuth = methods.google || methods.microsoft;
 
   return (
-    <div className="min-h-[100dvh] flex flex-col lg:flex-row bg-background text-foreground">
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-primary/5" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-primary/8 rounded-full blur-3xl" />
-        <div className="relative z-10 px-10 max-w-xl">
-          <div className="bg-card border border-border rounded-3xl shadow-xl shadow-primary/10 px-10 py-9 text-center">
-            <img src={invexLogo} alt="Invex Gestor Soluções" className="h-20 w-auto mx-auto" />
-            <div className="mt-5 h-1 w-14 bg-primary rounded-full mx-auto" />
-            <p className="mt-5 text-xl font-medium text-foreground leading-snug whitespace-nowrap">
-              Controle inteligente de operações.
-            </p>
-          </div>
-          <p className="mt-6 text-muted-foreground text-sm leading-relaxed text-center">
-            Gerencie seu inventário, monitore movimentações e tome decisões estratégicas com dados em tempo real.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            {['Estoque', 'Logística', 'Financeiro', 'Gestão de Pessoas', 'Vendas'].map((item) => (
-              <span key={item} className="px-4 py-1.5 rounded-full text-xs font-medium border border-border text-muted-foreground bg-muted/50">
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
+    <div className="login-scene relative min-h-[100dvh] overflow-hidden flex flex-col items-center justify-center px-5 py-10 safe-area-inset">
+      {/* Fundo abstrato: manchas suaves e contornos */}
+      <div className="login-blob login-blob-1" aria-hidden="true" />
+      <div className="login-blob login-blob-2" aria-hidden="true" />
+      <div className="login-blob login-blob-3" aria-hidden="true" />
+      <div className="login-ring login-ring-1" aria-hidden="true" />
+      <div className="login-ring login-ring-2" aria-hidden="true" />
+      <div className="login-ring login-ring-3" aria-hidden="true" />
+      {/* Seta ascendente sutil, ecoando a logo */}
+      <svg
+        className="absolute bottom-[16%] right-[14%] w-36 h-36 opacity-[0.08] pointer-events-none hidden sm:block"
+        viewBox="0 0 100 100" fill="none" aria-hidden="true"
+      >
+        <path d="M15 85 L55 45 M55 45 L35 43 M55 45 L53 65" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M55 45 L85 15 M85 15 L68 14 M85 15 L84 32" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+
+      {/* Identidade da marca ao fundo */}
+      <div className="relative z-10 text-center mb-7 sm:mb-9 select-none px-2">
+        <p className="login-phrase font-semibold tracking-tight whitespace-nowrap text-[clamp(1.3rem,5.5vw,3.1rem)] leading-tight">
+          Sua operação. Sob controle.
+        </p>
+        <div className="mx-auto mt-3 h-px w-44 sm:w-64 bg-gradient-to-r from-transparent via-primary-glow/70 to-transparent" />
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-5 py-8 sm:p-12 safe-area-inset">
-        <div className="w-full max-w-md">
-          <div className="lg:hidden mb-8">
-            <div className="bg-card border border-border rounded-2xl shadow-md shadow-primary/5 px-6 py-5 text-center">
-              <img src={invexLogo} alt="Invex Gestor Soluções" className="h-14 w-auto mx-auto" />
-              <div className="mt-3 h-0.5 w-10 bg-primary rounded-full mx-auto" />
-              <p className="mt-3 text-xs sm:text-sm font-medium text-foreground whitespace-nowrap">Controle inteligente de operações.</p>
+      {/* Cartão de vidro */}
+      <div className="login-glass relative z-10 w-full max-w-md rounded-3xl px-6 sm:px-9 py-8">
+        <div className="text-center">
+          <img src={invexLogo} alt="Invex Gestor Soluções" className="h-14 sm:h-16 w-auto mx-auto" />
+          <h2 className="mt-5 text-lg sm:text-xl font-semibold text-foreground">Bem-vindo de volta</h2>
+          <p className="mt-1 text-muted-foreground text-xs sm:text-sm">Faça login para acessar sua conta</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4 sm:space-y-5">
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-muted-foreground text-xs sm:text-sm">E-mail ou usuário</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                id="email" type="text" placeholder="seu@email.com ou usuário" value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={(e) => lookupMethods(e.target.value)}
+                className="login-input pl-10 h-11 sm:h-12 rounded-xl text-base"
+                disabled={loading} autoComplete="username" autoCapitalize="none" autoCorrect="off"
+              />
             </div>
           </div>
 
-          <div className="mb-6 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl font-semibold text-foreground">Bem-vindo de volta</h2>
-            <p className="mt-1 text-muted-foreground text-xs sm:text-sm">Faça login para acessar sua conta</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+          {methods.email && (
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-muted-foreground text-xs sm:text-sm">E-mail ou usuário</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="senha" className="text-muted-foreground text-xs sm:text-sm">Senha</Label>
+                <button
+                  type="button"
+                  className="text-xs text-primary hover:text-primary/80 transition-colors py-1"
+                  onClick={async () => {
+                    if (!email.trim()) { toast.error('Informe seu email para recuperar a senha.'); return; }
+                    try {
+                      await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+                        redirectTo: `${window.location.origin}/reset-password`,
+                      });
+                      toast.success('Se o email estiver cadastrado, você receberá um link de recuperação.');
+                    } catch {
+                      toast.success('Se o email estiver cadastrado, você receberá um link de recuperação.');
+                    }
+                  }}
+                >Esqueci minha senha</button>
+              </div>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="email" type="text" placeholder="seu@email.com ou usuário" value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onBlur={(e) => lookupMethods(e.target.value)}
-                  className="pl-10 h-11 sm:h-12 rounded-xl text-base"
-                  disabled={loading} autoComplete="username" autoCapitalize="none" autoCorrect="off"
-                />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input id="senha" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  className="login-input pl-10 pr-10 h-11 sm:h-12 rounded-xl text-base"
+                  disabled={loading} autoComplete="current-password" />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
-
-            {methods.email && (
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="senha" className="text-muted-foreground text-xs sm:text-sm">Senha</Label>
-                  <button
-                    type="button"
-                    className="text-xs text-primary hover:text-primary/80 transition-colors py-1"
-                    onClick={async () => {
-                      if (!email.trim()) { toast.error('Informe seu email para recuperar a senha.'); return; }
-                      try {
-                        await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-                          redirectTo: `${window.location.origin}/reset-password`,
-                        });
-                        toast.success('Se o email estiver cadastrado, você receberá um link de recuperação.');
-                      } catch {
-                        toast.success('Se o email estiver cadastrado, você receberá um link de recuperação.');
-                      }
-                    }}
-                  >Esqueci minha senha</button>
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input id="senha" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={senha}
-                    onChange={(e) => setSenha(e.target.value)}
-                    className="pl-10 pr-10 h-11 sm:h-12 rounded-xl text-base"
-                    disabled={loading} autoComplete="current-password" />
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    onClick={() => setShowPassword(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
-                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {methods.email && (
-              <Button type="submit" className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl shadow-lg shadow-primary/20 transition-all duration-300 active:scale-[0.98]" disabled={loading}>
-                {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
-                    Entrando...
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">Entrar <ArrowRight className="w-4 h-4" /></div>
-                )}
-              </Button>
-            )}
-          </form>
-
-          {showOAuth && (
-            <>
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="px-3 bg-background text-muted-foreground">ou continue com</span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {methods.google && (
-                  <button
-                    type="button"
-                    onClick={() => handleOAuth('google')}
-                    disabled={!!oauthLoading}
-                    className="flex items-center justify-center gap-3 w-full h-11 sm:h-12 rounded-xl border border-border bg-background hover:bg-muted/60 active:bg-muted/80 transition-all text-sm font-medium active:scale-[0.98]"
-                  >
-                    <GoogleIcon />
-                    {oauthLoading === 'google' ? 'Conectando...' : 'Entrar com Google'}
-                  </button>
-                )}
-                {methods.microsoft && (
-                  <button
-                    type="button"
-                    onClick={() => handleOAuth('microsoft')}
-                    disabled={!!oauthLoading}
-                    className="flex items-center justify-center gap-3 w-full h-11 sm:h-12 rounded-xl border border-border bg-background hover:bg-muted/60 active:bg-muted/80 transition-all text-sm font-medium active:scale-[0.98]"
-                  >
-                    <MicrosoftIcon />
-                    {oauthLoading === 'microsoft' ? 'Conectando...' : 'Entrar com Microsoft'}
-                  </button>
-                )}
-              </div>
-            </>
           )}
 
-          <div className="relative my-6 sm:my-8">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-            <div className="relative flex justify-center text-xs">
-              <span className="px-3 bg-background text-muted-foreground">Não tem uma conta?</span>
+          {methods.email && (
+            <Button
+              type="submit"
+              className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-primary to-primary-glow shadow-lg shadow-primary/40 hover:shadow-xl hover:shadow-primary/50 hover:brightness-105 transition-all duration-300 active:scale-[0.98]"
+              disabled={loading}
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
+                  Entrando...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">Entrar <ArrowRight className="w-4 h-4" /></div>
+              )}
+            </Button>
+          )}
+        </form>
+
+        {showOAuth && (
+          <>
+            <div className="my-6 flex items-center gap-3">
+              <div className="login-line h-px flex-1" />
+              <span className="text-xs text-muted-foreground">ou continue com</span>
+              <div className="login-line h-px flex-1" />
             </div>
-          </div>
 
-          <a
-            href="https://wa.me/5531973442958?text=Olá,%20quero%20criar%20uma%20conta%20no%20Invex"
-            target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full h-11 sm:h-12 rounded-xl border border-border bg-muted/30 text-foreground hover:bg-muted/60 active:bg-muted/80 hover:border-primary/30 transition-all duration-300 text-sm font-medium active:scale-[0.98]"
-          >
-            <MessageCircle className="w-4 h-4 text-primary" />
-            Criar conta via WhatsApp
-          </a>
+            <div className="space-y-3">
+              {methods.google && (
+                <button
+                  type="button"
+                  onClick={() => handleOAuth('google')}
+                  disabled={!!oauthLoading}
+                  className="login-ghost-btn flex items-center justify-center gap-3 w-full h-11 sm:h-12 rounded-xl transition-all text-sm font-medium active:scale-[0.98]"
+                >
+                  <GoogleIcon />
+                  {oauthLoading === 'google' ? 'Conectando...' : 'Entrar com Google'}
+                </button>
+              )}
+              {methods.microsoft && (
+                <button
+                  type="button"
+                  onClick={() => handleOAuth('microsoft')}
+                  disabled={!!oauthLoading}
+                  className="login-ghost-btn flex items-center justify-center gap-3 w-full h-11 sm:h-12 rounded-xl transition-all text-sm font-medium active:scale-[0.98]"
+                >
+                  <MicrosoftIcon />
+                  {oauthLoading === 'microsoft' ? 'Conectando...' : 'Entrar com Microsoft'}
+                </button>
+              )}
+            </div>
+          </>
+        )}
 
-          <p className="mt-4 sm:mt-6 text-center text-xs text-muted-foreground">
-            O acesso é liberado manualmente pelo administrador.
-          </p>
-
-          <p className="mt-8 text-center text-[10px] tracking-wide text-muted-foreground/70">
-            Invex Gestor Soluções - IGS®
-          </p>
+        <div className="my-6 flex items-center gap-3">
+          <div className="login-line h-px flex-1" />
+          <span className="text-xs text-muted-foreground">Não tem uma conta?</span>
+          <div className="login-line h-px flex-1" />
         </div>
+
+        <a
+          href="https://wa.me/5531973442958?text=Olá,%20quero%20criar%20uma%20conta%20no%20Invex"
+          target="_blank" rel="noopener noreferrer"
+          className="login-ghost-btn flex items-center justify-center gap-2 w-full h-11 sm:h-12 rounded-xl transition-all duration-300 text-sm font-medium active:scale-[0.98]"
+        >
+          <MessageCircle className="w-4 h-4 text-primary" />
+          Criar conta via WhatsApp
+        </a>
+
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          O acesso é liberado manualmente pelo administrador.
+        </p>
       </div>
+
+      <p className="login-footer relative z-10 mt-7 text-center text-[10px] tracking-wide">
+        Invex Gestor Soluções - IGS®
+      </p>
     </div>
   );
 };
