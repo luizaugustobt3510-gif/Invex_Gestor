@@ -115,10 +115,11 @@ const Login = () => {
 
 
   const showOAuth = methods.google || methods.microsoft;
+  const providerCount = (methods.google ? 1 : 0) + (methods.microsoft ? 1 : 0);
 
   return (
     <div className="login-scene relative min-h-[100dvh] overflow-hidden flex flex-col items-center justify-center px-5 py-10 safe-area-inset">
-      {/* Fundo abstrato: manchas suaves e contornos */}
+      {/* Fundo claro: manchas suaves de verde e contornos */}
       <div className="login-blob login-blob-1" aria-hidden="true" />
       <div className="login-blob login-blob-2" aria-hidden="true" />
       <div className="login-blob login-blob-3" aria-hidden="true" />
@@ -127,27 +128,21 @@ const Login = () => {
       <div className="login-ring login-ring-3" aria-hidden="true" />
       {/* Seta ascendente sutil, ecoando a logo */}
       <svg
-        className="absolute bottom-[16%] right-[14%] w-36 h-36 opacity-[0.08] pointer-events-none hidden sm:block"
+        className="absolute bottom-[13%] right-[11%] w-40 h-40 text-primary opacity-[0.10] pointer-events-none hidden sm:block"
         viewBox="0 0 100 100" fill="none" aria-hidden="true"
       >
-        <path d="M15 85 L55 45 M55 45 L35 43 M55 45 L53 65" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M55 45 L85 15 M85 15 L68 14 M85 15 L84 32" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M15 85 L55 45 M55 45 L35 43 M55 45 L53 65" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M55 45 L85 15 M85 15 L68 14 M85 15 L84 32" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
 
-      {/* Identidade da marca ao fundo */}
-      <div className="relative z-10 text-center mb-7 sm:mb-9 select-none px-2">
-        <p className="login-phrase font-semibold tracking-tight whitespace-nowrap text-[clamp(1.3rem,5.5vw,3.1rem)] leading-tight">
-          Sua operação. Sob controle.
-        </p>
-        <div className="mx-auto mt-3 h-px w-44 sm:w-64 bg-gradient-to-r from-transparent via-primary-glow/70 to-transparent" />
-      </div>
-
-      {/* Cartão de vidro */}
-      <div className="login-glass relative z-10 w-full max-w-md rounded-3xl px-6 sm:px-9 py-8">
-        <div className="text-center">
-          <img src={invexLogo} alt="Invex Gestor Soluções" className="h-14 sm:h-16 w-auto mx-auto" />
-          <h2 className="mt-5 text-lg sm:text-xl font-semibold text-foreground">Bem-vindo de volta</h2>
-          <p className="mt-1 text-muted-foreground text-xs sm:text-sm">Faça login para acessar sua conta</p>
+      {/* Cartão de login */}
+      <div className="login-glass relative z-10 w-full max-w-xl rounded-3xl px-6 sm:px-10 py-7 sm:py-8">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5">
+          <img src={invexLogo} alt="Invex Gestor Soluções" className="h-12 sm:h-14 w-auto shrink-0" />
+          <div className="text-center sm:text-left sm:border-l sm:border-border sm:pl-5">
+            <h2 className="text-lg sm:text-xl font-semibold text-foreground leading-tight">Bem-vindo de volta</h2>
+            <p className="mt-1 text-muted-foreground text-xs sm:text-sm">Faça login para acessar sua conta</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4 sm:space-y-5">
@@ -224,13 +219,13 @@ const Login = () => {
 
         {showOAuth && (
           <>
-            <div className="my-6 flex items-center gap-3">
+            <div className="my-5 flex items-center gap-3">
               <div className="login-line h-px flex-1" />
               <span className="text-xs text-muted-foreground">ou continue com</span>
               <div className="login-line h-px flex-1" />
             </div>
 
-            <div className="space-y-3">
+            <div className={providerCount > 1 ? 'grid gap-3 sm:grid-cols-2' : 'space-y-3'}>
               {methods.google && (
                 <button
                   type="button"
@@ -257,7 +252,7 @@ const Login = () => {
           </>
         )}
 
-        <div className="my-6 flex items-center gap-3">
+        <div className="my-5 flex items-center gap-3">
           <div className="login-line h-px flex-1" />
           <span className="text-xs text-muted-foreground">Não tem uma conta?</span>
           <div className="login-line h-px flex-1" />
@@ -277,7 +272,7 @@ const Login = () => {
         </p>
       </div>
 
-      <p className="login-footer relative z-10 mt-7 text-center text-[10px] tracking-wide">
+      <p className="login-footer relative z-10 mt-6 text-center text-[10px] tracking-wide">
         Invex Gestor Soluções - IGS®
       </p>
     </div>
