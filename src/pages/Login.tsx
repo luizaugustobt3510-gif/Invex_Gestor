@@ -120,11 +120,11 @@ const Login = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-primary/5" />
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-primary/8 rounded-full blur-3xl" />
-        <div className="relative z-10 px-16 max-w-lg">
+        <div className="relative z-10 px-10 max-w-xl">
           <div className="bg-card border border-border rounded-3xl shadow-xl shadow-primary/10 px-10 py-9 text-center">
             <img src={invexLogo} alt="Invex Gestor Soluções" className="h-20 w-auto mx-auto" />
             <div className="mt-5 h-1 w-14 bg-primary rounded-full mx-auto" />
-            <p className="mt-5 text-xl font-medium text-foreground leading-snug">
+            <p className="mt-5 text-xl font-medium text-foreground leading-snug whitespace-nowrap">
               Controle inteligente de operações.
             </p>
           </div>
@@ -147,7 +147,7 @@ const Login = () => {
             <div className="bg-card border border-border rounded-2xl shadow-md shadow-primary/5 px-6 py-5 text-center">
               <img src={invexLogo} alt="Invex Gestor Soluções" className="h-14 w-auto mx-auto" />
               <div className="mt-3 h-0.5 w-10 bg-primary rounded-full mx-auto" />
-              <p className="mt-3 text-sm font-medium text-foreground">Controle inteligente de operações.</p>
+              <p className="mt-3 text-xs sm:text-sm font-medium text-foreground whitespace-nowrap">Controle inteligente de operações.</p>
             </div>
           </div>
 
