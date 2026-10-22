@@ -8,6 +8,7 @@ import { Mail, Lock, ArrowRight, MessageCircle, Eye, EyeOff } from 'lucide-react
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
+import invexLogo from '@/assets/invex-logo.png';
 
 type AuthMethods = { email: boolean; google: boolean; microsoft: boolean };
 const DEFAULT_METHODS: AuthMethods = { email: true, google: false, microsoft: false };
@@ -121,8 +122,8 @@ const Login = () => {
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-primary/8 rounded-full blur-3xl" />
         <div className="relative z-10 px-16 max-w-lg">
           <div className="mb-8">
-            <h1 className="text-5xl font-bold tracking-tight text-primary">Invex Gestor</h1>
-            <div className="mt-2 h-1 w-16 bg-primary rounded-full" />
+            <img src={invexLogo} alt="Invex Gestor Soluções" className="h-28 w-auto" />
+            <div className="mt-4 h-1 w-16 bg-primary rounded-full" />
           </div>
           <p className="text-2xl font-light text-foreground leading-relaxed">
             Controle inteligente de estoque e operações
@@ -143,8 +144,8 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center px-5 py-8 sm:p-12 safe-area-inset">
         <div className="w-full max-w-md">
           <div className="lg:hidden mb-8 text-center">
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">Invex Gestor</h1>
-            <p className="mt-1.5 text-muted-foreground text-xs sm:text-sm">Controle inteligente de estoque e operações</p>
+            <img src={invexLogo} alt="Invex Gestor Soluções" className="h-20 w-auto mx-auto" />
+            <p className="mt-2 text-muted-foreground text-xs sm:text-sm">Controle inteligente de estoque e operações</p>
           </div>
 
           <div className="mb-6 sm:mb-8">
@@ -274,6 +275,10 @@ const Login = () => {
 
           <p className="mt-4 sm:mt-6 text-center text-xs text-muted-foreground">
             O acesso é liberado manualmente pelo administrador.
+          </p>
+
+          <p className="mt-8 text-center text-[10px] tracking-wide text-muted-foreground/70">
+            Invex Gestor Soluções - IGS®
           </p>
         </div>
       </div>
