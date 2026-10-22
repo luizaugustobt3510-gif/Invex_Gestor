@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import { downloadPdfFromUrl, buildPatientPdfFilename } from '@/lib/pdfDownload';
 import {
   ArrowLeft, FileText, Loader2, Check, ChevronRight, ChevronLeft,
-  User, ClipboardList, Pencil, CheckCircle2, ChevronsUpDown, History,
+  User, ClipboardList, Pencil, CheckCircle2, ChevronsUpDown, History, SkipForward,
 } from 'lucide-react';
 import type { Question } from './AnamneseModelos';
 import { SignaturePad, SignaturePadHandle } from '@/components/SignaturePad';
@@ -72,6 +72,8 @@ export default function NovaAnamnese() {
   const [templateId, setTemplateId] = useState<string>('');
   const [examType, setExamType] = useState('');
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  // Perguntas puladas pelo usuário: não bloqueiam o avanço e não saem no PDF
+  const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
   const [observations, setObservations] = useState('');
   const [saving, setSaving] = useState(false);
   const [phase, setPhase] = useState<Phase>('setup');
@@ -171,12 +173,16 @@ export default function NovaAnamnese() {
         setExamType(pendingEdit.current.examType);
         setAnswers(pendingEdit.current.answers);
         setExtras(pendingEdit.current.extras);
+        // Perguntas sem resposta salva voltam como "puladas" para não bloquear a regravação
+        const ans = pendingEdit.current.answers;
+        setSkippedIds(new Set(template.questions.filter(q => !(ans[q.id] || '').trim()).map(q => q.id)));
         pendingEdit.current = null;
         setPhase(anamneseEntryPhase(editId));
       } else {
         setExamType(baseTemplate!.exam_type);
         setAnswers({});
         setExtras([]);
+        setSkippedIds(new Set());
       }
       setIdx(0);
     }
@@ -292,6 +298,7 @@ export default function NovaAnamnese() {
 
   const isAnswered = (q?: Question) => {
     if (!q) return false;
+    if (skippedIds.has(q.id)) return true;
     return isAnamneseAnswerComplete(q.required, answers[q.id]);
   };
 
@@ -305,6 +312,24 @@ export default function NovaAnamnese() {
       toast.error('Responda a pergunta para continuar');
       return;
     }
+    if (idx + 1 >= totalQ) {
+      setPhase('review');
+    } else {
+      setIdx(idx + 1);
+    }
+  };
+
+  // Pula a pergunta atual: limpa a resposta, marca como pulada e avança.
+  // Perguntas puladas não aparecem no PDF.
+  const skipQuestion = () => {
+    if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
+    if (!activeQ) return;
+    setSkippedIds(prev => new Set(prev).add(activeQ.id));
+    setAnswers(a => {
+      const n = { ...a };
+      delete n[activeQ.id];
+      return n;
+    });
     if (idx + 1 >= totalQ) {
       setPhase('review');
     } else {
@@ -335,6 +360,13 @@ export default function NovaAnamnese() {
 
   const setAnswer = (q: Question, v: string, autoAdvance = false) => {
     setAnswers(a => ({ ...a, [q.id]: v }));
+    // Responder (ou voltar a responder) tira a pergunta da lista de puladas
+    setSkippedIds(prev => {
+      if (!prev.has(q.id)) return prev;
+      const n = new Set(prev);
+      n.delete(q.id);
+      return n;
+    });
     if (autoAdvance && !reviewingAnswer.current) {
       if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
       autoAdvanceTimer.current = setTimeout(() => {
@@ -436,6 +468,8 @@ export default function NovaAnamnese() {
     };
 
     const base = visibleQuestions
+      // Perguntas puladas não entram no PDF
+      .filter(q => !skippedIds.has(q.id))
       .map(q => {
         const vals = parseAnswerValues(answers[q.id]);
         const isAnatomy = q.type === 'localizacao_anatomica';
@@ -830,6 +864,15 @@ export default function NovaAnamnese() {
               <Button variant="outline" onClick={goBack} size="lg" className="gap-1">
                 <ChevronLeft className="w-4 h-4" /> Voltar
               </Button>
+              <Button
+                variant="ghost"
+                onClick={skipQuestion}
+                size="lg"
+                className="gap-1 text-muted-foreground"
+                title="Pular esta pergunta — ela não aparecerá no PDF"
+              >
+                <SkipForward className="w-4 h-4" /> Pular
+              </Button>
               <Button onClick={finishReview} variant="outline" size="lg" className="gap-1">
                 <CheckCircle2 className="w-4 h-4" /> Finalizar revisão
               </Button>
@@ -904,14 +947,19 @@ export default function NovaAnamnese() {
                       onClick={() => jumpTo(i)}
                       className="w-full text-left flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted transition"
                     >
-                      <div className="w-6 h-6 rounded-full bg-primary/15 text-primary flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Check className="w-3.5 h-3.5" />
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${skippedIds.has(q.id) ? 'bg-warning-light text-warning' : 'bg-primary/15 text-primary'}`}>
+                        {skippedIds.has(q.id) ? <SkipForward className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs text-muted-foreground">Pergunta {i + 1}{extras.length > 0 && (q as SectionQuestion).section ? ` · ${(q as SectionQuestion).section}` : ''}</div>
+                        <div className="text-xs text-muted-foreground">
+                          Pergunta {i + 1}{extras.length > 0 && (q as SectionQuestion).section ? ` · ${(q as SectionQuestion).section}` : ''}
+                          {skippedIds.has(q.id) && <span className="ml-1.5 text-warning font-medium">· pulada (não sai no PDF)</span>}
+                        </div>
                         <div className="text-sm font-medium">{q.text}</div>
                         <div className="text-sm text-foreground/80 break-words">
-                          {(() => {
+                          {skippedIds.has(q.id) ? (
+                            <span className="text-muted-foreground italic">pulada — toque para responder</span>
+                          ) : (() => {
                             const vals = parseAnswerValues(answers[q.id]);
                             const shown = (q.type === 'localizacao_anatomica'
                               ? vals.map(s => regionForToken(s, anatomicalRegions, anatomicalMaps)?.nome || s)
