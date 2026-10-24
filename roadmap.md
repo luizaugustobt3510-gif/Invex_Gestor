@@ -24,3 +24,4 @@
 
 ## Interface
 - [x] Botão "Sair" vermelho na barra superior; item "Sair" removido do fim do menu lateral
+- [x] Botão de ajuda quadrado na barra superior, ao lado do "Sair"

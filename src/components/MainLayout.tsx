@@ -1,9 +1,9 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Download, LogOut, Menu, QrCode, ScanLine } from 'lucide-react';
+import { Download, HelpCircle, LogOut, Menu, QrCode, ScanLine } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SupportWidget } from '@/components/SupportWidget';
 
@@ -18,6 +18,7 @@ interface MainLayoutProps {
 export function MainLayout({ children, onExportReport, showExport = false, showQRCode = false, showScanQR = false }: MainLayoutProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [supportOpen, setSupportOpen] = useState(false);
 
   // Determine if current user is in RH module context
   const isRHProfile = user?.role === 'rh' || user?.role === 'visualizador';
@@ -75,6 +76,16 @@ export function MainLayout({ children, onExportReport, showExport = false, showQ
                   <span className="hidden sm:inline">Exportar</span>
                 </Button>
               )}
+              <Button
+                onClick={() => setSupportOpen((v) => !v)}
+                size="icon"
+                variant="outline"
+                className="h-8 w-8 rounded-md"
+                aria-label="Ajuda e suporte"
+                aria-pressed={supportOpen}
+              >
+                <HelpCircle className="h-4 w-4" />
+              </Button>
               {user && (
                 <Button
                   onClick={async () => { await logout(); navigate('/login'); }}
@@ -97,7 +108,7 @@ export function MainLayout({ children, onExportReport, showExport = false, showQ
             </div>
           </main>
         </SidebarInset>
-        <SupportWidget />
+        <SupportWidget open={supportOpen} onOpenChange={setSupportOpen} showTrigger={false} />
       </div>
     </SidebarProvider>
   );
