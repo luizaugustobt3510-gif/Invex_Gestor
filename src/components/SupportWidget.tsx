@@ -15,11 +15,20 @@ type Msg = { id: string; mensagem: string; from_support: boolean; created_at: st
 
 const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-export function SupportWidget() {
+type SupportWidgetProps = {
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+  showTrigger?: boolean;
+};
+
+export function SupportWidget({ open: openProp, onOpenChange, showTrigger = true }: SupportWidgetProps) {
   const { user } = useAuth();
   const [uid, setUid] = useState<string | null>(null);
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setUid(data.user?.id ?? null)); }, [user]);
-  const [open, setOpen] = useState(false);
+  const [innerOpen, setInnerOpen] = useState(false);
+  const controlled = openProp !== undefined;
+  const open = controlled ? !!openProp : innerOpen;
+  const setOpen = (v: boolean) => { if (controlled) onOpenChange?.(v); else setInnerOpen(v); };
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [q, setQ] = useState('');
   const [selTut, setSelTut] = useState<Tutorial | null>(null);
@@ -93,14 +102,14 @@ export function SupportWidget() {
 
   return (
     <>
-      {!open && (
+      {!open && showTrigger && (
         <Button onClick={() => setOpen(true)} size="icon" aria-label="Ajuda e suporte"
-          className="fixed bottom-5 right-5 z-50 h-14 w-14 rounded-full shadow-lg">
+          className="fixed bottom-5 right-5 z-50 h-14 w-14 rounded-md shadow-lg">
           <HelpCircle className="h-7 w-7" />
         </Button>
       )}
       {open && (
-        <div className="fixed bottom-4 right-4 z-50 flex h-[min(600px,85dvh)] w-[min(380px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl">
+        <div className="fixed top-16 right-4 z-50 flex h-[min(600px,calc(100dvh-5.5rem))] w-[min(380px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl">
           <div className="flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground">
             <span className="font-semibold">Precisa de ajuda?</span>
             <button onClick={() => setOpen(false)} aria-label="Fechar"><X className="h-5 w-5" /></button>
