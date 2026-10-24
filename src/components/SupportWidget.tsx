@@ -17,6 +17,8 @@ const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').t
 
 export function SupportWidget() {
   const { user } = useAuth();
+  const [uid, setUid] = useState<string | null>(null);
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setUid(data.user?.id ?? null)); }, [user]);
   const [open, setOpen] = useState(false);
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [q, setQ] = useState('');
@@ -30,21 +32,21 @@ export function SupportWidget() {
   const endRef = useRef<HTMLDivElement>(null);
 
   const loadTickets = async () => {
-    if (!user) return;
+    if (!uid) return;
     const { data } = await supabase.from('support_tickets').select('id,assunto,status,created_at')
-      .eq('user_id', user.id).order('created_at', { ascending: false });
+      .eq('user_id', uid!).order('created_at', { ascending: false });
     const list = (data ?? []) as Ticket[];
     setTickets(list);
     setViewTicket((cur) => cur ? list.find((t) => t.id === cur.id) ?? null : list.find((t) => t.status === 'aberto') ?? null);
   };
 
   useEffect(() => {
-    if (!open || !user) return;
+    if (!open || !uid) return;
     supabase.from('support_tutorials').select('id,titulo,categoria,passos').eq('is_active', true).order('ordem')
       .then(({ data }) => setTutorials((data ?? []) as Tutorial[]));
     loadTickets();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, user?.id]);
+  }, [open, uid]);
 
   useEffect(() => {
     if (!viewTicket) { setMsgs([]); return; }
@@ -63,18 +65,18 @@ export function SupportWidget() {
   const filtered = useMemo(() => tutorials.filter((t) =>
     !q || norm(t.titulo + ' ' + t.categoria + ' ' + t.passos.join(' ')).includes(norm(q))), [tutorials, q]);
 
-  if (!user) return null;
+  if (!user || !uid) return null;
   const openTicket = tickets.find((t) => t.status === 'aberto');
 
   const createTicket = async () => {
     if (!assunto.trim() || !text.trim()) return toast.error('Preencha o assunto e a mensagem');
     setSending(true);
     const { data, error } = await supabase.from('support_tickets').insert({
-      user_id: user.id, company_id: user.companyId ?? null, user_name: user.nome ?? user.email,
+      user_id: uid!, company_id: user.companyId ?? null, user_name: user.nome ?? user.email,
       assunto: assunto.trim(),
     }).select('id,assunto,status,created_at').single();
     if (error || !data) { setSending(false); return toast.error('Não foi possível abrir o chamado'); }
-    await supabase.from('support_messages').insert({ ticket_id: data.id, sender_id: user.id, mensagem: text.trim() });
+    await supabase.from('support_messages').insert({ ticket_id: data.id, sender_id: uid!, mensagem: text.trim() });
     setSending(false); setAssunto(''); setText('');
     setViewTicket(data as Ticket); loadTickets();
     toast.success('Chamado aberto! O suporte vai responder aqui.');
@@ -83,7 +85,7 @@ export function SupportWidget() {
   const sendMsg = async () => {
     if (!viewTicket || !text.trim()) return;
     setSending(true);
-    const { error } = await supabase.from('support_messages').insert({ ticket_id: viewTicket.id, sender_id: user.id, mensagem: text.trim() });
+    const { error } = await supabase.from('support_messages').insert({ ticket_id: viewTicket.id, sender_id: uid!, mensagem: text.trim() });
     setSending(false);
     if (error) return toast.error('Não foi possível enviar');
     setText('');

@@ -18,6 +18,8 @@ type Tut = { id: string; titulo: string; categoria: string; passos: string[]; or
 
 export default function GestaoSuporte() {
   const { user } = useAuth();
+  const [uid, setUid] = useState<string | null>(null);
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setUid(data.user?.id ?? null)); }, [user]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [companies, setCompanies] = useState<Record<string, string>>({});
   const [sel, setSel] = useState<Ticket | null>(null);
@@ -55,8 +57,8 @@ export default function GestaoSuporte() {
   }, [sel]);
 
   const reply = async () => {
-    if (!sel || !text.trim() || !user) return;
-    const { error } = await supabase.from('support_messages').insert({ ticket_id: sel.id, sender_id: user.id, from_support: true, mensagem: text.trim() });
+    if (!sel || !text.trim() || !uid) return;
+    const { error } = await supabase.from('support_messages').insert({ ticket_id: sel.id, sender_id: uid!, from_support: true, mensagem: text.trim() });
     if (error) return toast.error('Erro ao responder');
     setText(''); setSel({ ...sel });
   };
