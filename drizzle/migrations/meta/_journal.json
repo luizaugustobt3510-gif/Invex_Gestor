@@ -78,6 +78,13 @@
       "when": 1792504495984,
       "tag": "0010_map_region_color",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792842449556,
+      "tag": "0011_create_support_center",
+      "breakpoints": true
     }
   ]
 }

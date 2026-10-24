@@ -4463,6 +4463,113 @@ export type Database = {
           },
         ]
       }
+      support_messages: {
+        Row: {
+          created_at: string
+          from_support: boolean
+          id: string
+          mensagem: string
+          sender_id: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_support?: boolean
+          id?: string
+          mensagem: string
+          sender_id: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          from_support?: boolean
+          id?: string
+          mensagem?: string
+          sender_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          assunto: string
+          closed_at: string | null
+          company_id: string | null
+          company_name: string | null
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          assunto: string
+          closed_at?: string | null
+          company_id?: string | null
+          company_name?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          assunto?: string
+          closed_at?: string | null
+          company_id?: string | null
+          company_name?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: []
+      }
+      support_tutorials: {
+        Row: {
+          categoria: string
+          created_at: string
+          id: string
+          is_active: boolean
+          ordem: number
+          passos: string[]
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          ordem?: number
+          passos?: string[]
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          ordem?: number
+          passos?: string[]
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       system_config: {
         Row: {
           config_key: string
