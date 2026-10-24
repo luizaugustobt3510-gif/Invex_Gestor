@@ -97,7 +97,7 @@ export function MainLayout({ children, onExportReport, showExport = false, showQ
             </div>
           </main>
         </SidebarInset>
-        {user?.role !== 'superadm' && <SupportWidget />}
+        <SupportWidget />
       </div>
     </SidebarProvider>
   );
