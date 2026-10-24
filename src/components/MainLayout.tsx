@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Download, LogOut, Menu, QrCode, ScanLine } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { SupportWidget } from '@/components/SupportWidget';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -96,6 +97,7 @@ export function MainLayout({ children, onExportReport, showExport = false, showQ
             </div>
           </main>
         </SidebarInset>
+        {user?.role !== 'superadm' && <SupportWidget />}
       </div>
     </SidebarProvider>
   );
