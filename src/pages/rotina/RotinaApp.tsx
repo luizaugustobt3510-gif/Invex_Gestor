@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { CalendarCheck, LogOut, Plus, Trash2, Sparkles, Lock, Flame } from 'lucide-react';
+import { CalendarCheck, LogOut, Plus, Trash2, Sparkles, Lock, Flame, Sun, ListTodo, Repeat, Target, BarChart3, NotebookPen, Bell, StickyNote, UserCircle } from 'lucide-react';
 import { format, startOfWeek, addDays, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
@@ -90,6 +90,73 @@ export default function RotinaApp() {
     const { error } = await db.from('routine_tasks').insert({ titulo: qt.trim(), data: todayS, categoria: 'pessoal', prioridade: 'media' });
     if (error) return toast.error(errMsg(error));
     setQt(''); load();
+  };
+
+  // ---- Lembretes
+  const [reminders, setReminders] = useState<{ id: string; titulo: string; lembrar_em: string; concluido: boolean }[]>([]);
+  const [nr, setNr] = useState({ titulo: '', quando: '' });
+  const loadReminders = useCallback(async () => {
+    const { data } = await db.from('routine_reminders').select('*').order('lembrar_em');
+    setReminders(data || []);
+  }, []);
+  const addReminder = async () => {
+    if (!nr.titulo.trim() || !nr.quando) return toast.error('Informe o lembrete e a data/hora.');
+    const { error } = await db.from('routine_reminders').insert({ titulo: nr.titulo.trim(), lembrar_em: new Date(nr.quando).toISOString() });
+    if (error) return toast.error('Não foi possível salvar.');
+    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+    setNr({ titulo: '', quando: '' }); loadReminders();
+  };
+  const doneReminder = async (id: string, v: boolean) => { await db.from('routine_reminders').update({ concluido: v }).eq('id', id); loadReminders(); };
+  const delReminder = async (id: string) => { await db.from('routine_reminders').delete().eq('id', id); loadReminders(); };
+  useEffect(() => {
+    if (state !== 'ok') return;
+    loadReminders();
+    const shown = new Set<string>();
+    const tick = async () => {
+      const { data } = await db.from('routine_reminders').select('id, titulo, lembrar_em').eq('concluido', false).lte('lembrar_em', new Date().toISOString());
+      (data || []).forEach((r: any) => {
+        if (shown.has(r.id)) return; shown.add(r.id);
+        toast(`🔔 ${r.titulo}`, { duration: 15000 });
+        if ('Notification' in window && Notification.permission === 'granted') new Notification('Invex Rotina', { body: r.titulo });
+      });
+    };
+    tick(); const iv = setInterval(tick, 30000); return () => clearInterval(iv);
+  }, [state, loadReminders]);
+
+  // ---- Notas
+  const [notes, setNotes] = useState<{ id: string; titulo: string; conteudo: string; updated_at: string }[]>([]);
+  const [nn, setNn] = useState({ id: '', titulo: '', conteudo: '' });
+  const loadNotes = useCallback(async () => {
+    const { data } = await db.from('routine_notes').select('*').order('updated_at', { ascending: false });
+    setNotes(data || []);
+  }, []);
+  useEffect(() => { if (state === 'ok') loadNotes(); }, [state, loadNotes]);
+  const saveNote = async () => {
+    if (!nn.titulo.trim() && !nn.conteudo.trim()) return;
+    const row = { titulo: nn.titulo.trim(), conteudo: nn.conteudo, updated_at: new Date().toISOString() };
+    const { error } = nn.id ? await db.from('routine_notes').update(row).eq('id', nn.id) : await db.from('routine_notes').insert(row);
+    if (error) return toast.error('Não foi possível salvar a nota.');
+    toast.success('Nota salva.'); setNn({ id: '', titulo: '', conteudo: '' }); loadNotes();
+  };
+  const delNote = async (id: string) => { await db.from('routine_notes').delete().eq('id', id); if (nn.id === id) setNn({ id: '', titulo: '', conteudo: '' }); loadNotes(); };
+
+  // ---- Perfil
+  const [email, setEmail] = useState('');
+  const [pf, setPf] = useState({ nome: '', senha: '', senha2: '' });
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email || '')); }, []);
+  useEffect(() => { setPf(p => ({ ...p, nome })); }, [nome]);
+  const saveName = async () => {
+    if (!pf.nome.trim()) return toast.error('Informe seu nome.');
+    const { error } = await supabase.auth.updateUser({ data: { full_name: pf.nome.trim(), nome: pf.nome.trim() } });
+    if (error) return toast.error('Não foi possível salvar o nome.');
+    setNome(pf.nome.trim()); toast.success('Nome atualizado.');
+  };
+  const savePassword = async () => {
+    if (pf.senha.length < 8) return toast.error('A senha precisa ter ao menos 8 caracteres.');
+    if (pf.senha !== pf.senha2) return toast.error('As senhas não conferem.');
+    const { error } = await supabase.auth.updateUser({ password: pf.senha });
+    if (error) return toast.error('Não foi possível alterar a senha.');
+    setPf(p => ({ ...p, senha: '', senha2: '' })); toast.success('Senha alterada.');
   };
 
   // ---- Hábitos
@@ -193,7 +260,7 @@ export default function RotinaApp() {
   return (
     <div className="rotina-theme min-h-[100dvh] bg-background">
       <header className="border-b border-border">
-        <div className="max-w-4xl mx-auto px-5 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2 font-semibold"><CalendarCheck className="h-5 w-5 text-primary" />Invex Rotina</div>
           <div className="flex items-center gap-2">
             <Badge variant={premium ? 'default' : 'secondary'}>{premium ? 'Premium' : 'Gratuito'}</Badge>
@@ -202,24 +269,25 @@ export default function RotinaApp() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-5 py-6 space-y-6">
+      <main className="max-w-6xl mx-auto px-5 py-6 space-y-6">
         <div>
           <h1 className="text-2xl font-semibold">Olá, {nome.split(' ')[0]}</h1>
           <p className="text-sm text-muted-foreground capitalize">{format(today, "EEEE, d 'de' MMMM", { locale: ptBR })}</p>
         </div>
 
-        <Tabs defaultValue="hoje">
-          <TabsList className="w-full justify-start overflow-x-auto">
-            <TabsTrigger value="hoje">Hoje</TabsTrigger>
-            <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
-            <TabsTrigger value="habitos">Hábitos</TabsTrigger>
-            <TabsTrigger value="metas">Metas</TabsTrigger>
-            <TabsTrigger value="graficos">Gráficos</TabsTrigger>
-            <TabsTrigger value="revisao">Revisão</TabsTrigger>
-            <TabsTrigger value="plano">Plano</TabsTrigger>
+        <Tabs defaultValue="hoje" orientation="vertical" className="md:flex md:gap-6">
+          <TabsList className="h-auto w-full md:w-48 md:shrink-0 flex md:flex-col justify-start md:items-stretch overflow-x-auto md:sticky md:top-4 md:self-start bg-muted/60 p-1.5 gap-1">
+            {([
+              ['hoje', 'Hoje', Sun], ['tarefas', 'Tarefas', ListTodo], ['habitos', 'Hábitos', Repeat], ['metas', 'Metas', Target],
+              ['lembretes', 'Lembretes', Bell], ['notas', 'Notas', StickyNote], ['graficos', 'Gráficos', BarChart3],
+              ['revisao', 'Revisão', NotebookPen], ['perfil', 'Perfil', UserCircle],
+            ] as const).map(([v, l, I]) => (
+              <TabsTrigger key={v} value={v} className="md:justify-start gap-2 px-3 py-2 shrink-0"><I className="h-4 w-4" />{l}</TabsTrigger>
+            ))}
           </TabsList>
+          <div className="flex-1 min-w-0">
 
-          <TabsContent value="hoje" className="space-y-4 mt-4">
+          <TabsContent value="hoje" className="space-y-4 mt-4 md:mt-0">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 ['Hoje', `${todayTasks.filter(t => t.concluida).length}/${todayTasks.length}`],
@@ -254,7 +322,7 @@ export default function RotinaApp() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="tarefas" className="space-y-4 mt-4">
+          <TabsContent value="tarefas" className="space-y-4 mt-4 md:mt-0">
             <Card title="Nova tarefa">
               <div className="grid gap-2 sm:grid-cols-6">
                 <Input className="sm:col-span-2 text-base" placeholder="O que precisa fazer?" value={nt.titulo} onChange={e => setNt({ ...nt, titulo: e.target.value })} onKeyDown={e => e.key === 'Enter' && addTask()} />
@@ -273,7 +341,7 @@ export default function RotinaApp() {
             {overdue.length > 0 && <Card title="Atrasadas">{overdue.map(t => <TaskRow key={t.id} t={t} />)}</Card>}
           </TabsContent>
 
-          <TabsContent value="habitos" className="space-y-4 mt-4">
+          <TabsContent value="habitos" className="space-y-4 mt-4 md:mt-0">
             <Card title="Meus hábitos" action={!premium && <span className="text-xs text-muted-foreground">{habits.length}/{FREE_LIMITS.habitos} no gratuito</span>}>
               <div className="flex gap-2 mb-3">
                 <Input className="text-base" placeholder="Ex.: Beber 2L de água" value={nh} onChange={e => setNh(e.target.value)} onKeyDown={e => e.key === 'Enter' && addHabit()} />
@@ -290,7 +358,7 @@ export default function RotinaApp() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="metas" className="space-y-4 mt-4">
+          <TabsContent value="metas" className="space-y-4 mt-4 md:mt-0">
             <Card title="Metas" action={!premium && <span className="text-xs text-muted-foreground">{activeGoals.length}/{FREE_LIMITS.metas} ativas no gratuito</span>}>
               <div className="flex gap-2 mb-3">
                 <Input className="text-base" placeholder="Ex.: Ler 2 livros" value={ng.titulo} onChange={e => setNg({ ...ng, titulo: e.target.value })} />
@@ -313,7 +381,7 @@ export default function RotinaApp() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="revisao" className="space-y-4 mt-4">
+          <TabsContent value="revisao" className="space-y-4 mt-4 md:mt-0">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 ['Planejadas', weekTasks.length],
@@ -336,7 +404,7 @@ export default function RotinaApp() {
             ) : <Upgrade what="A revisão semanal com reflexão" />}
           </TabsContent>
 
-          <TabsContent value="graficos" className="space-y-4 mt-4">
+          <TabsContent value="graficos" className="space-y-4 mt-4 md:mt-0">
             {premium ? (<>
               <Card title="Tarefas – últimos 14 dias">
                 <div className="h-56"><ResponsiveContainer><BarChart data={chartTasks}><CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" /><XAxis dataKey="dia" fontSize={11} /><YAxis allowDecimals={false} fontSize={11} width={24} /><Tooltip />
@@ -354,7 +422,71 @@ export default function RotinaApp() {
             </>) : <Upgrade what="Os gráficos de desempenho" />}
           </TabsContent>
 
-          <TabsContent value="plano" className="space-y-4 mt-4">
+          <TabsContent value="lembretes" className="space-y-4 mt-4 md:mt-0">
+            <Card title="Novo lembrete">
+              <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+                <Input className="text-base" placeholder="Lembrar de..." value={nr.titulo} onChange={e => setNr({ ...nr, titulo: e.target.value })} />
+                <Input type="datetime-local" className="text-base" value={nr.quando} onChange={e => setNr({ ...nr, quando: e.target.value })} />
+                <Button onClick={addReminder}><Plus className="h-4 w-4 mr-1" />Adicionar</Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">O aviso aparece na tela quando chegar a hora, com o Rotina aberto.</p>
+            </Card>
+            <Card title="Meus lembretes">
+              {reminders.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum lembrete.</p> : reminders.map(r => {
+                const late = !r.concluido && new Date(r.lembrar_em) <= new Date();
+                return (
+                  <div key={r.id} className="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
+                    <Checkbox checked={r.concluido} onCheckedChange={v => doneReminder(r.id, !!v)} />
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm truncate ${r.concluido ? 'line-through text-muted-foreground' : ''}`}>{r.titulo}</p>
+                      <p className={`text-xs ${late ? 'text-primary font-medium' : 'text-muted-foreground'}`}>{format(new Date(r.lembrar_em), "EEE, dd/MM 'às' HH:mm", { locale: ptBR })}</p>
+                    </div>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => delReminder(r.id)} aria-label="Excluir"><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                );
+              })}
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="notas" className="space-y-4 mt-4 md:mt-0">
+            <Card title={nn.id ? 'Editar nota' : 'Nova nota'} action={nn.id && <Button size="sm" variant="ghost" onClick={() => setNn({ id: '', titulo: '', conteudo: '' })}>Cancelar</Button>}>
+              <div className="space-y-2">
+                <Input className="text-base" placeholder="Título" value={nn.titulo} onChange={e => setNn({ ...nn, titulo: e.target.value })} />
+                <Textarea className="text-base min-h-32" placeholder="Escreva sua nota..." value={nn.conteudo} onChange={e => setNn({ ...nn, conteudo: e.target.value })} />
+                <Button onClick={saveNote}>Salvar nota</Button>
+              </div>
+            </Card>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {notes.map(n => (
+                <div key={n.id} className="rounded-2xl border border-border p-4 cursor-pointer hover:border-primary/50" onClick={() => setNn({ id: n.id, titulo: n.titulo, conteudo: n.conteudo })}>
+                  <div className="flex items-start gap-2">
+                    <p className="font-medium text-sm flex-1 truncate">{n.titulo || 'Sem título'}</p>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 -mt-1" onClick={e => { e.stopPropagation(); delNote(n.id); }} aria-label="Excluir"><Trash2 className="h-3.5 w-3.5" /></Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-4 whitespace-pre-wrap mt-1">{n.conteudo}</p>
+                  <p className="text-[11px] text-muted-foreground mt-2">{format(new Date(n.updated_at), 'dd/MM/yyyy HH:mm')}</p>
+                </div>
+              ))}
+              {notes.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma nota ainda.</p>}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="perfil" className="space-y-4 mt-4 md:mt-0">
+            <Card title="Meus dados">
+              <div className="space-y-2 max-w-md">
+                <p className="text-xs text-muted-foreground">E-mail: {email}</p>
+                <Input className="text-base" placeholder="Nome de usuário" value={pf.nome} onChange={e => setPf({ ...pf, nome: e.target.value })} />
+                <Button onClick={saveName}>Salvar nome</Button>
+              </div>
+            </Card>
+            <Card title="Alterar senha">
+              <div className="space-y-2 max-w-md">
+                <Input type="password" className="text-base" placeholder="Nova senha (mín. 8 caracteres)" value={pf.senha} onChange={e => setPf({ ...pf, senha: e.target.value })} />
+                <Input type="password" className="text-base" placeholder="Repita a nova senha" value={pf.senha2} onChange={e => setPf({ ...pf, senha2: e.target.value })} />
+                <Button onClick={savePassword}>Alterar senha</Button>
+              </div>
+            </Card>
+            <h2 className="text-sm font-semibold pt-2">Gestão do plano</h2>
             <Card title="Seu plano">
               <p className="text-sm">Plano atual: <strong>{premium ? 'Premium' : 'Gratuito'}</strong></p>
               {access?.premium_fim && <p className="text-sm text-muted-foreground">Válido até {format(new Date(access.premium_fim + 'T12:00'), 'dd/MM/yyyy')}</p>}
@@ -372,6 +504,7 @@ export default function RotinaApp() {
               </div>
             </div>
           </TabsContent>
+          </div>
         </Tabs>
       </main>
     </div>
