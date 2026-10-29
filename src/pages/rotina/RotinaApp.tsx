@@ -16,6 +16,8 @@ import { ptBR } from 'date-fns/locale';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 import { FocoTimer, Rituais, useInsights, InsightsCard, ExportWeekButton } from './RotinaPremiumTools';
 import { FREE_LIMITS, isPremium, type RotinaAccess } from '@/lib/rotinaPlan';
+import { getPaddleEnvironment, openPremiumCheckout } from '@/lib/paddle';
+import { PaymentTestModeBanner } from '@/components/PaymentTestModeBanner';
 
 const db = supabase as any;
 const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
@@ -44,8 +46,19 @@ export default function RotinaApp() {
   const todayS = ymd(today);
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekStartS = ymd(weekStart);
-  const premium = isPremium(access, todayS);
+  const [sub, setSub] = useState<{ status: string; price_id: string; current_period_end: string | null; cancel_at_period_end: boolean | null } | null>(null);
+  const [subPremium, setSubPremium] = useState(false);
+  const premium = isPremium(access, todayS) || subPremium;
   const [uid, setUid] = useState('');
+
+  const loadSub = useCallback(async (id: string) => {
+    const [{ data: s }, { data: p }] = await Promise.all([
+      db.from('subscriptions').select('status, price_id, current_period_end, cancel_at_period_end')
+        .eq('user_id', id).eq('environment', getPaddleEnvironment()).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      db.rpc('routine_is_premium', { _uid: id }),
+    ]);
+    setSub(s || null); setSubPremium(!!p);
+  }, []);
 
   const load = useCallback(async () => {
     const [t, h, l, g, r] = await Promise.all([
@@ -69,9 +82,34 @@ export default function RotinaApp() {
       const { data: st, error } = await db.rpc('routine_join');
       if (error || st !== 'ativo') { setState('blocked'); return; }
       const { data: acc } = await db.from('routine_access').select('status, plano, premium_status, premium_fim').eq('user_id', user.id).single();
-      setAccess(acc); setState('ok'); load();
+      setAccess(acc); setState('ok'); load(); loadSub(user.id);
     })();
-  }, [navigate, load]);
+  }, [navigate, load, loadSub]);
+
+  // Depois do pagamento, o Premium chega em alguns segundos: verifica de novo algumas vezes.
+  useEffect(() => {
+    if (!uid || !new URLSearchParams(window.location.search).has('checkout')) return;
+    toast.success('Pagamento recebido! Liberando seu Premium...');
+    let n = 0;
+    const iv = setInterval(() => { loadSub(uid); if (++n >= 10) clearInterval(iv); }, 3000);
+    window.history.replaceState({}, '', '/rotina');
+    return () => clearInterval(iv);
+  }, [uid, loadSub]);
+
+  const [buying, setBuying] = useState(false);
+  const assinar = async (priceId: 'rotina_premium_mensal' | 'rotina_premium_anual') => {
+    if (!uid) return;
+    setBuying(true);
+    try { await openPremiumCheckout({ priceId, userId: uid, email: email || undefined }); }
+    catch { toast.error('Não foi possível abrir o pagamento. Tente de novo.'); }
+    finally { setBuying(false); }
+  };
+  const gerenciar = async () => {
+    const w = window.open('', '_blank');
+    const { data, error } = await supabase.functions.invoke('rotina-portal', { body: { environment: getPaddleEnvironment() } });
+    if (error || !data?.url) { w?.close(); return toast.error('Não foi possível abrir a gestão da assinatura.'); }
+    if (w) w.location.href = data.url; else window.location.href = data.url;
+  };
 
   const logout = async () => { await supabase.auth.signOut(); navigate('/rotina/entrar'); };
 
