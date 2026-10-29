@@ -1,0 +1,344 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
+import { CalendarCheck, LogOut, Plus, Trash2, Sparkles, Lock, Flame } from 'lucide-react';
+import { format, startOfWeek, addDays, subDays } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { FREE_LIMITS, isPremium, type RotinaAccess } from '@/lib/rotinaPlan';
+
+const db = supabase as any;
+const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
+const CATS = ['pessoal', 'trabalho', 'estudos', 'saude'];
+const CAT_LABEL: Record<string, string> = { pessoal: 'Pessoal', trabalho: 'Trabalho', estudos: 'Estudos', saude: 'Saúde' };
+
+interface Task { id: string; titulo: string; data: string; horario: string | null; categoria: string; prioridade: string; concluida: boolean }
+interface Habit { id: string; nome: string; ativo: boolean }
+interface Goal { id: string; titulo: string; periodo: string; prazo: string | null; progresso: number; concluida: boolean }
+
+const errMsg = (e: any) => String(e?.message || '').includes('LIMITE_GRATUITO')
+  ? String(e.message).replace('LIMITE_GRATUITO: ', 'Limite do plano gratuito: ') : 'Não foi possível salvar.';
+
+export default function RotinaApp() {
+  const navigate = useNavigate();
+  const [state, setState] = useState<'loading' | 'ok' | 'blocked'>('loading');
+  const [access, setAccess] = useState<RotinaAccess | null>(null);
+  const [nome, setNome] = useState('');
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [logs, setLogs] = useState<{ habit_id: string; data: string }[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [review, setReview] = useState({ realizacoes: '', reflexao: '', prioridades: '' });
+
+  const today = new Date();
+  const todayS = ymd(today);
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const weekStartS = ymd(weekStart);
+  const premium = isPremium(access, todayS);
+
+  const load = useCallback(async () => {
+    const [t, h, l, g, r] = await Promise.all([
+      db.from('routine_tasks').select('*').gte('data', ymd(subDays(today, 30))).order('data').order('horario'),
+      db.from('routine_habits').select('*').eq('ativo', true).order('created_at'),
+      db.from('routine_habit_logs').select('habit_id, data').gte('data', ymd(subDays(today, 60))),
+      db.from('routine_goals').select('*').order('created_at'),
+      db.from('routine_weekly_reviews').select('*').eq('semana_inicio', weekStartS).maybeSingle(),
+    ]);
+    setTasks(t.data || []); setHabits(h.data || []); setLogs(l.data || []); setGoals(g.data || []);
+    if (r.data) setReview({ realizacoes: r.data.realizacoes || '', reflexao: r.data.reflexao || '', prioridades: r.data.prioridades || '' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weekStartS]);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { navigate('/rotina/entrar', { replace: true }); return; }
+      setNome(user.user_metadata?.nome || user.user_metadata?.full_name || user.email?.split('@')[0] || '');
+      const { data: st, error } = await db.rpc('routine_join');
+      if (error || st !== 'ativo') { setState('blocked'); return; }
+      const { data: acc } = await db.from('routine_access').select('status, plano, premium_status, premium_fim').eq('user_id', user.id).single();
+      setAccess(acc); setState('ok'); load();
+    })();
+  }, [navigate, load]);
+
+  const logout = async () => { await supabase.auth.signOut(); navigate('/rotina/entrar'); };
+
+  // ---- Tarefas
+  const [nt, setNt] = useState({ titulo: '', data: todayS, horario: '', categoria: 'pessoal', prioridade: 'media' });
+  const addTask = async () => {
+    if (!nt.titulo.trim()) return;
+    const { error } = await db.from('routine_tasks').insert({ ...nt, titulo: nt.titulo.trim(), horario: nt.horario || null });
+    if (error) return toast.error(errMsg(error));
+    setNt({ ...nt, titulo: '', horario: '' }); load();
+  };
+  const toggleTask = async (t: Task) => { await db.from('routine_tasks').update({ concluida: !t.concluida }).eq('id', t.id); load(); };
+  const moveTomorrow = async (t: Task) => { await db.from('routine_tasks').update({ data: ymd(addDays(today, 1)) }).eq('id', t.id); load(); };
+  const delTask = async (id: string) => { await db.from('routine_tasks').delete().eq('id', id); load(); };
+
+  // ---- Hábitos
+  const [nh, setNh] = useState('');
+  const addHabit = async () => {
+    if (!nh.trim()) return;
+    const { error } = await db.from('routine_habits').insert({ nome: nh.trim() });
+    if (error) return toast.error(errMsg(error));
+    setNh(''); load();
+  };
+  const doneToday = (hid: string) => logs.some(l => l.habit_id === hid && l.data === todayS);
+  const toggleHabit = async (hid: string) => {
+    if (doneToday(hid)) await db.from('routine_habit_logs').delete().eq('habit_id', hid).eq('data', todayS);
+    else await db.from('routine_habit_logs').insert({ habit_id: hid, data: todayS });
+    load();
+  };
+  const streak = (hid: string) => {
+    const set = new Set(logs.filter(l => l.habit_id === hid).map(l => l.data));
+    let n = 0, d = set.has(todayS) ? today : subDays(today, 1);
+    while (set.has(ymd(d))) { n++; d = subDays(d, 1); }
+    return n;
+  };
+  const delHabit = async (id: string) => { await db.from('routine_habits').update({ ativo: false }).eq('id', id); load(); };
+
+  // ---- Metas
+  const [ng, setNg] = useState({ titulo: '', periodo: 'semanal' });
+  const addGoal = async () => {
+    if (!ng.titulo.trim()) return;
+    const { error } = await db.from('routine_goals').insert({ ...ng, titulo: ng.titulo.trim() });
+    if (error) return toast.error(errMsg(error));
+    setNg({ ...ng, titulo: '' }); load();
+  };
+  const setProgress = async (g: Goal, p: number) => {
+    await db.from('routine_goals').update({ progresso: p, concluida: p >= 100 }).eq('id', g.id); load();
+  };
+  const delGoal = async (id: string) => { await db.from('routine_goals').delete().eq('id', id); load(); };
+
+  // ---- Indicadores reais
+  const todayTasks = tasks.filter(t => t.data === todayS);
+  const overdue = tasks.filter(t => t.data < todayS && !t.concluida);
+  const weekDays = Array.from({ length: 7 }, (_, i) => ymd(addDays(weekStart, i)));
+  const weekTasks = tasks.filter(t => weekDays.includes(t.data));
+  const weekHabitDone = logs.filter(l => weekDays.includes(l.data) && l.data <= todayS).length;
+  const elapsed = weekDays.filter(d => d <= todayS).length;
+  const consistency = habits.length ? Math.round((weekHabitDone / (habits.length * elapsed)) * 100) : 0;
+  const activeGoals = goals.filter(g => !g.concluida);
+  const upcoming = useMemo(() => tasks.filter(t => t.data > todayS && !t.concluida).slice(0, 5), [tasks, todayS]);
+
+  const saveReview = async () => {
+    const { error } = await db.from('routine_weekly_reviews').upsert({ semana_inicio: weekStartS, ...review }, { onConflict: 'user_id,semana_inicio' });
+    if (error) return toast.error('A revisão semanal é um recurso Premium.');
+    toast.success('Revisão salva.');
+  };
+
+  if (state === 'loading') return <div className="min-h-[100dvh] flex items-center justify-center text-sm text-muted-foreground">Carregando...</div>;
+  if (state === 'blocked') return (
+    <div className="min-h-[100dvh] flex flex-col items-center justify-center gap-3 px-6 text-center">
+      <Lock className="h-8 w-8 text-muted-foreground" />
+      <p className="font-medium">Seu acesso ao Invex Rotina está suspenso.</p>
+      <p className="text-sm text-muted-foreground">Seus dados continuam guardados. Fale com o suporte Invex.</p>
+      <Button variant="outline" onClick={logout}>Sair</Button>
+    </div>
+  );
+
+  const TaskRow = ({ t }: { t: Task }) => (
+    <div className="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
+      <Checkbox checked={t.concluida} onCheckedChange={() => toggleTask(t)} />
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm truncate ${t.concluida ? 'line-through text-muted-foreground' : ''}`}>{t.titulo}</p>
+        <p className="text-xs text-muted-foreground">
+          {format(new Date(t.data + 'T12:00'), "EEE, dd/MM", { locale: ptBR })}{t.horario ? ` · ${t.horario.slice(0, 5)}` : ''} · {CAT_LABEL[t.categoria] || t.categoria}
+        </p>
+      </div>
+      {t.prioridade === 'alta' && <Badge variant="destructive" className="text-[10px]">Urgente</Badge>}
+      {!t.concluida && t.data <= todayS && <Button size="sm" variant="ghost" className="text-xs" onClick={() => moveTomorrow(t)}>Amanhã</Button>}
+      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => delTask(t.id)} aria-label="Excluir"><Trash2 className="h-4 w-4" /></Button>
+    </div>
+  );
+
+  const Card = ({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) => (
+    <section className="rounded-2xl border border-border p-5">
+      <div className="flex items-center justify-between mb-3"><h2 className="text-sm font-semibold">{title}</h2>{action}</div>
+      {children}
+    </section>
+  );
+
+  const Upgrade = ({ what }: { what: string }) => (
+    <div className="rounded-2xl border border-primary/30 bg-primary/5 p-6 text-center space-y-2">
+      <Sparkles className="h-6 w-6 text-primary mx-auto" />
+      <p className="font-medium">{what} é Premium</p>
+      <p className="text-sm text-muted-foreground">Fale com a equipe Invex para ativar o Premium. Seus dados ficam guardados.</p>
+    </div>
+  );
+
+  return (
+    <div className="min-h-[100dvh] bg-background">
+      <header className="border-b border-border">
+        <div className="max-w-4xl mx-auto px-5 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2 font-semibold"><CalendarCheck className="h-5 w-5 text-primary" />Invex Rotina</div>
+          <div className="flex items-center gap-2">
+            <Badge variant={premium ? 'default' : 'secondary'}>{premium ? 'Premium' : 'Gratuito'}</Badge>
+            <Button size="sm" variant="ghost" onClick={logout}><LogOut className="h-4 w-4" /></Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-5 py-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold">Olá, {nome.split(' ')[0]}</h1>
+          <p className="text-sm text-muted-foreground capitalize">{format(today, "EEEE, d 'de' MMMM", { locale: ptBR })}</p>
+        </div>
+
+        <Tabs defaultValue="hoje">
+          <TabsList className="w-full justify-start overflow-x-auto">
+            <TabsTrigger value="hoje">Hoje</TabsTrigger>
+            <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
+            <TabsTrigger value="habitos">Hábitos</TabsTrigger>
+            <TabsTrigger value="metas">Metas</TabsTrigger>
+            <TabsTrigger value="revisao">Revisão</TabsTrigger>
+            <TabsTrigger value="plano">Plano</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="hoje" className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                ['Hoje', `${todayTasks.filter(t => t.concluida).length}/${todayTasks.length}`],
+                ['Atrasadas', overdue.length],
+                ['Hábitos hoje', `${habits.filter(h => doneToday(h.id)).length}/${habits.length}`],
+                ['Consistência', `${consistency}%`],
+              ].map(([l, v]) => (
+                <div key={l as string} className="rounded-2xl border border-border p-4"><p className="text-xs text-muted-foreground">{l}</p><p className="text-xl font-semibold mt-1">{v}</p></div>
+              ))}
+            </div>
+            <Card title="Prioridades de hoje">
+              {todayTasks.length === 0 && overdue.length === 0 ? <p className="text-sm text-muted-foreground">Nada para hoje. Adicione em Tarefas.</p> :
+                [...overdue, ...todayTasks].map(t => <TaskRow key={t.id} t={t} />)}
+            </Card>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Card title="Hábitos do dia">
+                {habits.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum hábito ainda.</p> : habits.map(h => (
+                  <label key={h.id} className="flex items-center gap-3 py-2"><Checkbox checked={doneToday(h.id)} onCheckedChange={() => toggleHabit(h.id)} /><span className="text-sm flex-1">{h.nome}</span></label>
+                ))}
+              </Card>
+              <Card title="Próximos compromissos">
+                {upcoming.length === 0 ? <p className="text-sm text-muted-foreground">Sem compromissos futuros.</p> : upcoming.map(t => (
+                  <p key={t.id} className="text-sm py-1.5">{format(new Date(t.data + 'T12:00'), 'dd/MM')}{t.horario ? ` ${t.horario.slice(0, 5)}` : ''} — {t.titulo}</p>
+                ))}
+              </Card>
+            </div>
+            <Card title="Metas em andamento">
+              {activeGoals.length === 0 ? <p className="text-sm text-muted-foreground">Sem metas ativas.</p> : activeGoals.map(g => (
+                <div key={g.id} className="py-2"><div className="flex justify-between text-sm mb-1"><span>{g.titulo}</span><span className="text-muted-foreground">{g.progresso}%</span></div><Progress value={g.progresso} /></div>
+              ))}
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="tarefas" className="space-y-4 mt-4">
+            <Card title="Nova tarefa">
+              <div className="grid gap-2 sm:grid-cols-6">
+                <Input className="sm:col-span-2 text-base" placeholder="O que precisa fazer?" value={nt.titulo} onChange={e => setNt({ ...nt, titulo: e.target.value })} onKeyDown={e => e.key === 'Enter' && addTask()} />
+                <Input type="date" className="text-base" value={nt.data} onChange={e => setNt({ ...nt, data: e.target.value })} />
+                <Input type="time" className="text-base" value={nt.horario} onChange={e => setNt({ ...nt, horario: e.target.value })} />
+                <Select value={nt.categoria} onValueChange={v => setNt({ ...nt, categoria: v })}><SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{CATS.map(c => <SelectItem key={c} value={c}>{CAT_LABEL[c]}</SelectItem>)}</SelectContent></Select>
+                <Select value={nt.prioridade} onValueChange={v => setNt({ ...nt, prioridade: v })}><SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="baixa">Baixa</SelectItem><SelectItem value="media">Média</SelectItem><SelectItem value="alta">Urgente</SelectItem></SelectContent></Select>
+              </div>
+              <Button className="mt-3" onClick={addTask}><Plus className="h-4 w-4 mr-1" />Adicionar</Button>
+            </Card>
+            <Card title="Esta semana">
+              {weekTasks.length === 0 ? <p className="text-sm text-muted-foreground">Sem tarefas nesta semana.</p> : weekTasks.map(t => <TaskRow key={t.id} t={t} />)}
+            </Card>
+            {overdue.length > 0 && <Card title="Atrasadas">{overdue.map(t => <TaskRow key={t.id} t={t} />)}</Card>}
+          </TabsContent>
+
+          <TabsContent value="habitos" className="space-y-4 mt-4">
+            <Card title="Meus hábitos" action={!premium && <span className="text-xs text-muted-foreground">{habits.length}/{FREE_LIMITS.habitos} no gratuito</span>}>
+              <div className="flex gap-2 mb-3">
+                <Input className="text-base" placeholder="Ex.: Beber 2L de água" value={nh} onChange={e => setNh(e.target.value)} onKeyDown={e => e.key === 'Enter' && addHabit()} />
+                <Button onClick={addHabit}><Plus className="h-4 w-4" /></Button>
+              </div>
+              {habits.map(h => (
+                <div key={h.id} className="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
+                  <Checkbox checked={doneToday(h.id)} onCheckedChange={() => toggleHabit(h.id)} />
+                  <span className="text-sm flex-1">{h.nome}</span>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Flame className="h-3.5 w-3.5" />{streak(h.id)} dias</span>
+                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => delHabit(h.id)} aria-label="Remover"><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              ))}
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="metas" className="space-y-4 mt-4">
+            <Card title="Metas" action={!premium && <span className="text-xs text-muted-foreground">{activeGoals.length}/{FREE_LIMITS.metas} ativas no gratuito</span>}>
+              <div className="flex gap-2 mb-3">
+                <Input className="text-base" placeholder="Ex.: Ler 2 livros" value={ng.titulo} onChange={e => setNg({ ...ng, titulo: e.target.value })} />
+                <Select value={ng.periodo} onValueChange={v => setNg({ ...ng, periodo: v })}><SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="semanal">Semanal</SelectItem><SelectItem value="mensal">Mensal</SelectItem></SelectContent></Select>
+                <Button onClick={addGoal}><Plus className="h-4 w-4" /></Button>
+              </div>
+              {goals.map(g => (
+                <div key={g.id} className="py-3 border-b border-border last:border-0 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className={g.concluida ? 'line-through text-muted-foreground' : ''}>{g.titulo} <span className="text-xs text-muted-foreground">· {g.periodo}</span></span>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => delGoal(g.id)} aria-label="Excluir"><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                  <Progress value={g.progresso} />
+                  <div className="flex gap-1">{[0, 25, 50, 75, 100].map(p => (
+                    <Button key={p} size="sm" variant={g.progresso === p ? 'default' : 'outline'} className="h-7 text-xs" onClick={() => setProgress(g, p)}>{p}%</Button>
+                  ))}</div>
+                </div>
+              ))}
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="revisao" className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                ['Planejadas', weekTasks.length],
+                ['Concluídas', weekTasks.filter(t => t.concluida).length],
+                ['Pendentes', weekTasks.filter(t => !t.concluida).length],
+                ['Consistência', `${consistency}%`],
+              ].map(([l, v]) => (
+                <div key={l as string} className="rounded-2xl border border-border p-4"><p className="text-xs text-muted-foreground">{l}</p><p className="text-xl font-semibold mt-1">{v}</p></div>
+              ))}
+            </div>
+            {premium ? (
+              <Card title={`Semana de ${format(weekStart, 'dd/MM')}`}>
+                <div className="space-y-3">
+                  <Textarea className="text-base" placeholder="Principais realizações" value={review.realizacoes} onChange={e => setReview({ ...review, realizacoes: e.target.value })} />
+                  <Textarea className="text-base" placeholder="O que aprendi / reflexão" value={review.reflexao} onChange={e => setReview({ ...review, reflexao: e.target.value })} />
+                  <Textarea className="text-base" placeholder="Prioridades da próxima semana" value={review.prioridades} onChange={e => setReview({ ...review, prioridades: e.target.value })} />
+                  <Button onClick={saveReview}>Salvar revisão</Button>
+                </div>
+              </Card>
+            ) : <Upgrade what="A revisão semanal com reflexão" />}
+          </TabsContent>
+
+          <TabsContent value="plano" className="space-y-4 mt-4">
+            <Card title="Seu plano">
+              <p className="text-sm">Plano atual: <strong>{premium ? 'Premium' : 'Gratuito'}</strong></p>
+              {access?.premium_fim && <p className="text-sm text-muted-foreground">Válido até {format(new Date(access.premium_fim + 'T12:00'), 'dd/MM/yyyy')}</p>}
+              {access?.premium_status === 'expirado' && <p className="text-sm text-destructive mt-1">Seu Premium expirou.</p>}
+            </Card>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-border p-5 space-y-2">
+                <p className="font-semibold">Gratuito</p>
+                <ul className="text-sm text-muted-foreground space-y-1"><li>Tarefas ilimitadas</li><li>Até {FREE_LIMITS.habitos} hábitos</li><li>Até {FREE_LIMITS.metas} metas ativas</li><li>Resumo da semana</li></ul>
+              </div>
+              <div className="rounded-2xl border border-primary p-5 space-y-2">
+                <p className="font-semibold flex items-center gap-1"><Sparkles className="h-4 w-4 text-primary" />Premium</p>
+                <ul className="text-sm text-muted-foreground space-y-1"><li>Hábitos e metas ilimitados</li><li>Revisão semanal com reflexão</li><li>Planejamento da próxima semana</li></ul>
+                {!premium && <p className="text-xs text-muted-foreground pt-2">Pagamento online em breve. Por enquanto, a equipe Invex ativa para você.</p>}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
+  );
+}
