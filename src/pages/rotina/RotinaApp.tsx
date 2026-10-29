@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { CalendarCheck, LogOut, Plus, Trash2, Sparkles, Lock, Flame } from 'lucide-react';
 import { format, startOfWeek, addDays, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 import { FREE_LIMITS, isPremium, type RotinaAccess } from '@/lib/rotinaPlan';
 
 const db = supabase as any;
@@ -61,7 +62,7 @@ export default function RotinaApp() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate('/rotina/entrar', { replace: true }); return; }
-      setNome(user.user_metadata?.nome || user.user_metadata?.full_name || user.email?.split('@')[0] || '');
+      setNome(user.user_metadata?.full_name || user.user_metadata?.name || user.user_metadata?.nome || user.email?.split('@')[0] || '');
       const { data: st, error } = await db.rpc('routine_join');
       if (error || st !== 'ativo') { setState('blocked'); return; }
       const { data: acc } = await db.from('routine_access').select('status, plano, premium_status, premium_fim').eq('user_id', user.id).single();
@@ -82,6 +83,14 @@ export default function RotinaApp() {
   const toggleTask = async (t: Task) => { await db.from('routine_tasks').update({ concluida: !t.concluida }).eq('id', t.id); load(); };
   const moveTomorrow = async (t: Task) => { await db.from('routine_tasks').update({ data: ymd(addDays(today, 1)) }).eq('id', t.id); load(); };
   const delTask = async (id: string) => { await db.from('routine_tasks').delete().eq('id', id); load(); };
+
+  const [qt, setQt] = useState('');
+  const addQuick = async () => {
+    if (!qt.trim()) return;
+    const { error } = await db.from('routine_tasks').insert({ titulo: qt.trim(), data: todayS, categoria: 'pessoal', prioridade: 'media' });
+    if (error) return toast.error(errMsg(error));
+    setQt(''); load();
+  };
 
   // ---- Hábitos
   const [nh, setNh] = useState('');
@@ -128,6 +137,12 @@ export default function RotinaApp() {
   const consistency = habits.length ? Math.round((weekHabitDone / (habits.length * elapsed)) * 100) : 0;
   const activeGoals = goals.filter(g => !g.concluida);
   const upcoming = useMemo(() => tasks.filter(t => t.data > todayS && !t.concluida).slice(0, 5), [tasks, todayS]);
+
+  const last14 = Array.from({ length: 14 }, (_, i) => ymd(subDays(today, 13 - i)));
+  const chartTasks = last14.map(d => ({ dia: format(new Date(d + 'T12:00'), 'dd/MM'), Concluídas: tasks.filter(t => t.data === d && t.concluida).length, Pendentes: tasks.filter(t => t.data === d && !t.concluida).length }));
+  const chartHabits = last14.map(d => ({ dia: format(new Date(d + 'T12:00'), 'dd/MM'), pct: habits.length ? Math.round(logs.filter(l => l.data === d && habits.some(h => h.id === l.habit_id)).length / habits.length * 100) : 0 }));
+  const chartCats = CATS.map(c => ({ name: CAT_LABEL[c], value: tasks.filter(t => t.categoria === c).length })).filter(x => x.value > 0);
+  const PIE = ['hsl(24 95% 53%)', 'hsl(32 98% 60%)', 'hsl(14 85% 50%)', 'hsl(40 95% 55%)'];
 
   const saveReview = async () => {
     const { error } = await db.from('routine_weekly_reviews').upsert({ semana_inicio: weekStartS, ...review }, { onConflict: 'user_id,semana_inicio' });
@@ -176,7 +191,7 @@ export default function RotinaApp() {
   );
 
   return (
-    <div className="min-h-[100dvh] bg-background">
+    <div className="rotina-theme min-h-[100dvh] bg-background">
       <header className="border-b border-border">
         <div className="max-w-4xl mx-auto px-5 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2 font-semibold"><CalendarCheck className="h-5 w-5 text-primary" />Invex Rotina</div>
@@ -199,6 +214,7 @@ export default function RotinaApp() {
             <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
             <TabsTrigger value="habitos">Hábitos</TabsTrigger>
             <TabsTrigger value="metas">Metas</TabsTrigger>
+            <TabsTrigger value="graficos">Gráficos</TabsTrigger>
             <TabsTrigger value="revisao">Revisão</TabsTrigger>
             <TabsTrigger value="plano">Plano</TabsTrigger>
           </TabsList>
@@ -215,6 +231,7 @@ export default function RotinaApp() {
               ))}
             </div>
             <Card title="Prioridades de hoje">
+              <div className="flex gap-2 mb-3"><Input className="text-base" placeholder="Nova tarefa de hoje..." value={qt} onChange={e => setQt(e.target.value)} onKeyDown={e => e.key === 'Enter' && addQuick()} /><Button onClick={addQuick} size="icon" aria-label="Adicionar tarefa de hoje"><Plus className="h-4 w-4" /></Button></div>
               {todayTasks.length === 0 && overdue.length === 0 ? <p className="text-sm text-muted-foreground">Nada para hoje. Adicione em Tarefas.</p> :
                 [...overdue, ...todayTasks].map(t => <TaskRow key={t.id} t={t} />)}
             </Card>
@@ -317,6 +334,24 @@ export default function RotinaApp() {
                 </div>
               </Card>
             ) : <Upgrade what="A revisão semanal com reflexão" />}
+          </TabsContent>
+
+          <TabsContent value="graficos" className="space-y-4 mt-4">
+            {premium ? (<>
+              <Card title="Tarefas – últimos 14 dias">
+                <div className="h-56"><ResponsiveContainer><BarChart data={chartTasks}><CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" /><XAxis dataKey="dia" fontSize={11} /><YAxis allowDecimals={false} fontSize={11} width={24} /><Tooltip />
+                  <Bar dataKey="Concluídas" stackId="a" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} /><Bar dataKey="Pendentes" stackId="a" fill="hsl(var(--muted-foreground) / 0.3)" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div>
+              </Card>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Card title="Hábitos cumpridos (%)">
+                  <div className="h-48"><ResponsiveContainer><LineChart data={chartHabits}><XAxis dataKey="dia" fontSize={11} /><YAxis domain={[0, 100]} fontSize={11} width={28} /><Tooltip /><Line type="monotone" dataKey="pct" name="%" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} /></LineChart></ResponsiveContainer></div>
+                </Card>
+                <Card title="Tarefas por categoria">
+                  {chartCats.length === 0 ? <p className="text-sm text-muted-foreground">Sem dados ainda.</p> :
+                  <div className="h-48"><ResponsiveContainer><PieChart><Pie data={chartCats} dataKey="value" nameKey="name" innerRadius={40} outerRadius={70} label>{chartCats.map((_, i) => <Cell key={i} fill={PIE[i % PIE.length]} />)}</Pie><Tooltip /></PieChart></ResponsiveContainer></div>}
+                </Card>
+              </div>
+            </>) : <Upgrade what="Os gráficos de desempenho" />}
           </TabsContent>
 
           <TabsContent value="plano" className="space-y-4 mt-4">
