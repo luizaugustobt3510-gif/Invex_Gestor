@@ -92,6 +92,13 @@
       "when": 1793298926172,
       "tag": "0012_routine_notes_reminders",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793300052828,
+      "tag": "0013_rotina_avatars_policies",
+      "breakpoints": true
     }
   ]
 }
