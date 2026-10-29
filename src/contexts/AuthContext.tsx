@@ -35,6 +35,8 @@ interface User {
   role: UserRole;
   companyId: string | null;
   mustChangePassword?: boolean;
+  /** false = conta pessoal (ex.: Invex Rotina) sem perfil no Invex Gestor */
+  hasGestorRole?: boolean;
 }
 
 interface AuthContextType {
@@ -73,6 +75,7 @@ async function loadUserProfile(supabaseUser: SupabaseUser): Promise<User | null>
     role: dbToUiRole[dbRole] || 'solicitante',
     companyId: roleData?.company_id || profile?.company_id || null,
     mustChangePassword: supabaseUser.user_metadata?.must_change_password === true,
+    hasGestorRole: !!roleData?.role,
   };
 }
 

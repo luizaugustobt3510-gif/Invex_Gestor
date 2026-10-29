@@ -20,6 +20,8 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
   if (user.mustChangePassword) return <Navigate to="/accept-invite?primeiro-acesso=1" replace />;
+  // Contas pessoais (Invex Rotina) nunca entram no Invex Gestor.
+  if (user.hasGestorRole === false) return <Navigate to="/rotina" replace />;
 
   return <>{children}</>;
 };

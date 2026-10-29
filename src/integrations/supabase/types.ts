@@ -3906,6 +3906,239 @@ export type Database = {
           },
         ]
       }
+      routine_access: {
+        Row: {
+          created_at: string
+          email: string | null
+          nome: string | null
+          observacao: string | null
+          origem: string
+          plano: string
+          premium_fim: string | null
+          premium_inicio: string | null
+          premium_status: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          nome?: string | null
+          observacao?: string | null
+          origem?: string
+          plano?: string
+          premium_fim?: string | null
+          premium_inicio?: string | null
+          premium_status?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          nome?: string | null
+          observacao?: string | null
+          origem?: string
+          plano?: string
+          premium_fim?: string | null
+          premium_inicio?: string | null
+          premium_status?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      routine_audit_logs: {
+        Row: {
+          acao: string
+          actor_id: string | null
+          created_at: string
+          detalhes: Json | null
+          id: string
+          target_user_id: string
+        }
+        Insert: {
+          acao: string
+          actor_id?: string | null
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+          target_user_id: string
+        }
+        Update: {
+          acao?: string
+          actor_id?: string | null
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+          target_user_id?: string
+        }
+        Relationships: []
+      }
+      routine_goals: {
+        Row: {
+          concluida: boolean
+          created_at: string
+          id: string
+          periodo: string
+          prazo: string | null
+          progresso: number
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          concluida?: boolean
+          created_at?: string
+          id?: string
+          periodo?: string
+          prazo?: string | null
+          progresso?: number
+          titulo: string
+          user_id?: string
+        }
+        Update: {
+          concluida?: boolean
+          created_at?: string
+          id?: string
+          periodo?: string
+          prazo?: string | null
+          progresso?: number
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      routine_habit_logs: {
+        Row: {
+          data: string
+          habit_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          data: string
+          habit_id: string
+          id?: string
+          user_id?: string
+        }
+        Update: {
+          data?: string
+          habit_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routine_habit_logs_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "routine_habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routine_habits: {
+        Row: {
+          ativo: boolean
+          categoria: string
+          created_at: string
+          id: string
+          nome: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          categoria?: string
+          created_at?: string
+          id?: string
+          nome: string
+          user_id?: string
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string
+          created_at?: string
+          id?: string
+          nome?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      routine_tasks: {
+        Row: {
+          categoria: string
+          concluida: boolean
+          created_at: string
+          data: string
+          descricao: string | null
+          horario: string | null
+          id: string
+          prioridade: string
+          recorrencia: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          categoria?: string
+          concluida?: boolean
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          horario?: string | null
+          id?: string
+          prioridade?: string
+          recorrencia?: string
+          titulo: string
+          user_id?: string
+        }
+        Update: {
+          categoria?: string
+          concluida?: boolean
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          horario?: string | null
+          id?: string
+          prioridade?: string
+          recorrencia?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      routine_weekly_reviews: {
+        Row: {
+          created_at: string
+          id: string
+          prioridades: string | null
+          realizacoes: string | null
+          reflexao: string | null
+          semana_inicio: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          prioridades?: string | null
+          realizacoes?: string | null
+          reflexao?: string | null
+          semana_inicio: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          prioridades?: string | null
+          realizacoes?: string | null
+          reflexao?: string | null
+          semana_inicio?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       saldo_sistema_importado: {
         Row: {
           company_id: string
@@ -5072,6 +5305,10 @@ export type Database = {
         Args: { _company_id: string; _module_key: string; _user_id: string }
         Returns: boolean
       }
+      routine_admin_grant: { Args: { _email: string }; Returns: string }
+      routine_has_access: { Args: { _uid: string }; Returns: boolean }
+      routine_is_premium: { Args: { _uid: string }; Returns: boolean }
+      routine_join: { Args: never; Returns: string }
       transfer_material_to_sector: {
         Args: {
           _company_id: string
