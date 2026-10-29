@@ -94,7 +94,7 @@ export function Rituais({ userKey }: { userKey: string }) {
   useEffect(() => { localStorage.setItem(kList, JSON.stringify(list)); }, [list, kList]);
   useEffect(() => { localStorage.setItem(kDone, JSON.stringify(done)); }, [done, kDone]);
 
-  const block = (k: keyof Ritual, title: string, Icon: typeof Sun) => {
+  const block = (k: keyof Ritual, title: string, Icon: typeof Sunrise) => {
     const items = list[k]; const n = items.filter(i => done[k + i]).length;
     return (
       <section className={box + ' space-y-3'}>
@@ -187,4 +187,3 @@ export function ExportWeekButton(p: { nome: string; semana: string; weekTasks: T
   return <Button variant="outline" onClick={run}><FileDown className="h-4 w-4 mr-1" />Baixar relatório em PDF</Button>;
 }
 
-function Sun(props: any) { return <Sunrise {...props} />; }
