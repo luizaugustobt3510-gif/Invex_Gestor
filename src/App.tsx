@@ -122,6 +122,9 @@ import HistoricoFolha from "./pages/folha/HistoricoFolha";
 import Changelog from "./pages/Changelog";
 import GestaoChangelog from "./pages/GestaoChangelog";
 import GestaoSuporte from "./pages/GestaoSuporte";
+import GestaoRotina from "./pages/GestaoRotina";
+import RotinaLogin from "./pages/rotina/RotinaLogin";
+import RotinaApp from "./pages/rotina/RotinaApp";
 import { ChangelogModal } from "./components/ChangelogModal";
 import Assinaturas from "./pages/Assinaturas";
 import Dispensacao from "./pages/Dispensacao";
@@ -302,6 +305,9 @@ const App = () => (
             <Route path="/folha/historico" element={<EmailRestrictedRoute allowedEmails={['teste@invex.com']}><RoleProtectedRoute allowedRoles={['admin', 'rh', 'financeiro']}><HistoricoFolha /></RoleProtectedRoute></EmailRestrictedRoute>} />
 
             <Route path="/changelog" element={<RoleProtectedRoute allowedRoles={['superadm', 'admin', 'solicitante', 'logistica', 'rh', 'financeiro', 'visualizador', 'usuario almox', 'manutencao', 'fitness', 'clinica']}><Changelog /></RoleProtectedRoute>} />
+            <Route path="/gestao-rotina" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoRotina /></RoleProtectedRoute>} />
+            <Route path="/rotina/entrar" element={<RotinaLogin />} />
+            <Route path="/rotina" element={<RotinaApp />} />
             <Route path="/gestao-suporte" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoSuporte /></RoleProtectedRoute>} />
             <Route path="/gestao-changelog" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoChangelog /></RoleProtectedRoute>} />
 
