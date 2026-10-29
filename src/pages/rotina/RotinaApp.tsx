@@ -305,18 +305,18 @@ export default function RotinaApp() {
 
       <main className="max-w-6xl mx-auto px-3 sm:px-5 py-4 sm:py-6 space-y-5 sm:space-y-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
         <div>
-          <h1 className="text-2xl font-semibold">Olá, {nome.split(' ')[0]}</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold truncate">Olá, {nome.split(' ')[0]}</h1>
           <p className="text-sm text-muted-foreground capitalize">{format(today, "EEEE, d 'de' MMMM", { locale: ptBR })}</p>
         </div>
 
         <Tabs defaultValue="hoje" orientation="vertical" className="md:flex md:gap-6">
-          <TabsList className="h-auto w-full md:w-48 md:shrink-0 flex md:flex-col justify-start md:items-stretch overflow-x-auto md:sticky md:top-4 md:self-start bg-muted/60 p-1.5 gap-1">
+          <TabsList className="h-auto w-full md:w-48 md:shrink-0 flex md:flex-col justify-start md:items-stretch overflow-x-auto md:sticky md:top-20 md:self-start bg-muted/60 p-1.5 gap-1 snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {([
               ['hoje', 'Hoje', Sun], ['tarefas', 'Tarefas', ListTodo], ['habitos', 'Hábitos', Repeat], ['metas', 'Metas', Target], ['foco', 'Foco', Timer], ['rituais', 'Rituais', Sunrise],
               ['lembretes', 'Lembretes', Bell], ['notas', 'Notas', StickyNote], ['graficos', 'Gráficos', BarChart3],
               ['revisao', 'Revisão', NotebookPen], ['perfil', 'Perfil', UserCircle],
             ] as const).map(([v, l, I]) => (
-              <TabsTrigger key={v} value={v} className="md:justify-start gap-2 px-3 py-2 shrink-0"><I className="h-4 w-4" />{l}</TabsTrigger>
+              <TabsTrigger key={v} value={v} className="md:justify-start gap-2 px-3 py-2.5 min-h-10 shrink-0 snap-start"><I className="h-4 w-4" />{l}</TabsTrigger>
             ))}
           </TabsList>
           <div className="flex-1 min-w-0">
@@ -519,7 +519,20 @@ export default function RotinaApp() {
           <TabsContent value="perfil" className="space-y-4 mt-4 md:mt-0">
             <Card title="Meus dados">
               <div className="space-y-2 max-w-md">
-                <p className="text-xs text-muted-foreground">E-mail: {email}</p>
+                <div className="flex items-center gap-4 pb-2">
+                  <div className="h-20 w-20 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0 border border-border">
+                    {avatar ? <img src={avatar} alt="Sua foto" className="h-full w-full object-cover" /> : <UserCircle className="h-10 w-10 text-muted-foreground" />}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button asChild variant="outline" size="sm" disabled={upAv}>
+                      <label className="cursor-pointer">{upAv ? 'Enviando...' : avatar ? 'Trocar foto' : 'Adicionar foto'}
+                        <input type="file" accept="image/*" className="hidden" onChange={e => { uploadAvatar(e.target.files?.[0]); e.target.value = ''; }} />
+                      </label>
+                    </Button>
+                    {avatar && <Button variant="ghost" size="sm" onClick={removeAvatar}>Remover</Button>}
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground break-all">E-mail: {email}</p>
                 <Input className="text-base" placeholder="Nome de usuário" value={pf.nome} onChange={e => setPf({ ...pf, nome: e.target.value })} />
                 <Button onClick={saveName}>Salvar nome</Button>
               </div>
