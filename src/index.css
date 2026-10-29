@@ -441,3 +441,10 @@ All colors MUST be HSL.
 @media (prefers-reduced-motion: reduce) {
   .login-blob { animation: none !important; }
 }
+
+.rotina-theme {
+  --primary: 24 95% 53%;
+  --primary-glow: 32 98% 60%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 24 95% 53%;
+}
