@@ -99,6 +99,13 @@
       "when": 1793300052828,
       "tag": "0013_rotina_avatars_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793301264426,
+      "tag": "0014_rotina_subscriptions",
+      "breakpoints": true
     }
   ]
 }

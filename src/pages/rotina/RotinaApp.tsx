@@ -16,6 +16,8 @@ import { ptBR } from 'date-fns/locale';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 import { FocoTimer, Rituais, useInsights, InsightsCard, ExportWeekButton } from './RotinaPremiumTools';
 import { FREE_LIMITS, isPremium, type RotinaAccess } from '@/lib/rotinaPlan';
+import { getPaddleEnvironment, openPremiumCheckout } from '@/lib/paddle';
+import { PaymentTestModeBanner } from '@/components/PaymentTestModeBanner';
 
 const db = supabase as any;
 const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
@@ -44,8 +46,19 @@ export default function RotinaApp() {
   const todayS = ymd(today);
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekStartS = ymd(weekStart);
-  const premium = isPremium(access, todayS);
+  const [sub, setSub] = useState<{ status: string; price_id: string; current_period_end: string | null; cancel_at_period_end: boolean | null } | null>(null);
+  const [subPremium, setSubPremium] = useState(false);
+  const premium = isPremium(access, todayS) || subPremium;
   const [uid, setUid] = useState('');
+
+  const loadSub = useCallback(async (id: string) => {
+    const [{ data: s }, { data: p }] = await Promise.all([
+      db.from('subscriptions').select('status, price_id, current_period_end, cancel_at_period_end')
+        .eq('user_id', id).eq('environment', getPaddleEnvironment()).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      db.rpc('routine_is_premium', { _uid: id }),
+    ]);
+    setSub(s || null); setSubPremium(!!p);
+  }, []);
 
   const load = useCallback(async () => {
     const [t, h, l, g, r] = await Promise.all([
@@ -69,9 +82,34 @@ export default function RotinaApp() {
       const { data: st, error } = await db.rpc('routine_join');
       if (error || st !== 'ativo') { setState('blocked'); return; }
       const { data: acc } = await db.from('routine_access').select('status, plano, premium_status, premium_fim').eq('user_id', user.id).single();
-      setAccess(acc); setState('ok'); load();
+      setAccess(acc); setState('ok'); load(); loadSub(user.id);
     })();
-  }, [navigate, load]);
+  }, [navigate, load, loadSub]);
+
+  // Depois do pagamento, o Premium chega em alguns segundos: verifica de novo algumas vezes.
+  useEffect(() => {
+    if (!uid || !new URLSearchParams(window.location.search).has('checkout')) return;
+    toast.success('Pagamento recebido! Liberando seu Premium...');
+    let n = 0;
+    const iv = setInterval(() => { loadSub(uid); if (++n >= 10) clearInterval(iv); }, 3000);
+    window.history.replaceState({}, '', '/rotina');
+    return () => clearInterval(iv);
+  }, [uid, loadSub]);
+
+  const [buying, setBuying] = useState(false);
+  const assinar = async (priceId: 'rotina_premium_mensal' | 'rotina_premium_anual') => {
+    if (!uid) return;
+    setBuying(true);
+    try { await openPremiumCheckout({ priceId, userId: uid, email: email || undefined }); }
+    catch { toast.error('Não foi possível abrir o pagamento. Tente de novo.'); }
+    finally { setBuying(false); }
+  };
+  const gerenciar = async () => {
+    const w = window.open('', '_blank');
+    const { data, error } = await supabase.functions.invoke('rotina-portal', { body: { environment: getPaddleEnvironment() } });
+    if (error || !data?.url) { w?.close(); return toast.error('Não foi possível abrir a gestão da assinatura.'); }
+    if (w) w.location.href = data.url; else window.location.href = data.url;
+  };
 
   const logout = async () => { await supabase.auth.signOut(); navigate('/rotina/entrar'); };
 
@@ -284,12 +322,14 @@ export default function RotinaApp() {
     <div className="rounded-2xl border border-primary/30 bg-primary/5 p-6 text-center space-y-2">
       <Sparkles className="h-6 w-6 text-primary mx-auto" />
       <p className="font-medium">{what} é Premium</p>
-      <p className="text-sm text-muted-foreground">Fale com a equipe Invex para ativar o Premium. Seus dados ficam guardados.</p>
+      <p className="text-sm text-muted-foreground">Experimente 3 dias grátis. Depois, R$ 25,90/mês.</p>
+      <Button disabled={buying} onClick={() => assinar('rotina_premium_mensal')}>Começar teste grátis</Button>
     </div>
   );
 
   return (
     <div className="rotina-theme min-h-[100dvh] bg-background overflow-x-hidden">
+      <PaymentTestModeBanner />
       <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur pt-[env(safe-area-inset-top)]">
         <div className="max-w-6xl mx-auto px-3 sm:px-5 h-14 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 font-semibold min-w-0"><CalendarCheck className="h-5 w-5 text-primary shrink-0" /><span className="truncate">Invex Rotina</span></div>
@@ -546,9 +586,18 @@ export default function RotinaApp() {
             </Card>
             <h2 className="text-sm font-semibold pt-2">Gestão do plano</h2>
             <Card title="Seu plano">
-              <p className="text-sm">Plano atual: <strong>{premium ? 'Premium' : 'Gratuito'}</strong></p>
-              {access?.premium_fim && <p className="text-sm text-muted-foreground">Válido até {format(new Date(access.premium_fim + 'T12:00'), 'dd/MM/yyyy')}</p>}
-              {access?.premium_status === 'expirado' && <p className="text-sm text-destructive mt-1">Seu Premium expirou.</p>}
+              <p className="text-sm">Plano atual: <strong>{premium ? 'Premium' : 'Gratuito'}</strong>
+                {sub && premium && <span className="text-muted-foreground"> · {sub.price_id === 'rotina_premium_anual' ? 'anual' : 'mensal'}{sub.status === 'trialing' ? ' (teste grátis)' : ''}</span>}</p>
+              {sub?.current_period_end && premium && (
+                <p className="text-sm text-muted-foreground">
+                  {sub.status === 'canceled' || sub.cancel_at_period_end ? 'Cancelada — Premium até ' : sub.status === 'trialing' ? 'Primeira cobrança em ' : 'Renova em '}
+                  {format(new Date(sub.current_period_end), 'dd/MM/yyyy')}
+                </p>
+              )}
+              {sub?.status === 'past_due' && <p className="text-sm text-destructive mt-1">Não conseguimos cobrar seu cartão. Atualize a forma de pagamento.</p>}
+              {!sub && access?.premium_fim && <p className="text-sm text-muted-foreground">Válido até {format(new Date(access.premium_fim + 'T12:00'), 'dd/MM/yyyy')}</p>}
+              {access?.premium_status === 'expirado' && !premium && <p className="text-sm text-destructive mt-1">Seu Premium expirou.</p>}
+              {sub && <Button variant="outline" className="mt-3 w-full sm:w-auto" onClick={gerenciar}>Gerenciar assinatura (trocar plano, cartão ou cancelar)</Button>}
             </Card>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="rounded-2xl border border-border p-5 space-y-2">
@@ -557,8 +606,14 @@ export default function RotinaApp() {
               </div>
               <div className="rounded-2xl border border-primary p-5 space-y-2">
                 <p className="font-semibold flex items-center gap-1"><Sparkles className="h-4 w-4 text-primary" />Premium</p>
-                <ul className="text-sm text-muted-foreground space-y-1"><li>Hábitos e metas ilimitados</li><li>Revisão semanal com reflexão</li><li>Planejamento da próxima semana</li></ul>
-                {!premium && <p className="text-xs text-muted-foreground pt-2">Pagamento online em breve. Por enquanto, a equipe Invex ativa para você.</p>}
+                <ul className="text-sm text-muted-foreground space-y-1"><li>Hábitos e metas ilimitados</li><li>Gráficos, foco e rituais</li><li>Revisão semanal com reflexão</li></ul>
+                {!premium && (
+                  <div className="space-y-2 pt-2">
+                    <p className="text-xs text-muted-foreground">3 dias grátis. Cancele quando quiser.</p>
+                    <Button className="w-full h-11" disabled={buying} onClick={() => assinar('rotina_premium_mensal')}>Assinar mensal · R$ 25,90/mês</Button>
+                    <Button variant="outline" className="w-full h-11" disabled={buying} onClick={() => assinar('rotina_premium_anual')}>Assinar anual · R$ 259,00/ano</Button>
+                  </div>
+                )}
               </div>
             </div>
           </TabsContent>
