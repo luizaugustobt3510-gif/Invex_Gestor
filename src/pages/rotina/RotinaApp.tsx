@@ -584,9 +584,18 @@ export default function RotinaApp() {
             </Card>
             <h2 className="text-sm font-semibold pt-2">Gestão do plano</h2>
             <Card title="Seu plano">
-              <p className="text-sm">Plano atual: <strong>{premium ? 'Premium' : 'Gratuito'}</strong></p>
-              {access?.premium_fim && <p className="text-sm text-muted-foreground">Válido até {format(new Date(access.premium_fim + 'T12:00'), 'dd/MM/yyyy')}</p>}
-              {access?.premium_status === 'expirado' && <p className="text-sm text-destructive mt-1">Seu Premium expirou.</p>}
+              <p className="text-sm">Plano atual: <strong>{premium ? 'Premium' : 'Gratuito'}</strong>
+                {sub && premium && <span className="text-muted-foreground"> · {sub.price_id === 'rotina_premium_anual' ? 'anual' : 'mensal'}{sub.status === 'trialing' ? ' (teste grátis)' : ''}</span>}</p>
+              {sub?.current_period_end && premium && (
+                <p className="text-sm text-muted-foreground">
+                  {sub.status === 'canceled' || sub.cancel_at_period_end ? 'Cancelada — Premium até ' : sub.status === 'trialing' ? 'Primeira cobrança em ' : 'Renova em '}
+                  {format(new Date(sub.current_period_end), 'dd/MM/yyyy')}
+                </p>
+              )}
+              {sub?.status === 'past_due' && <p className="text-sm text-destructive mt-1">Não conseguimos cobrar seu cartão. Atualize a forma de pagamento.</p>}
+              {!sub && access?.premium_fim && <p className="text-sm text-muted-foreground">Válido até {format(new Date(access.premium_fim + 'T12:00'), 'dd/MM/yyyy')}</p>}
+              {access?.premium_status === 'expirado' && !premium && <p className="text-sm text-destructive mt-1">Seu Premium expirou.</p>}
+              {sub && <Button variant="outline" className="mt-3 w-full sm:w-auto" onClick={gerenciar}>Gerenciar assinatura (trocar plano, cartão ou cancelar)</Button>}
             </Card>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="rounded-2xl border border-border p-5 space-y-2">
@@ -595,8 +604,14 @@ export default function RotinaApp() {
               </div>
               <div className="rounded-2xl border border-primary p-5 space-y-2">
                 <p className="font-semibold flex items-center gap-1"><Sparkles className="h-4 w-4 text-primary" />Premium</p>
-                <ul className="text-sm text-muted-foreground space-y-1"><li>Hábitos e metas ilimitados</li><li>Revisão semanal com reflexão</li><li>Planejamento da próxima semana</li></ul>
-                {!premium && <p className="text-xs text-muted-foreground pt-2">Pagamento online em breve. Por enquanto, a equipe Invex ativa para você.</p>}
+                <ul className="text-sm text-muted-foreground space-y-1"><li>Hábitos e metas ilimitados</li><li>Gráficos, foco e rituais</li><li>Revisão semanal com reflexão</li></ul>
+                {!premium && (
+                  <div className="space-y-2 pt-2">
+                    <p className="text-xs text-muted-foreground">3 dias grátis. Cancele quando quiser.</p>
+                    <Button className="w-full h-11" disabled={buying} onClick={() => assinar('rotina_premium_mensal')}>Assinar mensal · R$ 25,90/mês</Button>
+                    <Button variant="outline" className="w-full h-11" disabled={buying} onClick={() => assinar('rotina_premium_anual')}>Assinar anual · R$ 259,00/ano</Button>
+                  </div>
+                )}
               </div>
             </div>
           </TabsContent>
