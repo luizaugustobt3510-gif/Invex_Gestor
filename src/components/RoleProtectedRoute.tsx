@@ -26,6 +26,8 @@ export const RoleProtectedRoute = ({ children, allowedRoles, moduleKey, submodul
     return <Navigate to="/login" replace />;
   }
   if (user.mustChangePassword) return <Navigate to="/accept-invite?primeiro-acesso=1" replace />;
+  // Contas pessoais (Invex Rotina) nunca entram no Invex Gestor.
+  if (user.hasGestorRole === false) return <Navigate to="/rotina" replace />;
 
   // If a moduleKey is provided, granting that module via user_module_permissions
   // bypasses the role check (granted module = full access). Otherwise, role gates.
