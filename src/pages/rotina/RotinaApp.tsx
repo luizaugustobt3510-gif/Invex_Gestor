@@ -10,10 +10,11 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { CalendarCheck, LogOut, Plus, Trash2, Sparkles, Lock, Flame, Sun, ListTodo, Repeat, Target, BarChart3, NotebookPen, Bell, StickyNote, UserCircle } from 'lucide-react';
+import { CalendarCheck, LogOut, Plus, Trash2, Sparkles, Lock, Flame, Sun, ListTodo, Repeat, Target, BarChart3, NotebookPen, Bell, StickyNote, UserCircle, Timer, Sunrise } from 'lucide-react';
 import { format, startOfWeek, addDays, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
+import { FocoTimer, Rituais, useInsights, InsightsCard, ExportWeekButton } from './RotinaPremiumTools';
 import { FREE_LIMITS, isPremium, type RotinaAccess } from '@/lib/rotinaPlan';
 
 const db = supabase as any;
@@ -44,6 +45,7 @@ export default function RotinaApp() {
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekStartS = ymd(weekStart);
   const premium = isPremium(access, todayS);
+  const [uid, setUid] = useState('');
 
   const load = useCallback(async () => {
     const [t, h, l, g, r] = await Promise.all([
@@ -62,6 +64,7 @@ export default function RotinaApp() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate('/rotina/entrar', { replace: true }); return; }
+      setUid(user.id);
       setNome(user.user_metadata?.full_name || user.user_metadata?.name || user.user_metadata?.nome || user.email?.split('@')[0] || '');
       const { data: st, error } = await db.rpc('routine_join');
       if (error || st !== 'ativo') { setState('blocked'); return; }
@@ -202,6 +205,7 @@ export default function RotinaApp() {
   const weekHabitDone = logs.filter(l => weekDays.includes(l.data) && l.data <= todayS).length;
   const elapsed = weekDays.filter(d => d <= todayS).length;
   const consistency = habits.length ? Math.round((weekHabitDone / (habits.length * elapsed)) * 100) : 0;
+  const insights = useInsights(weekTasks, consistency, habits.length);
   const activeGoals = goals.filter(g => !g.concluida);
   const upcoming = useMemo(() => tasks.filter(t => t.data > todayS && !t.concluida).slice(0, 5), [tasks, todayS]);
 
@@ -278,7 +282,7 @@ export default function RotinaApp() {
         <Tabs defaultValue="hoje" orientation="vertical" className="md:flex md:gap-6">
           <TabsList className="h-auto w-full md:w-48 md:shrink-0 flex md:flex-col justify-start md:items-stretch overflow-x-auto md:sticky md:top-4 md:self-start bg-muted/60 p-1.5 gap-1">
             {([
-              ['hoje', 'Hoje', Sun], ['tarefas', 'Tarefas', ListTodo], ['habitos', 'Hábitos', Repeat], ['metas', 'Metas', Target],
+              ['hoje', 'Hoje', Sun], ['tarefas', 'Tarefas', ListTodo], ['habitos', 'Hábitos', Repeat], ['metas', 'Metas', Target], ['foco', 'Foco', Timer], ['rituais', 'Rituais', Sunrise],
               ['lembretes', 'Lembretes', Bell], ['notas', 'Notas', StickyNote], ['graficos', 'Gráficos', BarChart3],
               ['revisao', 'Revisão', NotebookPen], ['perfil', 'Perfil', UserCircle],
             ] as const).map(([v, l, I]) => (
@@ -402,6 +406,17 @@ export default function RotinaApp() {
                 </div>
               </Card>
             ) : <Upgrade what="A revisão semanal com reflexão" />}
+            {premium ? (<>
+              <InsightsCard insights={insights.list} />
+              <ExportWeekButton nome={nome} semana={format(weekStart, 'dd/MM/yyyy')} weekTasks={weekTasks} consistency={consistency} insights={insights.list} review={review} />
+            </>) : <Upgrade what="Insights e relatório em PDF" />}
+          </TabsContent>
+
+          <TabsContent value="foco" className="space-y-4 mt-4 md:mt-0">
+            {premium ? <FocoTimer tasks={tasks.filter(t => !t.concluida && t.data <= todayS)} /> : <Upgrade what="O modo foco (Pomodoro)" />}
+          </TabsContent>
+          <TabsContent value="rituais" className="space-y-4 mt-4 md:mt-0">
+            {premium ? (uid && <Rituais userKey={uid} />) : <Upgrade what="Os rituais da manhã e da noite" />}
           </TabsContent>
 
           <TabsContent value="graficos" className="space-y-4 mt-4 md:mt-0">
