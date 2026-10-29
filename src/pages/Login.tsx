@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
 import invexLogo from '@/assets/invex-logo.png';
+import rotinaPromo from '@/assets/rotina-promo.jpg';
 
 type AuthMethods = { email: boolean; google: boolean; microsoft: boolean };
 const DEFAULT_METHODS: AuthMethods = { email: true, google: false, microsoft: false };
@@ -271,6 +272,22 @@ const Login = () => {
           O acesso é liberado manualmente pelo administrador.
         </p>
       </div>
+
+      <a
+        href="/rotina/entrar"
+        onClick={(e) => { e.preventDefault(); navigate('/rotina/entrar'); }}
+        className="group relative z-10 mt-5 w-full max-w-xl flex items-center gap-3 rounded-2xl border border-border bg-card/80 backdrop-blur px-3 py-2 shadow-sm transition hover:shadow-md hover:-translate-y-0.5"
+        aria-label="Experimente o Invex Rotina"
+      >
+        <img src={rotinaPromo} alt="Invex Rotina" loading="lazy" width={992} height={672} className="h-12 w-[72px] shrink-0 rounded-lg object-cover bg-background" />
+        <div className="min-w-0 flex-1 text-left">
+          <p className="text-sm font-semibold text-foreground leading-tight">Conheça o Invex Rotina</p>
+          <p className="text-xs text-muted-foreground truncate">Organize tarefas, hábitos e metas. Comece grátis.</p>
+        </div>
+        <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-[hsl(24_95%_53%)] px-3 py-1.5 text-xs font-medium text-primary-foreground">
+          Experimentar <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
+        </span>
+      </a>
 
       <p className="login-footer relative z-10 mt-6 text-center text-[10px] tracking-wide">
         Invex Gestor Soluções - IGS®
