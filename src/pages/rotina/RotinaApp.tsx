@@ -322,12 +322,14 @@ export default function RotinaApp() {
     <div className="rounded-2xl border border-primary/30 bg-primary/5 p-6 text-center space-y-2">
       <Sparkles className="h-6 w-6 text-primary mx-auto" />
       <p className="font-medium">{what} é Premium</p>
-      <p className="text-sm text-muted-foreground">Fale com a equipe Invex para ativar o Premium. Seus dados ficam guardados.</p>
+      <p className="text-sm text-muted-foreground">Experimente 3 dias grátis. Depois, R$ 25,90/mês.</p>
+      <Button disabled={buying} onClick={() => assinar('rotina_premium_mensal')}>Começar teste grátis</Button>
     </div>
   );
 
   return (
     <div className="rotina-theme min-h-[100dvh] bg-background overflow-x-hidden">
+      <PaymentTestModeBanner />
       <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur pt-[env(safe-area-inset-top)]">
         <div className="max-w-6xl mx-auto px-3 sm:px-5 h-14 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 font-semibold min-w-0"><CalendarCheck className="h-5 w-5 text-primary shrink-0" /><span className="truncate">Invex Rotina</span></div>
