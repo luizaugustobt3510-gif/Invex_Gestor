@@ -1,0 +1,2144 @@
+{
+  "meta": {
+    "name": "Invexgestor",
+    "package": "@ws-wjcwdgtnuamsophyvkzm/038ffcd6-e981-4b0d-9363-50b8330243a1",
+    "version": "1.0.0",
+    "framework": "react",
+    "css_framework": "tailwind",
+    "starter_template": "custom_design_system_tailwind",
+    "theme_files": [
+      "src/index.css"
+    ],
+    "source_type": "local",
+    "source_manifest": {
+      "#enrichment": "20a3cdcde3892de17d0d0875a8d02d09a5697bc3d1335a2d6a69de1d3302ea89",
+      ".gitignore": "d9566700e8535935d03c1583474d790c",
+      ".lovable/plan/mapas-anatômicos-configuráveis-2026-09-20.md": "ea31c6bdf2780d30f7530d4f949b7827",
+      ".lovable/plan/área-de-downloads-no-site-do-invex-2026-09-04.md": "b4a5c11858d97a85244e871f3cad5803",
+      "AGENTS.md": "bf25b67b20555bd2136e661faa57aac6",
+      "README.md": "21e6630de53cc1e8df4c4c18c6f9f259",
+      "components.json": "a547944ace00dc5d5373aaca70a40bc4",
+      "drizzle.config.ts": "c2b6029fa56b49433380b7263b06e3f7",
+      "drizzle/migrations/0000_scope_roles_by_company_and_finance_writes.sql": "d1d45ebc29b5d67ce0fc625589dd4f44",
+      "drizzle/migrations/0001_create_anatomical_regions.sql": "a1ad31c2859d7bf072c3986eb840adc2",
+      "drizzle/migrations/0002_create_anatomical_maps.sql": "44c9c81fc255b56378e4e4b06dc19b15",
+      "drizzle/migrations/0003_anatomical_maps_storage_policies.sql": "3de3c9019aa983b946dd3c3d6caceb47",
+      "drizzle/migrations/0004_user_signatures_linked_user.sql": "85fc04733aa0d436250605923e5f790d",
+      "drizzle/migrations/0005_restrict_fitness_achievements_read.sql": "4b12fd5299bec434186bc0301cd4314f",
+      "drizzle/migrations/0006_sector_members_admin.sql": "64e022e721f3f99eefcdd16620bdea2c",
+      "drizzle/migrations/0007_block_materials_for_blocked_companies.sql": "b1c0f23755518e57d858a570ef8eb706",
+      "drizzle/migrations/0008_add_patient_mother_name.sql": "f15e9afcea210c6da9f065e8dff1f205",
+      "drizzle/migrations/0009_create_anatomical_categories.sql": "918b8463bfad33f65d5c6168f900892d",
+      "drizzle/migrations/0010_map_region_color.sql": "933491d77a0873fefd2aa6b707592f82",
+      "drizzle/migrations/0011_create_support_center.sql": "84f04fa29bd6fc7a7a5f95cb5430fd36",
+      "drizzle/migrations/0012_routine_notes_reminders.sql": "ef412dde288dfd66af976d27ee496120",
+      "drizzle/migrations/0013_rotina_avatars_policies.sql": "0fd24e020da121ddbf5b6798c09d13fd",
+      "drizzle/migrations/0014_rotina_subscriptions.sql": "1c6e2ef21350e41f54c2b94e200502ba",
+      "drizzle/migrations/meta/0000_snapshot.json": "6ef79434f3d404343ae5b70fbbd8069a",
+      "drizzle/migrations/meta/0001_snapshot.json": "2524b2ea4ccfa6e98abebebe20bf964f",
+      "drizzle/migrations/meta/0002_snapshot.json": "551c8dcf9eaa2776f41d942e2190dae1",
+      "drizzle/migrations/meta/0003_snapshot.json": "f593afb33183d3610330d85aa2dcff67",
+      "drizzle/migrations/meta/0004_snapshot.json": "97f060d3be3c290a937f577c2d217f18",
+      "drizzle/migrations/meta/0005_snapshot.json": "f986b01c8ae4e1773d13a0a0770e658f",
+      "drizzle/migrations/meta/0006_snapshot.json": "f9e9188f2a249c152a90b07705fb4d7e",
+      "drizzle/migrations/meta/0007_snapshot.json": "c6629a137907dfb6018324f960862197",
+      "drizzle/migrations/meta/0008_snapshot.json": "64718f1f07f8c88ad9d3702d12a4e4eb",
+      "drizzle/migrations/meta/0009_snapshot.json": "bfa0d428e2dc10bc119b646ad6423f4d",
+      "drizzle/migrations/meta/0010_snapshot.json": "3f7e8905ea4e1badacd2eb1a3caf2a80",
+      "drizzle/migrations/meta/0011_snapshot.json": "0554c52e7218620fa1ffc4b43ef862e1",
+      "drizzle/migrations/meta/0012_snapshot.json": "cce72d8484ceb36acc279d0185e48498",
+      "drizzle/migrations/meta/0013_snapshot.json": "78eb9e408b7ef758db498ebdacf18b23",
+      "drizzle/migrations/meta/0014_snapshot.json": "34acbabcfc886bacd129b7340fdbf8a4",
+      "drizzle/migrations/meta/_journal.json": "78103773ae77b2734f41f5bb61e983bc",
+      "drizzle/schema.ts": "a60267d05d7dd11572f02686241f37c6",
+      "eslint.config.js": "31c0881fdd8500aa4d0aa963079713ae",
+      "index.html": "6849c53a0ec7f0f7ddd922aaa605e779",
+      "package.json": "8bd136268dffebc9d256d48b80643941",
+      "postcss.config.js": "c735540bb63936a123bc867d950c9f69",
+      "public/favicon.png": "d5bdaddb8e97de8a8af2f8d42b9f9561",
+      "public/placeholder.svg": "35707bd9960ba5281c72af927b79291f",
+      "public/robots.txt": "f9dff89adf98833e676de2205921996a",
+      "roadmap.md": "d969d5377afdd6a6ec6d98289a54f06a",
+      "src/App.css": "3061aee6b63300763d91be8ff5432a42",
+      "src/App.tsx": "2fc57ba43a121f4601811ecd71ae94bf",
+      "src/assets/fitness-avatars/aria.png": "ad3dc73d63599da97eae258fb8c6a388",
+      "src/assets/fitness-avatars/jax.png": "402a120f4909a4ecb14c62807819e83a",
+      "src/assets/fitness-avatars/kai.png": "7e94d16050e648a331b7fa7c373bcee2",
+      "src/assets/fitness-avatars/luna.png": "83d65f1bbfc8083df30a27454c7b7288",
+      "src/assets/fitness-avatars/mei.png": "805c02e134d8b6164dc9e002be61185b",
+      "src/assets/fitness-avatars/nina.png": "90bc980d049f95893663e1adedc100a1",
+      "src/assets/fitness-avatars/rex.png": "78ec05a0f735c53e62e5f74caf5ba404",
+      "src/assets/fitness-avatars/zen.png": "2d10f52907d5a1b231950cc96ece8096",
+      "src/assets/invex-icon.png": "5a2b3ddcc2c9a1ef79b5bebffec8fe1f",
+      "src/assets/invex-logo.png": "0dac062ba91f3b21beca32bd9cfb56ac",
+      "src/assets/rotina-promo.jpg": "9cbbfec261540fa20592426f47fd63a2",
+      "src/components/AppSidebar.tsx": "3c0b048d9ff3d2c7eaa5e6314254acf2",
+      "src/components/ChangelogModal.tsx": "db12b0e8875e97d6ea44dd351dace3d5",
+      "src/components/DocumentSignaturePicker.tsx": "617c3ac3ea8cc89091afa49074d1b463",
+      "src/components/EditMaterialDialog.tsx": "b26f56d1421cec763ecca7a565f5e55b",
+      "src/components/EmailRestrictedRoute.tsx": "6080af713f35ab17d6dca3f5784994f6",
+      "src/components/EquipeSetorDialog.tsx": "9773d52084112bd64e5c403d3ab57868",
+      "src/components/FaturaDialog.tsx": "3de5439d82d72df19429ead07fc1a34f",
+      "src/components/FitnessProtectedRoute.tsx": "dee7f1b3d23080733675582851fb6474",
+      "src/components/InventoryTable.tsx": "83c3aafb5db6ee1ae98af64cb97dbc09",
+      "src/components/InvexLogo.tsx": "fd2ef8ca2e84e507f191a5008037f485",
+      "src/components/MainLayout.tsx": "ff8faedba1c151977fc01e9fee588a35",
+      "src/components/PaymentTestModeBanner.tsx": "2afd466dbc12a37a837d116383569634",
+      "src/components/ProtectedRoute.tsx": "80735ae67cca618e731e3700b159bedb",
+      "src/components/PublicCommerceFooter.tsx": "70ad2697c1e5b1683a87d9b909255bc0",
+      "src/components/RoleProtectedRoute.tsx": "77e6f5196af3250efd8c744259625b3d",
+      "src/components/SignaturePad.tsx": "3437c2a9c0d1f293c63f549867a7010a",
+      "src/components/StatsCard.tsx": "0833b44ae2f48c43e52a363a2bce0f6d",
+      "src/components/StockUpdateDialog.tsx": "09152b252d440a99552c1192bfc8267b",
+      "src/components/SupportWidget.tsx": "74d69522d38baafd70f0e1d0a7f589a0",
+      "src/components/charts/CurvaABCChart.tsx": "906723a420e629a12ed9f212ddae4858",
+      "src/components/charts/MovementsChart.tsx": "6e7c00d19208e87a64225c6836dbc4c7",
+      "src/components/charts/ProductValueChart.tsx": "f35c8f6efe19808b496414675bd21c77",
+      "src/components/charts/StatusDistributionChart.tsx": "ebd4516806407a912e69359e45e7bd50",
+      "src/components/charts/StockEvolutionChart.tsx": "3eecb74afe83e9dec3347314f09b91c6",
+      "src/components/clinica/MapasAnatomicos.tsx": "b36adec47a7fcae4827e23a43bf3a987",
+      "src/components/clinica/SeletorAnatomico.tsx": "a8020aaea30d004d44ca06eb3557843d",
+      "src/components/clinica/anatomyMaps.ts": "69ad55acf1fa2964ab410c4430da8a63",
+      "src/components/fitness/AvatarMascote.tsx": "c86370e57b2d921f0760ba60a0e42204",
+      "src/components/fitness/DialogBalloons.tsx": "ee3c8c2faf69a49b9d12e6c02d271470",
+      "src/components/fitness/FitnessCard.tsx": "36446edb97261c939f70fae7ea30e516",
+      "src/components/fitness/FitnessLayout.tsx": "4e3429e3e84ae3d4d415471049dea09b",
+      "src/components/fitness/RemindersCard.tsx": "77b8f285c87c40ea8568460d9313295f",
+      "src/components/fitness/Speedometer.tsx": "2ae34276ebcdb5cf3bca29904da4fc16",
+      "src/components/fitness/XPBar.tsx": "915036f0b1807b4232985090013fa962",
+      "src/components/insights/InsightCard.tsx": "b906e4b1e166f587a97ec85161fcab63",
+      "src/components/insights/InsightsPanel.tsx": "8968f840d1da2d74b2053c2ea9937fab",
+      "src/components/insights/generateFinanceiroInsights.ts": "489ed787c9edee63103b588165e430e6",
+      "src/components/insights/generateLogisticaInsights.ts": "7752480d711374616953f1f746b083b4",
+      "src/components/insights/generateRHInsights.ts": "42905f7fd1ebb597cbfe3814b30d28ae",
+      "src/components/insights/generateVendasInsights.ts": "cd1b9839e74df85136988d4d325dcad8",
+      "src/components/insights/types.ts": "484ff18ec7b4b4c3752789987172f964",
+      "src/components/rh/AlertActionSheet.tsx": "60a61ccafdd502f18dae3d32847c6da1",
+      "src/components/rh/AtestadosAnalytics.tsx": "5a753287be32e0342f7246e853559239",
+      "src/components/ui/accordion.tsx": "f9ebb6ee913b44e5f3e06fe1d9679784",
+      "src/components/ui/alert-dialog.tsx": "2ee6c5e5e070315114319bc060d17a52",
+      "src/components/ui/alert.tsx": "354d0206f924d48bcebbb023c3940a6b",
+      "src/components/ui/aspect-ratio.tsx": "c5c364545e1b25a94e9e752cd67ad048",
+      "src/components/ui/avatar.tsx": "53921dca0903c74cd72fada89388d9f8",
+      "src/components/ui/badge.tsx": "b0f5a6c23402a0e2f69d99b8715bc535",
+      "src/components/ui/breadcrumb.tsx": "c200fc41e9b214ebb6ccd19a300c42c5",
+      "src/components/ui/button.tsx": "b59f5a3c54b63cf3ea4eb2523151f617",
+      "src/components/ui/calendar.tsx": "1da7a387f28cdb11722da319c0295a6c",
+      "src/components/ui/card.tsx": "202402023747c80d975f48b906e6eb1b",
+      "src/components/ui/carousel.tsx": "63a7442a3088b58113c8a8cfc1defe26",
+      "src/components/ui/chart.tsx": "70646254c7f222e102649f02b97cc433",
+      "src/components/ui/checkbox.tsx": "cb12d2f3410761f7a678add95c90ac5d",
+      "src/components/ui/collapsible.tsx": "934b00582dae08af749fb55469081de6",
+      "src/components/ui/command.tsx": "e911f182b4136a63c601c3fc48b2e9c7",
+      "src/components/ui/context-menu.tsx": "9b8e8efdf0456cd542e32d341b071cac",
+      "src/components/ui/dialog.tsx": "fc3a9626ba52435552c93ac3a74374ec",
+      "src/components/ui/drawer.tsx": "05e2b536fe11649e9b4c6e73678e32a6",
+      "src/components/ui/dropdown-menu.tsx": "f308eb98a2e21bf8bd1e30dbcb741dc0",
+      "src/components/ui/form.tsx": "4bb820d59aad3ee5bc78097596298ace",
+      "src/components/ui/hover-card.tsx": "f77f80ed64ff8f3549e5d7e9d837e08e",
+      "src/components/ui/input-otp.tsx": "3fb5994635434d5168bee869689fc2aa",
+      "src/components/ui/input.tsx": "b8279d768c2a1ce78a05a369a0502877",
+      "src/components/ui/label.tsx": "cd2b2255bbe519cb0865dfeaa6615797",
+      "src/components/ui/menubar.tsx": "163c3fa58a2b4ea2caa00166f4d862c7",
+      "src/components/ui/navigation-menu.tsx": "77e94b0c299d10c3763d2755bf556916",
+      "src/components/ui/pagination.tsx": "a3ced9f9b19826b467d788b1bf01746f",
+      "src/components/ui/popover.tsx": "c056d22288a642b756b77c7691ad4532",
+      "src/components/ui/progress.tsx": "9a8b05beca19e008a562a10e489f5968",
+      "src/components/ui/radio-group.tsx": "3773798b5b2f334a5db0dc9c8d06f1b8",
+      "src/components/ui/resizable.tsx": "ec681e92cbe705b5571ded11b5227a2a",
+      "src/components/ui/scroll-area.tsx": "cfbc224001af0e6daba676de225a2a47",
+      "src/components/ui/select.tsx": "25de64d0126624cbd8efa50cfb64bd21",
+      "src/components/ui/separator.tsx": "ed1101f185e9dc801712593e3330a75d",
+      "src/components/ui/sheet.tsx": "3660be09e2e40467a22fd46b354c1b50",
+      "src/components/ui/sidebar.tsx": "9eab1256b1ffe3f1336eebfd07b319c9",
+      "src/components/ui/skeleton.tsx": "c55f76f4faa1d6e888dbc51d41eaa586",
+      "src/components/ui/slider.tsx": "e3bf7b6116ddbdbe8c7b3597d07daee0",
+      "src/components/ui/sonner.tsx": "88644703cc00886c56e0e3b7df0e21d8",
+      "src/components/ui/switch.tsx": "eccd8c41c46e782eaaa1f8be0111e089",
+      "src/components/ui/table.tsx": "d0ff87c4734c23839337811378ad07df",
+      "src/components/ui/tabs.tsx": "26b15e1ffce0f831be4da95b8f8a43df",
+      "src/components/ui/textarea.tsx": "29ab470ee59e9da5070d4fba251bce81",
+      "src/components/ui/toast.tsx": "7c08b5cb6026058514672a4ebc53847e",
+      "src/components/ui/toaster.tsx": "1903846ab268620de6356ef667e3fa21",
+      "src/components/ui/toggle-group.tsx": "e82bf234e3877ad708ea3d1dba614def",
+      "src/components/ui/toggle.tsx": "ff7a7deebff23c3488e79ad72ee47e4b",
+      "src/components/ui/tooltip.tsx": "d7e923341b9e91d77db45ba5f2fa0cf9",
+      "src/components/ui/use-toast.ts": "4f094014a1315ca1081cbdc7f78d55cc",
+      "src/config/companyTypeTemplates.ts": "0f49e03c92f431f2ce30cc3a4c5d3c62",
+      "src/config/modules.ts": "ac3227bd37dfbec2dfa1dc90af66b3bc",
+      "src/config/rolePresets.test.ts": "7ce79b14204d05a50dd5000e0fc1c5f8",
+      "src/config/rolePresets.ts": "5ab878e608117e98c4ca8914f571e8c3",
+      "src/contexts/AuthContext.tsx": "01772edfed8beb2e938303aa8466353f",
+      "src/hooks/use-mobile.tsx": "c0a0bdd4638c391a1dd06ac82074e60b",
+      "src/hooks/use-toast.ts": "e706bc004c87e17db559a113637eddea",
+      "src/hooks/useAnatomicalCategories.ts": "60f89c00559044ccf8404d84dc7aa431",
+      "src/hooks/useAnatomicalMaps.ts": "f61fe5ed6f7c67cb62130be4743a01f7",
+      "src/hooks/useAnatomicalRegions.ts": "5ec1e589084c412cf44201880ac53a99",
+      "src/hooks/useCurvaABCData.ts": "a8ff3c6b896e39671d543fc331f2b3cb",
+      "src/hooks/useFitnessAchievementsAutoUnlock.ts": "5c535050689c07247ba6a4110bf0c9ed",
+      "src/hooks/useFitnessActiveSession.ts": "1c0f5c0fd8dd46d47be1c3719cd1a34b",
+      "src/hooks/useFitnessDailyLog.ts": "5b01f640bcd3c7c6f1d86542f6bcee0f",
+      "src/hooks/useFitnessProfile.ts": "6a2e3dac6911854596699bc82a3f3a0e",
+      "src/hooks/useFitnessReminders.ts": "94f9bcb8715e70e7d1bc11416db53eeb",
+      "src/hooks/useFitnessTheme.ts": "af17b8640145fedeb510868672a1dd7a",
+      "src/hooks/useFitnessTodayMeals.ts": "5b877d92689feda197d5e6920736e630",
+      "src/hooks/useInventoryData.ts": "fbcc38d740cab4dc63c17f065940ba0d",
+      "src/hooks/useIsNursingAdmin.ts": "4d28bb9105eee9abd931e4480f15cd73",
+      "src/hooks/useMaterialGroups.ts": "31a64531da61a92b8942c72cb3bcee00",
+      "src/hooks/useModuleAccess.ts": "5aa2c11c671784a0f6047906da1cd4c8",
+      "src/index.css": "4507f9cfecfc71ef5fb65fd921a85b5e",
+      "src/integrations/lovable/index.ts": "e9cf6e6968dd0392b2222ee0745ecece",
+      "src/integrations/supabase/client.ts": "ea731aa7f857b1b89542717c662d05c0",
+      "src/integrations/supabase/previewAuthStorage.ts": "315e4ae3473d92766e0d6d4d83945aef",
+      "src/integrations/supabase/types.ts": "52fce1b07483b8fc39638ed5e34608e4",
+      "src/lib/anamneseCombine.test.ts": "55409e2ea277d17a37c7d5f51248b318",
+      "src/lib/anamneseCombine.ts": "17faec38ce03323cbd4fdd71f1f5e99b",
+      "src/lib/anamneseReview.test.ts": "64319c5ff825d72103e00145d47930a2",
+      "src/lib/anamneseReview.ts": "5ff2ed1719b4a68cfeb98be1e4273e53",
+      "src/lib/anatomySnapshot.ts": "ff507f4652a8279ab49da57988b673dc",
+      "src/lib/anatomyTokens.test.ts": "7118a54559c1f13d9435207e00d6e06c",
+      "src/lib/anatomyTokens.ts": "fc856aed377d9e4e3455dc6304aa5707",
+      "src/lib/excelUtils.ts": "03910ab8eb49cc3e35b5b8cf35e0be56",
+      "src/lib/genderUtils.ts": "6d8a23aacc5739b1686e3bdff60045a1",
+      "src/lib/hardDelete.ts": "cd8774ad875769c876e6d1092a5acace",
+      "src/lib/paddle.ts": "c36e523c7da0b02ad6e788de1c1e37ad",
+      "src/lib/payrollCalc.ts": "562441602ad595b994b471011534309e",
+      "src/lib/pdfDownload.ts": "cc9f40444f75597f9f6a0e7634ca4cf4",
+      "src/lib/printUtils.ts": "30d0b0893b3efd902be86c25795ac6c8",
+      "src/lib/publicCommerce.test.ts": "f95e16d334a610ea105aff8d2b91f2ae",
+      "src/lib/publicCommerce.ts": "506877ce3b8c440a15ee50177c0adb29",
+      "src/lib/rotinaPlan.test.ts": "c9641dd902592a537b3c730b60b7e414",
+      "src/lib/rotinaPlan.ts": "7db078f91ed8a99beed076991da5081f",
+      "src/lib/sessionInactivity.test.ts": "e887af098fcb909eb5b276ecb2d9a131",
+      "src/lib/sessionInactivity.ts": "7d5b01ad82a35cc2fb6fd276bc66d8bd",
+      "src/lib/utils.ts": "d9837f38cc05303254571985e3164050",
+      "src/lib/validade.ts": "0cfb4d133fd796dfde5decc0c963d7d7",
+      "src/main.tsx": "092c6937f28c1dff19a7d561f5f98360",
+      "src/pages/AcceptInvite.tsx": "c25911f0075970a7300d7933ed699eb7",
+      "src/pages/Assinaturas.tsx": "abc71f1180a436d855a31841531a5806",
+      "src/pages/AtualizarEstoque.tsx": "fb6bb0fe51b43412f0d69f26cfa568ce",
+      "src/pages/CadastrarMaterial.tsx": "5c2a05fc673b8a4c256787397ad1daf5",
+      "src/pages/Changelog.tsx": "1c4c4b17cade5ee203d9ef138643ff69",
+      "src/pages/Conciliacao.tsx": "e57a98fb84b3af2bc4f1c04d9e588659",
+      "src/pages/ConfigSistema.tsx": "76b1442d7d24aa2a09187bab27026b67",
+      "src/pages/CriarSetor.tsx": "7dd8343c3610d39db4b7e09c4339bb99",
+      "src/pages/CriarUsuario.tsx": "be711a63937e942991156ed836c4bf5b",
+      "src/pages/DashboardEmpresa.tsx": "6d348aeeb6633d65cf1c56cecebd868d",
+      "src/pages/DashboardLogistica.tsx": "ab70d33dbeaa99187a7064a42dde3d34",
+      "src/pages/DashboardSuperAdmin.tsx": "0b8ececa8021f53220c2184cf16dc284",
+      "src/pages/DemoMode.tsx": "efeeea4d05938b5248f4dff3e1174052",
+      "src/pages/Dispensacao.tsx": "737e59cde3da3ca285f8ac914f4cacfd",
+      "src/pages/Faturamento.tsx": "ca2cff25dcca7bb6a0aa81aed26f197f",
+      "src/pages/GerarOC.tsx": "510fbac8e16317c5e39f1ea26627ec32",
+      "src/pages/GerarQRCode.tsx": "8197dcf91a89a686bb0aa148525cc75c",
+      "src/pages/GerenciarOC.tsx": "91758dfd375191241d67734bf58dd45f",
+      "src/pages/GestaoChangelog.tsx": "e2b369803e6dd4784ec50882852a6cc8",
+      "src/pages/GestaoEmpresas.tsx": "00ec6cde4a4b8dede82d120164e3141e",
+      "src/pages/GestaoModulos.tsx": "900e43f26f1c1eb890a47a7aaff43043",
+      "src/pages/GestaoPerfis.tsx": "c76c868722dd881f729e643b1867bc35",
+      "src/pages/GestaoPlanos.tsx": "bf0d3df34f05b5435c44bb179c2ed0e0",
+      "src/pages/GestaoRotina.tsx": "e1c16a2b67cc8dd4e3c2f6da8d2a7244",
+      "src/pages/GestaoSuporte.tsx": "82f8d053e779464687a8555a3c298bdf",
+      "src/pages/GestaoUsuarios.tsx": "1447285479d83213d5c99d43ce3ea3e6",
+      "src/pages/GestaoUsuariosModulos.tsx": "207b37dc75243208d69777b9f9b15383",
+      "src/pages/HistoricoMovimentacoes.tsx": "fb2876bb2dfcdf114dabc2e114ab121b",
+      "src/pages/ImportarPlanilha.tsx": "b3ee7b16718956fc2c79543dc46b0972",
+      "src/pages/Index.tsx": "ead9540283171ddae57b23bcb9dae37c",
+      "src/pages/InstalarApp.tsx": "6568b60ae195dd9cc4046e2f18b92731",
+      "src/pages/Institucional.tsx": "2024f21fb1a157716c3e529a958e9dd1",
+      "src/pages/ItensCriticos.tsx": "a49ab0e291cd99e5d5167280a45fba68",
+      "src/pages/ListarEmpresas.tsx": "b18721a6ce556cb64dfa406ea15d34b9",
+      "src/pages/ListarSetores.tsx": "ec8bf3b096cfb2c317347071c76e09e3",
+      "src/pages/ListarSolicitacoes.tsx": "860189aab5536fe54e16a941f65c0663",
+      "src/pages/Login.tsx": "ad58933ec4a223bc0375e001670d942c",
+      "src/pages/LogsAuditoria.tsx": "a11fbbcd6d2589406236a3d7de80bac7",
+      "src/pages/MeuPerfil.tsx": "95ac154faee55f6ef1431ba581d66fcc",
+      "src/pages/ModulosEmpresa.tsx": "f2ac49996a22caac90c6724ac28d17af",
+      "src/pages/MovimentarEstoqueNew.tsx": "3d998e4d80f23ad556115348fdc1543d",
+      "src/pages/NotFound.tsx": "dc3333afc493f1ee942bb691315732fb",
+      "src/pages/PublicPolicies.tsx": "b276d240612359d553df8c804b405d19",
+      "src/pages/PublicPricing.tsx": "da2e9dd705c56fe449958abd68167613",
+      "src/pages/QRScanner.tsx": "59318cf651f86e198f636b638b649ee7",
+      "src/pages/Recontagem.tsx": "a8f4a3401e1c2322a31c2f12a81caefe",
+      "src/pages/ResetPassword.tsx": "fbdb1037e1477eeed1001b739517fa00",
+      "src/pages/SolicitarMaterial.tsx": "16f59d624cc0466207044d8ffc225c57",
+      "src/pages/ValidarReceita.tsx": "06c4f882dfb4cc947c028a91be6ab79f",
+      "src/pages/beneficios/CadastroBeneficios.tsx": "2afb5d48eea9548caed227d28ffc3cc4",
+      "src/pages/beneficios/ControleMensalBeneficios.tsx": "6a326b78675af75859e5be93f36f5e72",
+      "src/pages/beneficios/DashboardBeneficios.tsx": "d5e7528353517091cca202a2bdf0ecc1",
+      "src/pages/beneficios/VinculoBeneficios.tsx": "06f56eb5c38d526275f228ec701995b4",
+      "src/pages/clinica/Agenda.tsx": "28f45e376174a32d33ec447f7d6a6c07",
+      "src/pages/clinica/AnamneseModelos.tsx": "7719f34ad9f053056e9adb59e4ff704a",
+      "src/pages/clinica/AnamneseRespostasRapidas.tsx": "6d1e94fc38d08dad3eee79292b86561f",
+      "src/pages/clinica/DashboardEnfermagem.tsx": "c1cafea486ff48f5c2c81b5201b2983f",
+      "src/pages/clinica/Evolucao.tsx": "f79b7ec15cba6820eb45b557ba5e15d4",
+      "src/pages/clinica/EvolucaoMensagens.tsx": "0f5e6f0edfec3bc565f10ea7ca2a172b",
+      "src/pages/clinica/NovaAnamnese.tsx": "f0a9c776af321ddf4ab71c6633f5f386",
+      "src/pages/clinica/PacienteProntuario.tsx": "dce67914ff024abdc9dc7948de6cdb3a",
+      "src/pages/clinica/Pacientes.tsx": "9c772f008ed0e4a409dbdba5655ee49d",
+      "src/pages/clinica/PrescricaoRapidas.tsx": "a31453d8944b20355b7d3fdc86ad1b72",
+      "src/pages/clinica/Receituario.tsx": "e7537da1157af3b035c49a0a3e82c5fa",
+      "src/pages/clinica/RegioesAnatomicas.tsx": "8376b5b558c92c6ea43fa144fb7e2415",
+      "src/pages/financeiro/CentrosCusto.tsx": "c3ba396e9904e2f7842c0e03de17909b",
+      "src/pages/financeiro/ConciliacaoBancaria.tsx": "37aafc5fb0fe62a9ff47e62ceaf0b075",
+      "src/pages/financeiro/ContasPagarReceber.tsx": "4cbe2c28c55ed82f09ce43a01c1fe00c",
+      "src/pages/financeiro/DRE.tsx": "3fdadfc0b8a671f88a69410270983af7",
+      "src/pages/financeiro/DashboardFinanceiro.tsx": "6e40777c001b22da3133c025598baf0e",
+      "src/pages/financeiro/FluxoCaixa.tsx": "cd2d6204666823a56bf2649a749fa382",
+      "src/pages/financeiro/ImportarFinanceiro.tsx": "0eba1e0e100b49be375670c49edfc956",
+      "src/pages/financeiro/Lancamentos.tsx": "5e178c5ec8ff4482d9a5ee590c258c50",
+      "src/pages/financeiro/Orcamentos.tsx": "0f346f0c1dbef86c0582b066ef8ea4ab",
+      "src/pages/financeiro/RelatoriosFinanceiros.tsx": "24023fc58e39639de482b98d1e5379ff",
+      "src/pages/financeiro/Vencimentos.tsx": "7340b74086e7eef121211f8538bcb241",
+      "src/pages/fitness/FitnessAlimentacao.tsx": "958ee6c33cfdc0a4810691f17e241601",
+      "src/pages/fitness/FitnessConquistas.tsx": "2c2e6759887df52eabbd5498a802544f",
+      "src/pages/fitness/FitnessDashboard.tsx": "53c3a62519fcb5c825df2d1aba24b316",
+      "src/pages/fitness/FitnessEmagrecimento.tsx": "27cbb56709d5975fc34b998227014363",
+      "src/pages/fitness/FitnessEvolucao.tsx": "f318baeeb92a3bb5c16a22becccd3850",
+      "src/pages/fitness/FitnessGerarTreino.tsx": "413541f5ffc9d60c11cb98bda4370918",
+      "src/pages/fitness/FitnessHistorico.tsx": "1d69cae517307e38a4eebe7f4c33cff6",
+      "src/pages/fitness/FitnessLogin.tsx": "768570bd37b2aca074a9d1bce6b47bee",
+      "src/pages/fitness/FitnessOnboarding.tsx": "4d84376e1aaa81a4496ac7abd2ab60c5",
+      "src/pages/fitness/FitnessPerfil.tsx": "dff7fcf522f1c135f5576b3c1424a025",
+      "src/pages/fitness/FitnessTreinos.tsx": "f14ab2715ec17d22d76122c1144d7417",
+      "src/pages/fitness/avatars.ts": "20cc1eb15e4b03f98815c7f4558fb3c4",
+      "src/pages/folha/ConfiguracaoFolha.tsx": "8fee662fe0f51fb0758471da79cf1614",
+      "src/pages/folha/DashboardFolha.tsx": "107df02ff39af866c3f022b5cb3bbc6d",
+      "src/pages/folha/HistoricoFolha.tsx": "904255571e00df4e2790ddd84f0e853c",
+      "src/pages/folha/SimulacaoFolha.tsx": "3ed9a2e8b9946e10df83e632a8477b7a",
+      "src/pages/logistica/ConferenciaTemperatura.tsx": "cc4b269cc2eb68c82510d996ee773bd7",
+      "src/pages/logistica/ControleValidades.tsx": "6a022e0c2c30128e4182aab9761fad26",
+      "src/pages/logistica/CurvaABCInteligente.tsx": "da0f036dfac44384f9d7ddb911a6c5d1",
+      "src/pages/logistica/EstoqueInteligente.tsx": "f559107fb12eb6720f992f7f1be1d20e",
+      "src/pages/logistica/EstoqueSetores.tsx": "ca8a69f3a99c042fffd757ffcb6797de",
+      "src/pages/logistica/Fornecedores.tsx": "f4aee006e48f4fcafbc1ec9ce04457a1",
+      "src/pages/logistica/IndicadoresLogistica.tsx": "b1cf3b3d25f5cdad9c6dd5506d5e5ea7",
+      "src/pages/logistica/Reposicao.tsx": "bf954941358264f769c0b67392e4a47e",
+      "src/pages/manutencao/CadastroManutencao.tsx": "db04375ff30e26688044bc98e480820d",
+      "src/pages/manutencao/DashboardManutencao.tsx": "b89d9e9c6a056f9222fbb4bb2b455b16",
+      "src/pages/manutencao/ListagemManutencao.tsx": "e36e6078b789e963b1b8a9640229c74d",
+      "src/pages/manutencao/SolicitacaoOS.tsx": "f573d69770c3c6cf20f4040f0d12bfc4",
+      "src/pages/rh/ASOControl.tsx": "16bc26336f99af1dccb33f4c239edec5",
+      "src/pages/rh/AnalisesIndicadores.tsx": "5b6dab156b28eb8f7bf2f3fc29d6e7bc",
+      "src/pages/rh/Atestados.tsx": "904804b65ae667b515f7a8c439ccbba7",
+      "src/pages/rh/Avaliacoes.tsx": "97ee745b3684f1a850b8d5b4ba69413d",
+      "src/pages/rh/BancoDeHoras.tsx": "df1bf55245b05ddcc1a8b9f7d1639114",
+      "src/pages/rh/Colaboradores.tsx": "c323e4caa3cac3d8320269268bf452cf",
+      "src/pages/rh/DashboardRH.tsx": "3f9964b4cf19f42cb30b718cb8b38163",
+      "src/pages/rh/Desenvolvimento.tsx": "c36e5af4c067afdc7daf4646f620e773",
+      "src/pages/rh/DesligamentoDialog.tsx": "abc740769b7cb08ef637bbb80c33cf37",
+      "src/pages/rh/Desligamentos.tsx": "1c4aaceecdd381b62893b76c3df0fc7d",
+      "src/pages/rh/Ferias.tsx": "94e018e9632f7b882a2a78b3e293e12f",
+      "src/pages/rh/GraficosRH.tsx": "398b600f2305cb9f2f076b91b35ec567",
+      "src/pages/rh/ImportarFuncionarios.tsx": "35ce8a18513af16e2ea5d0b577737e96",
+      "src/pages/rh/Indicadores.tsx": "05ff0928a3c64ea267503f8c0a768800",
+      "src/pages/rh/InsightsRH.tsx": "7e89e4cac042c812765b844a817ce623",
+      "src/pages/rh/Ocorrencias.tsx": "c489bb9a4a4d202f9a4075d9dfd5be47",
+      "src/pages/rh/PainelDiario.tsx": "bda7991d07b6803af55fd09479af658a",
+      "src/pages/rh/Treinamentos.tsx": "4583be7a0f4852edb9ece1ce044fa832",
+      "src/pages/rh/Turnover.tsx": "6705330deea2f87ca8394542756ded24",
+      "src/pages/rotina/RotinaApp.tsx": "f726ae23f7668402479b9f5f275b62e4",
+      "src/pages/rotina/RotinaLogin.tsx": "da94b0696416b20a3fe46e385a08f5cd",
+      "src/pages/rotina/RotinaPremiumTools.tsx": "38f0eead748b0d376ece2755eee5a0dc",
+      "src/pages/vendas/DashboardVendas.tsx": "b31e4e685e5e52438a0506e8cdc98524",
+      "src/pages/vendas/HistoricoVendas.tsx": "830b581668d61e76a5bbe1c14c89c5ed",
+      "src/pages/vendas/PDV.tsx": "5b19380c23bf3db3b8ccd47f8b46931e",
+      "src/pages/vendas/RelatoriosVendas.tsx": "b9f6d8182d72dd3304def523c7dad8a7",
+      "src/services/beneficiosService.ts": "5f6cd189940dfc3e24244f63d776b94d",
+      "src/services/financeiroService.ts": "26aa6ac37df0042911c4f84d6e62c939",
+      "src/services/folhaService.ts": "06269e4f772642dfe40b4d7761e487b1",
+      "src/services/logisticaService.ts": "ebb8d9f29e9026cbbcd744e46dadbf4c",
+      "src/services/vendasService.ts": "034d5498639ee9b8159346dad466bee7",
+      "src/vite-env.d.ts": "0352474ba2918efe13895edbc3780d94",
+      "supabase/config.toml": "586a0481372325b6fb5fed4be16d5f88",
+      "supabase/functions/_shared/paddle.ts": "570bc0e32fd0a9224a5ed6b88ec65b8b",
+      "supabase/functions/delete-company/index.ts": "2e16eff4898afdb7deb3dd0405e091a3",
+      "supabase/functions/fitness-coach-message/index.ts": "d1fde3f63b50fa8b080dd5afd570cc94",
+      "supabase/functions/fitness-generate-workout/index.ts": "849a6057430dda0723909ce10b69a0c2",
+      "supabase/functions/generate-anamnese-pdf/index.ts": "a88f45fec17cbac831d197ec35d511b8",
+      "supabase/functions/generate-oc-pdf/index.ts": "3ac2dd4f5f0ce86f149344c5f9480ea8",
+      "supabase/functions/get-paddle-price/index.ts": "ac40167020df3f9377d7bf8df78029bf",
+      "supabase/functions/invite-user/index.ts": "1912724bb826311b8e6404da24ce129b",
+      "supabase/functions/payments-webhook/index.ts": "3807fd038d11199e5d081132a38fa451",
+      "supabase/functions/reset-system/index.ts": "99a3634983840177809d71cd00dc7c38",
+      "supabase/functions/rotina-portal/index.ts": "47f0cd4448585810fc871999941bdce6",
+      "supabase/functions/setup-user/index.ts": "e1115ac0b1d0cdecc7f0b008e8ba9281",
+      "supabase/migrations/20260216150611_a74fe439-2707-4e4b-b300-181b49fd1748.sql": "a1cce99f5cdba35a4964955aa10a191f",
+      "supabase/migrations/20260216172737_74d68186-52f9-4a7c-810b-f7e12c7844a2.sql": "e088b3b0fd1c8b7f03f0afb6227041ca",
+      "supabase/migrations/20260219115027_5aadf19b-4143-4165-8142-14145ebf50bc.sql": "38fc316d788f7cd7a75662026f48d4dc",
+      "supabase/migrations/20260219120040_77dbe0b3-a5c5-41fe-95cb-11e556aaee04.sql": "a453c2735ec3e5ba2081bfa2efb828a3",
+      "supabase/migrations/20260220143825_d0e8071b-468c-4c62-a5f5-5c71788581bd.sql": "9722caa6ec1ac769f49dc77c1b87af30",
+      "supabase/migrations/20260224103718_c724d0a8-c5ed-41a2-93b2-3bb36e99d40a.sql": "a79e40756cb73c29b21a50dd1348d5f6",
+      "supabase/migrations/20260225135317_30bf6169-c863-4fa2-b234-2da3b515f6e5.sql": "5d7883b8da669d0a32869c8916f5dc46",
+      "supabase/migrations/20260225163638_9c3514c5-9f49-49be-a395-95f53530f446.sql": "ec274483c053c5738da500f2f16022e6",
+      "supabase/migrations/20260227133640_da48a6d7-255d-4280-9ed6-91d8f6bf712f.sql": "1914258da3cfc1ab2b2df1744e50c259",
+      "supabase/migrations/20260227133929_2334d4b2-d133-4e5a-bce5-37b7244de35b.sql": "299f68a120f55dc1b275d240fb244017",
+      "supabase/migrations/20260228141716_a937b93a-36c6-4509-8d13-c335b160d339.sql": "0dbdf3f814bab720e221976968187e29",
+      "supabase/migrations/20260302111736_50aca08e-a7b9-4c42-b113-250b94677372.sql": "65ec42ee3e2e39e10b5d789623a69d52",
+      "supabase/migrations/20260309123844_81d2fd49-44fe-4909-a4c8-b22de90cee27.sql": "4e9063b7d031edb159325be97a69076c",
+      "supabase/migrations/20260312114802_65360d18-c012-4668-8239-58f243bbaf89.sql": "3b218aa386a99ba542534cd0eab391cb",
+      "supabase/migrations/20260313110155_ea3e280d-5797-4a3d-85dc-59c9516fcea6.sql": "4575f9721fa25e7d1f37debf6b357dc6",
+      "supabase/migrations/20260318103718_1b152dfd-1c64-4539-a78e-ab1e9dae1282.sql": "4581521c6569983566071c63743a3740",
+      "supabase/migrations/20260326183614_ff51bca1-84b6-4419-9d39-a6f1f8fa3a35.sql": "d2b6368e551633b1964c8e19159743c3",
+      "supabase/migrations/20260326193229_c149d445-333e-4f2d-9381-8fcb07c9582c.sql": "7562b32739dbd4fe5b8fb0ef38a48432",
+      "supabase/migrations/20260326195510_4b8c6acf-a8e7-483a-b9af-a9813a7cdf20.sql": "72262ab8cadbe27fe4e14e2c86678ca3",
+      "supabase/migrations/20260327105305_91a8ae4a-c5cc-47b2-bc36-66250e627cbb.sql": "eec8b443b0a778ac5f99330ee2aa73a2",
+      "supabase/migrations/20260401110259_7d8df1a3-36e9-410d-9e1b-fd56340bb0bd.sql": "13a3b05909b2cbf34c6dda6552ee25ab",
+      "supabase/migrations/20260407110920_7c40c04b-fe1f-4e87-9c02-e4aed7e6ca6b.sql": "762d912fff9795491f5f9a57317c0409",
+      "supabase/migrations/20260407111623_1b4ab6e4-ae60-4a45-be61-54ea0adaae88.sql": "165cc7a9dbaa247b13bfbe9c882de44c",
+      "supabase/migrations/20260410130725_41708f15-3a21-4bd0-8c4d-084b34144a96.sql": "091078557fe726e2f75face22f1f5b1e",
+      "supabase/migrations/20260411141652_92801c3d-1694-45e7-a48b-809b5f13703b.sql": "1f4bff5ba59de34f552529e2e87b7471",
+      "supabase/migrations/20260413153601_90633ce6-60ce-46bd-a1dc-9909c6e697ee.sql": "af63abef90196b27702204858d266ddf",
+      "supabase/migrations/20260415105844_19788603-7566-4e81-b686-5e9e6aa40b9a.sql": "597494e52d78ac71bcdea5152a324a02",
+      "supabase/migrations/20260415185439_157b057e-598b-438b-83ef-4ddae09a3726.sql": "c26805e9ed9238344c5e6b5a90ce3c6f",
+      "supabase/migrations/20260415185516_24ae395a-c6f1-420d-b1cd-d308bd3d6ba5.sql": "57fc8415a2e9bb33f22467aa8552c8e5",
+      "supabase/migrations/20260416102119_2919944f-2bbe-4a9b-a8f9-6d22e7e16986.sql": "1b671f2b277951412e299f9cc671d995",
+      "supabase/migrations/20260417130214_6ffe938a-a9dc-499c-9b10-05452b5f2747.sql": "64b7aa872841acdc845083e88982a3a7",
+      "supabase/migrations/20260417134522_43a14837-5a1c-4ac3-9fed-ed4fd4991c5a.sql": "7a1695174861912c62ce90d1b5d6f76f",
+      "supabase/migrations/20260428180019_682ac04f-abb6-4239-a403-788f1351828a.sql": "8fa8333fc9af246ad28ce654eb3706d1",
+      "supabase/migrations/20260428194016_0935b834-72d9-4275-8235-036b05c5adbe.sql": "352d2544e02e3a07b63eca7c95ee99c7",
+      "supabase/migrations/20260428200518_8aca98ef-9222-4773-ae00-31c9fc0f8515.sql": "a898072948d5afb9db44ebc1427dc18d",
+      "supabase/migrations/20260430130720_99dca234-9e9d-47a9-a698-f6e54eb1de10.sql": "c4325595d737e04f80cbf7180548e3dc",
+      "supabase/migrations/20260504113643_cfae78fc-7918-4cf2-a4a1-75122e302ea0.sql": "e014c63a0d435b8b81c4111042a12edf",
+      "supabase/migrations/20260507190145_a61a952b-b9bc-4e8e-b342-de6b6618a806.sql": "0aae8d0f9e70fa958d8083874a96db0c",
+      "supabase/migrations/20260508122248_fa5126d2-9478-4daa-9565-6489367d961f.sql": "8d9f81d08dfcd245dcb22d43c587f203",
+      "supabase/migrations/20260511112322_475e9f03-f520-4fd4-b308-83b8b1e1a02c.sql": "098f193a7bc88b8136a5a582f9473d42",
+      "supabase/migrations/20260524214232_8fed20af-32ad-45f5-8113-a04ffb67e160.sql": "8431fbc01b1bfedf8cbcee1595df8f80",
+      "supabase/migrations/20260525150259_0075615c-d461-4ba6-9a11-334cf71f689b.sql": "58b43d4174570a07c50bef8453586b85",
+      "supabase/migrations/20260526125112_50381733-0206-4795-9a88-beffa5c8824b.sql": "f4c18c7bac3993d632ce2e4f8bb0fff0",
+      "supabase/migrations/20260601120720_d1d606bb-3e6b-4593-b323-03768d100063.sql": "263e8928bf72a102742c96b06dd6f82b",
+      "supabase/migrations/20260601121653_0796e08c-86f1-4e3d-86e1-1e2f17e016de.sql": "9779a5d23c8f800833828b29e80d9ff0",
+      "supabase/migrations/20260609123738_c616ee41-cc21-40ed-81b9-1bbecbcbd066.sql": "868d219e983bd32a2b957dfd5762c569",
+      "supabase/migrations/20260609125151_3655d3ed-80ff-4868-910f-f45387ef685f.sql": "cb1dd8249db705f6be6b0c47e3059023",
+      "supabase/migrations/20260611144531_02094b84-5360-4498-9c5c-153b1406568e.sql": "847ede39b6f591f4f0e727907f2d6cff",
+      "supabase/migrations/20260701005004_522f9b96-53fb-407a-8744-853ef78b7310.sql": "194d7327459e680d83ebd4e5f6c90309",
+      "supabase/migrations/20260701012149_08474d45-0985-4301-9c95-712aefff689e.sql": "602c31b1b25136fd1cdb89ae885c3138",
+      "supabase/migrations/20260701013253_7752272d-09ce-49b3-a787-9171625dbe83.sql": "064814ad024d3663b8610e552267fc00",
+      "supabase/migrations/20260701014342_ff20c066-b898-4b24-b011-c91ffde07510.sql": "8d6a91281d432af6601c9c0138a55615",
+      "supabase/migrations/20260701020456_2fdf68f6-7d52-4443-85a5-9693af71e6f9.sql": "ef79a319f36bef113b95323240d7d91a",
+      "supabase/migrations/20260701020524_316c41b9-5923-4232-a11f-103621df6e03.sql": "a8427eae174c1c5b185405639dc81b38",
+      "supabase/migrations/20260702151348_ab4301db-1396-4ddf-89da-f70983ebeb05.sql": "dda55e0d8820f4c7a38bed8f1816845e",
+      "supabase/migrations/20260706160439_c1237654-7b69-4ee6-86f0-03a661d61309.sql": "4ae6e26b30f2d4d2f276e9a61cd22853",
+      "supabase/migrations/20260707122000_0f964898-fcbc-4159-b1c4-2685f9a09bc6.sql": "ca09d406a8471bfaf55e2a465bbdd626",
+      "supabase/migrations/20260708113452_355ef429-0d06-45bf-960b-233e67ece0f6.sql": "dcb17c903f5370d9ad4cf62956091440",
+      "supabase/migrations/20260708155306_d712b38d-69b0-42d6-9f80-c482f8a72191.sql": "4d6ccbfed9506d3558745197211f15f6",
+      "supabase/migrations/20260709134856_d9b74b44-f354-4c61-a186-013f8b23c13f.sql": "58e923c4dd8ad6bb50191d8caf3fe939",
+      "supabase/migrations/20260713132657_16e7ba4c-ad07-41e7-a07c-9924914599ad.sql": "2ba2ffac3b7fd0995e76f7aa9405e6d7",
+      "supabase/migrations/20260715135422_de801548-ff3e-497a-a352-e3e7065aa1b4.sql": "65c0151ee5f251325909c2a0b65dc63b",
+      "supabase/migrations/20260716133628_811719de-191a-4377-87e7-736829962f78.sql": "cc0a6b5cb8fef6d889fd0492772ef2f8",
+      "supabase/migrations/20260716133643_dd78eb72-2b41-4cd3-ae30-4e87fc922b7c.sql": "f19dc4eaec1e123c267670c77770ec7d",
+      "supabase/migrations/20260717113740_0708e8bb-ee2b-4dc9-a1bf-9834eb2db7e7.sql": "a267469363ac83560cfb77a275a4ecc6",
+      "supabase/migrations/20260717113826_99b437da-141c-4ea0-bac9-f6d5fe79f9e8.sql": "a0630a7bdf3d04165d7c4eccb73dc102",
+      "supabase/migrations/20260718142956_ead18744-c1af-4a6a-a1c5-082b6ecb485a.sql": "af68ef0a2dcd9ca419bcb452d698105b",
+      "supabase/migrations/20260719115427_6fb301e0-6136-4fa4-92c6-da01b5aa5630.sql": "65258963f32817da613e4e87da37ca72",
+      "supabase/migrations/20260719120541_b73c480d-39c5-4e12-899c-7c7d76ea5bfb.sql": "4b36c80d30bee1a2759cea00db133459",
+      "supabase/migrations/20260721112451_19b4c538-189e-4b84-80e9-73a1dc4bd1b1.sql": "c49b8fa99d93431ee1bd208abcd65188",
+      "supabase/migrations/20260721112513_490518d5-2188-4254-aabe-9a0c9d35fa5f.sql": "715c5885a3289b1322baf56acf8a4f81",
+      "supabase/migrations/20260722123136_fa96b524-1140-4ce4-bcc7-a002563c77e7.sql": "0aa444d0c72eb51e682960867f2c9d6b",
+      "supabase/migrations/20260723122738_00869e6e-11a2-4626-8e2b-3d04cfb9363c.sql": "0993858d4690503513ec1e02b92c394d",
+      "supabase/migrations/20260724163658_af669561-5a08-4436-ada7-edd32132b7f4.sql": "af44019296fb34c0b472a1dfbacd7f06",
+      "supabase/migrations/20260724175857_1532207d-0c73-492a-be76-74e134acf02b.sql": "358b62a0341d4ae07a294e6e57cc5a37",
+      "supabase/migrations/20260725132157_11e4cf52-489f-471b-8778-58b833061d90.sql": "47b373282f3518584c2db3de1e2439e0",
+      "supabase/migrations/20260725133028_b907a6c4-87c9-40a2-b0c7-1ba1e9c7d1eb.sql": "c0ded6e9af973b279e41faf976d5dc77",
+      "supabase/migrations/20260725135816_61e923f1-f925-4378-991c-5484ee18af83.sql": "ea403ac4efc5a5d34f93cefc34e4b6c1",
+      "supabase/migrations/20260726121221_b750991d-59d3-4757-b5b1-63d7de7ca03d.sql": "f883731e0edb672ff4a37cf2247b6508",
+      "supabase/migrations/20260728171905_a56307ce-1518-456f-ba66-1542199962b4.sql": "206b64936f96e33b2f27eed5984dd722",
+      "supabase/migrations/20260728181318_78277fca-2ee2-40be-946a-94c832a1f936.sql": "34211b5683660dc8d0e895906892958b",
+      "supabase/migrations/20260729142743_c4a57539-b8c2-43cd-83ac-81d066c39b1a.sql": "89a7243317f9502396ea70e4dab99f2a",
+      "supabase/migrations/20260730115023_74bfd85e-f34f-4e5a-b170-39d796235557.sql": "5758a3c34808986a8f6792edc7f6cb12",
+      "supabase/migrations/20260802130647_8d1e04e5-92e7-4440-9b9b-480b3279f9fe.sql": "bd3b564b54120810ab76234b1349d007",
+      "supabase/migrations/20260803151125_3cf2f903-f2ad-4ce8-843f-388145eb3750.sql": "1a9d930dadf8adb03dd9b58492843eea",
+      "supabase/migrations/20260804130547_b9a1e2e6-fedb-48fa-b29f-9712527ef6f0.sql": "5eb5a680833e49935bb81ce972305155",
+      "supabase/migrations/20260806193624_498ca8f3-63ac-4a97-9f72-51864e96b61d.sql": "9792964dfaf17a2fba732dd8fafc41bc",
+      "supabase/migrations/20260818134341_a006643b-3c8b-4ab9-9e5d-21862059a6ec.sql": "fe8d5b9186fb1a5c5a0c77ae7c8b243c",
+      "supabase/migrations/20260818140504_57681cb5-f6cf-49e3-a474-a1e6cc22ef40.sql": "86b257961edf5ef6f906e984ffcbcefa",
+      "supabase/migrations/20260826171629_3b7f2570-8cc7-4dda-ba8b-b2c19e1cd9e5.sql": "adceee3c27ff3c0c0b70b58167b52882",
+      "supabase/migrations/20260910185046_91074dc9-0b26-465d-863c-ee0aac1ea037.sql": "a995f9a26c81a0e07a20919bc8dad21b",
+      "supabase/migrations/20261029181242_8152aa14-c67c-44e1-a098-8d7f55f5b29f.sql": "1fb4ff8e1333fde28b09e6d7897bc109",
+      "supabase/migrations/20261029181302_0952f789-5bd9-4419-9468-6210baeaaf46.sql": "b3fd3991a852ab0b93c532f2a03c811b",
+      "tailwind.config.ts": "f56f26529c785fe8565fe841cdee4ea1",
+      "tsconfig.app.json": "8712c60b1f86eac1daa91619eb776efd",
+      "tsconfig.json": "bb72695c901d34a52a46196ba258371d",
+      "tsconfig.node.json": "1417fb05378a1d1102f085e60b20db0e",
+      "vite.config.ts": "eea8e578ebca550761c5c0e19be01385"
+    },
+    "pipeline_version": 8
+  },
+  "tokens": {
+    "color": [
+      {
+        "name": "--background",
+        "raw": "210 17% 98%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--foreground",
+        "raw": "0 0% 20%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--card",
+        "raw": "0 0% 100%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--card-foreground",
+        "raw": "0 0% 20%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--popover",
+        "raw": "0 0% 100%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--popover-foreground",
+        "raw": "0 0% 20%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--primary",
+        "raw": "142 76% 36%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--primary-foreground",
+        "raw": "0 0% 100%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--primary-glow",
+        "raw": "142 76% 55%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--secondary",
+        "raw": "142 71% 45%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--secondary-foreground",
+        "raw": "0 0% 100%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--muted",
+        "raw": "210 20% 95%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--muted-foreground",
+        "raw": "0 0% 45%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--accent",
+        "raw": "48 100% 67%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--accent-foreground",
+        "raw": "0 0% 20%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--success",
+        "raw": "142 76% 36%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--success-foreground",
+        "raw": "0 0% 100%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--success-light",
+        "raw": "142 76% 95%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--warning",
+        "raw": "38 92% 50%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--warning-foreground",
+        "raw": "0 0% 100%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--warning-light",
+        "raw": "38 92% 95%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--danger",
+        "raw": "0 72% 51%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--danger-foreground",
+        "raw": "0 0% 100%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--danger-light",
+        "raw": "0 72% 97%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--destructive",
+        "raw": "0 72% 51%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--destructive-foreground",
+        "raw": "0 0% 100%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--info",
+        "raw": "217 91% 50%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--info-foreground",
+        "raw": "0 0% 100%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--border",
+        "raw": "214 32% 91%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--input",
+        "raw": "214 32% 91%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--ring",
+        "raw": "142 76% 36%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--gradient-primary",
+        "raw": "linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 55%))",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--sidebar-background",
+        "raw": "0 0% 100%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--sidebar-foreground",
+        "raw": "0 0% 20%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--sidebar-primary",
+        "raw": "142 76% 36%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--sidebar-primary-foreground",
+        "raw": "0 0% 100%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--sidebar-accent",
+        "raw": "210 20% 95%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--sidebar-accent-foreground",
+        "raw": "0 0% 20%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--sidebar-border",
+        "raw": "214 32% 91%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--sidebar-ring",
+        "raw": "142 76% 36%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--inv-ink",
+        "raw": "155 25% 8%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--inv-ink-soft",
+        "raw": "158 12% 32%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--inv-paper",
+        "raw": "60 30% 98%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--inv-sand",
+        "raw": "40 30% 92%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--inv-leaf",
+        "raw": "152 58% 28%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--inv-leaf-soft",
+        "raw": "150 45% 55%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--inv-glow",
+        "raw": "168 70% 45%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--routine-orange",
+        "raw": "24 85% 40%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--routine-blue",
+        "raw": "211 75% 42%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--routine-green",
+        "raw": "155 65% 30%",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--routine-rose",
+        "raw": "345 70% 42%",
+        "source": "src/index.css"
+      }
+    ],
+    "typography": [
+      {
+        "name": "--inv-line",
+        "raw": "150 12% 88%",
+        "source": "src/index.css"
+      }
+    ],
+    "radius": [
+      {
+        "name": "--radius",
+        "raw": "0.75rem",
+        "source": "src/index.css"
+      }
+    ],
+    "shadow": [
+      {
+        "name": "--shadow-card",
+        "raw": "0 2px 8px -2px hsl(0 0% 0% / 0.05)",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--shadow-elevated",
+        "raw": "0 8px 24px -6px hsl(0 0% 0% / 0.08)",
+        "source": "src/index.css"
+      }
+    ],
+    "other": [
+      {
+        "name": "--gradient-subtle",
+        "raw": "linear-gradient(180deg, hsl(0 0% 100%), hsl(210 17% 98%))",
+        "source": "src/index.css"
+      },
+      {
+        "name": "--transition-smooth",
+        "raw": "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        "source": "src/index.css"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "AppSidebar",
+      "file": "src/components/AppSidebar",
+      "import_path": ""
+    },
+    {
+      "name": "ChangelogModal",
+      "file": "src/components/ChangelogModal",
+      "import_path": ""
+    },
+    {
+      "name": "DocumentSignaturePicker",
+      "file": "src/components/DocumentSignaturePicker",
+      "import_path": "",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Assinatura"
+        },
+        {
+          "name": "onChange",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "sectorId",
+          "type": "string"
+        },
+        {
+          "name": "signatureType",
+          "type": "enum",
+          "values": [
+            "medico",
+            "tecnico"
+          ]
+        },
+        {
+          "name": "highlight",
+          "type": "boolean"
+        },
+        {
+          "name": "defaultMode",
+          "type": "enum",
+          "values": [
+            "none",
+            "saved",
+            "now"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "EditMaterialDialog",
+      "file": "src/components/EditMaterialDialog",
+      "import_path": "",
+      "props": [
+        {
+          "name": "item",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "name": "onOpenChange",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "onSaved",
+          "type": "function",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "EmailRestrictedRoute",
+      "file": "src/components/EmailRestrictedRoute",
+      "import_path": "",
+      "props": [
+        {
+          "name": "allowedEmails",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "children",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "redirectTo",
+          "type": "string",
+          "default": "/"
+        }
+      ]
+    },
+    {
+      "name": "EquipeSetorDialog",
+      "file": "src/components/EquipeSetorDialog",
+      "import_path": "",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "name": "onOpenChange",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "sector",
+          "type": "object",
+          "required": true
+        },
+        {
+          "name": "companyId",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "canManage",
+          "type": "boolean",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "FaturaDialog",
+      "file": "src/components/FaturaDialog",
+      "import_path": "",
+      "props": [
+        {
+          "name": "company",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "onOpenChange",
+          "type": "function",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "FitnessProtectedRoute",
+      "file": "src/components/FitnessProtectedRoute",
+      "import_path": "",
+      "props": [
+        {
+          "name": "children",
+          "type": "any",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "InventoryTable",
+      "file": "src/components/InventoryTable",
+      "import_path": "",
+      "props": [
+        {
+          "name": "items",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "onEdit",
+          "type": "function"
+        },
+        {
+          "name": "showEditButton",
+          "type": "boolean",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "InvexLogo",
+      "file": "src/components/InvexLogo",
+      "import_path": "",
+      "props": [
+        {
+          "name": "className",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "default": "md"
+        },
+        {
+          "name": "iconOnly",
+          "type": "boolean",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "MainLayout",
+      "file": "src/components/MainLayout",
+      "import_path": "",
+      "props": [
+        {
+          "name": "children",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "onExportReport",
+          "type": "function"
+        },
+        {
+          "name": "showExport",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "showQRCode",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "showScanQR",
+          "type": "boolean",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "PaymentTestModeBanner",
+      "file": "src/components/PaymentTestModeBanner",
+      "import_path": ""
+    },
+    {
+      "name": "ProtectedRoute",
+      "file": "src/components/ProtectedRoute",
+      "import_path": ""
+    },
+    {
+      "name": "PublicCommerceFooter",
+      "file": "src/components/PublicCommerceFooter",
+      "import_path": ""
+    },
+    {
+      "name": "RoleProtectedRoute",
+      "file": "src/components/RoleProtectedRoute",
+      "import_path": "",
+      "props": [
+        {
+          "name": "children",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "allowedRoles",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "moduleKey",
+          "type": "string"
+        },
+        {
+          "name": "submoduleKey",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "SignaturePad",
+      "file": "src/components/SignaturePad",
+      "import_path": "",
+      "props": [
+        {
+          "name": "height",
+          "type": "number",
+          "default": "160"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": "relative w-full rounded-lg border-2 border-dashed bg-background"
+        },
+        {
+          "name": "disabled",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "StatsCard",
+      "file": "src/components/StatsCard",
+      "import_path": "",
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "icon",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "trend",
+          "type": "object"
+        },
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": [
+            "default",
+            "success",
+            "warning",
+            "danger"
+          ],
+          "default": "default"
+        }
+      ]
+    },
+    {
+      "name": "StockUpdateDialog",
+      "file": "src/components/StockUpdateDialog",
+      "import_path": "",
+      "props": [
+        {
+          "name": "item",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "name": "onOpenChange",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "onUpdate",
+          "type": "function",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "SupportWidget",
+      "file": "src/components/SupportWidget",
+      "import_path": "",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean"
+        },
+        {
+          "name": "onOpenChange",
+          "type": "function"
+        },
+        {
+          "name": "showTrigger",
+          "type": "boolean",
+          "default": "true"
+        }
+      ]
+    },
+    {
+      "name": "CurvaABCChart",
+      "file": "src/components/charts/CurvaABCChart",
+      "import_path": "",
+      "props": [
+        {
+          "name": "items",
+          "type": "any",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "MovementsChart",
+      "file": "src/components/charts/MovementsChart",
+      "import_path": ""
+    },
+    {
+      "name": "ProductValueChart",
+      "file": "src/components/charts/ProductValueChart",
+      "import_path": "",
+      "props": [
+        {
+          "name": "items",
+          "type": "any",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "StatusDistributionChart",
+      "file": "src/components/charts/StatusDistributionChart",
+      "import_path": "",
+      "props": [
+        {
+          "name": "items",
+          "type": "any",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "StockEvolutionChart",
+      "file": "src/components/charts/StockEvolutionChart",
+      "import_path": "",
+      "props": [
+        {
+          "name": "items",
+          "type": "any",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "MapasAnatomicos",
+      "file": "src/components/clinica/MapasAnatomicos",
+      "import_path": ""
+    },
+    {
+      "name": "SeletorAnatomico",
+      "file": "src/components/clinica/SeletorAnatomico",
+      "import_path": "",
+      "props": [
+        {
+          "name": "regions",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "onChange",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "multiple",
+          "type": "boolean",
+          "default": "true"
+        },
+        {
+          "name": "categorias",
+          "type": "any"
+        },
+        {
+          "name": "disabled",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "AvatarMascote",
+      "file": "src/components/fitness/AvatarMascote",
+      "import_path": "",
+      "props": [
+        {
+          "name": "avatarId",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "mascoteNome",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "mensagem",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "default": "md"
+        }
+      ]
+    },
+    {
+      "name": "DialogBalloons",
+      "file": "src/components/fitness/DialogBalloons",
+      "import_path": "",
+      "props": [
+        {
+          "name": "avatarId",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "mascoteNome",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "mensagens",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "intervaloMs",
+          "type": "number",
+          "default": "20000"
+        },
+        {
+          "name": "rexAnim",
+          "type": "enum",
+          "values": [
+            "idle",
+            "exercise",
+            "celebrate",
+            "dance"
+          ],
+          "default": "idle"
+        }
+      ]
+    },
+    {
+      "name": "FitnessCard",
+      "file": "src/components/fitness/FitnessCard",
+      "import_path": "",
+      "props": [
+        {
+          "name": "children",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "glow",
+          "type": "enum",
+          "values": [
+            "cyan",
+            "fuchsia",
+            "none"
+          ],
+          "default": "cyan"
+        }
+      ]
+    },
+    {
+      "name": "FitnessLayout",
+      "file": "src/components/fitness/FitnessLayout",
+      "import_path": "",
+      "props": [
+        {
+          "name": "children",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "hideNav",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "RemindersCard",
+      "file": "src/components/fitness/RemindersCard",
+      "import_path": ""
+    },
+    {
+      "name": "Speedometer",
+      "file": "src/components/fitness/Speedometer",
+      "import_path": "",
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "label",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": [
+            "sm",
+            "md"
+          ],
+          "default": "md"
+        }
+      ]
+    },
+    {
+      "name": "XPBar",
+      "file": "src/components/fitness/XPBar",
+      "import_path": ""
+    },
+    {
+      "name": "InsightCard",
+      "file": "src/components/insights/InsightCard",
+      "import_path": ""
+    },
+    {
+      "name": "InsightsPanel",
+      "file": "src/components/insights/InsightsPanel",
+      "import_path": "",
+      "props": [
+        {
+          "name": "insights",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "default": "Insights Inteligentes"
+        },
+        {
+          "name": "groupByModule",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "maxItems",
+          "type": "number",
+          "default": "12"
+        }
+      ]
+    },
+    {
+      "name": "AlertActionSheet",
+      "file": "src/components/rh/AlertActionSheet",
+      "import_path": "",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "name": "onOpenChange",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "type",
+          "type": "enum",
+          "values": [
+            "ferias",
+            "treinamento",
+            "aso"
+          ],
+          "default": "date",
+          "required": true
+        },
+        {
+          "name": "employees",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "trainings",
+          "type": "any"
+        },
+        {
+          "name": "onSuccess",
+          "type": "function",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "AtestadosAnalytics",
+      "file": "src/components/rh/AtestadosAnalytics",
+      "import_path": "",
+      "props": [
+        {
+          "name": "certs",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "employees",
+          "type": "object",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Badge",
+      "file": "src/components/ui/badge",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": [
+            "default",
+            "secondary",
+            "destructive",
+            "warning",
+            "outline"
+          ],
+          "default": "default"
+        }
+      ]
+    },
+    {
+      "name": "Button",
+      "file": "src/components/ui/button",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": [
+            "default",
+            "destructive",
+            "outline",
+            "secondary",
+            "ghost",
+            "link"
+          ],
+          "default": "default"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": [
+            "default",
+            "sm",
+            "lg",
+            "icon"
+          ],
+          "default": "default"
+        },
+        {
+          "name": "asChild",
+          "type": "boolean",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "Card",
+      "file": "src/components/ui/card",
+      "import_path": ""
+    },
+    {
+      "name": "CardHeader",
+      "file": "src/components/ui/card",
+      "import_path": ""
+    },
+    {
+      "name": "CardFooter",
+      "file": "src/components/ui/card",
+      "import_path": ""
+    },
+    {
+      "name": "CardTitle",
+      "file": "src/components/ui/card",
+      "import_path": ""
+    },
+    {
+      "name": "CardDescription",
+      "file": "src/components/ui/card",
+      "import_path": ""
+    },
+    {
+      "name": "CardContent",
+      "file": "src/components/ui/card",
+      "import_path": ""
+    },
+    {
+      "name": "ChartContainer",
+      "file": "src/components/ui/chart",
+      "import_path": ""
+    },
+    {
+      "name": "ChartTooltip",
+      "file": "src/components/ui/chart",
+      "import_path": ""
+    },
+    {
+      "name": "ChartTooltipContent",
+      "file": "src/components/ui/chart",
+      "import_path": ""
+    },
+    {
+      "name": "ChartLegend",
+      "file": "src/components/ui/chart",
+      "import_path": ""
+    },
+    {
+      "name": "ChartLegendContent",
+      "file": "src/components/ui/chart",
+      "import_path": ""
+    },
+    {
+      "name": "ChartStyle",
+      "file": "src/components/ui/chart",
+      "import_path": ""
+    },
+    {
+      "name": "Collapsible",
+      "file": "src/components/ui/collapsible",
+      "import_path": ""
+    },
+    {
+      "name": "CollapsibleTrigger",
+      "file": "src/components/ui/collapsible",
+      "import_path": ""
+    },
+    {
+      "name": "CollapsibleContent",
+      "file": "src/components/ui/collapsible",
+      "import_path": ""
+    },
+    {
+      "name": "Dialog",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogPortal",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogOverlay",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogClose",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogTrigger",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogContent",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogHeader",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogFooter",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogTitle",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogDescription",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "Input",
+      "file": "src/components/ui/input",
+      "import_path": ""
+    },
+    {
+      "name": "Label",
+      "file": "src/components/ui/label",
+      "import_path": ""
+    },
+    {
+      "name": "ScrollArea",
+      "file": "src/components/ui/scroll-area",
+      "import_path": ""
+    },
+    {
+      "name": "ScrollBar",
+      "file": "src/components/ui/scroll-area",
+      "import_path": ""
+    },
+    {
+      "name": "Select",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectGroup",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectValue",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectTrigger",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectContent",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectLabel",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectItem",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectSeparator",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectScrollUpButton",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectScrollDownButton",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "Separator",
+      "file": "src/components/ui/separator",
+      "import_path": ""
+    },
+    {
+      "name": "Sheet",
+      "file": "src/components/ui/sheet",
+      "import_path": "",
+      "props": [
+        {
+          "name": "side",
+          "type": "enum",
+          "values": [
+            "top",
+            "bottom",
+            "left",
+            "right"
+          ],
+          "default": "right"
+        }
+      ]
+    },
+    {
+      "name": "SheetClose",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetContent",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetDescription",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetFooter",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetHeader",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetOverlay",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetPortal",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetTitle",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetTrigger",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "Sidebar",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarContent",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarFooter",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarGroup",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarGroupAction",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarGroupContent",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarGroupLabel",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarHeader",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarInput",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarInset",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarMenu",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarMenuAction",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarMenuBadge",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarMenuButton",
+      "file": "src/components/ui/sidebar",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": [
+            "default",
+            "outline"
+          ],
+          "default": "default"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": [
+            "default",
+            "sm",
+            "lg"
+          ],
+          "default": "default"
+        }
+      ]
+    },
+    {
+      "name": "SidebarMenuItem",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarMenuSkeleton",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarMenuSub",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarMenuSubButton",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarMenuSubItem",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarProvider",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarRail",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarSeparator",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "SidebarTrigger",
+      "file": "src/components/ui/sidebar",
+      "import_path": ""
+    },
+    {
+      "name": "Skeleton",
+      "file": "src/components/ui/skeleton",
+      "import_path": ""
+    },
+    {
+      "name": "Switch",
+      "file": "src/components/ui/switch",
+      "import_path": ""
+    },
+    {
+      "name": "Table",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableHeader",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableBody",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableFooter",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableHead",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableRow",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableCell",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableCaption",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "Tabs",
+      "file": "src/components/ui/tabs",
+      "import_path": ""
+    },
+    {
+      "name": "TabsList",
+      "file": "src/components/ui/tabs",
+      "import_path": ""
+    },
+    {
+      "name": "TabsTrigger",
+      "file": "src/components/ui/tabs",
+      "import_path": ""
+    },
+    {
+      "name": "TabsContent",
+      "file": "src/components/ui/tabs",
+      "import_path": ""
+    },
+    {
+      "name": "Textarea",
+      "file": "src/components/ui/textarea",
+      "import_path": ""
+    },
+    {
+      "name": "ToastProvider",
+      "file": "src/components/ui/toast",
+      "import_path": ""
+    },
+    {
+      "name": "ToastViewport",
+      "file": "src/components/ui/toast",
+      "import_path": ""
+    },
+    {
+      "name": "Toast",
+      "file": "src/components/ui/toast",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": [
+            "default",
+            "destructive"
+          ],
+          "default": "default"
+        }
+      ]
+    },
+    {
+      "name": "ToastTitle",
+      "file": "src/components/ui/toast",
+      "import_path": ""
+    },
+    {
+      "name": "ToastDescription",
+      "file": "src/components/ui/toast",
+      "import_path": ""
+    },
+    {
+      "name": "ToastClose",
+      "file": "src/components/ui/toast",
+      "import_path": ""
+    },
+    {
+      "name": "ToastAction",
+      "file": "src/components/ui/toast",
+      "import_path": ""
+    },
+    {
+      "name": "Tooltip",
+      "file": "src/components/ui/tooltip",
+      "import_path": ""
+    },
+    {
+      "name": "TooltipTrigger",
+      "file": "src/components/ui/tooltip",
+      "import_path": ""
+    },
+    {
+      "name": "TooltipContent",
+      "file": "src/components/ui/tooltip",
+      "import_path": ""
+    },
+    {
+      "name": "TooltipProvider",
+      "file": "src/components/ui/tooltip",
+      "import_path": ""
+    },
+    {
+      "name": "AuthProvider",
+      "file": "src/contexts/AuthContext",
+      "import_path": ""
+    },
+    {
+      "name": "Constants",
+      "file": "src/integrations/supabase/types",
+      "import_path": ""
+    }
+  ],
+  "assets": [
+    {
+      "file": "src/assets/fitness-avatars/aria.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/fitness-avatars/jax.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/fitness-avatars/kai.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/fitness-avatars/luna.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/fitness-avatars/mei.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/fitness-avatars/nina.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/fitness-avatars/rex.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/fitness-avatars/zen.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/invex-icon.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/invex-logo.png",
+      "kind": "logo",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/rotina-promo.jpg",
+      "kind": "image",
+      "format": "jpg"
+    }
+  ]
+}

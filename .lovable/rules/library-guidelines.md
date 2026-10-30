@@ -1,0 +1,17 @@
+# Invexgestor — Guidelines
+
+## Components
+
+The design system exports these components — import them from `@ws-wjcwdgtnuamsophyvkzm/038ffcd6-e981-4b0d-9363-50b8330243a1` and compose them before building anything from scratch:
+
+`AlertActionSheet`, `AppSidebar`, `AtestadosAnalytics`, `AuthProvider`, `AvatarMascote`, `Badge`, `Button`, `CardContent`, `CardDescription`, `CardFooter`, `CardHeader`, `CardTitle`, `Card`, `ChangelogModal`, `ChartContainer`, `ChartLegendContent`, `ChartLegend`, `ChartStyle`, `ChartTooltipContent`, `ChartTooltip`, `CollapsibleContent`, `CollapsibleTrigger`, `Collapsible`, `Constants`, `CurvaABCChart`, `DialogBalloons`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogPortal`, `DialogTitle`, `DialogTrigger`, `Dialog`, `DocumentSignaturePicker`, `EditMaterialDialog`, `EmailRestrictedRoute`, `EquipeSetorDialog`, `FaturaDialog`, `FitnessCard`, `FitnessLayout`, `FitnessProtectedRoute`, `Input`, `InsightCard`, `InsightsPanel`, `InventoryTable`, `InvexLogo`, `Label`, `MainLayout`, `MapasAnatomicos`, `MovementsChart`, `PaymentTestModeBanner`, `ProductValueChart`, `ProtectedRoute`, `PublicCommerceFooter`, `RemindersCard`, `RoleProtectedRoute`, `ScrollArea`, `ScrollBar`, `SelectContent`, `SelectGroup`, `SelectItem`, `SelectLabel`, `SelectScrollDownButton`, `SelectScrollUpButton`, `SelectSeparator`, `SelectTrigger`, `SelectValue`, `Select`, `SeletorAnatomico`, `Separator`, `SheetClose`, `SheetContent`, `SheetDescription`, `SheetFooter`, `SheetHeader`, `SheetOverlay`, `SheetPortal`, `SheetTitle`, `SheetTrigger`, `Sheet`, `SidebarContent`, `SidebarFooter`, `SidebarGroupAction`, `SidebarGroupContent`, `SidebarGroupLabel`, `SidebarGroup`, `SidebarHeader`, `SidebarInput`, `SidebarInset`, `SidebarMenuAction`, `SidebarMenuBadge`, `SidebarMenuButton`, `SidebarMenuItem`, `SidebarMenuSkeleton`, `SidebarMenuSubButton`, `SidebarMenuSubItem`, `SidebarMenuSub`, `SidebarMenu`, `SidebarProvider`, `SidebarRail`, `SidebarSeparator`, `SidebarTrigger`, `Sidebar`, `SignaturePad`, `Skeleton`, `Speedometer`, `StatsCard`, `StatusDistributionChart`, `StockEvolutionChart`, `StockUpdateDialog`, `SupportWidget`, `Switch`, `TableBody`, `TableCaption`, `TableCell`, `TableFooter`, `TableHead`, `TableHeader`, `TableRow`, `Table`, `TabsContent`, `TabsList`, `TabsTrigger`, `Tabs`, `Textarea`, `ToastAction`, `ToastClose`, `ToastDescription`, `ToastProvider`, `ToastTitle`, `ToastViewport`, `Toast`, `TooltipContent`, `TooltipProvider`, `TooltipTrigger`, `Tooltip`, `XPBar`
+
+Per-component details (import stanzas, props, variants, examples) live in `.lovable/rules/libraries/{slug}/components.md` — on disk, not auto-loaded. Read that file or the component source when the name alone isn't enough.
+
+## Theme Files
+
+The design system's theme is delivered through the following files. The author's original source files carry the full wiring the design system needs — variable declarations, framework-specific directives, provider objects, etc. — and are the canonical import target.
+
+- `@ws-wjcwdgtnuamsophyvkzm/038ffcd6-e981-4b0d-9363-50b8330243a1/index.css` (source — preferred import)
+- `@ws-wjcwdgtnuamsophyvkzm/038ffcd6-e981-4b0d-9363-50b8330243a1/dist/tokens.css` (auto-generated flat list of CSS custom properties — a raw-values fallback only; does NOT carry framework-specific wiring that the source files above provide)
+
