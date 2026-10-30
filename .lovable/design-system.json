@@ -2,7 +2,7 @@
   "meta": {
     "name": "Invexgestor",
     "package": "@ws-wjcwdgtnuamsophyvkzm/038ffcd6-e981-4b0d-9363-50b8330243a1",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "framework": "react",
     "css_framework": "tailwind",
     "starter_template": "custom_design_system_tailwind",
@@ -13,8 +13,10 @@
     "source_manifest": {
       "#enrichment": "20a3cdcde3892de17d0d0875a8d02d09a5697bc3d1335a2d6a69de1d3302ea89",
       ".gitignore": "d9566700e8535935d03c1583474d790c",
+      ".lovable/meta.yaml": "954a981e8847ec1692669dbb04ae9ae9",
       ".lovable/plan/mapas-anatômicos-configuráveis-2026-09-20.md": "ea31c6bdf2780d30f7530d4f949b7827",
       ".lovable/plan/área-de-downloads-no-site-do-invex-2026-09-04.md": "b4a5c11858d97a85244e871f3cad5803",
+      ".lovable/sources.yaml": "85650baf848ef209adbcf704cd10bef1",
       "AGENTS.md": "bf25b67b20555bd2136e661faa57aac6",
       "README.md": "21e6630de53cc1e8df4c4c18c6f9f259",
       "components.json": "a547944ace00dc5d5373aaca70a40bc4",
