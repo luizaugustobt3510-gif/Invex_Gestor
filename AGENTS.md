@@ -1,5 +1,7 @@
 # Architecture rules
 
+- Scope Rotina palette and accent styles under `.rotina-theme` so visual changes cannot recolor Invex Gestor.
+
 - Keep payment policies and Rotina pricing on unauthenticated routes with a shared public footer; this lets buyers review purchase conditions without granting access to company data.
 
 - Reuse the existing anamnesis review and PDF-generation flow for completed-anamnesis edits and later prescription additions; this preserves the current clinical permissions and storage behavior.

@@ -447,4 +447,61 @@ All colors MUST be HSL.
   --primary-glow: 32 98% 60%;
   --primary-foreground: 0 0% 100%;
   --ring: 24 95% 53%;
+  --secondary: 24 90% 95%;
+  --secondary-foreground: 24 80% 30%;
+  --accent: 24 90% 95%;
+  --accent-foreground: 24 80% 30%;
+  --routine-orange: 24 85% 40%;
+  --routine-blue: 211 75% 42%;
+  --routine-green: 155 65% 30%;
+  --routine-rose: 345 70% 42%;
+}
+
+/* Product-scoped accents: never recolor the corporate Gestor screens. */
+.rotina-theme .routine-menu {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--primary) / .16);
+}
+.rotina-theme .routine-menu [role="tab"] {
+  --routine-tone: var(--routine-orange);
+}
+.rotina-theme .routine-menu [data-value="tarefas"],
+.rotina-theme .routine-menu [data-value="foco"],
+.rotina-theme .routine-menu [data-value="graficos"] {
+  --routine-tone: var(--routine-blue);
+}
+.rotina-theme .routine-menu [data-value="habitos"],
+.rotina-theme .routine-menu [data-value="rituais"],
+.rotina-theme .routine-menu [data-value="revisao"] {
+  --routine-tone: var(--routine-green);
+}
+.rotina-theme .routine-menu [data-value="metas"],
+.rotina-theme .routine-menu [data-value="notas"] {
+  --routine-tone: var(--routine-rose);
+}
+.rotina-theme .routine-menu [role="tab"] svg {
+  color: hsl(var(--routine-tone));
+}
+.rotina-theme .routine-menu [role="tab"][data-state="active"] {
+  background: hsl(var(--routine-tone) / .12);
+  color: hsl(var(--routine-tone));
+  box-shadow: none;
+}
+.rotina-theme .routine-summary > div {
+  --routine-tone: var(--routine-orange);
+  background: hsl(var(--routine-tone) / .08);
+  border-color: hsl(var(--routine-tone) / .2);
+  border-top: 3px solid hsl(var(--routine-tone));
+}
+.rotina-theme .routine-summary > div:nth-child(2) { --routine-tone: var(--routine-rose); }
+.rotina-theme .routine-summary > div:nth-child(3) { --routine-tone: var(--routine-green); }
+.rotina-theme .routine-summary > div:nth-child(4) { --routine-tone: var(--routine-blue); }
+.rotina-theme .routine-summary > div > p:last-child {
+  color: hsl(var(--routine-tone));
+}
+.rotina-theme .routine-section {
+  border-top: 2px solid hsl(var(--primary) / .35);
+}
+.rotina-theme .routine-section h2 {
+  color: hsl(var(--secondary-foreground));
 }
