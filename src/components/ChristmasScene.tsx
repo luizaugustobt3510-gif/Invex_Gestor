@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 /** Decorative Christmas overlay (snow + flying reindeer sleigh) for login screens only. */
-export function ChristmasScene() {
+export function ChristmasScene({ fixed = false }: { fixed?: boolean }) {
   const flakes = useMemo(
     () =>
       Array.from({ length: 45 }, (_, i) => ({
@@ -17,7 +17,7 @@ export function ChristmasScene() {
   );
 
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+    <div aria-hidden className={`pointer-events-none ${fixed ? "fixed z-40" : "absolute z-0"} inset-0 overflow-hidden`}>
       <style>{`
         @keyframes xmas-fall { 0%{transform:translate(0,-10vh)} 100%{transform:translate(var(--drift),110vh)} }
         @keyframes xmas-sleigh { 0%{transform:translateX(-30vw) translateY(0)} 25%{transform:translateX(25vw) translateY(-14px)} 50%{transform:translateX(60vw) translateY(6px)} 75%{transform:translateX(95vw) translateY(-10px)} 100%{transform:translateX(130vw) translateY(0)} }
