@@ -31,8 +31,16 @@ interface Goal { id: string; titulo: string; periodo: string; prazo: string | nu
 const errMsg = (e: any) => String(e?.message || '').includes('LIMITE_GRATUITO')
   ? String(e.message).replace('LIMITE_GRATUITO: ', 'Limite do plano gratuito: ') : 'Não foi possível salvar.';
 
+const MENU = [
+  ['hoje', 'Hoje', Sun], ['tarefas', 'Tarefas', ListTodo], ['habitos', 'Hábitos', Repeat], ['metas', 'Metas', Target], ['foco', 'Foco', Timer], ['rituais', 'Rituais', Sunrise],
+  ['lembretes', 'Lembretes', Bell], ['notas', 'Notas', StickyNote], ['graficos', 'Gráficos', BarChart3],
+  ['revisao', 'Revisão', NotebookPen], ['perfil', 'Perfil', UserCircle],
+] as const;
+
 export default function RotinaApp() {
   const navigate = useNavigate();
+  const [tab, setTab] = useState<string>('hoje');
+  const [menuOpen, setMenuOpen] = useState(false);
   const [state, setState] = useState<'loading' | 'ok' | 'blocked'>('loading');
   const [access, setAccess] = useState<RotinaAccess | null>(null);
   const [nome, setNome] = useState('');
@@ -332,7 +340,11 @@ export default function RotinaApp() {
       <PaymentTestModeBanner />
       <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur pt-[env(safe-area-inset-top)]">
         <div className="max-w-6xl mx-auto px-3 sm:px-5 h-14 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 font-semibold min-w-0"><CalendarCheck className="h-5 w-5 text-primary shrink-0" /><span className="truncate">Invex Rotina</span></div>
+          <div className="flex items-center gap-2 font-semibold min-w-0">
+            <Button size="icon" variant="ghost" className="h-10 w-10 md:hidden -ml-2" onClick={() => setMenuOpen(true)} aria-label="Abrir menu"><Menu className="h-5 w-5" /></Button>
+            <CalendarCheck className="h-5 w-5 text-primary shrink-0" /><span className="truncate">Invex Rotina</span>
+            <span className="md:hidden text-sm font-normal text-muted-foreground truncate">· {MENU.find(m => m[0] === tab)?.[1]}</span>
+          </div>
           <div className="flex items-center gap-2 shrink-0">
             <Badge variant={premium ? 'default' : 'secondary'}>{premium ? 'Premium' : 'Gratuito'}</Badge>
             <div className="h-8 w-8 rounded-full overflow-hidden bg-muted flex items-center justify-center">
@@ -349,14 +361,23 @@ export default function RotinaApp() {
           <p className="text-sm text-muted-foreground capitalize">{format(today, "EEEE, d 'de' MMMM", { locale: ptBR })}</p>
         </div>
 
-        <Tabs defaultValue="hoje" orientation="vertical" className="md:flex md:gap-6">
-          <TabsList className="routine-menu h-auto w-full md:w-48 md:shrink-0 flex md:flex-col justify-start md:items-stretch overflow-x-auto md:sticky md:top-20 md:self-start bg-muted/60 p-1.5 gap-1 snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {([
-              ['hoje', 'Hoje', Sun], ['tarefas', 'Tarefas', ListTodo], ['habitos', 'Hábitos', Repeat], ['metas', 'Metas', Target], ['foco', 'Foco', Timer], ['rituais', 'Rituais', Sunrise],
-              ['lembretes', 'Lembretes', Bell], ['notas', 'Notas', StickyNote], ['graficos', 'Gráficos', BarChart3],
-              ['revisao', 'Revisão', NotebookPen], ['perfil', 'Perfil', UserCircle],
-            ] as const).map(([v, l, I]) => (
-              <TabsTrigger key={v} value={v} data-value={v} className="md:justify-start gap-2 px-3 py-2.5 min-h-10 shrink-0 snap-start"><I className="h-4 w-4" />{l}</TabsTrigger>
+        <Tabs value={tab} onValueChange={setTab} orientation="vertical" className="md:flex md:gap-6">
+          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+            <SheetContent side="left" className="rotina-theme w-72 p-4">
+              <SheetHeader><SheetTitle className="flex items-center gap-2"><CalendarCheck className="h-5 w-5 text-primary" />Invex Rotina</SheetTitle></SheetHeader>
+              <nav className="mt-4 flex flex-col gap-1">
+                {MENU.map(([v, l, I]) => (
+                  <button key={v} onClick={() => { setTab(v); setMenuOpen(false); }}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-3 text-base text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${tab === v ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}>
+                    <I className="h-5 w-5" />{l}
+                  </button>
+                ))}
+              </nav>
+            </SheetContent>
+          </Sheet>
+          <TabsList className="routine-menu hidden md:flex h-auto md:w-48 md:shrink-0 flex-col justify-start items-stretch md:sticky md:top-20 md:self-start bg-muted/60 p-1.5 gap-1">
+            {MENU.map(([v, l, I]) => (
+              <TabsTrigger key={v} value={v} data-value={v} className="justify-start gap-2 px-3 py-2.5 min-h-10"><I className="h-4 w-4" />{l}</TabsTrigger>
             ))}
           </TabsList>
           <div className="flex-1 min-w-0">
