@@ -1,5 +1,9 @@
 # Roadmap
 
+## Páginas públicas para pagamentos
+- [x] Criar Termos, Privacidade, Reembolso e Preços públicos
+- [x] Adicionar links nas telas de acesso e verificar acesso sem login
+
 ## Revisão e receita da anamnese
 - [x] Edição de anamnese concluída abre diretamente na revisão
 - [x] Botão para encerrar a edição de uma resposta e voltar à revisão sem percorrer todas

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { CalendarCheck } from 'lucide-react';
+import { PublicCommerceFooter } from '@/components/PublicCommerceFooter';
 
 const RotinaLogin = () => {
   const [mode, setMode] = useState<'entrar' | 'criar'>('entrar');
@@ -102,6 +103,7 @@ const RotinaLogin = () => {
           </div>
         )}
         <p className="login-footer mt-6 text-center text-xs">Invex Gestor Soluções - IGS®</p>
+        <PublicCommerceFooter />
       </div>
     </div>
   );

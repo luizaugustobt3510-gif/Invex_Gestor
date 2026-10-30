@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
 import invexLogo from '@/assets/invex-logo.png';
 import rotinaPromo from '@/assets/rotina-promo.jpg';
+import { PublicCommerceFooter } from '@/components/PublicCommerceFooter';
 
 type AuthMethods = { email: boolean; google: boolean; microsoft: boolean };
 const DEFAULT_METHODS: AuthMethods = { email: true, google: false, microsoft: false };
@@ -292,6 +293,7 @@ const Login = () => {
       <p className="login-footer relative z-10 mt-6 text-center text-[10px] tracking-wide">
         Invex Gestor Soluções - IGS®
       </p>
+      <PublicCommerceFooter />
     </div>
   );
 };

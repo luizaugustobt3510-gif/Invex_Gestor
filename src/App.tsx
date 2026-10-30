@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Institucional from "./pages/Institucional";
+import PublicPolicies from "./pages/PublicPolicies";
+import PublicPricing from "./pages/PublicPricing";
 import ValidarReceita from "./pages/ValidarReceita";
 import { AuthProvider } from "./contexts/AuthContext";
 import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
@@ -144,6 +146,10 @@ const App = () => (
             <Route path="/accept-invite" element={<AcceptInvite />} />
             <Route path="/demo" element={<DemoMode />} />
             <Route path="/institucional" element={<Institucional />} />
+            <Route path="/termos" element={<PublicPolicies kind="terms" />} />
+            <Route path="/privacidade" element={<PublicPolicies kind="privacy" />} />
+            <Route path="/reembolso" element={<PublicPolicies kind="refund" />} />
+            <Route path="/precos" element={<PublicPricing />} />
             <Route path="/validar" element={<ValidarReceita />} />
             <Route path="/validar/:codigo" element={<ValidarReceita />} />
             
