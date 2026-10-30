@@ -1,5 +1,6 @@
 // ============= Full file contents =============
 
+import { ChristmasScene } from "@/components/ChristmasScene";
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -121,6 +122,7 @@ const Login = () => {
 
   return (
     <div className="login-scene relative min-h-[100dvh] overflow-hidden flex flex-col items-center justify-center px-5 py-10 safe-area-inset">
+      <ChristmasScene />
       {/* Fundo claro: manchas suaves de verde e contornos */}
       <div className="login-blob login-blob-1" aria-hidden="true" />
       <div className="login-blob login-blob-2" aria-hidden="true" />
