@@ -1,8 +1,8 @@
 # Roadmap
 
 ## Páginas públicas para pagamentos
-- [ ] Criar Termos, Privacidade, Reembolso e Preços públicos
-- [ ] Adicionar links nas telas de acesso e verificar acesso sem login
+- [x] Criar Termos, Privacidade, Reembolso e Preços públicos
+- [x] Adicionar links nas telas de acesso e verificar acesso sem login
 
 ## Revisão e receita da anamnese
 - [x] Edição de anamnese concluída abre diretamente na revisão
