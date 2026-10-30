@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChristmasScene } from '@/components/ChristmasScene';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -338,6 +339,7 @@ export default function RotinaApp() {
 
   return (
     <div className="rotina-theme min-h-[100dvh] bg-background overflow-x-hidden">
+      <ChristmasScene fixed />
       <PaymentTestModeBanner />
       <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur pt-[env(safe-area-inset-top)]">
         <div className="max-w-6xl mx-auto px-3 sm:px-5 h-14 flex items-center justify-between gap-2">
