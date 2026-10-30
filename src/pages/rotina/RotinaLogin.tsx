@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ChristmasScene } from "@/components/ChristmasScene";
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
@@ -54,6 +55,7 @@ const RotinaLogin = () => {
 
   return (
     <div className="rotina-theme login-scene relative min-h-[100dvh] overflow-hidden flex items-center justify-center px-4 py-8 sm:px-6 sm:py-12">
+      <ChristmasScene />
       <div className="login-blob login-blob-1" aria-hidden="true" />
       <div className="login-blob login-blob-2" aria-hidden="true" />
       <div className="login-blob login-blob-3 hidden md:block" aria-hidden="true" />
