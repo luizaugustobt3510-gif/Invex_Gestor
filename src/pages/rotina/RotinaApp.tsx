@@ -312,7 +312,7 @@ export default function RotinaApp() {
   );
 
   const Card = ({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) => (
-    <section className="rounded-2xl border border-border p-5">
+    <section className="routine-section rounded-2xl border border-border p-5">
       <div className="flex items-center justify-between mb-3"><h2 className="text-sm font-semibold">{title}</h2>{action}</div>
       {children}
     </section>
@@ -350,19 +350,19 @@ export default function RotinaApp() {
         </div>
 
         <Tabs defaultValue="hoje" orientation="vertical" className="md:flex md:gap-6">
-          <TabsList className="h-auto w-full md:w-48 md:shrink-0 flex md:flex-col justify-start md:items-stretch overflow-x-auto md:sticky md:top-20 md:self-start bg-muted/60 p-1.5 gap-1 snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <TabsList className="routine-menu h-auto w-full md:w-48 md:shrink-0 flex md:flex-col justify-start md:items-stretch overflow-x-auto md:sticky md:top-20 md:self-start bg-muted/60 p-1.5 gap-1 snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {([
               ['hoje', 'Hoje', Sun], ['tarefas', 'Tarefas', ListTodo], ['habitos', 'Hábitos', Repeat], ['metas', 'Metas', Target], ['foco', 'Foco', Timer], ['rituais', 'Rituais', Sunrise],
               ['lembretes', 'Lembretes', Bell], ['notas', 'Notas', StickyNote], ['graficos', 'Gráficos', BarChart3],
               ['revisao', 'Revisão', NotebookPen], ['perfil', 'Perfil', UserCircle],
             ] as const).map(([v, l, I]) => (
-              <TabsTrigger key={v} value={v} className="md:justify-start gap-2 px-3 py-2.5 min-h-10 shrink-0 snap-start"><I className="h-4 w-4" />{l}</TabsTrigger>
+              <TabsTrigger key={v} value={v} data-value={v} className="md:justify-start gap-2 px-3 py-2.5 min-h-10 shrink-0 snap-start"><I className="h-4 w-4" />{l}</TabsTrigger>
             ))}
           </TabsList>
           <div className="flex-1 min-w-0">
 
           <TabsContent value="hoje" className="space-y-4 mt-4 md:mt-0">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="routine-summary grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 ['Hoje', `${todayTasks.filter(t => t.concluida).length}/${todayTasks.length}`],
                 ['Atrasadas', overdue.length],
