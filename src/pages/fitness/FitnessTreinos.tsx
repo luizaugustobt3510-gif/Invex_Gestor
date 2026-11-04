@@ -769,14 +769,16 @@ const SessaoTreino = ({
 
   /* --- Descanso opcional --- */
   const iniciarDescanso = (segs: number) => {
-    patch({ restEndsAt: Date.now() + segs * 1000, pendingRestSeg: null, pendingRestExercicio: null });
+    playSfx('tap');
+    patch({ restEndsAt: Date.now() + segs * 1000, restTotalSeg: segs, pendingRestSeg: null, pendingRestExercicio: null });
   };
   const dispensarDescanso = () => {
     patch({ pendingRestSeg: null, pendingRestExercicio: null, restEndsAt: null });
   };
   const addDescanso = (segs: number) => {
     const base = session.restEndsAt && session.restEndsAt > Date.now() ? session.restEndsAt : Date.now();
-    patch({ restEndsAt: base + segs * 1000 });
+    const novoFim = base + segs * 1000;
+    patch({ restEndsAt: novoFim, restTotalSeg: Math.max(session.restTotalSeg || 0, Math.ceil((novoFim - Date.now()) / 1000)) });
   };
 
   /* --- Progressão de carga --- */

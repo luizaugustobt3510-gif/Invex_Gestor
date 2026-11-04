@@ -13,6 +13,7 @@ import { useFitnessDailyLog } from '@/hooks/useFitnessDailyLog';
 import { useFitnessTodayMeals } from '@/hooks/useFitnessTodayMeals';
 import { useFitnessAchievementsAutoUnlock } from '@/hooks/useFitnessAchievementsAutoUnlock';
 import { supabase } from '@/integrations/supabase/client';
+import { playSfx, celebrate } from '@/lib/fitnessFeedback';
 
 
 const HUMORES = ['😄', '🙂', '😐', '😞', '😤'];
@@ -125,6 +126,7 @@ const FitnessDashboard = () => {
   useEffect(() => {
     if (aguaCompleta && !lastWaterDoneRef.current) {
       lastWaterDoneRef.current = true;
+      if (log) celebrate();
       if (profile?.avatar_id === 'rex') triggerRexAnim('celebrate', 4000);
     }
     if (!aguaCompleta) lastWaterDoneRef.current = false;
@@ -152,6 +154,7 @@ const FitnessDashboard = () => {
   const aguaPct = Math.min(100, (agua / aguaMeta) * 100);
 
   const updateAgua = async (delta: number) => {
+    playSfx('tap');
     const novo = Math.max(0, agua + delta);
     await upsertToday({ agua_ml: novo });
   };
