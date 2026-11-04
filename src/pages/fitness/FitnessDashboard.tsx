@@ -13,6 +13,7 @@ import { useFitnessDailyLog } from '@/hooks/useFitnessDailyLog';
 import { useFitnessTodayMeals } from '@/hooks/useFitnessTodayMeals';
 import { useFitnessAchievementsAutoUnlock } from '@/hooks/useFitnessAchievementsAutoUnlock';
 import { supabase } from '@/integrations/supabase/client';
+import { playSfx, celebrate } from '@/lib/fitnessFeedback';
 
 
 const HUMORES = ['😄', '🙂', '😐', '😞', '😤'];
@@ -30,6 +31,7 @@ const FitnessDashboard = () => {
   const rexTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastWaterDoneRef = useRef(false);
   const lastCalorieDoneRef = useRef(false);
+  const userAddedWaterRef = useRef(false);
 
   const triggerRexAnim = (a: RexAnim, ms = 3500) => {
     setRexAnim(a);
@@ -125,6 +127,7 @@ const FitnessDashboard = () => {
   useEffect(() => {
     if (aguaCompleta && !lastWaterDoneRef.current) {
       lastWaterDoneRef.current = true;
+      if (userAddedWaterRef.current) celebrate();
       if (profile?.avatar_id === 'rex') triggerRexAnim('celebrate', 4000);
     }
     if (!aguaCompleta) lastWaterDoneRef.current = false;
@@ -152,6 +155,8 @@ const FitnessDashboard = () => {
   const aguaPct = Math.min(100, (agua / aguaMeta) * 100);
 
   const updateAgua = async (delta: number) => {
+    playSfx('tap');
+    userAddedWaterRef.current = true;
     const novo = Math.max(0, agua + delta);
     await upsertToday({ agua_ml: novo });
   };

@@ -31,6 +31,7 @@ export interface ActiveSession {
   exercises: ActiveSessionExercise[];
   currentIndex: number;
   restEndsAt?: number | null;
+  restTotalSeg?: number | null;
   /** Descanso sugerido aguardando decisão do usuário (segundos) */
   pendingRestSeg?: number | null;
   /** Nome do exercício que acabou de ser concluído (para o card de descanso) */
