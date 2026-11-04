@@ -37,7 +37,7 @@ export async function getPaddlePriceId(priceId: string): Promise<string> {
   return data.paddleId;
 }
 
-export async function openPremiumCheckout(opts: { priceId: string; userId: string; email?: string }) {
+export async function openPremiumCheckout(opts: { priceId: string; userId: string; email?: string; successPath?: string }) {
   await initializePaddle();
   const paddlePriceId = await getPaddlePriceId(opts.priceId);
   window.Paddle.Checkout.open({
@@ -47,7 +47,7 @@ export async function openPremiumCheckout(opts: { priceId: string; userId: strin
     settings: {
       displayMode: "overlay",
       locale: "pt",
-      successUrl: `${window.location.origin}/rotina?checkout=sucesso`,
+      successUrl: `${window.location.origin}${opts.successPath ?? '/rotina'}?checkout=sucesso`,
       allowLogout: false,
       variant: "one-page",
     },

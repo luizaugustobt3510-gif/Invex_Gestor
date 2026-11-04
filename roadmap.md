@@ -29,3 +29,9 @@
 ## Interface
 - [x] Botão "Sair" vermelho na barra superior; item "Sair" removido do fim do menu lateral
 - [x] Botão de ajuda quadrado na barra superior, ao lado do "Sair"
+
+## Invex Fitness Premium
+- [x] Remover "Metas de hoje" da tela inicial
+- [x] Ilustrações dos exercícios pelo nome
+- [x] Premium x Gratuito (treino inteligente, evolução, alimentação, emagrecimento limitado, medalhas)
+- [x] Assinatura no app (R$ 25,90/mês, R$ 259/ano, 3 dias grátis) e Premium manual pelo Super Admin

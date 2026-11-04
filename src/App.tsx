@@ -74,6 +74,7 @@ import FitnessAlimentacao from "./pages/fitness/FitnessAlimentacao";
 import FitnessGerarTreino from "./pages/fitness/FitnessGerarTreino";
 import FitnessEmagrecimento from "./pages/fitness/FitnessEmagrecimento";
 import { FitnessProtectedRoute } from "./components/FitnessProtectedRoute";
+import { FitnessPremiumRoute } from "./components/fitness/FitnessPremium";
 import Pacientes from "./pages/clinica/Pacientes";
 import PacienteProntuario from "./pages/clinica/PacienteProntuario";
 import Agenda from "./pages/clinica/Agenda";
@@ -244,11 +245,11 @@ const App = () => (
             <Route path="/fitness/onboarding" element={<FitnessProtectedRoute><FitnessOnboarding /></FitnessProtectedRoute>} />
             <Route path="/fitness/perfil" element={<FitnessProtectedRoute><FitnessPerfil /></FitnessProtectedRoute>} />
             <Route path="/fitness/treinos" element={<FitnessProtectedRoute><FitnessTreinos /></FitnessProtectedRoute>} />
-            <Route path="/fitness/evolucao" element={<FitnessProtectedRoute><FitnessEvolucao /></FitnessProtectedRoute>} />
+            <Route path="/fitness/evolucao" element={<FitnessProtectedRoute><FitnessPremiumRoute feature="Gráficos de evolução"><FitnessEvolucao /></FitnessPremiumRoute></FitnessProtectedRoute>} />
             <Route path="/fitness/historico" element={<FitnessProtectedRoute><FitnessHistorico /></FitnessProtectedRoute>} />
             <Route path="/fitness/conquistas" element={<FitnessProtectedRoute><FitnessConquistas /></FitnessProtectedRoute>} />
-            <Route path="/fitness/alimentacao" element={<FitnessProtectedRoute><FitnessAlimentacao /></FitnessProtectedRoute>} />
-            <Route path="/fitness/gerar-treino" element={<FitnessProtectedRoute><FitnessGerarTreino /></FitnessProtectedRoute>} />
+            <Route path="/fitness/alimentacao" element={<FitnessProtectedRoute><FitnessPremiumRoute feature="Plano de alimentação"><FitnessAlimentacao /></FitnessPremiumRoute></FitnessProtectedRoute>} />
+            <Route path="/fitness/gerar-treino" element={<FitnessProtectedRoute><FitnessPremiumRoute feature="Gerar treino inteligente"><FitnessGerarTreino /></FitnessPremiumRoute></FitnessProtectedRoute>} />
             <Route path="/fitness/emagrecimento" element={<FitnessProtectedRoute><FitnessEmagrecimento /></FitnessProtectedRoute>} />
 
             {/* === CLÍNICA (Prontuário + Agenda) === */}

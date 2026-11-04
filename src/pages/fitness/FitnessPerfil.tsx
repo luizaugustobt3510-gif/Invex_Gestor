@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
 import { FitnessCard } from '@/components/fitness/FitnessCard';
+import { FitnessPlanCard } from '@/components/fitness/FitnessPremium';
 import { AvatarMascote } from '@/components/fitness/AvatarMascote';
 import { FITNESS_AVATARS } from './avatars';
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
@@ -101,6 +102,7 @@ const FitnessPerfil = () => {
   return (
     <FitnessLayout>
       <h1 className="text-2xl font-black mb-4">Meu Perfil</h1>
+      <FitnessPlanCard />
 
       <FitnessCard className="mb-4 !p-3">
         <div className="flex items-center justify-between gap-2">

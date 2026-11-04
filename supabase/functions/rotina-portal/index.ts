@@ -10,11 +10,13 @@ Deno.serve(async (req) => {
     const userClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: auth } } });
     const { data: { user } } = await userClient.auth.getUser();
     if (!user) return json({ error: 'Não autenticado' }, 401);
-    const { environment } = await req.json().catch(() => ({}));
+    const { environment, product } = await req.json().catch(() => ({}));
     const env: PaddleEnv = environment === 'live' ? 'live' : 'sandbox';
+    const productId = product === 'fitness_premium' ? 'fitness_premium' : 'rotina_premium';
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const { data: sub } = await admin.from('subscriptions').select('paddle_customer_id, paddle_subscription_id')
-      .eq('user_id', user.id).eq('environment', env).order('created_at', { ascending: false }).limit(1).maybeSingle();
+      .eq('user_id', user.id).eq('environment', env).eq('product_id', productId)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle();
     if (!sub) return json({ error: 'Nenhuma assinatura encontrada' }, 404);
     const session = await getPaddleClient(env).customerPortalSessions.create(sub.paddle_customer_id, [sub.paddle_subscription_id]);
     return json({ url: session.urls.general.overview });
