@@ -1,3 +1,4 @@
+import { exerciseImage } from '@/lib/exerciseImages';
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
 import { FitnessCard } from '@/components/fitness/FitnessCard';
@@ -926,6 +927,9 @@ const SessaoTreino = ({
                       ? <SkipForward className="w-4 h-4" />
                       : <span className="text-xs font-bold">{i + 1}</span>}
                 </button>
+                {exerciseImage(ex.nome) && (
+                  <img src={exerciseImage(ex.nome)!} alt={ex.nome} loading="lazy" width={48} height={48} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                )}
                 <div className="flex-1 min-w-0">
                   <p className={`font-semibold text-sm truncate ${ex.feito ? 'line-through' : ''}`}>{ex.nome}</p>
                   <p className="text-[11px] text-slate-400">

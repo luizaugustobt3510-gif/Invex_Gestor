@@ -12,6 +12,7 @@ interface Ach {
   icone: string;
   xp_recompensa: number;
   raridade: string;
+  premium?: boolean;
 }
 
 const RARIDADE_COR: Record<string, string> = {
@@ -73,6 +74,7 @@ const FitnessConquistas = () => {
                     {isUnlocked ? <Trophy className="w-6 h-6" /> : <Lock className="w-5 h-5" />}
                   </div>
                   <p className="text-sm font-bold">{a.nome}</p>
+                  {a.premium && <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-300">Premium</span>}
                   <p className="text-[10px] text-slate-400 leading-tight">{a.descricao}</p>
                   <span
                     className="text-[10px] uppercase tracking-wide font-bold"

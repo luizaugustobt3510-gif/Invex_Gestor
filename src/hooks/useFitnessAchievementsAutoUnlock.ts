@@ -20,8 +20,9 @@ export function useFitnessAchievementsAutoUnlock() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      const { data: isPremium } = await supabase.rpc('fitness_is_premium', { _uid: user.id });
       const [{ data: catalog }, { data: unlocked }] = await Promise.all([
-        supabase.from('fitness_achievements').select('id, codigo, xp_recompensa'),
+        supabase.from('fitness_achievements').select('id, codigo, xp_recompensa, premium'),
         supabase.from('fitness_user_achievements').select('achievement_id').eq('user_id', user.id),
       ]);
       if (!catalog) return;
@@ -48,6 +49,7 @@ export function useFitnessAchievementsAutoUnlock() {
         const c: any = byCode.get(code);
         if (!c) return;
         if (owned.has(c.id)) return;
+        if (c.premium && !isPremium) return; // medalha exclusiva Premium
         toUnlock.push(c.id);
       };
 
@@ -80,6 +82,7 @@ export function useFitnessAchievementsAutoUnlock() {
         .from('fitness_emagrecimento_logs' as any)
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id);
+      check('premium_member', !!isPremium);
       check('emagrecimento_start', (emagCount || 0) > 0);
 
       if (toUnlock.length === 0) return;
