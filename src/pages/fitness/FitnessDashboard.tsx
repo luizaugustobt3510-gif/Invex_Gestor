@@ -31,6 +31,7 @@ const FitnessDashboard = () => {
   const rexTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastWaterDoneRef = useRef(false);
   const lastCalorieDoneRef = useRef(false);
+  const userAddedWaterRef = useRef(false);
 
   const triggerRexAnim = (a: RexAnim, ms = 3500) => {
     setRexAnim(a);
@@ -126,7 +127,7 @@ const FitnessDashboard = () => {
   useEffect(() => {
     if (aguaCompleta && !lastWaterDoneRef.current) {
       lastWaterDoneRef.current = true;
-      if (log) celebrate();
+      if (userAddedWaterRef.current) celebrate();
       if (profile?.avatar_id === 'rex') triggerRexAnim('celebrate', 4000);
     }
     if (!aguaCompleta) lastWaterDoneRef.current = false;
@@ -155,6 +156,7 @@ const FitnessDashboard = () => {
 
   const updateAgua = async (delta: number) => {
     playSfx('tap');
+    userAddedWaterRef.current = true;
     const novo = Math.max(0, agua + delta);
     await upsertToday({ agua_ml: novo });
   };
