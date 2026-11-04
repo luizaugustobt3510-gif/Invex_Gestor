@@ -24,6 +24,13 @@ Deno.serve(async (req) => {
     }
 
 
+    const { data: isPremium } = await supabase.rpc('fitness_is_premium', { _uid: claims.claims.sub });
+    if (!isPremium) {
+      return new Response(JSON.stringify({ error: 'O treino inteligente é um recurso Premium.' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const perfil = await req.json();
     const apiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!apiKey) throw new Error('LOVABLE_API_KEY missing');
