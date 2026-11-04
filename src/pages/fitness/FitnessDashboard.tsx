@@ -7,6 +7,7 @@ import { DialogBalloons } from '@/components/fitness/DialogBalloons';
 import { XPBar } from '@/components/fitness/XPBar';
 import { FitnessCard } from '@/components/fitness/FitnessCard';
 import { Speedometer } from '@/components/fitness/Speedometer';
+import { MuscleHeatmap } from '@/components/fitness/MuscleHeatmap';
 
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
 import { useFitnessDailyLog } from '@/hooks/useFitnessDailyLog';
@@ -213,6 +214,8 @@ const FitnessDashboard = () => {
       <FitnessCard className="mb-4">
         <XPBar xp={profile.xp} />
       </FitnessCard>
+
+      <MuscleHeatmap />
 
       <div className="grid grid-cols-2 gap-3 mb-4">
         <FitnessCard glow="fuchsia">
