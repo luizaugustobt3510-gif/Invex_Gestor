@@ -1937,6 +1937,7 @@ export type Database = {
           icone: string
           id: string
           nome: string
+          premium: boolean
           raridade: string
           xp_recompensa: number
         }
@@ -1947,6 +1948,7 @@ export type Database = {
           icone?: string
           id?: string
           nome: string
+          premium?: boolean
           raridade?: string
           xp_recompensa?: number
         }
@@ -1957,6 +1959,7 @@ export type Database = {
           icone?: string
           id?: string
           nome?: string
+          premium?: boolean
           raridade?: string
           xp_recompensa?: number
         }
@@ -2156,6 +2159,36 @@ export type Database = {
           percentual_gordura?: number | null
           peso?: number | null
           quadril?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fitness_premium_grants: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          email: string | null
+          fim: string | null
+          granted_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          email?: string | null
+          fim?: string | null
+          granted_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          email?: string | null
+          fim?: string | null
+          granted_by?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -5352,6 +5385,11 @@ export type Database = {
         Args: { _company_id: string }
         Returns: string
       }
+      fitness_admin_grant: {
+        Args: { _ativo: boolean; _email: string; _fim: string }
+        Returns: string
+      }
+      fitness_is_premium: { Args: { _uid: string }; Returns: boolean }
       get_auth_methods_for_email: { Args: { _email: string }; Returns: Json }
       get_user_company_id: { Args: { _user_id: string }; Returns: string }
       get_user_role: {
@@ -5364,6 +5402,10 @@ export type Database = {
       }
       has_clinical_access: {
         Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
+      has_product_subscription: {
+        Args: { _product: string; _uid: string }
         Returns: boolean
       }
       has_role: {

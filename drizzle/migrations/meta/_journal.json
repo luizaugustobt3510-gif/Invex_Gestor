@@ -106,6 +106,13 @@
       "when": 1793301264426,
       "tag": "0014_rotina_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1793813403307,
+      "tag": "0015_fitness_premium",
+      "breakpoints": true
     }
   ]
 }
