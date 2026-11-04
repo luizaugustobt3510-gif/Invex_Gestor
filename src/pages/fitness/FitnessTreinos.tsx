@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { playSfx, celebrate, isFitnessMuted, setFitnessMuted } from '@/lib/fitnessFeedback';
 import {
   useFitnessActiveSession, ActiveSession, ActiveSessionExercise, elapsedSec, writeSession,
 } from '@/hooks/useFitnessActiveSession';
@@ -685,9 +686,20 @@ const SessaoTreino = ({
     if (!end) return;
     const ms = end - Date.now();
     if (ms <= 0) return;
-    const t = setTimeout(() => toast.success('Descanso concluído — bora pro próximo! 💪'), ms);
-    return () => clearTimeout(t);
+    const t = setTimeout(() => { playSfx('restEnd'); toast.success('Descanso concluído — bora pro próximo! 💪'); }, ms);
+    // Bipes nos últimos 3 segundos
+    const ticks = [3, 2, 1].map(s => ms - s * 1000).filter(d => d > 0).map(d => setTimeout(() => playSfx('tick'), d));
+    return () => { clearTimeout(t); ticks.forEach(clearTimeout); };
   }, [session?.restEndsAt]);
+
+  const [muted, setMuted] = useState(isFitnessMuted());
+  const allDoneRef = useRef(false);
+  useEffect(() => {
+    const list = session?.exercises || [];
+    const done = list.length > 0 && list.every(e => e.feito || e.pulado) && list.some(e => e.feito);
+    if (done && !allDoneRef.current) { allDoneRef.current = true; celebrate(); }
+    if (!done) allDoneRef.current = false;
+  }, [session?.exercises]);
 
   if (!session) {
     return <FitnessLayout hideNav><div className="text-center py-20 text-cyan-300">Sem treino ativo</div></FitnessLayout>;
@@ -721,6 +733,7 @@ const SessaoTreino = ({
     const idx = exs.findIndex(e => e.id === id);
     const next = updated.findIndex((e, i) => i > idx && !e.feito && !e.pulado);
     const faltamExercicios = next >= 0;
+    playSfx('done');
     patch({
       exercises: updated,
       currentIndex: next >= 0 ? next : session.currentIndex,
@@ -795,7 +808,14 @@ const SessaoTreino = ({
           <X className="w-4 h-4" /> Cancelar
         </button>
         <h1 className="text-base font-bold truncate max-w-[60%]">{w.nome}</h1>
-        <span className="text-[11px] text-slate-500">{feitos}/{exs.length}</span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { const m = !muted; setMuted(m); setFitnessMuted(m); if (!m) playSfx('tap'); }}
+            aria-label={muted ? 'Ativar sons' : 'Silenciar sons'}
+            className="h-8 w-8 rounded-lg bg-slate-800/60 border border-slate-700 text-sm"
+          >{muted ? '🔇' : '🔊'}</button>
+          <span className="text-[11px] text-slate-500">{feitos}/{exs.length}</span>
+        </div>
       </div>
 
       {/* Avatar visual durante treino */}
@@ -858,7 +878,24 @@ const SessaoTreino = ({
       {descansoSeg > 0 && (
         <FitnessCard glow="fuchsia" className="mb-3 text-center !py-3">
           <p className="text-[10px] uppercase tracking-widest text-fuchsia-300">Descanso</p>
-          <p className="text-4xl font-black tabular-nums">{fmt(descansoSeg)}</p>
+          {(() => {
+            const total = Math.max(descansoSeg, session.restTotalSeg || descansoSeg);
+            const R = 54, C = 2 * Math.PI * R;
+            const frac = total > 0 ? descansoSeg / total : 0;
+            const urgent = descansoSeg <= 10;
+            const col = urgent ? '#fb7185' : '#e879f9';
+            return (
+              <div className={`relative mx-auto my-2 w-40 h-40 ${urgent ? 'animate-pulse' : ''}`}>
+                <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
+                  <circle cx="60" cy="60" r={R} stroke="rgba(148,163,184,0.2)" strokeWidth="8" fill="none" />
+                  <circle cx="60" cy="60" r={R} stroke={col} strokeWidth="8" fill="none" strokeLinecap="round"
+                    strokeDasharray={C} strokeDashoffset={C * (1 - frac)}
+                    style={{ transition: 'stroke-dashoffset 0.5s linear, stroke 0.3s', filter: `drop-shadow(0 0 6px ${col})` }} />
+                </svg>
+                <p className="absolute inset-0 flex items-center justify-center text-4xl font-black tabular-nums" style={{ color: urgent ? col : undefined }}>{fmt(descansoSeg)}</p>
+              </div>
+            );
+          })()}
           <div className="flex gap-1.5 justify-center mt-2">
             <button onClick={() => addDescanso(30)} className="h-9 px-3 rounded-lg text-[11px] font-semibold bg-slate-800/60 border border-slate-700">+30s</button>
             <button onClick={() => addDescanso(-15)} className="h-9 px-3 rounded-lg text-[11px] font-semibold bg-slate-800/60 border border-slate-700">-15s</button>
