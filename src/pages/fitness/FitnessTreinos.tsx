@@ -693,6 +693,7 @@ const SessaoTreino = ({
   }, [session?.restEndsAt]);
 
   const [muted, setMuted] = useState(isFitnessMuted());
+  const [modo, setModo] = useState<'foco' | 'lista'>(() => (localStorage.getItem('fitness_session_mode') as any) === 'lista' ? 'lista' : 'foco');
   const allDoneRef = useRef(false);
   useEffect(() => {
     const list = session?.exercises || [];
@@ -906,6 +907,79 @@ const SessaoTreino = ({
         </FitnessCard>
       )}
 
+      <div className="grid grid-cols-2 gap-1 p-1 mb-3 rounded-xl bg-slate-800/60 border border-slate-700">
+        {(['foco', 'lista'] as const).map(m => (
+          <button key={m} onClick={() => { setModo(m); localStorage.setItem('fitness_session_mode', m); playSfx('tap'); }}
+            className={`h-9 rounded-lg text-xs font-bold ${modo === m ? 'text-slate-900' : 'text-slate-300'}`}
+            style={modo === m ? { background: 'linear-gradient(90deg, #22d3ee, #e879f9)' } : undefined}>
+            {m === 'foco' ? '🎯 Modo foco' : '📋 Lista'}
+          </button>
+        ))}
+      </div>
+
+      {modo === 'foco' && (() => {
+        const i = Math.min(session.currentIndex, Math.max(0, exs.length - 1));
+        const ex = exs[i];
+        if (!ex) return null;
+        const carga = ex.cargaReal ?? (ex.carga_kg != null ? String(ex.carga_kg) : '');
+        const cargaNum = parseFloat(String(carga).replace(',', '.')) || 0;
+        const stepCarga = (d: number) => { playSfx('tap'); setCargaReal(ex.id, String(Math.max(0, Math.round((cargaNum + d) * 2) / 2))); };
+        const sugestao = ex.tipo === 'musculacao' ? sugerirProgressao(ex.cargaUltima) : null;
+        const goto = (n: number) => { if (n >= 0 && n < exs.length) { playSfx('tap'); patch({ currentIndex: n }); } };
+        return (
+          <div className="mb-4">
+            <div className="flex gap-1 mb-3">
+              {exs.map((e, k) => (
+                <button key={e.id} onClick={() => goto(k)} aria-label={`Exercício ${k + 1}`}
+                  className={`flex-1 h-2 rounded-full ${e.feito ? 'bg-emerald-400' : e.pulado ? 'bg-amber-400' : k === i ? 'bg-cyan-300 animate-pulse' : 'bg-slate-700'}`} />
+              ))}
+            </div>
+            <FitnessCard glow="cyan" className={`!p-5 text-center ${ex.feito ? 'ring-2 ring-emerald-400/60' : ''}`}>
+              <p className="text-[10px] uppercase tracking-widest text-cyan-300">Exercício {i + 1} de {exs.length}</p>
+              {exerciseImage(ex.nome) && (
+                <img src={exerciseImage(ex.nome)!} alt={ex.nome} className="w-28 h-28 mx-auto my-3 rounded-2xl object-cover" />
+              )}
+              <h2 className="text-2xl font-black leading-tight mt-1">{ex.nome}</h2>
+              <p className="text-sm text-slate-300 mt-1">
+                {ex.tipo === 'musculacao' && `${ex.series} séries × ${ex.repeticoes} reps · ${ex.descanso_seg || 0}s descanso`}
+                {ex.tipo === 'cardio' && `${ex.duracao_min || 0} min ${ex.intensidade ? `· ${ex.intensidade}` : ''}`}
+                {ex.tipo === 'alongamento' && `${ex.duracao_min || 0} min`}
+              </p>
+              {ex.tipo === 'musculacao' && (
+                <div className="mt-4">
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-1">Carga</p>
+                  <div className="flex items-center justify-center gap-3">
+                    <button onClick={() => stepCarga(-2.5)} className="w-16 h-16 rounded-2xl bg-slate-800/80 border border-slate-600 text-2xl font-black active:scale-90">−</button>
+                    <div className="min-w-[96px]">
+                      <input inputMode="decimal" value={carga} onChange={e => setCargaReal(ex.id, e.target.value)}
+                        className="w-24 bg-transparent text-center text-5xl font-black tabular-nums focus:outline-none" placeholder="0" />
+                      <p className="text-xs text-slate-400">kg {ex.cargaUltima != null && `· antes ${ex.cargaUltima}`}</p>
+                    </div>
+                    <button onClick={() => stepCarga(2.5)} className="w-16 h-16 rounded-2xl bg-slate-800/80 border border-slate-600 text-2xl font-black active:scale-90">+</button>
+                  </div>
+                  {sugestao != null && cargaNum < sugestao && !ex.feito && (
+                    <button onClick={() => aplicarSugestao(ex.id, sugestao)} className="mt-3 h-9 px-4 rounded-full border border-emerald-400/40 bg-emerald-500/10 text-xs font-semibold text-emerald-300 inline-flex items-center gap-1.5">
+                      <TrendingUp className="w-3.5 h-3.5" /> Progredir para {sugestao}kg
+                    </button>
+                  )}
+                </div>
+              )}
+              <button onClick={() => ex.feito ? goto(i + 1) : concluir(ex.id)}
+                className="mt-5 w-full h-20 rounded-2xl text-xl font-black text-slate-900 flex items-center justify-center gap-2 active:scale-[0.97]"
+                style={{ background: ex.feito ? '#34d399' : 'linear-gradient(90deg, #34d399, #22d3ee)', boxShadow: '0 10px 30px rgba(52,211,153,0.3)' }}>
+                <Check className="w-7 h-7" /> {ex.feito ? 'Feito · próximo' : 'Concluir exercício'}
+              </button>
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                <button onClick={() => goto(i - 1)} disabled={i === 0} className="h-12 rounded-xl bg-slate-800/60 border border-slate-700 text-xs font-semibold disabled:opacity-30">← Anterior</button>
+                <button onClick={() => pularEx(ex.id)} disabled={ex.feito || ex.pulado} className="h-12 rounded-xl bg-amber-500/10 border border-amber-400/40 text-amber-300 text-xs font-semibold disabled:opacity-30">Pular</button>
+                <button onClick={() => goto(i + 1)} disabled={i >= exs.length - 1} className="h-12 rounded-xl bg-slate-800/60 border border-slate-700 text-xs font-semibold disabled:opacity-30">Seguinte →</button>
+              </div>
+            </FitnessCard>
+          </div>
+        );
+      })()}
+
+      {modo === 'lista' && <>
       <div className="flex gap-2 mb-3">
         <button
           onClick={proximoEx}
@@ -1027,6 +1101,7 @@ const SessaoTreino = ({
           </FitnessCard>
         )}
       </div>
+      </>}
 
       <button
         onClick={onFinish}
