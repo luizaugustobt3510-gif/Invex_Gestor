@@ -35,3 +35,11 @@
 - [x] Ilustrações dos exercícios pelo nome
 - [x] Premium x Gratuito (treino inteligente, evolução, alimentação, emagrecimento limitado, medalhas)
 - [x] Assinatura no app (R$ 25,90/mês, R$ 259/ano, 3 dias grátis) e Premium manual pelo Super Admin
+
+## Invex Finanças (finanças pessoais em /financeiro/pessoal)
+- [ ] Tabelas personal_* com acesso só do dono (+ leitura de quem recebeu compartilhamento)
+- [ ] Premium (R$ 25,90/mês ou R$ 259/ano, 3 dias grátis) com assinatura e liberação manual pelo Super Admin
+- [ ] Login próprio "Invex Finanças" (e-mail e Google), tema natalino só em dezembro
+- [ ] Painel: lançamentos, marcar pago, parcelado/recorrente, teto por categoria, categorias
+- [ ] Premium: projeção 6 meses, calendário com mapa de calor, pessoas e compartilhar
+- [ ] Rota e link no menu lateral do Financeiro; preços públicos

@@ -1733,6 +1733,36 @@ export type Database = {
         }
         Relationships: []
       }
+      financas_premium_grants: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          email: string | null
+          fim: string | null
+          granted_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          email?: string | null
+          fim?: string | null
+          granted_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          email?: string | null
+          fim?: string | null
+          granted_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       financial_budgets: {
         Row: {
           ano: number
@@ -3615,6 +3645,188 @@ export type Database = {
           },
         ]
       }
+      personal_account_shares: {
+        Row: {
+          created_at: string
+          id: string
+          owner_id: string
+          viewer_email: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_id: string
+          viewer_email: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_id?: string
+          viewer_email?: string
+        }
+        Relationships: []
+      }
+      personal_budgets: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          category: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      personal_categories: {
+        Row: {
+          created_at: string
+          icon: string
+          id: string
+          key: string
+          kind: string
+          label: string
+          sort_order: number
+          subcategories: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string
+          id?: string
+          key: string
+          kind?: string
+          label: string
+          sort_order?: number
+          subcategories?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          id?: string
+          key?: string
+          kind?: string
+          label?: string
+          sort_order?: number
+          subcategories?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      personal_people: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      personal_transactions: {
+        Row: {
+          amount: number
+          category: string
+          competencia: string | null
+          created_at: string
+          date: string
+          description: string
+          id: string
+          installment_number: number | null
+          installment_total: number | null
+          note: string | null
+          person_id: string | null
+          series_id: string | null
+          series_kind: string | null
+          status: string
+          subcategory: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          competencia?: string | null
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+          installment_number?: number | null
+          installment_total?: number | null
+          note?: string | null
+          person_id?: string | null
+          series_id?: string | null
+          series_kind?: string | null
+          status?: string
+          subcategory?: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          competencia?: string | null
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          installment_number?: number | null
+          installment_total?: number | null
+          note?: string | null
+          person_id?: string | null
+          series_id?: string | null
+          series_kind?: string | null
+          status?: string
+          subcategory?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_transactions_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "personal_people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prescription_quick_items: {
         Row: {
           company_id: string
@@ -5385,6 +5597,11 @@ export type Database = {
         Args: { _company_id: string }
         Returns: string
       }
+      financas_admin_grant: {
+        Args: { _ativo: boolean; _email: string; _fim: string }
+        Returns: string
+      }
+      financas_is_premium: { Args: { _uid: string }; Returns: boolean }
       fitness_admin_grant: {
         Args: { _ativo: boolean; _email: string; _fim: string }
         Returns: string
@@ -5440,6 +5657,7 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      personal_is_viewer_of: { Args: { _owner: string }; Returns: boolean }
       register_subscription_payment: {
         Args: {
           _amount: number
