@@ -10,8 +10,9 @@ import { Plus, Pencil, Trash2, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCategories } from "@/hooks/useFinancasCategories";
-import { seedDefaultCategories, type DbCategory } from "@/lib/financas/categories-db";
-import { slugify } from "@/lib/financas/categories";
+import { ensureOwnCategories, renameSubcategoryInTransactions, type DbCategory } from "@/lib/financas/categories-db";
+import { slugify, DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES } from "@/lib/financas/categories";
+import { Pencil as PencilIcon } from "lucide-react";
 
 const EMOJIS = ["🏠", "🚗", "👤", "🧾", "✨", "💰", "🍔", "🏥", "🎓", "🐶", "✈️", "🎁", "📦", "💳"];
 
@@ -28,39 +29,54 @@ export function CategoryManager({
     qc.invalidateQueries({ queryKey: ["pf-categories"] });
   };
 
-  const ensureSeed = async () => {
-    if (isCustom) return true;
+  const toOwn = async (c: DbCategory): Promise<DbCategory | null> => {
+    if (!c.id.startsWith("default:")) return c;
     setBusy(true);
     try {
-      await seedDefaultCategories(userId);
+      const own = await ensureOwnCategories(userId);
       await qc.invalidateQueries({ queryKey: ["pf-categories"] });
-      return true;
+      return own.find((r) => r.key === c.key && r.kind === c.kind) ?? null;
     } catch (e) {
       toast.error((e as Error).message);
-      return false;
+      return null;
     } finally {
       setBusy(false);
     }
   };
 
   const startCreate = async (kind: "receita" | "despesa") => {
-    if (await ensureSeed()) setCreatingKind(kind);
+    if (!isCustom) {
+      setBusy(true);
+      try { await ensureOwnCategories(userId); await qc.invalidateQueries({ queryKey: ["pf-categories"] }); }
+      catch (e) { toast.error((e as Error).message); return; }
+      finally { setBusy(false); }
+    }
+    setCreatingKind(kind);
   };
 
   const startEdit = async (c: DbCategory) => {
-    if (await ensureSeed()) setEditing(c);
+    const own = await toOwn(c);
+    if (own) setEditing(own);
   };
 
   const remove = async (c: DbCategory) => {
     if (!confirm(`Excluir a categoria "${c.label}"? Os lançamentos antigos continuam salvos.`)) return;
-    const { error } = await supabase.from("personal_categories").delete().eq("id", c.id);
+    const own = await toOwn(c);
+    if (!own) return;
+    const { error } = await supabase.from("personal_categories").delete().eq("id", own.id);
     if (error) return toast.error(error.message);
     toast.success("Categoria excluída");
     refresh();
   };
 
-  const despesas = rows.filter((c) => c.kind === "despesa");
-  const receitas = rows.filter((c) => c.kind === "receita");
+  const asDefault = (kind: "receita" | "despesa") =>
+    (kind === "despesa" ? DEFAULT_EXPENSE_CATEGORIES : DEFAULT_INCOME_CATEGORIES).map((c, i) => ({
+      id: `default:${c.key}`, user_id: userId, kind, key: c.key, label: c.label, icon: c.icon,
+      subcategories: c.subcategories, sort_order: i,
+    })) as DbCategory[];
+
+  const despesas = isCustom ? rows.filter((c) => c.kind === "despesa") : asDefault("despesa");
+  const receitas = isCustom ? rows.filter((c) => c.kind === "receita") : asDefault("receita");
 
   if (readOnly) {
     return (
@@ -74,18 +90,18 @@ export function CategoryManager({
     <div className="space-y-5">
       {!isCustom && !isLoading && (
         <div className="rounded-2xl border border-border bg-card p-4 text-sm shadow-[var(--shadow-card)]">
-          <p className="font-semibold">Você está usando as categorias padrão</p>
+          <p className="font-semibold">Estas são as categorias padrão</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Ao criar ou editar qualquer categoria, as padrões são copiadas para a sua conta e ficam
-            totalmente editáveis.
+            Toque no lápis para editar uma categoria e suas subcategorias, ou em <strong>Nova</strong> para criar.
+            Ao mexer pela primeira vez, elas passam a ser só suas.
           </p>
         </div>
       )}
 
       <Section
         title="Despesas"
-        list={isCustom ? despesas : []}
-        fallbackNote={!isCustom}
+        list={despesas}
+        fallbackNote={false}
         onCreate={() => startCreate("despesa")}
         onEdit={startEdit}
         onRemove={remove}
@@ -93,8 +109,8 @@ export function CategoryManager({
       />
       <Section
         title="Receitas"
-        list={isCustom ? receitas : []}
-        fallbackNote={!isCustom}
+        list={receitas}
+        fallbackNote={false}
         onCreate={() => startCreate("receita")}
         onEdit={startEdit}
         onRemove={remove}
@@ -176,6 +192,8 @@ function CategoryDialog({
   const [icon, setIcon] = useState("📦");
   const [subs, setSubs] = useState<string[]>([]);
   const [newSub, setNewSub] = useState("");
+  const [editingSub, setEditingSub] = useState<string | null>(null);
+  const [renames, setRenames] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [initialized, setInitialized] = useState<string | null>(null);
 
@@ -186,11 +204,23 @@ function CategoryDialog({
     setIcon(category?.icon ?? (kind === "receita" ? "💰" : "📦"));
     setSubs(category?.subcategories ?? []);
     setNewSub("");
+    setEditingSub(null);
+    setRenames({});
   }
 
   const addSub = () => {
     const v = newSub.trim();
     if (!v) return;
+    if (editingSub) {
+      if (v !== editingSub && subs.includes(v)) return toast.error("Subcategoria já existe");
+      setSubs(subs.map((x) => (x === editingSub ? v : x)));
+      // guarda o nome original para atualizar os lançamentos antigos
+      const original = Object.keys(renames).find((k) => renames[k] === editingSub) ?? editingSub;
+      setRenames({ ...renames, [original]: v });
+      setEditingSub(null);
+      setNewSub("");
+      return;
+    }
     if (subs.includes(v)) return toast.error("Subcategoria já existe");
     setSubs([...subs, v]);
     setNewSub("");
@@ -215,6 +245,11 @@ function CategoryDialog({
         subcategories: subs,
         sort_order: 50,
       } as never));
+    }
+    if (!error && category) {
+      for (const [oldName, newName] of Object.entries(renames)) {
+        try { await renameSubcategoryInTransactions(userId, category.key, oldName, newName); } catch { /* lançamentos mantêm o nome antigo */ }
+      }
     }
     setBusy(false);
     if (error) return toast.error(error.message);
@@ -250,12 +285,13 @@ function CategoryDialog({
 
           <div>
             <Label>Subcategorias</Label>
+            <p className="text-[11px] text-muted-foreground">Toque no nome para renomear; no X para remover.</p>
             <div className="mt-1 flex gap-2">
               <Input value={newSub} onChange={(e) => setNewSub(e.target.value)}
-                placeholder="Ex: Farmácia"
+                placeholder={editingSub ? `Novo nome para "${editingSub}"` : "Ex: Farmácia"}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSub(); } }} />
               <Button type="button" variant="outline" onClick={addSub}>
-                <Plus className="h-4 w-4" />
+                {editingSub ? "Renomear" : <Plus className="h-4 w-4" />}
               </Button>
             </div>
             {subs.length > 0 && (
@@ -263,7 +299,9 @@ function CategoryDialog({
                 {subs.map((s) => (
                   <span key={s}
                     className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-medium">
-                    {s}
+                    <button type="button" className="inline-flex items-center gap-1" onClick={() => { setEditingSub(s); setNewSub(s); }} aria-label={`Renomear ${s}`}>
+                      {s}<PencilIcon className="h-3 w-3 opacity-60" />
+                    </button>
                     <button type="button" onClick={() => setSubs(subs.filter((x) => x !== s))}
                       aria-label={`Remover ${s}`}>
                       <X className="h-3 w-3" />

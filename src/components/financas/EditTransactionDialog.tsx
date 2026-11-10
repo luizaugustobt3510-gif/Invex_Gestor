@@ -17,6 +17,8 @@ import type { Transaction } from "@/lib/financas/transactions";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCategories } from "@/hooks/useFinancasCategories";
+import { QuickAdd } from "@/components/financas/QuickAdd";
+import { addCategoryQuick, addSubcategoryQuick } from "@/lib/financas/categories-db";
 
 export function EditTransactionDialog({
   transaction, open, onOpenChange, ownerId,
@@ -56,6 +58,7 @@ export function EditTransactionDialog({
   const subs = findCategory(category)?.subcategories ?? [];
 
   const handleCategoryChange = (k: string) => {
+    if (!k) return; // o seletor às vezes avisa "vazio" ao trocar a lista; ignorar
     setCategory(k);
     setSubcategory(findCategory(k)?.subcategories[0] ?? "");
   };
@@ -117,9 +120,11 @@ export function EditTransactionDialog({
               maxLength={120} required />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <Label>Categoria</Label>
+              <div className="flex flex-wrap items-center justify-between gap-1"><Label>Categoria</Label>
+                <QuickAdd what="categoria" onSave={async (n) => { const k = await addCategoryQuick(ownerId, transaction.type, n); await qc.invalidateQueries({ queryKey: ["pf-categories"] }); setCategory(k); setSubcategory("Geral"); }} />
+              </div>
               <Select value={category} onValueChange={handleCategoryChange}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -130,8 +135,10 @@ export function EditTransactionDialog({
               </Select>
             </div>
             <div>
-              <Label>Subcategoria</Label>
-              <Select value={subcategory} onValueChange={setSubcategory}>
+              <div className="flex flex-wrap items-center justify-between gap-1"><Label>Subcategoria</Label>
+                <QuickAdd what="subcategoria" onSave={async (n) => { const sname = await addSubcategoryQuick(ownerId, transaction.type, category, n); await qc.invalidateQueries({ queryKey: ["pf-categories"] }); setSubcategory(sname); }} />
+              </div>
+              <Select value={subcategory} onValueChange={(v) => { if (v) setSubcategory(v); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {subs.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}

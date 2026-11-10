@@ -7,12 +7,13 @@ describe('Invex Finanças — regras', () => {
     assert.equal(FINANCAS_MONTHLY_CENTS, 2590);
     assert.equal(FINANCAS_ANNUAL_CENTS, 25900);
   });
-  it('projeção, calendário e pessoas/compartilhar são Premium; teto de gastos não', () => {
+  it('projeção, calendário, pessoas/compartilhar e DRE são Premium; teto de gastos não', () => {
     const all = FINANCAS_PREMIUM_FEATURES.join(' | ').toLowerCase();
     assert.ok(all.includes('projeção'));
     assert.ok(all.includes('calendário'));
     assert.ok(all.includes('pessoas'));
     assert.ok(all.includes('compartilhar'));
+    assert.ok(all.includes('dre pessoal'));
     assert.ok(!all.includes('teto'));
   });
   it('tema natalino só em dezembro (horário de Brasília)', () => {

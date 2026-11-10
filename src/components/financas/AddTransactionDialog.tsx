@@ -21,6 +21,8 @@ import { fetchPeople } from "@/lib/financas/people";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCategories } from "@/hooks/useFinancasCategories";
+import { QuickAdd } from "@/components/financas/QuickAdd";
+import { addCategoryQuick, addSubcategoryQuick } from "@/lib/financas/categories-db";
 
 type SeriesMode = "single" | "parcelado" | "recorrente";
 
@@ -65,6 +67,7 @@ export function AddTransactionDialog({ userId, canUsePeople = false }: { userId:
   };
 
   const handleCategoryChange = (k: string) => {
+    if (!k) return; // o seletor às vezes avisa "vazio" ao trocar a lista; ignorar
     setCategory(k);
     setSubcategory(findCategory(k)?.subcategories[0] ?? "");
     if (!PERSON_CATEGORY_KEYS.has(k)) setPersonId("none");
@@ -81,11 +84,13 @@ export function AddTransactionDialog({ userId, canUsePeople = false }: { userId:
   const buildRows = (baseId: string) => {
     const value = parseFloat(amount.replace(",", "."));
     const baseDescription = description.trim();
+    const safeCategory = cats.some((c) => c.key === category) ? category : cats[0]?.key ?? category;
+    const safeSub = subcategory || (cats.find((c) => c.key === safeCategory)?.subcategories[0] ?? "");
     const common = {
       user_id: userId,
       type,
-      category,
-      subcategory,
+      category: safeCategory,
+      subcategory: safeSub,
       note: note.trim() || null,
       person_id: personId !== "none" ? personId : null,
       competencia: competencia || null,
@@ -212,9 +217,11 @@ export function AddTransactionDialog({ userId, canUsePeople = false }: { userId:
               placeholder="Ex: Conta de luz" maxLength={120} required />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <Label>Categoria</Label>
+              <div className="flex flex-wrap items-center justify-between gap-1"><Label>Categoria</Label>
+                <QuickAdd what="categoria" onSave={async (n) => { const k = await addCategoryQuick(userId, type, n); await qc.invalidateQueries({ queryKey: ["pf-categories"] }); setCategory(k); setSubcategory("Geral"); }} />
+              </div>
               <Select value={category} onValueChange={handleCategoryChange}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -225,8 +232,10 @@ export function AddTransactionDialog({ userId, canUsePeople = false }: { userId:
               </Select>
             </div>
             <div>
-              <Label>Subcategoria</Label>
-              <Select value={subcategory} onValueChange={setSubcategory}>
+              <div className="flex flex-wrap items-center justify-between gap-1"><Label>Subcategoria</Label>
+                <QuickAdd what="subcategoria" onSave={async (n) => { const sname = await addSubcategoryQuick(userId, type, category, n); await qc.invalidateQueries({ queryKey: ["pf-categories"] }); setSubcategory(sname); }} />
+              </div>
+              <Select value={subcategory} onValueChange={(v) => { if (v) setSubcategory(v); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {subs.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}

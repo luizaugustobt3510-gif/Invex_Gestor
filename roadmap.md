@@ -41,5 +41,14 @@
 - [x] Premium (R$ 25,90/mês ou R$ 259/ano, 3 dias grátis) com assinatura e liberação manual pelo Super Admin
 - [x] Login próprio "Invex Finanças" (e-mail e Google), tema natalino só em dezembro
 - [x] Painel: lançamentos, marcar pago, parcelado/recorrente, teto por categoria, categorias
-- [x] Premium: projeção 6 meses, calendário com mapa de calor, pessoas e compartilhar
+- [x] Premium: projeção 6 meses, calendário com mapa de calor, pessoas, compartilhar e DRE pessoal
 - [x] Rota e link no menu lateral do Financeiro; preços públicos
+
+## Invex Finanças — melhorias (nov/2026)
+- [x] Adicionar/editar categorias e subcategorias (padrões visíveis e editáveis)
+- [x] Botão "marcar como pago" maior
+- [x] Fixar lançamento no topo
+- [x] DRE pessoal (Premium)
+- [x] Cor em lançamento não pago (amarelo, laranja, vermelho)
+- [x] Calculadora flutuante com histórico
+- [x] Dicas financeiras

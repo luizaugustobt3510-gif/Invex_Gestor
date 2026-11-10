@@ -10,6 +10,7 @@ export const FINANCAS_PREMIUM_FEATURES = [
   'Calendário de vencimentos com mapa de calor',
   'Divisão de gastos por pessoas',
   'Compartilhar a conta (somente leitura)',
+  'DRE pessoal (resultado do mês e do ano)',
 ] as const;
 
 export const FINANCAS_FREE_FEATURES = [
@@ -17,7 +18,9 @@ export const FINANCAS_FREE_FEATURES = [
   'Marcar como pago com um toque',
   'Parcelado e recorrente',
   'Teto de gastos por categoria',
-  'Categorias personalizadas e gráficos',
+  'Categorias e subcategorias personalizadas, gráficos',
+  'Fixar lançamentos e marcar contas por cor',
+  'Calculadora com histórico e dicas financeiras',
 ] as const;
 
 /** Tema natalino: ligado só de 1º a 31 de dezembro (horário de Brasília). */

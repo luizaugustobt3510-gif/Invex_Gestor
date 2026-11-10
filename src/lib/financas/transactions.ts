@@ -20,6 +20,8 @@ export type Transaction = {
   installment_total: number | null;
   competencia: string | null;
   created_at: string;
+  pinned?: boolean;
+  color_tag?: "amarelo" | "laranja" | "vermelho" | null;
   carried_over?: boolean;
   vencida?: boolean;
   original_date?: string;

@@ -120,6 +120,13 @@
       "when": 1794343216163,
       "tag": "0016_create_invex_financas_personal",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794344507780,
+      "tag": "0017_personal_tx_pin_and_color",
+      "breakpoints": true
     }
   ]
 }

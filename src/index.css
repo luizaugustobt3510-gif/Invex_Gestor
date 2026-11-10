@@ -554,3 +554,7 @@ All colors MUST be HSL.
   color: hsl(var(--primary));
   box-shadow: none;
 }
+.financas-theme {
+  --fin-yellow: 46 95% 50%;
+  --fin-orange: 24 94% 52%;
+}

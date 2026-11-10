@@ -3760,6 +3760,7 @@ export type Database = {
         Row: {
           amount: number
           category: string
+          color_tag: string | null
           competencia: string | null
           created_at: string
           date: string
@@ -3769,6 +3770,7 @@ export type Database = {
           installment_total: number | null
           note: string | null
           person_id: string | null
+          pinned: boolean
           series_id: string | null
           series_kind: string | null
           status: string
@@ -3780,6 +3782,7 @@ export type Database = {
         Insert: {
           amount: number
           category: string
+          color_tag?: string | null
           competencia?: string | null
           created_at?: string
           date?: string
@@ -3789,6 +3792,7 @@ export type Database = {
           installment_total?: number | null
           note?: string | null
           person_id?: string | null
+          pinned?: boolean
           series_id?: string | null
           series_kind?: string | null
           status?: string
@@ -3800,6 +3804,7 @@ export type Database = {
         Update: {
           amount?: number
           category?: string
+          color_tag?: string | null
           competencia?: string | null
           created_at?: string
           date?: string
@@ -3809,6 +3814,7 @@ export type Database = {
           installment_total?: number | null
           note?: string | null
           person_id?: string | null
+          pinned?: boolean
           series_id?: string | null
           series_kind?: string | null
           status?: string

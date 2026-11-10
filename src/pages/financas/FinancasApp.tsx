@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@supabase/supabase-js";
 import {
   Wallet, TrendingUp, TrendingDown, PiggyBank, AlertTriangle, CheckCircle2, Circle, LogOut, Filter,
-  Trash2, Search, Clock, Repeat, Eye, X, Pencil, CalendarClock, PartyPopper, Crown, ArrowLeft,
+  Trash2, Search, Clock, Repeat, Eye, X, Pencil, CalendarClock, PartyPopper, Crown, ArrowLeft, Pin, PinOff, Palette,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +17,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AddTransactionDialog } from "@/components/financas/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/financas/EditTransactionDialog";
 import { PremiumLock, FinancasPlanCard } from "@/components/financas/FinancasPremium";
+import { DicasCard } from "@/components/financas/DicasCard";
+import { FinancasCalculator } from "@/components/financas/FinancasCalculator";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { fetchTransactions, computeSummary, healthStatus, transactionsForMonth, type Transaction } from "@/lib/financas/transactions";
 import { fetchSharedWithMe } from "@/lib/financas/shares";
 import { fetchPeople } from "@/lib/financas/people";
@@ -52,6 +55,7 @@ const CategoryManager = lazy(() => import("@/components/financas/CategoryManager
 const BudgetManager = lazy(() => import("@/components/financas/BudgetManager").then((m) => ({ default: m.BudgetManager })));
 const FutureProjection = lazy(() => import("@/components/financas/Projection").then((m) => ({ default: m.FutureProjection })));
 const DueCalendar = lazy(() => import("@/components/financas/Projection").then((m) => ({ default: m.DueCalendar })));
+const DreView = lazy(() => import("@/components/financas/DreView").then((m) => ({ default: m.DreView })));
 const ShareManager = lazy(() => import("@/components/financas/ShareManager").then((m) => ({ default: m.ShareManager })));
 
 type FilterKey = "all" | "receita" | "despesa" | "dividas" | "reserva" | "pendente";
@@ -149,6 +153,23 @@ function Painel({ user, natal, showBackToGestor }: { user: User; natal: boolean;
     if (next === "pago") toast.success(`"${t.description}" marcado como pago`);
     qc.invalidateQueries({ queryKey: ["pf-transactions", effectiveOwner] });
   }, [isReadOnly, qc, effectiveOwner]);
+
+  const updateTx = useCallback(async (t: Transaction, patch: { pinned?: boolean; color_tag?: Transaction["color_tag"] }, ok?: string) => {
+    if (isReadOnly) return;
+    const { error } = await supabase.from("personal_transactions").update(patch).eq("id", t.id);
+    if (error) return toast.error("Não foi possível atualizar.");
+    if (ok) toast.success(ok);
+    qc.invalidateQueries({ queryKey: ["pf-transactions", effectiveOwner] });
+  }, [isReadOnly, qc, effectiveOwner]);
+  const togglePin = useCallback((t: Transaction) => updateTx(t, { pinned: !t.pinned }, t.pinned ? "Lançamento desafixado" : "Lançamento fixado no topo"), [updateTx]);
+  const setColor = useCallback((t: Transaction, c: Transaction["color_tag"]) => updateTx(t, { color_tag: c }), [updateTx]);
+
+  const maiorCategoria = useMemo(() => {
+    const map = new Map<string, number>();
+    monthTx.filter((t) => t.type === "despesa").forEach((t) => map.set(t.category, (map.get(t.category) ?? 0) + Number(t.amount)));
+    const top = Array.from(map).sort((a, b) => b[1] - a[1])[0];
+    return top ? { label: findCategory(top[0])?.label ?? top[0], total: top[1] } : undefined;
+  }, [monthTx]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -258,11 +279,14 @@ function Painel({ user, natal, showBackToGestor }: { user: User; natal: boolean;
           <SummaryCard icon={<PiggyBank className="h-4 w-4" />} label="Reserva" value={summary.emergencia} tone="muted" active={filter === "reserva"} onClick={() => { toggleFilter("reserva"); setTab("lancamentos"); }} />
         </div>
 
+        <DicasCard receitas={summary.receitas} despesas={summary.despesas} atrasadas={summary.atrasadas} pendentes={summary.pendentes} maiorCategoria={maiorCategoria} />
+
         <Tabs value={tab} onValueChange={setTab} className="mt-6">
           <TabsList className="fin-tabs flex h-auto w-full justify-start gap-1 overflow-x-auto bg-card p-1 shadow-[var(--shadow-card)]">
             <TabsTrigger value="lancamentos">Lançamentos</TabsTrigger>
             <TabsTrigger value="planejar">Teto e projeção</TabsTrigger>
             <TabsTrigger value="calendario">Calendário{!premium && " 🔒"}</TabsTrigger>
+            <TabsTrigger value="dre">DRE{!premium && " 🔒"}</TabsTrigger>
             <TabsTrigger value="graficos">Gráficos</TabsTrigger>
             <TabsTrigger value="categorias">Categorias</TabsTrigger>
             <TabsTrigger value="pessoas">Pessoas{!premium && " 🔒"}</TabsTrigger>
@@ -272,7 +296,8 @@ function Painel({ user, natal, showBackToGestor }: { user: User; natal: boolean;
 
           <TabsContent value="lancamentos" className="mt-4">
             <TransactionList transactions={monthTx} loading={isLoading} readOnly={isReadOnly} ownerId={effectiveOwner}
-              filter={filter} setFilter={setFilter} search={search} setSearch={setSearch} onToggle={togglePaid} />
+              filter={filter} setFilter={setFilter} search={search} setSearch={setSearch} onToggle={togglePaid}
+              onPin={togglePin} onColor={setColor} />
           </TabsContent>
 
           <TabsContent value="planejar" className="mt-4 space-y-4">
@@ -291,6 +316,14 @@ function Painel({ user, natal, showBackToGestor }: { user: User; natal: boolean;
               {premium || isReadOnly
                 ? <ChartCard title="Calendário de vencimentos"><DueCalendar all={all} onTogglePaid={togglePaid} readOnly={isReadOnly} /></ChartCard>
                 : <PremiumLock feature="Calendário com mapa de calor" onSeePlans={seePlans} />}
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="dre" className="mt-4">
+            <Suspense fallback={<Loading />}>
+              {premium || isReadOnly
+                ? <DreView all={all} />
+                : <PremiumLock feature="DRE pessoal" onSeePlans={seePlans} />}
             </Suspense>
           </TabsContent>
 
@@ -329,6 +362,7 @@ function Painel({ user, natal, showBackToGestor }: { user: User; natal: boolean;
             <AddTransactionDialog userId={user.id} canUsePeople={premium} />
           </div>
         )}
+        <FinancasCalculator />
       </div>
     </div>
   );
@@ -394,10 +428,10 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-function TransactionList({ transactions, loading, readOnly, ownerId, filter, setFilter, search, setSearch, onToggle }: {
+function TransactionList({ transactions, loading, readOnly, ownerId, filter, setFilter, search, setSearch, onToggle, onPin, onColor }: {
   transactions: Transaction[]; loading: boolean; readOnly: boolean; ownerId: string;
   filter: FilterKey; setFilter: (f: FilterKey) => void; search: string; setSearch: (s: string) => void;
-  onToggle: (t: Transaction) => void;
+  onToggle: (t: Transaction) => void; onPin: (t: Transaction) => void; onColor: (t: Transaction, c: Transaction["color_tag"]) => void;
 }) {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Transaction | null>(null);
@@ -411,7 +445,7 @@ function TransactionList({ transactions, loading, readOnly, ownerId, filter, set
       if (filter === "reserva" && !isReserva(t)) return false;
       if (q && !t.description.toLowerCase().includes(q)) return false;
       return true;
-    });
+    }).sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned));
   }, [transactions, filter, search]);
 
   const remove = async (t: Transaction) => {
@@ -451,7 +485,7 @@ function TransactionList({ transactions, loading, readOnly, ownerId, filter, set
         </div>
       ) : (
         <ul className="space-y-2">
-          {filtered.map((t) => <TransactionRow key={t.id} t={t} readOnly={readOnly} onToggle={onToggle} onRemove={remove} onEdit={(x) => !readOnly && setEditing(x)} />)}
+          {filtered.map((t) => <TransactionRow key={`${t.id}-${t.carried_over ? "c" : "n"}`} t={t} readOnly={readOnly} onToggle={onToggle} onRemove={remove} onEdit={(x) => !readOnly && setEditing(x)} onPin={onPin} onColor={onColor} />)}
         </ul>
       )}
       <EditTransactionDialog transaction={editing} open={!!editing} onOpenChange={(o) => !o && setEditing(null)} ownerId={ownerId} />
@@ -459,43 +493,84 @@ function TransactionList({ transactions, loading, readOnly, ownerId, filter, set
   );
 }
 
-const TransactionRow = memo(function TransactionRow({ t, readOnly, onToggle, onRemove, onEdit }: {
+const COLOR_TAGS: { key: NonNullable<Transaction["color_tag"]>; label: string; row: string; dot: string }[] = [
+  { key: "amarelo", label: "Amarelo", row: "border-[hsl(var(--fin-yellow)/0.6)] bg-[hsl(var(--fin-yellow)/0.14)]", dot: "bg-[hsl(var(--fin-yellow))]" },
+  { key: "laranja", label: "Laranja", row: "border-[hsl(var(--fin-orange)/0.55)] bg-[hsl(var(--fin-orange)/0.12)]", dot: "bg-[hsl(var(--fin-orange))]" },
+  { key: "vermelho", label: "Vermelho", row: "border-expense/50 bg-expense/10", dot: "bg-expense" },
+];
+
+const TransactionRow = memo(function TransactionRow({ t, readOnly, onToggle, onRemove, onEdit, onPin, onColor }: {
   t: Transaction; readOnly: boolean; onToggle: (t: Transaction) => void; onRemove: (t: Transaction) => void; onEdit: (t: Transaction) => void;
+  onPin: (t: Transaction) => void; onColor: (t: Transaction, c: Transaction["color_tag"]) => void;
 }) {
   const cat = findCategory(t.category);
   const isIncome = t.type === "receita";
+  const paid = t.status === "pago";
+  const colorTag = !paid ? COLOR_TAGS.find((c) => c.key === t.color_tag) : undefined;
+  const rowTone = !isIncome && paid ? "border-income/40 bg-income/10"
+    : colorTag ? colorTag.row
+    : t.vencida ? "border-expense/40 bg-expense/10" : "border-border bg-card";
   return (
-    <li className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border p-3 shadow-[var(--shadow-card)] ${
-      !isIncome && t.status === "pago" ? "border-income/40 bg-income/10" : t.vencida ? "border-expense/40 bg-expense/10" : "border-border bg-card"}`}>
-      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted text-lg">{isIncome ? "💰" : cat?.icon ?? "💸"}</div>
-      <div className="min-w-0">
-        <div className="flex items-center gap-1.5">
-          <p className="truncate text-sm font-semibold">{t.description}</p>
-          {t.carried_over && <span className="inline-flex items-center gap-0.5 rounded-full bg-warning/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-warning-foreground"><Clock className="h-2.5 w-2.5" /> Atrasada</span>}
-          {t.series_kind === "recorrente" && !t.carried_over && <Repeat className="h-3 w-3 shrink-0 text-muted-foreground" />}
+    <li className={`rounded-2xl border p-3 shadow-[var(--shadow-card)] ${rowTone}`}>
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
+        <div className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted text-lg">
+          {isIncome ? "💰" : cat?.icon ?? "💸"}
+          {t.pinned && <span className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-primary text-primary-foreground"><Pin className="h-2.5 w-2.5" /></span>}
         </div>
-        <p className="truncate text-xs text-muted-foreground">
-          {t.subcategory} · {formatDate(t.carried_over ? t.original_date ?? t.date : t.date)}
-          {t.installment_total ? ` · ${t.installment_number}/${t.installment_total}` : ""}
-          {t.note ? ` · ${t.note}` : ""}
-        </p>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="text-right">
-          <p className={`text-sm font-bold tabular-nums ${isIncome ? "text-income" : "text-expense"}`}>{isIncome ? "+" : "−"}{formatBRL(Number(t.amount))}</p>
-          {!isIncome && (
-            <button onClick={() => onToggle(t)} disabled={readOnly}
-              className={`mt-0.5 flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide disabled:opacity-60 ${
-                t.status === "pago" ? "bg-income/15 text-income" : t.vencida ? "bg-expense/15 text-expense" : "bg-muted text-foreground"}`}>
-              {t.status === "pago" ? <><CheckCircle2 className="h-3 w-3" /> Pago</> : <><Circle className="h-3 w-3" /> {t.vencida ? "Vencida · pagar" : "Marcar pago"}</>}
-            </button>
-          )}
-        </div>
-        {!readOnly && (
-          <div className="flex flex-col gap-0.5">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(t)} aria-label="Editar"><Pencil className="h-4 w-4 text-muted-foreground" /></Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onRemove(t)} aria-label="Excluir"><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <p className="truncate text-sm font-semibold">{t.description}</p>
+            {t.carried_over && <span className="inline-flex items-center gap-0.5 rounded-full bg-warning/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-warning-foreground"><Clock className="h-2.5 w-2.5" /> Atrasada</span>}
+            {t.series_kind === "recorrente" && !t.carried_over && <Repeat className="h-3 w-3 shrink-0 text-muted-foreground" />}
           </div>
+          <p className="truncate text-xs text-muted-foreground">
+            {t.subcategory} · {formatDate(t.carried_over ? t.original_date ?? t.date : t.date)}
+            {t.installment_total ? ` · ${t.installment_number}/${t.installment_total}` : ""}
+            {t.note ? ` · ${t.note}` : ""}
+          </p>
+        </div>
+        <p className={`text-right text-base font-bold tabular-nums ${isIncome ? "text-income" : "text-expense"}`}>{isIncome ? "+" : "−"}{formatBRL(Number(t.amount))}</p>
+      </div>
+
+      <div className="mt-3 flex items-center gap-1.5">
+        {!isIncome && (
+          <button onClick={() => onToggle(t)} disabled={readOnly}
+            className={`flex h-12 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-2 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-60 ${
+              paid ? "bg-income/15 text-income" : t.vencida ? "bg-expense text-expense-foreground" : "bg-primary text-primary-foreground"}`}>
+            {paid
+              ? <><CheckCircle2 className="h-5 w-5 shrink-0" /><span className="sm:hidden">Pago ✓</span><span className="hidden sm:inline">Pago — toque para desfazer</span></>
+              : <><Circle className="h-5 w-5 shrink-0" /><span className="sm:hidden">{t.vencida ? "Pagar (vencida)" : "Marcar pago"}</span><span className="hidden sm:inline">{t.vencida ? "Vencida · marcar como pago" : "Marcar como pago"}</span></>}
+          </button>
+        )}
+        {isIncome && <div className="flex-1" />}
+        {!readOnly && (
+          <>
+            {!isIncome && !paid && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-11 w-10 shrink-0" aria-label="Cor do lançamento">
+                    {colorTag ? <span className={`h-4 w-4 rounded-full ${colorTag.dot}`} /> : <Palette className="h-4 w-4 text-muted-foreground" />}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-2" align="end">
+                  <p className="mb-1.5 px-1 text-xs font-semibold">Cor do lançamento</p>
+                  <div className="flex items-center gap-2">
+                    {COLOR_TAGS.map((c) => (
+                      <button key={c.key} onClick={() => onColor(t, c.key)} aria-label={c.label} title={c.label}
+                        className={`h-9 w-9 rounded-full ${c.dot} ${t.color_tag === c.key ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : ""}`} />
+                    ))}
+                    <button onClick={() => onColor(t, null)} aria-label="Sem cor" title="Sem cor"
+                      className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground"><X className="h-4 w-4" /></button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+            <Button variant="ghost" size="icon" className="h-11 w-10 shrink-0" onClick={() => onPin(t)} aria-label={t.pinned ? "Desafixar" : "Fixar no topo"}>
+              {t.pinned ? <PinOff className="h-4 w-4 text-primary" /> : <Pin className="h-4 w-4 text-muted-foreground" />}
+            </Button>
+            <Button variant="ghost" size="icon" className="h-11 w-10 shrink-0" onClick={() => onEdit(t)} aria-label="Editar"><Pencil className="h-4 w-4 text-muted-foreground" /></Button>
+            <Button variant="ghost" size="icon" className="h-11 w-10 shrink-0" onClick={() => onRemove(t)} aria-label="Excluir"><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
+          </>
         )}
       </div>
     </li>
