@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { FitnessPremiumAdmin } from '@/components/FitnessPremiumAdmin';
+import { FinancasPremiumAdmin } from '@/components/FinancasPremiumAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -125,6 +126,7 @@ export default function GestaoRotina() {
         </DialogContent>
       </Dialog>
       <FitnessPremiumAdmin />
+      <FinancasPremiumAdmin />
     </MainLayout>
   );
 }

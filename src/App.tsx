@@ -128,6 +128,8 @@ import GestaoSuporte from "./pages/GestaoSuporte";
 import GestaoRotina from "./pages/GestaoRotina";
 import RotinaLogin from "./pages/rotina/RotinaLogin";
 import RotinaApp from "./pages/rotina/RotinaApp";
+import FinancasLogin from "./pages/financas/FinancasLogin";
+import FinancasApp from "./pages/financas/FinancasApp";
 import { ChangelogModal } from "./components/ChangelogModal";
 import Assinaturas from "./pages/Assinaturas";
 import Dispensacao from "./pages/Dispensacao";
@@ -315,6 +317,8 @@ const App = () => (
             <Route path="/gestao-rotina" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoRotina /></RoleProtectedRoute>} />
             <Route path="/rotina/entrar" element={<RotinaLogin />} />
             <Route path="/rotina" element={<RotinaApp />} />
+            <Route path="/financeiro/pessoal/entrar" element={<FinancasLogin />} />
+            <Route path="/financeiro/pessoal" element={<FinancasApp />} />
             <Route path="/gestao-suporte" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoSuporte /></RoleProtectedRoute>} />
             <Route path="/gestao-changelog" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoChangelog /></RoleProtectedRoute>} />
 

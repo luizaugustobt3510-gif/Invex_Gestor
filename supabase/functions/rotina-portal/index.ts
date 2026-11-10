@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
     if (!user) return json({ error: 'Não autenticado' }, 401);
     const { environment, product } = await req.json().catch(() => ({}));
     const env: PaddleEnv = environment === 'live' ? 'live' : 'sandbox';
-    const productId = product === 'fitness_premium' ? 'fitness_premium' : 'rotina_premium';
+    const productId = product === 'fitness_premium' || product === 'financas_premium' ? product : 'rotina_premium';
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const { data: sub } = await admin.from('subscriptions').select('paddle_customer_id, paddle_subscription_id')
       .eq('user_id', user.id).eq('environment', env).eq('product_id', productId)

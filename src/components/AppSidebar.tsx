@@ -626,6 +626,13 @@ const financeiroGroups: MenuGroup[] = [
         allowedRoles: ["admin", "financeiro"],
         submoduleKey: "financeiro.dre",
       },
+      {
+        path: "/financeiro/pessoal",
+        label: "Invex Finanças (pessoal)",
+        icon: <Wallet className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro"],
+        submoduleKey: "financeiro.dashboard",
+      },
     ],
   },
 ];

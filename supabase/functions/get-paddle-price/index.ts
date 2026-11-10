@@ -1,6 +1,10 @@
 import { gatewayFetch, corsHeaders, type PaddleEnv } from '../_shared/paddle.ts';
 
-const ALLOWED = new Set(['rotina_premium_mensal', 'rotina_premium_anual']);
+const ALLOWED = new Set([
+  'rotina_premium_mensal', 'rotina_premium_anual',
+  'fitness_premium_mensal', 'fitness_premium_anual',
+  'financas_premium_mensal', 'financas_premium_anual',
+]);
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
