@@ -16,8 +16,9 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { playSfx, celebrate, isFitnessMuted, setFitnessMuted } from '@/lib/fitnessFeedback';
 import {
-  useFitnessActiveSession, ActiveSession, ActiveSessionExercise, elapsedSec, writeSession,
+  useFitnessActiveSession, ActiveSession, ActiveSessionExercise, elapsedSec, writeSession, readSession,
 } from '@/hooks/useFitnessActiveSession';
+import { isWorkoutIdle, lastActivityOf } from '@/lib/fitnessSessionIdle';
 
 interface Workout {
   id: string;
@@ -75,7 +76,8 @@ const FitnessTreinos = () => {
   const { user } = useAuth();
   const { profile, update } = useFitnessProfile();
   const { upsertToday } = useFitnessDailyLog();
-  const { session, setSession } = useFitnessActiveSession();
+  const { session: sessionState, setSession } = useFitnessActiveSession();
+  const session = sessionState;
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'list' | 'edit' | 'session' | 'countdown'>('list');
@@ -197,9 +199,12 @@ const FitnessTreinos = () => {
     setView('countdown');
   };
 
-  const finalizarTreino = async () => {
+  const finalizarTreino = async (opts?: { endAt?: number; auto?: boolean }) => {
+    // Lê do armazenamento: a tela do treino atualiza a sessão por lá
+    const session = readSession() ?? sessionState;
     if (!session) return;
-    const dur = elapsedSec(session);
+    const endAt = opts?.endAt ?? Date.now();
+    const dur = elapsedSec(session, endAt);
     const exsFeitos = session.exercises.filter(e => e.feito);
     const xp = 30 + exsFeitos.length * 10;
     await supabase.from('fitness_workout_logs').insert({
@@ -231,8 +236,8 @@ const FitnessTreinos = () => {
 
     await upsertToday({ treino_feito: true });
     if (profile) {
-      const hojeStr = new Date().toISOString().slice(0, 10);
-      const ontemStr = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const hojeStr = new Date(endAt).toISOString().slice(0, 10);
+      const ontemStr = new Date(endAt - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
       let novoStreak: number;
       if (profile.last_workout_date === hojeStr) {
         // já treinou hoje — mantém streak
@@ -248,11 +253,42 @@ const FitnessTreinos = () => {
         streak_dias: novoStreak,
       });
     }
-    toast.success(`Treino salvo! +${xp} XP 🔥`);
+    toast.success(opts?.auto
+      ? `Treino encerrado e salvo automaticamente após 2 horas sem atividade. +${xp} XP`
+      : `Treino salvo! +${xp} XP 🔥`);
     setSession(null);
     setView('list');
     setActiveId(null);
   };
+
+  // Encerra sozinho o treino parado há 2 horas (salva se algum exercício foi feito)
+  const autoStopRef = useRef(false);
+  useEffect(() => {
+    const check = async () => {
+      if (autoStopRef.current) return;
+      const cur = readSession();
+      if (!cur || !isWorkoutIdle(cur)) return;
+      autoStopRef.current = true;
+      try {
+        if (cur.exercises.some(e => e.feito)) {
+          await finalizarTreino({ endAt: lastActivityOf(cur) ?? Date.now(), auto: true });
+        } else {
+          setSession(null);
+          setView('list');
+          setActiveId(null);
+          toast.info('Treino encerrado automaticamente após 2 horas sem atividade.');
+        }
+      } finally {
+        autoStopRef.current = false;
+      }
+    };
+    check();
+    const id = setInterval(check, 60_000);
+    const onVisible = () => { if (document.visibilityState === 'visible') check(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id]);
 
   const cancelarSessao = () => {
     if (!confirm('Cancelar treino em andamento?')) return;
@@ -278,7 +314,7 @@ const FitnessTreinos = () => {
     return (
       <SessaoTreino
         onCancel={cancelarSessao}
-        onFinish={finalizarTreino}
+        onFinish={() => finalizarTreino()}
       />
     );
   }
@@ -664,8 +700,22 @@ const SessaoTreino = ({
 }) => {
   const { profile } = useFitnessProfile();
   const { setAfkBlocked } = useAuth();
-  const { session, setSession, patch } = useFitnessActiveSession();
+  const { session, setSession, patch, touch } = useFitnessActiveSession();
   const [, forceTick] = useState(0);
+
+  // Qualquer toque/tecla na tela do treino conta como atividade (no máx. 1 registro por minuto)
+  useEffect(() => {
+    let last = 0;
+    const onAct = () => {
+      const now = Date.now();
+      if (now - last < 60_000) return;
+      last = now;
+      touch();
+    };
+    const evs = ['pointerdown', 'keydown', 'touchstart'] as const;
+    evs.forEach(e => window.addEventListener(e, onAct, { passive: true }));
+    return () => evs.forEach(e => window.removeEventListener(e, onAct));
+  }, [touch]);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Bloqueia AFK durante treino ativo

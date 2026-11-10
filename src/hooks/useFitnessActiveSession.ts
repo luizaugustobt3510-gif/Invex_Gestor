@@ -36,6 +36,8 @@ export interface ActiveSession {
   pendingRestSeg?: number | null;
   /** Nome do exercício que acabou de ser concluído (para o card de descanso) */
   pendingRestExercicio?: string | null;
+  /** Última interação da pessoa com o treino (epoch ms) — usado no encerramento automático */
+  lastActivityAt?: number | null;
   userId: string;
 }
 
@@ -52,8 +54,9 @@ export function writeSession(s: ActiveSession | null) {
   else localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
 }
 
-export function elapsedSec(s: ActiveSession): number {
-  const now = s.pausedAt ?? Date.now();
+export function elapsedSec(s: ActiveSession, endAt?: number): number {
+  const end = endAt ?? Date.now();
+  const now = s.pausedAt != null ? Math.min(s.pausedAt, end) : end;
   return Math.max(0, Math.floor((now - s.startedAt - s.pausedAcc) / 1000));
 }
 
@@ -61,14 +64,15 @@ export function useFitnessActiveSession() {
   const [session, setSessionState] = useState<ActiveSession | null>(() => readSession());
 
   const setSession = useCallback((s: ActiveSession | null) => {
-    writeSession(s);
-    setSessionState(s);
+    const stamped = s ? { ...s, lastActivityAt: Date.now() } : null;
+    writeSession(stamped);
+    setSessionState(stamped);
   }, []);
 
   const patch = useCallback((p: Partial<ActiveSession>) => {
     setSessionState(prev => {
       if (!prev) return prev;
-      const next = { ...prev, ...p };
+      const next = { ...prev, ...p, lastActivityAt: Date.now() };
       writeSession(next);
       return next;
     });
@@ -83,5 +87,12 @@ export function useFitnessActiveSession() {
     return () => window.removeEventListener('storage', h);
   }, []);
 
-  return { session, setSession, patch };
+  /** Marca que a pessoa interagiu com o treino, sem mudar mais nada */
+  const touch = useCallback(() => {
+    const cur = readSession();
+    if (!cur) return;
+    writeSession({ ...cur, lastActivityAt: Date.now() });
+  }, []);
+
+  return { session, setSession, patch, touch };
 }
