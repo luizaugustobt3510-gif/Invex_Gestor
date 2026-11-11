@@ -4,10 +4,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@supabase/supabase-js";
 import {
   Wallet, TrendingUp, TrendingDown, PiggyBank, AlertTriangle, CheckCircle2, Circle, LogOut, Filter,
-  Trash2, Search, Clock, Repeat, Eye, X, Pencil, CalendarClock, PartyPopper, Crown, ArrowLeft, Pin, PinOff, Palette,
+  Trash2, Search, Clock, Repeat, Eye, X, Pencil, CalendarClock, PartyPopper, Crown, Pin, PinOff, Palette,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { ChristmasScene } from "@/components/ChristmasScene";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,7 +67,6 @@ const Loading = () => <p className="py-10 text-center text-sm text-muted-foregro
 
 export default function FinancasApp() {
   const navigate = useNavigate();
-  const { user: gestorUser } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
   const natal = isChristmasSeason();
@@ -97,10 +95,10 @@ export default function FinancasApp() {
   if (!ready || !user) {
     return <div className="grid min-h-[100dvh] place-items-center"><div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" /></div>;
   }
-  return <Painel user={user} natal={natal} showBackToGestor={!!gestorUser?.hasGestorRole} />;
+  return <Painel user={user} natal={natal} />;
 }
 
-function Painel({ user, natal, showBackToGestor }: { user: User; natal: boolean; showBackToGestor: boolean }) {
+function Painel({ user, natal }: { user: User; natal: boolean }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { premium, sub, refresh } = useFinancasPremium();
@@ -196,9 +194,6 @@ function Painel({ user, natal, showBackToGestor }: { user: User; natal: boolean;
             </div>
           </div>
           <div className="flex items-center gap-1">
-            {showBackToGestor && (
-              <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="hidden sm:inline-flex"><ArrowLeft className="mr-1 h-4 w-4" />Gestor</Button>
-            )}
             <Button variant="destructive" size="sm" onClick={handleSignOut} aria-label="Sair"><LogOut className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Sair</span></Button>
           </div>
         </header>
