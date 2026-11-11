@@ -5664,6 +5664,14 @@ export type Database = {
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       personal_is_viewer_of: { Args: { _owner: string }; Returns: boolean }
+      personal_tx_bucket: {
+        Args: { _desc: string; _sub: string; _type: string }
+        Returns: string
+      }
+      personal_tx_month: {
+        Args: { _competencia: string; _date: string }
+        Returns: string
+      }
       register_subscription_payment: {
         Args: {
           _amount: number

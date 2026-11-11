@@ -27,7 +27,7 @@ import { useCategories } from "@/hooks/useFinancasCategories";
 import { useFinancasPremium } from "@/hooks/useFinancasPremium";
 import { formatBRL, formatDate, currentMonthKey, monthKey, monthLabel } from "@/lib/financas/format";
 import { findCategory, DEBT_SUBCATEGORIES } from "@/lib/financas/categories";
-import { isChristmasSeason } from "@/lib/financas/plan";
+import { isChristmasSeason, monthlyUsage, FINANCAS_FREE_MONTHLY_LIMIT } from "@/lib/financas/plan";
 import { toast } from "sonner";
 
 const capMonth = (m: string) => { const l = monthLabel(m); return l.charAt(0).toUpperCase() + l.slice(1); };
@@ -128,6 +128,7 @@ function Painel({ user, natal, showBackToGestor }: { user: User; natal: boolean;
   }, [all]);
   const monthTx = useMemo(() => transactionsForMonth(all, selectedMonth), [all, selectedMonth]);
   const summary = useMemo(() => computeSummary(monthTx), [monthTx]);
+  const usage = useMemo(() => monthlyUsage(all, selectedMonth), [all, selectedMonth]);
   useCategories(effectiveOwner);
 
   const alerts = useMemo(() => {
@@ -254,7 +255,7 @@ function Painel({ user, natal, showBackToGestor }: { user: User; natal: boolean;
                   <span className="truncate">{formatDate(t.date)} · {t.description}</span>
                   <span className="flex shrink-0 items-center gap-2">
                     <span className="font-semibold tabular-nums">{formatBRL(Number(t.amount))}</span>
-                    {!isReadOnly && <button onClick={() => togglePaid(t)} className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">Pagar</button>}
+                    {!isReadOnly && <button onClick={() => togglePaid(t)} className="h-9 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground active:scale-95">Pagar</button>}
                   </span>
                 </li>
               ))}
@@ -279,10 +280,23 @@ function Painel({ user, natal, showBackToGestor }: { user: User; natal: boolean;
           <SummaryCard icon={<PiggyBank className="h-4 w-4" />} label="Reserva" value={summary.emergencia} tone="muted" active={filter === "reserva"} onClick={() => { toggleFilter("reserva"); setTab("lancamentos"); }} />
         </div>
 
+        {!premium && !isReadOnly && (
+          <button type="button" onClick={seePlans}
+            className="mt-3 flex w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-border bg-card px-3 py-2.5 text-left text-xs shadow-[var(--shadow-card)] active:scale-[0.99]">
+            <span className="font-semibold">Plano gratuito em {monthLabel(selectedMonth)}:</span>
+            {([["despesa", "despesas"], ["receita", "receitas"], ["reserva", "reservas"]] as const).map(([k, l]) => (
+              <span key={k} className={`tabular-nums ${usage[k] >= FINANCAS_FREE_MONTHLY_LIMIT ? "font-semibold text-expense" : "text-muted-foreground"}`}>
+                {Math.min(usage[k], FINANCAS_FREE_MONTHLY_LIMIT)}/{FINANCAS_FREE_MONTHLY_LIMIT} {l}
+              </span>
+            ))}
+            <span className="ml-auto inline-flex items-center gap-1 font-semibold text-primary"><Crown className="h-3.5 w-3.5" />Sem limite</span>
+          </button>
+        )}
+
         <DicasCard receitas={summary.receitas} despesas={summary.despesas} atrasadas={summary.atrasadas} pendentes={summary.pendentes} maiorCategoria={maiorCategoria} />
 
         <Tabs value={tab} onValueChange={setTab} className="mt-6">
-          <TabsList className="fin-tabs flex h-auto w-full justify-start gap-1 overflow-x-auto bg-card p-1 shadow-[var(--shadow-card)]">
+          <TabsList className="fin-tabs grid h-auto w-full grid-cols-3 gap-1 bg-card p-1 shadow-[var(--shadow-card)] sm:flex sm:justify-start sm:overflow-x-auto [&>button]:h-10 [&>button]:whitespace-normal [&>button]:px-1.5 [&>button]:text-xs [&>button]:leading-tight sm:[&>button]:h-9 sm:[&>button]:whitespace-nowrap sm:[&>button]:px-3 sm:[&>button]:text-sm">
             <TabsTrigger value="lancamentos">Lançamentos</TabsTrigger>
             <TabsTrigger value="planejar">Teto e projeção</TabsTrigger>
             <TabsTrigger value="calendario">Calendário{!premium && " 🔒"}</TabsTrigger>
@@ -359,7 +373,7 @@ function Painel({ user, natal, showBackToGestor }: { user: User; natal: boolean;
 
         {!isReadOnly && (
           <div className="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 z-40 -translate-x-1/2">
-            <AddTransactionDialog userId={user.id} canUsePeople={premium} />
+            <AddTransactionDialog userId={user.id} canUsePeople={premium} premium={premium} onSeePlans={seePlans} />
           </div>
         )}
         <FinancasCalculator />
@@ -542,7 +556,11 @@ const TransactionRow = memo(function TransactionRow({ t, readOnly, onToggle, onR
               : <><Circle className="h-5 w-5 shrink-0" /><span className="sm:hidden">{t.vencida ? "Pagar (vencida)" : "Marcar pago"}</span><span className="hidden sm:inline">{t.vencida ? "Vencida · marcar como pago" : "Marcar como pago"}</span></>}
           </button>
         )}
-        {isIncome && <div className="flex-1" />}
+        {isIncome && (
+          <div className="flex h-11 flex-1 items-center gap-1.5 px-1 text-xs font-semibold text-income">
+            <CheckCircle2 className="h-4 w-4" />{isReserva(t) ? "Guardado na reserva" : "Recebida"}
+          </div>
+        )}
         {!readOnly && (
           <>
             {!isIncome && !paid && (

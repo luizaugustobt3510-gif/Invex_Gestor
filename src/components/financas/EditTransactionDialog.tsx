@@ -19,6 +19,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCategories } from "@/hooks/useFinancasCategories";
 import { QuickAdd } from "@/components/financas/QuickAdd";
 import { addCategoryQuick, addSubcategoryQuick } from "@/lib/financas/categories-db";
+import { FIN_SHEET_CLASS, FIN_SHEET_FOOTER_CLASS } from "@/components/financas/sheet";
+import { limitErrorMessage } from "@/lib/financas/plan";
 
 export function EditTransactionDialog({
   transaction, open, onOpenChange, ownerId,
@@ -81,7 +83,7 @@ export function EditTransactionDialog({
       note: note.trim() || null,
     }).eq("id", transaction.id);
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(limitErrorMessage(error) ?? error.message);
     toast.success("Lançamento atualizado");
     qc.invalidateQueries({ queryKey: ["pf-transactions", ownerId] });
     onOpenChange(false);
@@ -89,27 +91,27 @@ export function EditTransactionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
+      <DialogContent className={FIN_SHEET_CLASS}>
         <DialogHeader>
           <DialogTitle>Editar lançamento</DialogTitle>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <div>
+            <div className="min-w-0">
               <Label>Valor (R$)</Label>
-              <Input inputMode="decimal" value={amount}
+              <Input inputMode="decimal" className="text-base" value={amount}
                 onChange={(e) => setAmount(e.target.value)} required />
             </div>
-            <div>
+            <div className="min-w-0">
               <Label>Vencimento</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+              <Input type="date" className="min-w-0 text-base" value={date} onChange={(e) => setDate(e.target.value)} required />
             </div>
           </div>
 
           {transaction.type === "despesa" && (
             <div>
               <Label>Mês de competência <span className="text-muted-foreground text-xs">(opcional)</span></Label>
-              <Input type="month" value={competencia}
+              <Input type="month" className="min-w-0 text-base" value={competencia}
                 onChange={(e) => setCompetencia(e.target.value)} />
             </div>
           )}
@@ -117,7 +119,7 @@ export function EditTransactionDialog({
           <div>
             <Label>Descrição</Label>
             <Input value={description} onChange={(e) => setDescription(e.target.value)}
-              maxLength={120} required />
+              maxLength={120} required className="text-base" />
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -163,7 +165,7 @@ export function EditTransactionDialog({
           <div>
             <Label>Observação (opcional)</Label>
             <Textarea value={note} onChange={(e) => setNote(e.target.value)}
-              rows={2} maxLength={300} />
+              rows={2} maxLength={300} className="text-base" />
           </div>
 
           {transaction.series_id && (
@@ -173,8 +175,8 @@ export function EditTransactionDialog({
             </p>
           )}
 
-          <DialogFooter>
-            <Button type="submit" size="lg" className="w-full" disabled={busy}>
+          <DialogFooter className={FIN_SHEET_FOOTER_CLASS}>
+            <Button type="submit" size="lg" className="h-12 w-full" disabled={busy}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar alterações"}
             </Button>
           </DialogFooter>

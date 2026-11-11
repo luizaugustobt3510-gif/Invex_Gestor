@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
-import { isChristmasSeason, heatLevel, FINANCAS_MONTHLY_CENTS, FINANCAS_ANNUAL_CENTS, FINANCAS_PREMIUM_FEATURES, premiumErrorMessage } from './plan';
+import { isChristmasSeason, heatLevel, FINANCAS_MONTHLY_CENTS, FINANCAS_ANNUAL_CENTS, FINANCAS_PREMIUM_FEATURES, premiumErrorMessage, FINANCAS_FREE_MONTHLY_LIMIT, txBucket, monthlyUsage, freeLimitBlock, limitErrorMessage } from './plan';
 
 describe('Invex Finanças — regras', () => {
   it('Premium custa R$ 25,90 por mês ou R$ 259,00 por ano', () => {
@@ -33,5 +33,37 @@ describe('Invex Finanças — regras', () => {
   it('erro de recurso Premium vira mensagem amigável', () => {
     assert.ok(premiumErrorMessage({ message: 'PREMIUM_FINANCAS: recurso exclusivo' }));
     assert.equal(premiumErrorMessage({ message: 'outro erro' }), null);
+  });
+});
+
+const tx = (type: 'receita' | 'despesa', date: string, extra: Record<string, string> = {}) =>
+  ({ type, date, subcategory: extra.subcategory ?? 'Geral', description: extra.description ?? 'x', competencia: extra.competencia ?? null });
+
+describe('Invex Finanças — limite do plano gratuito', () => {
+  it('gratuito permite 5 lançamentos de cada tipo por mês', () => {
+    assert.equal(FINANCAS_FREE_MONTHLY_LIMIT, 5);
+  });
+  it('reserva é receita em "Outros" com "reserva" na descrição', () => {
+    assert.equal(txBucket(tx('receita', '2026-11-01', { subcategory: 'Outros', description: 'Reserva de emergência' })), 'reserva');
+    assert.equal(txBucket(tx('receita', '2026-11-01', { subcategory: 'Salário', description: 'Salário' })), 'receita');
+    assert.equal(txBucket(tx('despesa', '2026-11-01')), 'despesa');
+  });
+  it('a 6ª despesa do mês é bloqueada, mas cabe em outro mês', () => {
+    const five = Array.from({ length: 5 }, () => tx('despesa', '2026-11-10'));
+    assert.deepEqual(freeLimitBlock(five, [tx('despesa', '2026-11-20')]), { bucket: 'despesa', month: '2026-11' });
+    assert.equal(freeLimitBlock(five, [tx('despesa', '2026-12-01')]), null);
+  });
+  it('5 despesas não impedem receitas nem reservas no mesmo mês', () => {
+    const five = Array.from({ length: 5 }, () => tx('despesa', '2026-11-10'));
+    assert.equal(freeLimitBlock(five, [tx('receita', '2026-11-10')]), null);
+    assert.equal(freeLimitBlock(five, [tx('receita', '2026-11-10', { subcategory: 'Outros', description: 'reserva' })]), null);
+  });
+  it('o mês de competência conta no lugar do vencimento', () => {
+    const usage = monthlyUsage([tx('despesa', '2026-12-05', { competencia: '2026-11' })], '2026-11');
+    assert.equal(usage.despesa, 1);
+  });
+  it('mensagem do banco vira texto amigável', () => {
+    assert.ok(limitErrorMessage({ message: 'LIMITE_FINANCAS: o plano gratuito permite 5 despesas por mês (11/2026).' })?.startsWith('O plano gratuito'));
+    assert.equal(limitErrorMessage({ message: 'outro erro' }), null);
   });
 });

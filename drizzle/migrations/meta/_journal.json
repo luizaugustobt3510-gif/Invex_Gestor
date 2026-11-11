@@ -127,6 +127,13 @@
       "when": 1794344507780,
       "tag": "0017_personal_tx_pin_and_color",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794391595392,
+      "tag": "0018_financas_free_monthly_limit",
+      "breakpoints": true
     }
   ]
 }

@@ -10,13 +10,16 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Crown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   EXPENSE_CATEGORIES, INCOME_CATEGORY, findCategory, PERSON_CATEGORY_KEYS,
 } from "@/lib/financas/categories";
-import { addMonthsISO } from "@/lib/financas/transactions";
+import { addMonthsISO, fetchTransactions } from "@/lib/financas/transactions";
+import { FINANCAS_FREE_MONTHLY_LIMIT, FREE_BUCKET_LABEL, freeLimitBlock, freeLimitMessage, limitErrorMessage, monthlyUsage, txBucket } from "@/lib/financas/plan";
+import { FIN_SHEET_CLASS, FIN_SHEET_FOOTER_CLASS } from "@/components/financas/sheet";
+import { monthLabel } from "@/lib/financas/format";
 import { fetchPeople } from "@/lib/financas/people";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -26,7 +29,9 @@ import { addCategoryQuick, addSubcategoryQuick } from "@/lib/financas/categories
 
 type SeriesMode = "single" | "parcelado" | "recorrente";
 
-export function AddTransactionDialog({ userId, canUsePeople = false }: { userId: string; canUsePeople?: boolean }) {
+export function AddTransactionDialog({ userId, canUsePeople = false, premium = false, onSeePlans }: {
+  userId: string; canUsePeople?: boolean; premium?: boolean; onSeePlans?: () => void;
+}) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<"receita" | "despesa">("despesa");
@@ -52,11 +57,23 @@ export function AddTransactionDialog({ userId, canUsePeople = false }: { userId:
   });
 
 
+  // Plano gratuito: mostra quanto do limite do mês já foi usado (o banco confere de verdade)
+  const { data: existing = [] } = useQuery({
+    queryKey: ["pf-transactions", userId],
+    queryFn: () => fetchTransactions(userId),
+    enabled: open && !premium,
+    staleTime: 60_000,
+  });
+
   const { expense: EXP, income: INC } = useCategories(userId);
   const cats = type === "receita" ? INC : EXP;
   const subs = findCategory(category)?.subcategories ?? [];
   const showPerson = canUsePeople && type === "despesa" && PERSON_CATEGORY_KEYS.has(category);
   const showSeries = type === "despesa";
+  const targetMonth = (type === "despesa" && competencia) || date.slice(0, 7);
+  const bucket = txBucket({ type, subcategory, description, date, competencia: type === "despesa" ? competencia : null });
+  const used = premium ? 0 : monthlyUsage(existing, targetMonth)[bucket];
+  const limitReached = !premium && used >= FINANCAS_FREE_MONTHLY_LIMIT;
 
   const handleTypeChange = (t: "receita" | "despesa") => {
     setType(t);
@@ -147,12 +164,16 @@ export function AddTransactionDialog({ userId, canUsePeople = false }: { userId:
     if (!value || value <= 0) return toast.error("Informe um valor válido");
     if (!description.trim()) return toast.error("Informe uma descrição");
 
-    setBusy(true);
     const baseId = crypto.randomUUID();
     const rows = buildRows(baseId);
+    if (!premium) {
+      const block = freeLimitBlock(existing, rows);
+      if (block) return toast.error(freeLimitMessage(block.bucket, block.month));
+    }
+    setBusy(true);
     const { error } = await supabase.from("personal_transactions").insert(rows as never);
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(limitErrorMessage(error) ?? error.message);
 
     const msg =
       seriesMode === "parcelado" ? `${rows.length} parcelas criadas` :
@@ -171,7 +192,7 @@ export function AddTransactionDialog({ userId, canUsePeople = false }: { userId:
           <Plus className="h-5 w-5" /> Lançar
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
+      <DialogContent className={FIN_SHEET_CLASS}>
         <DialogHeader>
           <DialogTitle>Novo lançamento</DialogTitle>
         </DialogHeader>
@@ -187,22 +208,38 @@ export function AddTransactionDialog({ userId, canUsePeople = false }: { userId:
               }`}>Receita</button>
           </div>
 
+          {!premium && (
+            <div className={`rounded-xl border p-3 text-xs ${limitReached ? "border-expense/40 bg-expense/10" : "border-border bg-muted/30"}`}>
+              <p>
+                Plano gratuito: <strong className="tabular-nums">{Math.min(used, FINANCAS_FREE_MONTHLY_LIMIT)} de {FINANCAS_FREE_MONTHLY_LIMIT}</strong> {FREE_BUCKET_LABEL[bucket]} em {monthLabel(targetMonth)}.
+              </p>
+              {limitReached && (
+                <p className="mt-1 text-muted-foreground">Limite deste mês atingido. Escolha outro mês ou assine o Premium para lançar sem limite.</p>
+              )}
+              {limitReached && onSeePlans && (
+                <Button type="button" size="sm" variant="outline" className="mt-2 h-9" onClick={() => { setOpen(false); onSeePlans(); }}>
+                  <Crown className="h-4 w-4" /> Ver Premium
+                </Button>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
-            <div>
+            <div className="min-w-0">
               <Label>Valor (R$){seriesMode === "parcelado" ? " · total" : ""}</Label>
               <Input inputMode="decimal" className="text-base" placeholder="0,00" value={amount}
                 onChange={(e) => setAmount(e.target.value)} required />
             </div>
-            <div>
+            <div className="min-w-0">
               <Label>Vencimento {seriesMode !== "single" ? "(1ª)" : ""}</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+              <Input type="date" className="min-w-0 text-base" value={date} onChange={(e) => setDate(e.target.value)} required />
             </div>
           </div>
 
           {type === "despesa" && (
             <div>
               <Label>Mês de competência <span className="text-muted-foreground text-xs">(opcional)</span></Label>
-              <Input type="month" value={competencia}
+              <Input type="month" className="min-w-0 text-base" value={competencia}
                 onChange={(e) => setCompetencia(e.target.value)}
                 placeholder="A qual mês essa conta se refere" />
               <p className="mt-1 text-[11px] text-muted-foreground">
@@ -214,7 +251,7 @@ export function AddTransactionDialog({ userId, canUsePeople = false }: { userId:
           <div>
             <Label>Descrição</Label>
             <Input value={description} onChange={(e) => setDescription(e.target.value)}
-              placeholder="Ex: Conta de luz" maxLength={120} required />
+              placeholder="Ex: Conta de luz" maxLength={120} required className="text-base" />
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -282,7 +319,7 @@ export function AddTransactionDialog({ userId, canUsePeople = false }: { userId:
               {seriesMode === "parcelado" && (
                 <div>
                   <Label className="text-xs">Em quantas parcelas?</Label>
-                  <Input type="number" min={2} max={60} value={installments}
+                  <Input type="number" inputMode="numeric" className="text-base" min={2} max={60} value={installments}
                     onChange={(e) => setInstallments(e.target.value)} />
                   <p className="mt-1 text-[11px] text-muted-foreground">
                     Cria 1 lançamento por mês, dividindo o valor total.
@@ -292,7 +329,7 @@ export function AddTransactionDialog({ userId, canUsePeople = false }: { userId:
               {seriesMode === "recorrente" && (
                 <div>
                   <Label className="text-xs">Por quantos meses repetir?</Label>
-                  <Input type="number" min={2} max={60} value={recurrenceMonths}
+                  <Input type="number" inputMode="numeric" className="text-base" min={2} max={60} value={recurrenceMonths}
                     onChange={(e) => setRecurrenceMonths(e.target.value)} />
                   <p className="mt-1 text-[11px] text-muted-foreground">
                     Cria lançamentos iguais todo mês (ex: assinatura, aluguel).
@@ -320,11 +357,11 @@ export function AddTransactionDialog({ userId, canUsePeople = false }: { userId:
           <div>
             <Label>Observação (opcional)</Label>
             <Textarea value={note} onChange={(e) => setNote(e.target.value)}
-              rows={2} maxLength={300} />
+              rows={2} maxLength={300} className="text-base" />
           </div>
 
-          <DialogFooter>
-            <Button type="submit" size="lg" className="w-full" disabled={busy}>
+          <DialogFooter className={FIN_SHEET_FOOTER_CLASS}>
+            <Button type="submit" size="lg" className="h-12 w-full" disabled={busy || limitReached}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar lançamento"}
             </Button>
           </DialogFooter>
