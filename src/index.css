@@ -558,3 +558,5 @@ All colors MUST be HSL.
   --fin-yellow: 46 95% 50%;
   --fin-orange: 24 94% 52%;
 }
+
+.inv-site { --inv-orange: 24 85% 45%; --inv-blue: 211 75% 42%; --inv-teal: 172 66% 30%; }

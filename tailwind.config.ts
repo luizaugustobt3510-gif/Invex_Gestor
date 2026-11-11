@@ -23,6 +23,9 @@ export default {
           leaf: "hsl(var(--inv-leaf))",
           "leaf-soft": "hsl(var(--inv-leaf-soft))",
           glow: "hsl(var(--inv-glow))",
+          orange: "hsl(var(--inv-orange))",
+          blue: "hsl(var(--inv-blue))",
+          teal: "hsl(var(--inv-teal))",
         },
         border: "hsl(var(--border))",
 

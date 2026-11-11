@@ -464,6 +464,48 @@ export type Database = {
         }
         Relationships: []
       }
+      app_downloads: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          file_path: string
+          file_size: number | null
+          id: string
+          ordem: number
+          produto: string
+          titulo: string
+          updated_at: string
+          versao: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          file_path: string
+          file_size?: number | null
+          id?: string
+          ordem?: number
+          produto?: string
+          titulo: string
+          updated_at?: string
+          versao?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          ordem?: number
+          produto?: string
+          titulo?: string
+          updated_at?: string
+          versao?: string | null
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
