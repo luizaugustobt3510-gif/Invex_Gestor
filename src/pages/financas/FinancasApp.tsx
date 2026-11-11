@@ -28,6 +28,7 @@ import { formatBRL, formatDate, currentMonthKey, monthKey, monthLabel } from "@/
 import { findCategory, DEBT_SUBCATEGORIES } from "@/lib/financas/categories";
 import { isChristmasSeason, monthlyUsage, FINANCAS_FREE_MONTHLY_LIMIT } from "@/lib/financas/plan";
 import { toast } from "sonner";
+import { SEXO_OPTIONS, UF_LIST, ageFrom, formatPhone, onlyDigits, validateSignupProfile } from "@/lib/financas/signupProfile";
 
 const capMonth = (m: string) => { const l = monthLabel(m); return l.charAt(0).toUpperCase() + l.slice(1); };
 
@@ -377,6 +378,75 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
   );
 }
 
+function DadosPessoais({ userId }: { userId: string }) {
+  const [f, setF] = useState({ data_nascimento: "", sexo: "", telefone: "", cidade: "", uf: "" });
+  const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    supabase.from("profiles").select("data_nascimento, sexo, telefone, cidade, uf").eq("user_id", userId).maybeSingle()
+      .then(({ data }) => {
+        if (data) setF({
+          data_nascimento: data.data_nascimento || "", sexo: data.sexo || "", telefone: formatPhone(data.telefone || ""),
+          cidade: data.cidade || "", uf: data.uf || "",
+        });
+        setLoaded(true);
+      });
+  }, [userId]);
+  const idade = ageFrom(f.data_nascimento);
+  const save = async () => {
+    const msg = validateSignupProfile(f);
+    if (msg) return toast.error(msg);
+    setSaving(true);
+    const { error } = await supabase.from("profiles").update({
+      data_nascimento: f.data_nascimento, sexo: f.sexo, telefone: onlyDigits(f.telefone),
+      cidade: f.cidade.trim() || null, uf: f.uf || null,
+    }).eq("user_id", userId);
+    setSaving(false);
+    if (error) return toast.error("Não foi possível salvar seus dados.");
+    toast.success("Dados atualizados.");
+  };
+  if (!loaded) return null;
+  return (
+    <div className="space-y-3 border-t border-border pt-4">
+      <p className="text-sm font-semibold">Dados pessoais</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="pf-nasc">Data de nascimento</Label>
+          <Input id="pf-nasc" type="date" value={f.data_nascimento} max={new Date().toISOString().slice(0, 10)}
+            onChange={(e) => setF({ ...f, data_nascimento: e.target.value })} className="text-base" />
+          {idade !== null && idade >= 0 && <p className="text-xs text-muted-foreground">{idade} {idade === 1 ? "ano" : "anos"}</p>}
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="pf-sexo">Sexo</Label>
+          <Select value={f.sexo} onValueChange={(v) => v && setF({ ...f, sexo: v })}>
+            <SelectTrigger id="pf-sexo" className="text-base"><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>{SEXO_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="pf-tel">Telefone / WhatsApp</Label>
+        <Input id="pf-tel" type="tel" inputMode="tel" placeholder="(11) 91234-5678" value={f.telefone}
+          onChange={(e) => setF({ ...f, telefone: formatPhone(e.target.value) })} className="text-base" />
+      </div>
+      <div className="grid grid-cols-[1fr_6rem] gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="pf-cidade">Cidade</Label>
+          <Input id="pf-cidade" value={f.cidade} maxLength={80} onChange={(e) => setF({ ...f, cidade: e.target.value })} className="text-base" />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="pf-uf">Estado</Label>
+          <Select value={f.uf} onValueChange={(v) => v && setF({ ...f, uf: v })}>
+            <SelectTrigger id="pf-uf" className="text-base"><SelectValue placeholder="UF" /></SelectTrigger>
+            <SelectContent>{UF_LIST.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      </div>
+      <Button onClick={save} disabled={saving} className="w-full sm:w-auto">{saving ? "Salvando..." : "Salvar dados"}</Button>
+    </div>
+  );
+}
+
 function PerfilCard({ user }: { user: User }) {
   const [nome, setNome] = useState(String(user.user_metadata?.full_name || user.user_metadata?.nome || ""));
   const [senha, setSenha] = useState("");
@@ -410,6 +480,7 @@ function PerfilCard({ user }: { user: User }) {
         <Input type="password" value={senha2} onChange={(e) => setSenha2(e.target.value)} placeholder="Repita a senha" className="text-base" />
         <Button variant="outline" onClick={savePassword} className="w-full sm:w-auto">Alterar senha</Button>
       </div>
+      <DadosPessoais userId={user.id} />
     </div>
   );
 }

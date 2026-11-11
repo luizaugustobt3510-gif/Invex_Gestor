@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 import { Wallet } from 'lucide-react';
 import { PublicCommerceFooter } from '@/components/PublicCommerceFooter';
 import { isChristmasSeason } from '@/lib/financas/plan';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SEXO_OPTIONS, UF_LIST, ageFrom, formatPhone, onlyDigits, validateSignupProfile } from '@/lib/financas/signupProfile';
 
 const APP = '/financeiro/pessoal';
 
@@ -18,6 +20,12 @@ const FinancasLogin = () => {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [nascimento, setNascimento] = useState('');
+  const [sexo, setSexo] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [uf, setUf] = useState('');
+  const idade = ageFrom(nascimento);
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const navigate = useNavigate();
@@ -29,13 +37,20 @@ const FinancasLogin = () => {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (senha.length < 8 && mode === 'criar') { toast.error('A senha precisa ter pelo menos 8 caracteres.'); return; }
+    if (mode === 'criar') {
+      const msg = validateSignupProfile({ data_nascimento: nascimento, sexo, telefone, cidade, uf });
+      if (msg) { toast.error(msg); return; }
+      if (senha.length < 8) { toast.error('A senha precisa ter pelo menos 8 caracteres.'); return; }
+    }
     setLoading(true);
     try {
       if (mode === 'criar') {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim().toLowerCase(), password: senha,
-          options: { emailRedirectTo: `${window.location.origin}${APP}`, data: { nome: nome.trim(), full_name: nome.trim() } },
+          options: { emailRedirectTo: `${window.location.origin}${APP}`, data: {
+            nome: nome.trim(), full_name: nome.trim(), data_nascimento: nascimento, sexo,
+            telefone: onlyDigits(telefone), cidade: cidade.trim(), uf,
+          } },
         });
         if (error) throw error;
         if (!data.session) setSent(true); else navigate(APP);
@@ -89,7 +104,39 @@ const FinancasLogin = () => {
             <form onSubmit={submit} className="space-y-4">
               {mode === 'criar' && (
                 <div className="space-y-1.5"><Label htmlFor="nome">Nome</Label>
-                  <Input id="nome" value={nome} onChange={e => setNome(e.target.value)} required className="login-input h-12 text-base" /></div>
+                  <Input id="nome" value={nome} onChange={e => setNome(e.target.value)} required maxLength={100} autoComplete="name" className="login-input h-12 text-base" /></div>
+              )}
+              {mode === 'criar' && (
+                <>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="nascimento">Data de nascimento</Label>
+                      <Input id="nascimento" type="date" value={nascimento} onChange={e => setNascimento(e.target.value)} required
+                        max={new Date().toISOString().slice(0, 10)} autoComplete="bday" className="login-input h-12 text-base" />
+                      {idade !== null && idade >= 0 && <p className="text-xs text-muted-foreground">{idade} {idade === 1 ? 'ano' : 'anos'}</p>}
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="sexo">Sexo</Label>
+                      <Select value={sexo} onValueChange={(v) => v && setSexo(v)}>
+                        <SelectTrigger id="sexo" className="login-input h-12 text-base"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        <SelectContent>{SEXO_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5"><Label htmlFor="telefone">Telefone / WhatsApp</Label>
+                    <Input id="telefone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder="(11) 91234-5678"
+                      value={telefone} onChange={e => setTelefone(formatPhone(e.target.value))} required className="login-input h-12 text-base" /></div>
+                  <div className="grid grid-cols-[1fr_6rem] gap-3">
+                    <div className="space-y-1.5"><Label htmlFor="cidade">Cidade <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                      <Input id="cidade" value={cidade} onChange={e => setCidade(e.target.value)} maxLength={80} autoComplete="address-level2" className="login-input h-12 text-base" /></div>
+                    <div className="space-y-1.5"><Label htmlFor="uf">Estado</Label>
+                      <Select value={uf} onValueChange={(v) => v && setUf(v)}>
+                        <SelectTrigger id="uf" className="login-input h-12 text-base"><SelectValue placeholder="UF" /></SelectTrigger>
+                        <SelectContent>{UF_LIST.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </>
               )}
               <div className="space-y-1.5"><Label htmlFor="email">E-mail</Label>
                 <Input id="email" type="email" inputMode="email" value={email} onChange={e => setEmail(e.target.value)} required className="login-input h-12 text-base" /></div>

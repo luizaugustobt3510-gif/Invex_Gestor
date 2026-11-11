@@ -3984,6 +3984,7 @@ export type Database = {
         Row: {
           accepted_invite_at: string | null
           cargo: string | null
+          cidade: string | null
           company_id: string | null
           created_at: string
           created_by: string | null
@@ -4000,12 +4001,14 @@ export type Database = {
           provider_id: string | null
           sexo: string | null
           telefone: string | null
+          uf: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           accepted_invite_at?: string | null
           cargo?: string | null
+          cidade?: string | null
           company_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -4022,12 +4025,14 @@ export type Database = {
           provider_id?: string | null
           sexo?: string | null
           telefone?: string | null
+          uf?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           accepted_invite_at?: string | null
           cargo?: string | null
+          cidade?: string | null
           company_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -4044,6 +4049,7 @@ export type Database = {
           provider_id?: string | null
           sexo?: string | null
           telefone?: string | null
+          uf?: string | null
           updated_at?: string
           user_id?: string
         }
