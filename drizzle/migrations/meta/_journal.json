@@ -162,6 +162,13 @@
       "when": 1794394581474,
       "tag": "0022_profile_signup_details",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794481044645,
+      "tag": "0023_app_downloads_storage_super_admin_only",
+      "breakpoints": true
     }
   ]
 }

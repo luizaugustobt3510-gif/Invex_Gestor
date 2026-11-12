@@ -15,8 +15,8 @@ export const formatSize = (b?: number | null) =>
   !b ? '' : b > 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.round(b / 1024)} KB`;
 
 export async function downloadApp(d: AppDownload) {
-  const name = d.file_path.split('/').pop() || 'app.apk';
-  const { data, error } = await supabase.storage.from(APP_DOWNLOADS_BUCKET).createSignedUrl(d.file_path, 600, { download: name });
-  if (error || !data) throw error ?? new Error('Falha ao gerar link');
-  window.location.href = data.signedUrl;
+  const { data, error } = await supabase.functions.invoke('app-download-url', { body: { id: d.id } });
+  const url = (data as { url?: string } | null)?.url;
+  if (error || !url) throw error ?? new Error('Falha ao gerar link');
+  window.location.href = url;
 }
