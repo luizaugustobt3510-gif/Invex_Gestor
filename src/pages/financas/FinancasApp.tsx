@@ -203,6 +203,19 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
           </div>
         </header>
 
+        {!premium && !isReadOnly && (
+          <button type="button" onClick={seePlans}
+            className="mt-3 flex w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-border bg-card px-3 py-2.5 text-left text-xs shadow-[var(--shadow-card)] active:scale-[0.99]">
+            <span className="font-semibold">Plano gratuito em {monthLabel(selectedMonth)}:</span>
+            {([["despesa", "despesas"], ["receita", "receitas"], ["reserva", "reservas"]] as const).map(([k, l]) => (
+              <span key={k} className={`tabular-nums ${usage[k] >= FINANCAS_FREE_MONTHLY_LIMIT ? "font-semibold text-expense" : "text-muted-foreground"}`}>
+                {Math.min(usage[k], FINANCAS_FREE_MONTHLY_LIMIT)}/{FINANCAS_FREE_MONTHLY_LIMIT} {l}
+              </span>
+            ))}
+            <span className="ml-auto inline-flex items-center gap-1 font-semibold text-primary"><Crown className="h-3.5 w-3.5" />Sem limite</span>
+          </button>
+        )}
+
         {sharedWithMe.length > 0 && (
           <div className="mt-4 flex items-center gap-2">
             <Eye className="h-4 w-4 text-muted-foreground" />
@@ -279,19 +292,6 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
           <SummaryCard icon={<AlertTriangle className="h-4 w-4" />} label="Dívidas" value={summary.dividas} tone="warning" active={filter === "dividas"} onClick={() => { toggleFilter("dividas"); setTab("lancamentos"); }} />
           <SummaryCard icon={<PiggyBank className="h-4 w-4" />} label="Reserva" value={summary.emergencia} tone="muted" active={filter === "reserva"} onClick={() => { toggleFilter("reserva"); setTab("lancamentos"); }} />
         </div>
-
-        {!premium && !isReadOnly && (
-          <button type="button" onClick={seePlans}
-            className="mt-3 flex w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-border bg-card px-3 py-2.5 text-left text-xs shadow-[var(--shadow-card)] active:scale-[0.99]">
-            <span className="font-semibold">Plano gratuito em {monthLabel(selectedMonth)}:</span>
-            {([["despesa", "despesas"], ["receita", "receitas"], ["reserva", "reservas"]] as const).map(([k, l]) => (
-              <span key={k} className={`tabular-nums ${usage[k] >= FINANCAS_FREE_MONTHLY_LIMIT ? "font-semibold text-expense" : "text-muted-foreground"}`}>
-                {Math.min(usage[k], FINANCAS_FREE_MONTHLY_LIMIT)}/{FINANCAS_FREE_MONTHLY_LIMIT} {l}
-              </span>
-            ))}
-            <span className="ml-auto inline-flex items-center gap-1 font-semibold text-primary"><Crown className="h-3.5 w-3.5" />Sem limite</span>
-          </button>
-        )}
 
         <CaixinhasCard all={all} />
 
