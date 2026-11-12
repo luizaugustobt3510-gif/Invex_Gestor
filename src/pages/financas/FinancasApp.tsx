@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, memo } from "react";
+import { EmailConfirmBanner } from '@/components/personal/EmailConfirmBanner';
 import { authErrorMessage } from '@/lib/authErrors';
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -203,6 +204,7 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
             <Button variant="destructive" size="sm" onClick={handleSignOut} aria-label="Sair"><LogOut className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Sair</span></Button>
           </div>
         </header>
+        <EmailConfirmBanner className="mt-3" />
 
         {!premium && !isReadOnly && (
           <button type="button" onClick={seePlans}

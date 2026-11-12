@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { EmailConfirmBanner } from '@/components/personal/EmailConfirmBanner';
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -42,5 +43,12 @@ export const FitnessProtectedRoute = ({ children }: Props) => {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <div className="fixed inset-x-0 top-0 z-[60] px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pointer-events-none [&>*]:pointer-events-auto empty:hidden">
+        <EmailConfirmBanner className="mx-auto max-w-xl bg-card shadow-lg" />
+      </div>
+      {children}
+    </>
+  );
 };

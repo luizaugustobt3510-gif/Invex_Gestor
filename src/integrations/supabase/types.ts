@@ -3774,6 +3774,24 @@ export type Database = {
         }
         Relationships: []
       }
+      personal_email_verifications: {
+        Row: {
+          method: string
+          user_id: string
+          verified_at: string
+        }
+        Insert: {
+          method: string
+          user_id: string
+          verified_at?: string
+        }
+        Update: {
+          method?: string
+          user_id?: string
+          verified_at?: string
+        }
+        Relationships: []
+      }
       personal_people: {
         Row: {
           created_at: string
@@ -5711,6 +5729,7 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      personal_email_status: { Args: never; Returns: Json }
       personal_is_viewer_of: { Args: { _owner: string }; Returns: boolean }
       personal_tx_bucket: {
         Args: { _desc: string; _sub: string; _type: string }

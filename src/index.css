@@ -560,3 +560,8 @@ All colors MUST be HSL.
 }
 
 .inv-site { --inv-orange: 24 85% 45%; --inv-blue: 211 75% 42%; --inv-teal: 172 66% 30%; }
+
+/* Aviso "Confirme seu e-mail" das contas pessoais */
+@keyframes email-confirm-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+.email-confirm-blink { animation: email-confirm-blink 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .email-confirm-blink { animation: none; } }
