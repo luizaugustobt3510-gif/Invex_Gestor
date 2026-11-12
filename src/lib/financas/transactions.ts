@@ -1,5 +1,4 @@
 import { isReservaTx } from "@/lib/financas/caixinha";
-import { supabase } from "@/integrations/supabase/client";
 import { DEBT_SUBCATEGORIES } from "@/lib/financas/categories";
 import { monthKey, currentMonthKey } from "@/lib/financas/format";
 
@@ -29,6 +28,7 @@ export type Transaction = {
 };
 
 export async function fetchTransactions(ownerId?: string): Promise<Transaction[]> {
+  const { supabase } = await import("@/integrations/supabase/client");
   let q = supabase
     .from("personal_transactions")
     .select("*")
@@ -45,9 +45,11 @@ const todayISO = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-// Vencida quando passou mais de 1 dia do vencimento sem ser paga.
+// Vencida quando passou mais de 1 dia do vencimento sem ser paga/recebida.
+// Vale para despesas e também para receitas pendentes (ex.: parcela que
+// alguém devia ter pago e não foi marcada como recebida/guardada).
 export function isVencida(t: Transaction, todayDate = todayISO()): boolean {
-  if (t.type !== "despesa" || t.status !== "pendente") return false;
+  if (t.status !== "pendente") return false;
   // soma 1 dia ao vencimento
   const [y, m, d] = t.date.split("-").map(Number);
   const due = new Date(y, m - 1, d);

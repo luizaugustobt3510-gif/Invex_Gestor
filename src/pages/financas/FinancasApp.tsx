@@ -615,6 +615,7 @@ const TransactionRow = memo(function TransactionRow({ t, readOnly, onToggle, onR
           <div className="flex items-center gap-1.5">
             <p className="truncate text-sm font-semibold">{txTitle(t)}</p>
             {t.carried_over && <span className="inline-flex items-center gap-0.5 rounded-full bg-warning/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-warning-foreground"><Clock className="h-2.5 w-2.5" /> Atrasada</span>}
+            {isIncome && !paid && t.vencida && !t.carried_over && <span className="inline-flex items-center gap-0.5 rounded-full bg-expense/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-expense"><Clock className="h-2.5 w-2.5" /> Vencida</span>}
             {t.series_kind === "recorrente" && !t.carried_over && <Repeat className="h-3 w-3 shrink-0 text-muted-foreground" />}
           </div>
           {isCaixinha(t) && caixinhaLabel(t) && (
@@ -641,8 +642,9 @@ const TransactionRow = memo(function TransactionRow({ t, readOnly, onToggle, onR
         )}
         {isIncome && !paid && (
           <button onClick={() => onToggle(t)} disabled={readOnly}
-            className="inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-income px-3.5 text-xs font-semibold text-income-foreground transition active:scale-95 disabled:opacity-60">
-            <Circle className="h-4 w-4 shrink-0" />{isCaixinha(t) ? "Guardar" : "Receber"}
+            className={`inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-xs font-semibold transition active:scale-95 disabled:opacity-60 ${
+              t.vencida ? "bg-expense text-expense-foreground" : "bg-income text-income-foreground"}`}>
+            <Circle className="h-4 w-4 shrink-0" />{t.vencida ? (isCaixinha(t) ? "Guardar vencida" : "Receber vencida") : isCaixinha(t) ? "Guardar" : "Receber"}
           </button>
         )}
         {isIncome && paid && (t.series_id ? (
