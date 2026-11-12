@@ -168,7 +168,7 @@ export function EditTransactionDialog({
             <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium">🐷 Guardar numa caixinha</p>
+                  <p className="text-sm font-medium">👥 Guardar numa caixinha</p>
                   <p className="text-xs text-muted-foreground">O valor vai para a reserva e não entra no saldo livre</p>
                 </div>
                 <Switch checked={toCaixinha} onCheckedChange={setToCaixinha} aria-label="Guardar numa caixinha" />

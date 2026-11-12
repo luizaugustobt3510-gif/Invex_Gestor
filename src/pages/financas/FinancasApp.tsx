@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@supabase/supabase-js";
 import {
-  Wallet, TrendingUp, TrendingDown, PiggyBank, AlertTriangle, CheckCircle2, Circle, LogOut, Filter,
+  Wallet, TrendingUp, TrendingDown, Users, AlertTriangle, CheckCircle2, Circle, LogOut, Filter,
   Trash2, Search, Clock, Repeat, Eye, X, Pencil, CalendarClock, PartyPopper, Crown, Pin, PinOff, Palette,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -297,7 +297,7 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
           <SummaryCard icon={<TrendingUp className="h-4 w-4" />} label="Receitas" value={summary.receitas} tone="income" active={filter === "receita"} onClick={() => { toggleFilter("receita"); setTab("lancamentos"); }} />
           <SummaryCard icon={<TrendingDown className="h-4 w-4" />} label="Despesas" value={summary.despesas} tone="expense" active={filter === "despesa"} onClick={() => { toggleFilter("despesa"); setTab("lancamentos"); }} />
           <SummaryCard icon={<AlertTriangle className="h-4 w-4" />} label="Dívidas" value={summary.dividas} tone="warning" active={filter === "dividas"} onClick={() => { toggleFilter("dividas"); setTab("lancamentos"); }} />
-          <SummaryCard icon={<PiggyBank className="h-4 w-4" />} label="Reserva" value={summary.emergencia} tone="muted" active={filter === "reserva"} onClick={() => { toggleFilter("reserva"); setTab("lancamentos"); }} />
+          <SummaryCard icon={<Users className="h-4 w-4" />} label="Reserva" value={summary.emergencia} tone="muted" active={filter === "reserva"} onClick={() => { toggleFilter("reserva"); setTab("lancamentos"); }} />
         </div>
 
         <CaixinhasCard all={all} ownerId={effectiveOwner} readOnly={isReadOnly} />
@@ -608,7 +608,7 @@ const TransactionRow = memo(function TransactionRow({ t, readOnly, onToggle, onR
     <li className={`rounded-2xl border p-3 shadow-[var(--shadow-card)] ${rowTone}`}>
       <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
         <div className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted text-lg">
-          {isCaixinha(t) ? "🐷" : isIncome ? "💰" : cat?.icon ?? "💸"}
+          {isCaixinha(t) ? "👥" : isIncome ? "💰" : cat?.icon ?? "💸"}
           {t.pinned && <span className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-primary text-primary-foreground"><Pin className="h-2.5 w-2.5" /></span>}
         </div>
         <div className="min-w-0">
@@ -618,7 +618,7 @@ const TransactionRow = memo(function TransactionRow({ t, readOnly, onToggle, onR
             {t.series_kind === "recorrente" && !t.carried_over && <Repeat className="h-3 w-3 shrink-0 text-muted-foreground" />}
           </div>
           {isCaixinha(t) && caixinhaLabel(t) && (
-            <span className="mt-0.5 inline-flex max-w-full items-center gap-1 truncate rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">🐷 {caixinhaPurpose(t)}</span>
+            <span className="mt-0.5 inline-flex max-w-full items-center gap-1 truncate rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">👥 {caixinhaPurpose(t)}</span>
           )}
           <p className="truncate text-xs text-muted-foreground">
             {t.subcategory} · {formatDate(t.carried_over ? t.original_date ?? t.date : t.date)}

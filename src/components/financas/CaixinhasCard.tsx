@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { PiggyBank, Target, Check, X } from "lucide-react";
+import { Users, Target, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Transaction } from "@/lib/financas/transactions";
 import { summarizeCaixinhas } from "@/lib/financas/caixinha";
@@ -28,7 +28,7 @@ export function CaixinhasCard({ all, ownerId, readOnly }: { all: Transaction[]; 
 
   return (
     <div className="mt-3 rounded-2xl border border-border bg-card p-3 shadow-[var(--shadow-card)]">
-      <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-primary"><PiggyBank className="h-4 w-4" /> Minhas caixinhas</p>
+      <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-primary"><Users className="h-4 w-4" /> Minhas caixinhas</p>
       <ul className="space-y-3">
         {items.map((c) => {
           const pct = c.goal > 0 ? Math.min(100, Math.round((c.saved / c.goal) * 100)) : 0;
@@ -37,7 +37,7 @@ export function CaixinhasCard({ all, ownerId, readOnly }: { all: Transaction[]; 
           return (
             <li key={c.seriesId}>
               <div className="flex items-baseline justify-between gap-2 text-sm">
-                <span className="truncate font-semibold">🐷 {c.purpose}</span>
+                <span className="truncate font-semibold">👥 {c.purpose}</span>
                 <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
                   <strong className="text-foreground">{formatBRL(c.saved)}</strong> de {formatBRL(c.goal)} · {pct}%
                 </span>

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Loader2, Crown, PiggyBank } from "lucide-react";
+import { Plus, Loader2, Crown, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -375,7 +375,7 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
                       onChange={(e) => setRecurrenceMonths(e.target.value)} />
                   </div>
                   <div className="flex items-start gap-2 rounded-lg bg-background p-2.5 text-xs">
-                    <PiggyBank className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <Users className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <p>
                       {monthlyValue > 0
                         ? <>Guardando <strong>{formatBRL(monthlyValue)}</strong> por mês, em {seriesMonths} meses você junta <strong>{formatBRL(monthlyValue * seriesMonths)}</strong>{purpose.trim() ? <> para <strong>{purpose.trim()}</strong></> : null}.</>
