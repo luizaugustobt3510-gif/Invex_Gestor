@@ -190,6 +190,13 @@
       "when": 1794489898104,
       "tag": "0026_personal_app_accounts_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1794490683408,
+      "tag": "0027_admin_set_app_premium",
+      "breakpoints": true
     }
   ]
 }

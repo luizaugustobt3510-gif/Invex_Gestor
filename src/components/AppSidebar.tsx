@@ -1025,12 +1025,6 @@ const adminGroups: MenuGroup[] = [
         allowedRoles: ["superadm"],
       },
       {
-        path: "/gestao-rotina",
-        label: "Invex Rotina | Acessos",
-        icon: <CalendarClock className="w-4 h-4" />,
-        allowedRoles: ["superadm"],
-      },
-      {
         path: "/gestao-downloads",
         label: "Downloads do site",
         icon: <ScrollText className="w-4 h-4" />,

@@ -5700,6 +5700,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_set_app_premium: {
+        Args: { _app: string; _ativo: boolean; _fim: string; _user_id: string }
+        Returns: undefined
+      }
       check_setup_needed: { Args: never; Returns: boolean }
       company_is_not_blocked: {
         Args: { _company_id: string }
