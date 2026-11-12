@@ -18,7 +18,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AddTransactionDialog } from "@/components/financas/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/financas/EditTransactionDialog";
 import { PremiumLock, FinancasPlanCard } from "@/components/financas/FinancasPremium";
-import { DicasCard } from "@/components/financas/DicasCard";
+import { FinancasTips } from "@/components/financas/FinancasTips";
 import { CaixinhasCard } from "@/components/financas/CaixinhasCard";
 import { isCaixinha, caixinhaPurpose, caixinhaLabel, txTitle } from "@/lib/financas/caixinha";
 import { useCaixinhaGoals } from "@/hooks/useCaixinhaGoals";
@@ -269,6 +269,7 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
             <div className="min-w-0"><p className="text-xs opacity-75">A pagar ainda</p><p className="truncate font-semibold tabular-nums">{formatBRL(summary.pendentes)}</p></div>
             <div className="min-w-0"><p className="text-xs opacity-75">A receber</p><p className="truncate font-semibold tabular-nums">{formatBRL(summary.aReceber)}</p></div>
           </div>
+          <CaixinhasCard all={all} ownerId={effectiveOwner} readOnly={isReadOnly} insideCard />
         </div>
 
         {summary.atrasadas > 0 && (
@@ -311,10 +312,6 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
           <SummaryCard icon={<AlertTriangle className="h-4 w-4" />} label="Dívidas" value={summary.dividas} tone="warning" active={filter === "dividas"} onClick={() => { toggleFilter("dividas"); setTab("lancamentos"); }} />
           <SummaryCard icon={<Users className="h-4 w-4" />} label="Reserva" value={summary.emergencia} tone="muted" active={filter === "reserva"} onClick={() => { toggleFilter("reserva"); setTab("lancamentos"); }} />
         </div>
-
-        <CaixinhasCard all={all} ownerId={effectiveOwner} readOnly={isReadOnly} />
-
-        <DicasCard receitas={summary.receitas} despesas={summary.despesas} atrasadas={summary.atrasadas} pendentes={summary.pendentes} maiorCategoria={maiorCategoria} />
 
         <Tabs value={tab} onValueChange={setTab} className="mt-6">
           <TabsList className="fin-tabs grid h-auto w-full grid-cols-3 gap-1 bg-card p-1 shadow-[var(--shadow-card)] sm:flex sm:justify-start sm:overflow-x-auto [&>button]:h-10 [&>button]:whitespace-normal [&>button]:px-1.5 [&>button]:text-xs [&>button]:leading-tight sm:[&>button]:h-9 sm:[&>button]:whitespace-nowrap sm:[&>button]:px-3 sm:[&>button]:text-sm">
@@ -398,6 +395,7 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
           </div>
         )}
         <FinancasCalculator />
+        <FinancasTips receitas={summary.receitas} despesas={summary.despesas} atrasadas={summary.atrasadas} pendentes={summary.pendentes} maiorCategoria={maiorCategoria} />
       </div>
     </div>
   );

@@ -41,6 +41,13 @@ describe('Receita recorrente e caixinha', () => {
     assert.equal(c.planned, 1000);
     assert.equal(c.saved, 1000);
   });
+  it('sem caixinha, a seção fica desativada (nada a listar)', () => {
+    const rows = [
+      { ...base, description: 'Aluguel' },
+      { ...base, description: 'Reserva de emergência' },
+    ].map((r, i) => ({ ...r, id: String(i), created_at: '', amount: 100, date: '2026-11-10', status: 'pago' as const }));
+    assert.deepEqual(summarizeCaixinhas(rows as never), []);
+  });
 });
 
 describe('Caixinha mantém o nome da pessoa', () => {

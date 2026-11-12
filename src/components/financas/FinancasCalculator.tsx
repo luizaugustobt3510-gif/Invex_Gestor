@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Calculator, X, History, Trash2, Delete } from "lucide-react";
 import { evaluateExpression, formatCalc, pushHistory, type CalcEntry } from "@/lib/financas/calc";
+import { FINANCAS_FLUTUANT_OPEN } from "@/components/financas/FinancasTips";
 
 const KEY = "pf-calc-history";
 const KEYS = ["C", "(", ")", "÷", "7", "8", "9", "×", "4", "5", "6", "−", "1", "2", "3", "+", "%", "0", ",", "="];
@@ -52,7 +53,7 @@ export function FinancasCalculator() {
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} aria-label="Abrir calculadora"
+      <button type="button" onClick={() => { window.dispatchEvent(new Event(FINANCAS_FLUTUANT_OPEN)); setOpen(true); }} aria-label="Abrir calculadora"
         className="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-4 z-40 grid h-14 w-14 place-items-center rounded-2xl border border-border bg-card text-primary shadow-lg transition active:scale-95 sm:right-6">
         <Calculator className="h-6 w-6" />
       </button>
