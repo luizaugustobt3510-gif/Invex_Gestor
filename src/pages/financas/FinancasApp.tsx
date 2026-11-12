@@ -249,9 +249,10 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
           <p className="text-xs font-medium uppercase tracking-wider opacity-80">Você ainda pode gastar</p>
           <p className="mt-1 text-4xl font-bold tabular-nums sm:text-5xl">{formatBRL(summary.disponivelReal)}</p>
           <div className="mt-3 flex items-center gap-2 text-sm opacity-90"><span>{health.emoji}</span><span className="font-semibold">{health.label}</span></div>
-          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-primary-foreground/20 pt-4 text-sm">
-            <div><p className="text-xs opacity-75">Saldo na conta</p><p className="font-semibold tabular-nums">{formatBRL(summary.saldoFinal)}</p></div>
-            <div><p className="text-xs opacity-75">A pagar ainda</p><p className="font-semibold tabular-nums">{formatBRL(summary.pendentes)}</p></div>
+          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-primary-foreground/20 pt-4 text-sm sm:gap-3">
+            <div className="min-w-0"><p className="text-xs opacity-75">Saldo na conta</p><p className="truncate font-semibold tabular-nums">{formatBRL(summary.saldoFinal)}</p></div>
+            <div className="min-w-0"><p className="text-xs opacity-75">A pagar ainda</p><p className="truncate font-semibold tabular-nums">{formatBRL(summary.pendentes)}</p></div>
+            <div className="min-w-0"><p className="text-xs opacity-75">A receber</p><p className="truncate font-semibold tabular-nums">{formatBRL(summary.aReceber)}</p></div>
           </div>
         </div>
 

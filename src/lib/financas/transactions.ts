@@ -85,11 +85,12 @@ export function transactionsForMonth(all: Transaction[], targetMonth: string): T
 }
 
 export function computeSummary(transactions: Transaction[]) {
-  let receitas = 0, despesas = 0, despesasPagas = 0, dividas = 0, emergencia = 0, atrasadas = 0;
+  let receitas = 0, receitasRecebidas = 0, despesas = 0, despesasPagas = 0, dividas = 0, emergencia = 0, atrasadas = 0;
   for (const t of transactions) {
     const v = Number(t.amount);
     if (t.type === "receita") {
       receitas += v;
+      if (t.status === "pago") receitasRecebidas += v;
       // Reserva = só o que já foi guardado (depósitos de caixinha a fazer não contam)
       if (t.status === "pago" && t.subcategory === "Outros" && t.description.toLowerCase().includes("reserva")) {
         emergencia += v;
@@ -105,11 +106,13 @@ export function computeSummary(transactions: Transaction[]) {
   }
 
   const disponivelReal = receitas - despesas;
-  const saldoFinal = receitas - despesasPagas;
+  // Saldo na conta = só o que já entrou menos o que já saiu.
+  const saldoFinal = receitasRecebidas - despesasPagas;
   return {
-    receitas, despesas, despesasPagas, dividas, emergencia, atrasadas,
+    receitas, receitasRecebidas, despesas, despesasPagas, dividas, emergencia, atrasadas,
     disponivelReal, saldoFinal,
     pendentes: despesas - despesasPagas,
+    aReceber: receitas - receitasRecebidas,
   };
 }
 
