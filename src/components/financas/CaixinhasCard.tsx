@@ -21,7 +21,7 @@ export function CaixinhasCard({ all, ownerId, readOnly, insideCard }: { all: Tra
   const [value, setValue] = useState("");
   const empty = items.length === 0;
 
-  const soft = insideCard ? "text-primary-foreground/70" : "text-muted-foreground";
+  const soft = insideCard ? "text-primary-foreground" : "text-muted-foreground";
   const strong = insideCard ? "text-primary-foreground" : "text-foreground";
   const action = insideCard ? "text-primary-foreground" : "text-primary";
 
@@ -35,13 +35,13 @@ export function CaixinhasCard({ all, ownerId, readOnly, insideCard }: { all: Tra
 
   return (
     <div aria-disabled={empty || undefined}
-      className={`mt-4 rounded-2xl border p-3 ${insideCard ? "border-primary-foreground/25 bg-primary-foreground/10" : "border-border bg-card shadow-[var(--shadow-card)]"} ${empty ? "opacity-80" : ""}`}>
-      <p className={`mb-2 flex items-center gap-1.5 text-xs font-semibold ${insideCard ? "text-primary-foreground" : "text-primary"}`}>
+      className={`mt-4 rounded-2xl border p-3 ${insideCard ? "border-primary-foreground/40 bg-primary-foreground/12" : "border-border bg-card shadow-[var(--shadow-card)]"} ${empty && insideCard ? "border-dashed" : ""}`}>
+      <p className={`mb-2 flex items-center gap-1.5 text-xs font-bold ${insideCard ? "text-primary-foreground" : "text-primary"}`}>
         <Users className="h-4 w-4" /> Minhas caixinhas
       </p>
 
       {empty ? (
-        <p className={`text-[11px] leading-5 ${insideCard ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
+        <p className={`text-[11px] leading-5 ${insideCard ? "text-primary-foreground" : "text-muted-foreground"}`}>
           Nenhuma caixinha ainda. Ao editar uma receita, escolha “Guardar numa caixinha” para juntar dinheiro com meta.
         </p>
       ) : (
@@ -54,7 +54,9 @@ export function CaixinhasCard({ all, ownerId, readOnly, insideCard }: { all: Tra
               return (
                 <li key={c.seriesId}>
                   <div className="flex items-baseline justify-between gap-2 text-sm">
-                    <span className={`truncate font-semibold ${strong}`}>👥 {c.purpose}</span>
+                    <span className={`inline-flex min-w-0 items-center gap-1.5 font-semibold ${strong}`}>
+                      <Users className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{c.purpose}</span>
+                    </span>
                     <span className={`shrink-0 text-xs tabular-nums ${soft}`}>
                       <strong className={strong}>{formatBRL(c.saved)}</strong> de {formatBRL(c.goal)} · {pct}%
                     </span>
