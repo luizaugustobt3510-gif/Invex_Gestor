@@ -20,7 +20,7 @@ import { EditTransactionDialog } from "@/components/financas/EditTransactionDial
 import { PremiumLock, FinancasPlanCard } from "@/components/financas/FinancasPremium";
 import { DicasCard } from "@/components/financas/DicasCard";
 import { CaixinhasCard } from "@/components/financas/CaixinhasCard";
-import { isCaixinha, caixinhaPurpose } from "@/lib/financas/caixinha";
+import { isCaixinha, caixinhaPurpose, caixinhaLabel, txTitle } from "@/lib/financas/caixinha";
 import { useCaixinhaGoals } from "@/hooks/useCaixinhaGoals";
 import { FinancasCalculator } from "@/components/financas/FinancasCalculator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -272,7 +272,7 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
             <ul className="space-y-1">
               {alerts.upcoming.slice(0, 5).map((t) => (
                 <li key={t.id} className="flex items-center justify-between gap-2 text-xs">
-                  <span className="truncate">{formatDate(t.date)} · {t.description}</span>
+                  <span className="truncate">{formatDate(t.date)} · {txTitle(t)}</span>
                   <span className="flex shrink-0 items-center gap-2">
                     <span className="font-semibold tabular-nums">{formatBRL(Number(t.amount))}</span>
                     {!isReadOnly && <button onClick={() => togglePaid(t)} className="h-9 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground active:scale-95">Pagar</button>}
@@ -613,10 +613,13 @@ const TransactionRow = memo(function TransactionRow({ t, readOnly, onToggle, onR
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <p className="truncate text-sm font-semibold">{t.description}</p>
+            <p className="truncate text-sm font-semibold">{txTitle(t)}</p>
             {t.carried_over && <span className="inline-flex items-center gap-0.5 rounded-full bg-warning/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-warning-foreground"><Clock className="h-2.5 w-2.5" /> Atrasada</span>}
             {t.series_kind === "recorrente" && !t.carried_over && <Repeat className="h-3 w-3 shrink-0 text-muted-foreground" />}
           </div>
+          {isCaixinha(t) && caixinhaLabel(t) && (
+            <span className="mt-0.5 inline-flex max-w-full items-center gap-1 truncate rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">🐷 {caixinhaPurpose(t)}</span>
+          )}
           <p className="truncate text-xs text-muted-foreground">
             {t.subcategory} · {formatDate(t.carried_over ? t.original_date ?? t.date : t.date)}
             {t.installment_total ? ` · ${t.installment_number}/${t.installment_total}` : ""}

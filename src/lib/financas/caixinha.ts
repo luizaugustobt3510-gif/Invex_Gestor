@@ -24,7 +24,22 @@ export function addMonthsISO(iso: string, months: number): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-export const caixinhaDescription = (purpose: string) => `${CAIXINHA_PREFIX}${purpose.trim()}`;
+/** Separa o propósito da caixinha do nome da pessoa/descrição do lançamento. */
+export const CAIXINHA_LABEL_SEP = " — ";
+
+/** "Reserva · <propósito>" ou, com quem pagou, "Reserva · <propósito> — <nome>". */
+export const caixinhaDescription = (purpose: string, label?: string | null) => {
+  const l = (label ?? "").trim();
+  return `${CAIXINHA_PREFIX}${purpose.trim()}${l ? `${CAIXINHA_LABEL_SEP}${l}` : ""}`;
+};
+
+/** Lê propósito e nome (pessoa/descrição) de uma descrição de caixinha. */
+export function parseCaixinha(description: string): { purpose: string; label: string } {
+  const rest = description.startsWith(CAIXINHA_PREFIX) ? description.slice(CAIXINHA_PREFIX.length) : description;
+  const i = rest.indexOf(CAIXINHA_LABEL_SEP);
+  if (i < 0) return { purpose: rest.trim(), label: "" };
+  return { purpose: rest.slice(0, i).trim(), label: rest.slice(i + CAIXINHA_LABEL_SEP.length).trim() };
+}
 
 type TxLike = Pick<Transaction, "type" | "subcategory" | "description" | "series_kind">;
 /** Qualquer receita "Outros" com descrição "Reserva · <propósito>" é caixinha (avulsa ou recorrente). */
@@ -41,7 +56,32 @@ export const goalKey = (purpose: string) => `${GOAL_PREFIX}${purpose.trim().toLo
 export const isGoalKey = (category: string) => category.startsWith(GOAL_PREFIX);
 
 export const caixinhaPurpose = (t: Pick<Transaction, "description">) =>
-  t.description.startsWith(CAIXINHA_PREFIX) ? t.description.slice(CAIXINHA_PREFIX.length) : t.description;
+  t.description.startsWith(CAIXINHA_PREFIX) ? parseCaixinha(t.description).purpose : t.description;
+
+/** Nome da pessoa/descrição guardado junto da caixinha ("" se não tiver). */
+export const caixinhaLabel = (t: Pick<Transaction, "description">) =>
+  t.description.startsWith(CAIXINHA_PREFIX) ? parseCaixinha(t.description).label : "";
+
+/** Título para mostrar na lista: o nome da pessoa quando houver, senão a descrição/caixinha. */
+export function txTitle(t: TxLike): string {
+  if (!isCaixinha(t)) return t.description;
+  const { purpose, label } = parseCaixinha(t.description);
+  return label || purpose;
+}
+
+/**
+ * Nova descrição ao mudar o destino de um lançamento.
+ * - Guardando numa caixinha: mantém o nome (pessoa/descrição) junto do propósito.
+ * - Tirando da caixinha: volta a ser o nome, ou o propósito se não houver nome.
+ */
+export function nextDescription(opts: { toCaixinha: boolean; purpose: string; label: string }): string {
+  const label = opts.label.trim();
+  if (opts.toCaixinha) return caixinhaDescription(opts.purpose, label);
+  return label || opts.purpose.trim();
+}
+
+/** Nome atual de um lançamento qualquer (sem o prefixo da caixinha). */
+export const currentLabel = (t: TxLike) => (isCaixinha(t) ? parseCaixinha(t.description).label : t.description);
 
 /** Gera 1 lançamento por mês. Só o primeiro pode nascer pago; os seguintes ficam pendentes. */
 export function buildMonthlySeries<T extends object>(base: T, opts: {

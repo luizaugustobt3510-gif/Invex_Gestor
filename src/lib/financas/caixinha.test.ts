@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
-import { buildMonthlySeries, caixinhaDescription, isCaixinha, summarizeCaixinhas, clampMonths } from './caixinha';
+import { buildMonthlySeries, caixinhaDescription, isCaixinha, summarizeCaixinhas, clampMonths, nextDescription, parseCaixinha, txTitle, caixinhaPurpose, caixinhaLabel } from './caixinha';
 import { txBucket } from './plan';
 
 const base = { user_id: 'u', type: 'receita' as const, category: 'receitas', subcategory: 'Outros', description: caixinhaDescription('Viagem'), note: null, person_id: null, competencia: null };
@@ -40,5 +40,35 @@ describe('Receita recorrente e caixinha', () => {
     assert.equal(c.goal, 10000);
     assert.equal(c.planned, 1000);
     assert.equal(c.saved, 1000);
+  });
+});
+
+describe('Caixinha mantém o nome da pessoa', () => {
+  const tx = (description: string) => ({ type: 'receita' as const, subcategory: 'Outros', description, series_kind: 'recorrente' as const });
+  it('guardar numa caixinha não apaga o nome da pessoa', () => {
+    const d = nextDescription({ toCaixinha: true, purpose: 'Ônibus - Viagem Curitiba', label: '03 - Carlos' });
+    assert.equal(d, 'Reserva · Ônibus - Viagem Curitiba — 03 - Carlos');
+    assert.deepEqual(parseCaixinha(d), { purpose: 'Ônibus - Viagem Curitiba', label: '03 - Carlos' });
+  });
+  it('a lista mostra o nome da pessoa e a caixinha agrupa pelo propósito', () => {
+    const t = tx('Reserva · Viagem — Carlos');
+    assert.equal(txTitle(t), 'Carlos');
+    assert.equal(caixinhaPurpose(t), 'Viagem');
+    assert.ok(isCaixinha(t));
+  });
+  it('caixinha sem nome continua funcionando como antes', () => {
+    const t = tx('Reserva · Viagem');
+    assert.equal(txTitle(t), 'Viagem');
+    assert.equal(caixinhaLabel(t), '');
+  });
+  it('tirar da caixinha devolve o nome da pessoa', () => {
+    assert.equal(nextDescription({ toCaixinha: false, purpose: 'Viagem', label: 'Carlos' }), 'Carlos');
+    assert.equal(nextDescription({ toCaixinha: false, purpose: 'Viagem', label: '' }), 'Viagem');
+  });
+  it('várias pessoas na mesma caixinha somam juntas', () => {
+    const rows = ['Ana', 'Bia'].map((n, i) => ({ ...tx(`Reserva · Viagem — ${n}`), id: String(i), created_at: '', amount: 100, date: '2026-11-10', status: 'pago' as const }));
+    const list = summarizeCaixinhas(rows as never);
+    assert.equal(list.length, 1);
+    assert.equal(list[0].saved, 200);
   });
 });

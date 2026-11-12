@@ -21,7 +21,7 @@ import { QuickAdd } from "@/components/financas/QuickAdd";
 import { addCategoryQuick, addSubcategoryQuick } from "@/lib/financas/categories-db";
 import { FIN_SHEET_CLASS, FIN_SHEET_FOOTER_CLASS } from "@/components/financas/sheet";
 import { limitErrorMessage } from "@/lib/financas/plan";
-import { isCaixinha, caixinhaPurpose, caixinhaDescription, CAIXINHA_PREFIX } from "@/lib/financas/caixinha";
+import { isCaixinha, caixinhaPurpose, caixinhaLabel, caixinhaDescription, currentLabel, nextDescription } from "@/lib/financas/caixinha";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export function EditTransactionDialog({
@@ -51,7 +51,8 @@ export function EditTransactionDialog({
 
   useEffect(() => {
     if (!transaction) return;
-    setDescription(transaction.description);
+    // Na caixinha, o campo mostra só o nome (pessoa/descrição), sem o prefixo "Reserva · ...".
+    setDescription(isCaixinha(transaction) ? caixinhaLabel(transaction) : transaction.description);
     setAmount(String(transaction.amount).replace(".", ","));
     setDate(transaction.date);
     setCompetencia(transaction.competencia ?? "");
@@ -80,16 +81,16 @@ export function EditTransactionDialog({
     e.preventDefault();
     const value = parseFloat(amount.replace(",", "."));
     if (!value || value <= 0) return toast.error("Informe um valor válido");
-    if (!description.trim()) return toast.error("Informe uma descrição");
-
     const isRec = transaction.type === "receita";
     const cx = isRec && toCaixinha;
+    if (!cx && !description.trim()) return toast.error("Informe uma descrição");
     if (cx && !purpose.trim()) return toast.error("Informe o nome da caixinha");
     const wasCx = isCaixinha(transaction);
-    let desc = description.trim();
+    const label = description.trim();
+    let desc = label;
     let cat = category, sub = subcategory;
-    if (cx) { desc = caixinhaDescription(purpose); cat = "receitas"; sub = "Outros"; }
-    else if (wasCx && desc.startsWith(CAIXINHA_PREFIX)) desc = caixinhaPurpose(transaction);
+    if (cx) { desc = caixinhaDescription(purpose, label); cat = "receitas"; sub = "Outros"; }
+    else if (wasCx) desc = label || caixinhaPurpose(transaction);
 
     setBusy(true);
     const { error } = await supabase.from("personal_transactions").update({
@@ -104,11 +105,29 @@ export function EditTransactionDialog({
     }).eq("id", transaction.id);
     let seriesErr = null as null | { message: string };
     if (!error && applySeries && transaction.series_id) {
-      // Só muda o destino (caixinha) das outras parcelas; valores e datas ficam iguais.
-      const r = await supabase.from("personal_transactions")
-        .update({ description: desc, category: cat, subcategory: sub })
+      // Muda só o destino (caixinha) das outras parcelas; valores e datas ficam iguais.
+      // O nome de cada parcela (ex: a pessoa) é mantido, a não ser que ele tenha sido trocado aqui.
+      const labelChanged = label !== currentLabel(transaction).trim();
+      const { data: rows, error: readErr } = await supabase.from("personal_transactions")
+        .select("id, description, type, subcategory, series_kind")
         .eq("series_id", transaction.series_id).neq("id", transaction.id);
-      seriesErr = r.error;
+      seriesErr = readErr;
+      const groups = new Map<string, string[]>();
+      for (const r of rows ?? []) {
+        const rowLabel = labelChanged ? label : currentLabel(r as Transaction);
+        const rowDesc = nextDescription({
+          toCaixinha: cx,
+          purpose: cx ? purpose : caixinhaPurpose(r as Transaction),
+          label: rowLabel,
+        });
+        groups.set(rowDesc, [...(groups.get(rowDesc) ?? []), r.id]);
+      }
+      for (const [d, ids] of groups) {
+        if (seriesErr) break;
+        const r = await supabase.from("personal_transactions")
+          .update({ description: d, category: cat, subcategory: sub }).in("id", ids);
+        seriesErr = r.error;
+      }
     }
     setBusy(false);
     if (seriesErr) return toast.error(seriesErr.message);
@@ -165,12 +184,16 @@ export function EditTransactionDialog({
             </div>
           )}
 
-          {!(transaction.type === "receita" && toCaixinha) && (<>
           <div>
-            <Label>Descrição</Label>
+            {transaction.type === "receita" && toCaixinha ? (
+              <Label>Nome da pessoa ou descrição <span className="text-muted-foreground text-xs">(opcional)</span></Label>
+            ) : <Label>Descrição</Label>}
             <Input value={description} onChange={(e) => setDescription(e.target.value)}
-              maxLength={120} required className="text-base" />
+              maxLength={80} required={!(transaction.type === "receita" && toCaixinha)} className="text-base"
+              placeholder={transaction.type === "receita" && toCaixinha ? "Ex: Carlos" : undefined} />
           </div>
+
+          {!(transaction.type === "receita" && toCaixinha) && (<>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
@@ -229,7 +252,7 @@ export function EditTransactionDialog({
           {transaction.series_id && transaction.type === "receita" && (
             <label className="flex items-start gap-2 rounded-lg border border-border p-3 text-sm">
               <Checkbox checked={applySeries} onCheckedChange={(v) => setApplySeries(v === true)} className="mt-0.5" />
-              <span>Mudar a caixinha/descrição de <strong>todas as parcelas desta série</strong> (valores e datas não mudam)</span>
+              <span>Aplicar a caixinha e o nome a <strong>todas as parcelas desta série</strong> (valores e datas não mudam)</span>
             </label>
           )}
 

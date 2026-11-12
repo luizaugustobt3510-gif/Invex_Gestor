@@ -131,7 +131,7 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
     if (seriesMode === "caixinha" && type === "receita") {
       const incCat = cats.find((c) => c.subcategories.includes("Outros")) ?? cats[0];
       return buildMonthlySeries(
-        { ...common, category: incCat?.key ?? "receitas", subcategory: "Outros", description: caixinhaDescription(purpose), person_id: null },
+        { ...common, category: incCat?.key ?? "receitas", subcategory: "Outros", description: caixinhaDescription(purpose, description), person_id: null },
         { amount: value, date, months: seriesMonths, seriesId: baseId, firstPaid: status === "pago" },
       );
     }
@@ -271,6 +271,9 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
               <Label>Para que é a caixinha?</Label>
               <Input value={purpose} onChange={(e) => setPurpose(e.target.value)}
                 placeholder="Ex: Viagem" maxLength={60} required className="text-base" />
+              <Label className="mt-3 block">Nome da pessoa ou descrição <span className="text-muted-foreground text-xs">(opcional)</span></Label>
+              <Input value={description} onChange={(e) => setDescription(e.target.value)}
+                placeholder="Ex: Carlos" maxLength={80} className="text-base" />
             </div>
           ) : (
             <div>
