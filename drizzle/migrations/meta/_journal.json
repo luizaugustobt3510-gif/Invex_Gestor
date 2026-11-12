@@ -169,6 +169,13 @@
       "when": 1794481044645,
       "tag": "0023_app_downloads_storage_super_admin_only",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794482469212,
+      "tag": "0024_lock_profile_company_id",
+      "breakpoints": true
     }
   ]
 }

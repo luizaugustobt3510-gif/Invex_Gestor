@@ -26,7 +26,8 @@ export const FitnessProtectedRoute = ({ children }: Props) => {
 
   if (!user) return <Navigate to="/fitness/login" replace />;
 
-  const isAllowed = user.role === "superadm" || user.companyId === FITNESS_COMPANY_ID;
+  // Contas pessoais (Rotina/Finanças/Fitness) usam o Fitness; dados isolados por usuário no banco.
+  const isAllowed = true;
 
   if (!isAllowed) {
     return (

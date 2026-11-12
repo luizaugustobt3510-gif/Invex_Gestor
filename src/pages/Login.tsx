@@ -69,7 +69,16 @@ const Login = () => {
     setLoading(true);
     const result = await login(email.trim(), senha);
     setLoading(false);
-    if (result.success) { toast.success(result.message); navigate('/'); }
+    if (result.success) {
+      const { data: { user: u } } = await supabase.auth.getUser();
+      const { data: r } = u ? await supabase.from('user_roles').select('role').eq('user_id', u.id).limit(1).maybeSingle() : { data: null };
+      if (!r) {
+        await supabase.auth.signOut();
+        toast.error('Esta conta não tem acesso empresarial. Só o Super Administrador pode liberar.');
+        return;
+      }
+      toast.success(result.message); navigate('/');
+    }
     else toast.error(result.message);
   };
 
