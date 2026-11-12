@@ -34,4 +34,11 @@ describe('Receita recorrente e caixinha', () => {
     assert.equal(c.paidCount, 3);
     assert.equal(c.nextDate, '2027-02-10');
   });
+  it('meta definida pelo usuário substitui o total previsto', () => {
+    const rows = [0, 1].map((i) => ({ ...base, id: String(i), created_at: '', amount: 500, date: '2026-11-10', status: 'pago' as const, series_id: null, series_kind: null }));
+    const [c] = summarizeCaixinhas(rows as never, { 'meta:viagem': 10000 });
+    assert.equal(c.goal, 10000);
+    assert.equal(c.planned, 1000);
+    assert.equal(c.saved, 1000);
+  });
 });

@@ -21,10 +21,14 @@ import { QuickAdd } from "@/components/financas/QuickAdd";
 import { addCategoryQuick, addSubcategoryQuick } from "@/lib/financas/categories-db";
 import { FIN_SHEET_CLASS, FIN_SHEET_FOOTER_CLASS } from "@/components/financas/sheet";
 import { limitErrorMessage } from "@/lib/financas/plan";
+import { isCaixinha, caixinhaPurpose, caixinhaDescription, CAIXINHA_PREFIX } from "@/lib/financas/caixinha";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function EditTransactionDialog({
-  transaction, open, onOpenChange, ownerId,
+  transaction, open, onOpenChange, ownerId, purposes = [],
 }: {
+  /** Nomes das caixinhas já existentes, para sugerir. */
+  purposes?: string[];
   transaction: Transaction | null;
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -41,6 +45,9 @@ export function EditTransactionDialog({
   const [status, setStatus] = useState<"pago" | "pendente">("pendente");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [toCaixinha, setToCaixinha] = useState(false);
+  const [purpose, setPurpose] = useState("");
+  const [applySeries, setApplySeries] = useState(false);
 
   useEffect(() => {
     if (!transaction) return;
@@ -52,6 +59,10 @@ export function EditTransactionDialog({
     setSubcategory(transaction.subcategory);
     setStatus(transaction.status);
     setNote(transaction.note ?? "");
+    const cx = isCaixinha(transaction);
+    setToCaixinha(cx);
+    setPurpose(cx ? caixinhaPurpose(transaction) : "");
+    setApplySeries(false);
   }, [transaction]);
 
   if (!transaction) return null;
@@ -71,18 +82,36 @@ export function EditTransactionDialog({
     if (!value || value <= 0) return toast.error("Informe um valor válido");
     if (!description.trim()) return toast.error("Informe uma descrição");
 
+    const isRec = transaction.type === "receita";
+    const cx = isRec && toCaixinha;
+    if (cx && !purpose.trim()) return toast.error("Informe o nome da caixinha");
+    const wasCx = isCaixinha(transaction);
+    let desc = description.trim();
+    let cat = category, sub = subcategory;
+    if (cx) { desc = caixinhaDescription(purpose); cat = "receitas"; sub = "Outros"; }
+    else if (wasCx && desc.startsWith(CAIXINHA_PREFIX)) desc = caixinhaPurpose(transaction);
+
     setBusy(true);
     const { error } = await supabase.from("personal_transactions").update({
-      description: description.trim(),
+      description: desc,
       amount: value,
       date,
       competencia: competencia || null,
-      category,
-      subcategory,
-      status: transaction.type === "receita" ? transaction.status : status,
+      category: cat,
+      subcategory: sub,
+      status: isRec ? transaction.status : status,
       note: note.trim() || null,
     }).eq("id", transaction.id);
+    let seriesErr = null as null | { message: string };
+    if (!error && applySeries && transaction.series_id) {
+      // Só muda o destino (caixinha) das outras parcelas; valores e datas ficam iguais.
+      const r = await supabase.from("personal_transactions")
+        .update({ description: desc, category: cat, subcategory: sub })
+        .eq("series_id", transaction.series_id).neq("id", transaction.id);
+      seriesErr = r.error;
+    }
     setBusy(false);
+    if (seriesErr) return toast.error(seriesErr.message);
     if (error) return toast.error(limitErrorMessage(error) ?? error.message);
     toast.success("Lançamento atualizado");
     qc.invalidateQueries({ queryKey: ["pf-transactions", ownerId] });
@@ -116,6 +145,27 @@ export function EditTransactionDialog({
             </div>
           )}
 
+          {transaction.type === "receita" && (
+            <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">🐷 Guardar numa caixinha</p>
+                  <p className="text-xs text-muted-foreground">O valor vai para a reserva e não entra no saldo livre</p>
+                </div>
+                <Switch checked={toCaixinha} onCheckedChange={setToCaixinha} aria-label="Guardar numa caixinha" />
+              </div>
+              {toCaixinha && (
+                <div>
+                  <Label>Nome da caixinha</Label>
+                  <Input list="pf-caixinhas" value={purpose} onChange={(e) => setPurpose(e.target.value)}
+                    maxLength={60} placeholder="Ex: Viagem" className="text-base" />
+                  <datalist id="pf-caixinhas">{purposes.map((p) => <option key={p} value={p} />)}</datalist>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!(transaction.type === "receita" && toCaixinha) && (<>
           <div>
             <Label>Descrição</Label>
             <Input value={description} onChange={(e) => setDescription(e.target.value)}
@@ -149,6 +199,8 @@ export function EditTransactionDialog({
             </div>
           </div>
 
+          </>)}
+
           {transaction.type === "despesa" && (
             <div className="flex items-center justify-between rounded-xl border border-border bg-muted/30 p-3">
               <div>
@@ -173,6 +225,12 @@ export function EditTransactionDialog({
               ℹ️ Este lançamento faz parte de uma série ({transaction.series_kind}).
               As alterações afetam <strong>apenas esta parcela</strong>.
             </p>
+          )}
+          {transaction.series_id && transaction.type === "receita" && (
+            <label className="flex items-start gap-2 rounded-lg border border-border p-3 text-sm">
+              <Checkbox checked={applySeries} onCheckedChange={(v) => setApplySeries(v === true)} className="mt-0.5" />
+              <span>Mudar a caixinha/descrição de <strong>todas as parcelas desta série</strong> (valores e datas não mudam)</span>
+            </label>
           )}
 
           <DialogFooter className={FIN_SHEET_FOOTER_CLASS}>

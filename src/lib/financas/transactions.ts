@@ -1,3 +1,4 @@
+import { isReservaTx } from "@/lib/financas/caixinha";
 import { supabase } from "@/integrations/supabase/client";
 import { DEBT_SUBCATEGORIES } from "@/lib/financas/categories";
 import { monthKey, currentMonthKey } from "@/lib/financas/format";
@@ -85,16 +86,18 @@ export function transactionsForMonth(all: Transaction[], targetMonth: string): T
 }
 
 export function computeSummary(transactions: Transaction[]) {
-  let receitas = 0, receitasRecebidas = 0, despesas = 0, despesasPagas = 0, dividas = 0, emergencia = 0, atrasadas = 0;
+  let reservaAReceber = 0, receitas = 0, receitasRecebidas = 0, despesas = 0, despesasPagas = 0, dividas = 0, emergencia = 0, atrasadas = 0;
   for (const t of transactions) {
     const v = Number(t.amount);
     if (t.type === "receita") {
+      // Dinheiro de caixinha/reserva fica guardado à parte: não entra no saldo livre.
+      if (isReservaTx(t)) {
+        if (t.status === "pago") emergencia += v;
+        else reservaAReceber += v;
+        continue;
+      }
       receitas += v;
       if (t.status === "pago") receitasRecebidas += v;
-      // Reserva = só o que já foi guardado (depósitos de caixinha a fazer não contam)
-      if (t.status === "pago" && t.subcategory === "Outros" && t.description.toLowerCase().includes("reserva")) {
-        emergencia += v;
-      }
     } else {
       despesas += v;
       if (t.status === "pago") despesasPagas += v;
@@ -109,7 +112,7 @@ export function computeSummary(transactions: Transaction[]) {
   // Saldo na conta = só o que já entrou menos o que já saiu.
   const saldoFinal = receitasRecebidas - despesasPagas;
   return {
-    receitas, receitasRecebidas, despesas, despesasPagas, dividas, emergencia, atrasadas,
+    receitas, receitasRecebidas, despesas, despesasPagas, dividas, emergencia, reservaAReceber, atrasadas,
     disponivelReal, saldoFinal,
     pendentes: despesas - despesasPagas,
     aReceber: receitas - receitasRecebidas,

@@ -52,3 +52,7 @@
 - [x] Cor em lançamento não pago (amarelo, laranja, vermelho)
 - [x] Calculadora flutuante com histórico
 - [x] Dicas financeiras
+
+## Finanças: caixinhas
+- [x] Guardar receita numa caixinha pela edição (com opção para toda a série), fora do saldo livre
+- [x] Meta por caixinha e gráfico de metas

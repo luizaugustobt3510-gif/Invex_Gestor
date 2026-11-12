@@ -20,7 +20,8 @@ import { EditTransactionDialog } from "@/components/financas/EditTransactionDial
 import { PremiumLock, FinancasPlanCard } from "@/components/financas/FinancasPremium";
 import { DicasCard } from "@/components/financas/DicasCard";
 import { CaixinhasCard } from "@/components/financas/CaixinhasCard";
-import { isCaixinha } from "@/lib/financas/caixinha";
+import { isCaixinha, caixinhaPurpose } from "@/lib/financas/caixinha";
+import { useCaixinhaGoals } from "@/hooks/useCaixinhaGoals";
 import { FinancasCalculator } from "@/components/financas/FinancasCalculator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { fetchTransactions, computeSummary, healthStatus, transactionsForMonth, type Transaction } from "@/lib/financas/transactions";
@@ -38,12 +39,14 @@ const capMonth = (m: string) => { const l = monthLabel(m); return l.charAt(0).to
 
 const Charts = lazy(() => import("@/components/financas/Charts").then((m) => ({
   default: function ChartsBundle({ monthTx, all, ownerId }: { monthTx: Transaction[]; all: Transaction[]; ownerId: string }) {
-    const { CategoryPie, MonthlyEvolution, IncomeVsExpense, PersonSpending, StatusBreakdown, TopSubcategories } = m;
+    const { CategoryPie, MonthlyEvolution, IncomeVsExpense, PersonSpending, StatusBreakdown, TopSubcategories, CaixinhaGoalsChart } = m;
+    const { goals } = useCaixinhaGoals(ownerId);
     const { data: people = [] } = useQuery({
       queryKey: ["pf-people", ownerId], queryFn: () => fetchPeople(ownerId), staleTime: 60_000, enabled: !!ownerId,
     });
     return (
       <div className="space-y-4">
+        <CaixinhaGoalsChart all={all} goals={goals} />
         <ChartCard title="Situação das contas"><StatusBreakdown transactions={monthTx} /></ChartCard>
         <ChartCard title="Gastos por categoria"><CategoryPie transactions={monthTx} /></ChartCard>
         {people.length > 0 && <ChartCard title="Gastos por pessoa"><PersonSpending transactions={monthTx} people={people} /></ChartCard>}
@@ -297,7 +300,7 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
           <SummaryCard icon={<PiggyBank className="h-4 w-4" />} label="Reserva" value={summary.emergencia} tone="muted" active={filter === "reserva"} onClick={() => { toggleFilter("reserva"); setTab("lancamentos"); }} />
         </div>
 
-        <CaixinhasCard all={all} />
+        <CaixinhasCard all={all} ownerId={effectiveOwner} readOnly={isReadOnly} />
 
         <DicasCard receitas={summary.receitas} despesas={summary.despesas} atrasadas={summary.atrasadas} pendentes={summary.pendentes} maiorCategoria={maiorCategoria} />
 
@@ -578,7 +581,8 @@ function TransactionList({ transactions, loading, readOnly, ownerId, filter, set
           {filtered.map((t) => <TransactionRow key={`${t.id}-${t.carried_over ? "c" : "n"}`} t={t} readOnly={readOnly} onToggle={onToggle} onRemove={remove} onEdit={(x) => !readOnly && setEditing(x)} onPin={onPin} onColor={onColor} />)}
         </ul>
       )}
-      <EditTransactionDialog transaction={editing} open={!!editing} onOpenChange={(o) => !o && setEditing(null)} ownerId={ownerId} />
+      <EditTransactionDialog transaction={editing} open={!!editing} onOpenChange={(o) => !o && setEditing(null)} ownerId={ownerId}
+        purposes={Array.from(new Set(transactions.filter(isCaixinha).map((t) => caixinhaPurpose(t))))} />
     </div>
   );
 }

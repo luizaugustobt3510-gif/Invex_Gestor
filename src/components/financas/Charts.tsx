@@ -5,6 +5,7 @@ import {
   AreaChart, Area, LabelList,
 } from "recharts";
 import type { Transaction } from "@/lib/financas/transactions";
+import { summarizeCaixinhas } from "@/lib/financas/caixinha";
 import type { Person } from "@/lib/financas/people";
 import { findCategory } from "@/lib/financas/categories";
 import { formatBRL, monthKey, monthLabel } from "@/lib/financas/format";
@@ -244,6 +245,30 @@ function EmptyChart({ message }: { message: string }) {
   return (
     <div className="flex h-[180px] items-center justify-center text-center text-sm text-muted-foreground">
       {message}
+    </div>
+  );
+}
+
+/** Metas das caixinhas: guardado x meta. */
+export function CaixinhaGoalsChart({ all, goals }: { all: Transaction[]; goals: Record<string, number> }) {
+  const data = useMemo(() => summarizeCaixinhas(all, goals).map((c) => ({
+    name: c.purpose, Guardado: c.saved, Falta: Math.max(0, +(c.goal - c.saved).toFixed(2)),
+  })), [all, goals]);
+  if (!data.length) return null;
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
+      <p className="mb-2 text-sm font-semibold">🎯 Metas das caixinhas</p>
+      <ResponsiveContainer width="100%" height={Math.max(120, data.length * 56)}>
+        <BarChart data={data} layout="vertical" margin={{ left: 8, right: 16 }}>
+          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
+          <XAxis type="number" tickFormatter={money} fontSize={11} />
+          <YAxis type="category" dataKey="name" width={80} fontSize={11} />
+          <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatBRL(v)} />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Bar dataKey="Guardado" stackId="a" fill="hsl(var(--income))" radius={[4, 0, 0, 4]} />
+          <Bar dataKey="Falta" stackId="a" fill="hsl(var(--muted))" radius={[0, 4, 4, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

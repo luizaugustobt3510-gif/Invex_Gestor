@@ -27,8 +27,18 @@ export function addMonthsISO(iso: string, months: number): string {
 export const caixinhaDescription = (purpose: string) => `${CAIXINHA_PREFIX}${purpose.trim()}`;
 
 type TxLike = Pick<Transaction, "type" | "subcategory" | "description" | "series_kind">;
+/** Qualquer receita "Outros" com descrição "Reserva · <propósito>" é caixinha (avulsa ou recorrente). */
 export const isCaixinha = (t: TxLike) =>
-  t.type === "receita" && t.series_kind === "recorrente" && t.subcategory === "Outros" && t.description.startsWith(CAIXINHA_PREFIX);
+  t.type === "receita" && t.subcategory === "Outros" && t.description.startsWith(CAIXINHA_PREFIX);
+
+/** Receita que é dinheiro guardado (caixinha ou reserva) — fica fora do saldo livre. */
+export const isReservaTx = (t: TxLike) =>
+  t.type === "receita" && t.subcategory === "Outros" && t.description.toLowerCase().includes("reserva");
+
+/** Metas ficam em personal_budgets com a categoria "meta:<propósito>". */
+export const GOAL_PREFIX = "meta:";
+export const goalKey = (purpose: string) => `${GOAL_PREFIX}${purpose.trim().toLowerCase()}`;
+export const isGoalKey = (category: string) => category.startsWith(GOAL_PREFIX);
 
 export const caixinhaPurpose = (t: Pick<Transaction, "description">) =>
   t.description.startsWith(CAIXINHA_PREFIX) ? t.description.slice(CAIXINHA_PREFIX.length) : t.description;
@@ -52,27 +62,35 @@ export function buildMonthlySeries<T extends object>(base: T, opts: {
 
 export type CaixinhaSummary = {
   seriesId: string; purpose: string; monthly: number; goal: number; saved: number;
+  /** Total previsto somando todos os lançamentos (pagos e a receber). */
+  planned: number; customGoal: boolean;
   paidCount: number; months: number; nextDate: string | null; lastDate: string;
 };
 
 /** Progresso de cada caixinha: quanto já foi guardado do total previsto. */
-export function summarizeCaixinhas(all: Transaction[]): CaixinhaSummary[] {
+/** Agrupa por propósito (ex: todas as receitas "Viagem" juntas, de várias séries ou avulsas). */
+export function summarizeCaixinhas(all: Transaction[], goals: Record<string, number> = {}): CaixinhaSummary[] {
   const map = new Map<string, Transaction[]>();
   for (const t of all) {
-    if (!t.series_id || !isCaixinha(t)) continue;
-    const arr = map.get(t.series_id) ?? [];
+    if (!isCaixinha(t)) continue;
+    const key = goalKey(caixinhaPurpose(t));
+    const arr = map.get(key) ?? [];
     arr.push(t);
-    map.set(t.series_id, arr);
+    map.set(key, arr);
   }
   return Array.from(map, ([seriesId, rows]) => {
     rows.sort((a, b) => a.date.localeCompare(b.date));
     const paid = rows.filter((r) => r.status === "pago");
     const next = rows.find((r) => r.status === "pendente");
+    const planned = +rows.reduce((s, r) => s + Number(r.amount), 0).toFixed(2);
+    const custom = goals[seriesId];
     return {
       seriesId,
       purpose: caixinhaPurpose(rows[0]),
       monthly: Number(rows[0].amount),
-      goal: +rows.reduce((s, r) => s + Number(r.amount), 0).toFixed(2),
+      planned,
+      customGoal: custom > 0,
+      goal: custom > 0 ? Number(custom) : planned,
       saved: +paid.reduce((s, r) => s + Number(r.amount), 0).toFixed(2),
       paidCount: paid.length,
       months: rows.length,

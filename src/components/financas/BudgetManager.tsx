@@ -23,7 +23,7 @@ export function BudgetManager({
     queryFn: async () => {
       const { data, error } = await supabase.from("personal_budgets").select("*").eq("user_id", ownerId);
       if (error) throw error;
-      return (data ?? []) as unknown as Budget[];
+      return ((data ?? []) as unknown as Budget[]).filter((b) => !b.category.startsWith("meta:"));
     },
     enabled: !!ownerId,
     staleTime: 60_000,
