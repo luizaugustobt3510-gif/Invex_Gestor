@@ -618,38 +618,38 @@ const TransactionRow = memo(function TransactionRow({ t, readOnly, onToggle, onR
         <p className={`text-right text-base font-bold tabular-nums ${isIncome ? "text-income" : "text-expense"}`}>{isIncome ? "+" : "−"}{formatBRL(Number(t.amount))}</p>
       </div>
 
-      <div className="mt-3 flex items-center gap-1.5">
+      <div className="mt-2.5 flex items-center gap-1">
         {!isIncome && (
           <button onClick={() => onToggle(t)} disabled={readOnly}
-            className={`flex h-12 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-2 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-60 ${
+            className={`inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-xs font-semibold transition active:scale-95 disabled:opacity-60 ${
               paid ? "bg-income/15 text-income" : t.vencida ? "bg-expense text-expense-foreground" : "bg-primary text-primary-foreground"}`}>
             {paid
-              ? <><CheckCircle2 className="h-5 w-5 shrink-0" /><span className="sm:hidden">Pago ✓</span><span className="hidden sm:inline">Pago — toque para desfazer</span></>
-              : <><Circle className="h-5 w-5 shrink-0" /><span className="sm:hidden">{t.vencida ? "Pagar (vencida)" : "Marcar pago"}</span><span className="hidden sm:inline">{t.vencida ? "Vencida · marcar como pago" : "Marcar como pago"}</span></>}
+              ? <><CheckCircle2 className="h-4 w-4 shrink-0" />Pago</>
+              : <><Circle className="h-4 w-4 shrink-0" />{t.vencida ? "Pagar vencida" : "Pagar"}</>}
           </button>
         )}
         {isIncome && !paid && (
           <button onClick={() => onToggle(t)} disabled={readOnly}
-            className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-income px-2 text-sm font-semibold text-income-foreground transition active:scale-[0.98] disabled:opacity-60">
-            <Circle className="h-5 w-5 shrink-0" />{isCaixinha(t) ? "Guardar na caixinha" : "Marcar recebida"}
+            className="inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-income px-3.5 text-xs font-semibold text-income-foreground transition active:scale-95 disabled:opacity-60">
+            <Circle className="h-4 w-4 shrink-0" />{isCaixinha(t) ? "Guardar" : "Receber"}
           </button>
         )}
         {isIncome && paid && (t.series_id ? (
           <button onClick={() => onToggle(t)} disabled={readOnly} title="Toque para desfazer"
-            className="flex h-12 min-w-0 flex-1 items-center gap-1.5 rounded-xl px-2 text-xs font-semibold text-income transition active:scale-[0.98] disabled:opacity-100">
-            <CheckCircle2 className="h-4 w-4 shrink-0" />{isCaixinha(t) ? "Guardado na caixinha" : isReserva(t) ? "Guardado na reserva" : "Recebida"}
+            className="inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-income/15 px-3.5 text-xs font-semibold text-income transition active:scale-95 disabled:opacity-100">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />{isCaixinha(t) ? "Na caixinha" : isReserva(t) ? "Na reserva" : "Recebida"}
           </button>
         ) : (
-          <div className="flex h-11 flex-1 items-center gap-1.5 px-1 text-xs font-semibold text-income">
-            <CheckCircle2 className="h-4 w-4" />{isReserva(t) ? "Guardado na reserva" : "Recebida"}
-          </div>
+          <span className="inline-flex h-9 shrink-0 items-center gap-1.5 px-1 text-xs font-semibold text-income">
+            <CheckCircle2 className="h-4 w-4" />{isReserva(t) ? "Na reserva" : "Recebida"}
+          </span>
         ))}
         {!readOnly && (
-          <>
+          <div className="ml-auto flex items-center gap-0.5">
             {!isIncome && !paid && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-11 w-10 shrink-0" aria-label="Cor do lançamento">
+                  <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Cor do lançamento">
                     {colorTag ? <span className={`h-4 w-4 rounded-full ${colorTag.dot}`} /> : <Palette className="h-4 w-4 text-muted-foreground" />}
                   </Button>
                 </PopoverTrigger>
@@ -666,12 +666,12 @@ const TransactionRow = memo(function TransactionRow({ t, readOnly, onToggle, onR
                 </PopoverContent>
               </Popover>
             )}
-            <Button variant="ghost" size="icon" className="h-11 w-10 shrink-0" onClick={() => onPin(t)} aria-label={t.pinned ? "Desafixar" : "Fixar no topo"}>
+            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => onPin(t)} aria-label={t.pinned ? "Desafixar" : "Fixar no topo"}>
               {t.pinned ? <PinOff className="h-4 w-4 text-primary" /> : <Pin className="h-4 w-4 text-muted-foreground" />}
             </Button>
-            <Button variant="ghost" size="icon" className="h-11 w-10 shrink-0" onClick={() => onEdit(t)} aria-label="Editar"><Pencil className="h-4 w-4 text-muted-foreground" /></Button>
-            <Button variant="ghost" size="icon" className="h-11 w-10 shrink-0" onClick={() => onRemove(t)} aria-label="Excluir"><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
-          </>
+            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => onEdit(t)} aria-label="Editar"><Pencil className="h-4 w-4 text-muted-foreground" /></Button>
+            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => onRemove(t)} aria-label="Excluir"><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
+          </div>
         )}
       </div>
     </li>
