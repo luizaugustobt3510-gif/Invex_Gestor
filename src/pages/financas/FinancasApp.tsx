@@ -17,6 +17,8 @@ import { AddTransactionDialog } from "@/components/financas/AddTransactionDialog
 import { EditTransactionDialog } from "@/components/financas/EditTransactionDialog";
 import { PremiumLock, FinancasPlanCard } from "@/components/financas/FinancasPremium";
 import { DicasCard } from "@/components/financas/DicasCard";
+import { CaixinhasCard } from "@/components/financas/CaixinhasCard";
+import { isCaixinha } from "@/lib/financas/caixinha";
 import { FinancasCalculator } from "@/components/financas/FinancasCalculator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { fetchTransactions, computeSummary, healthStatus, transactionsForMonth, type Transaction } from "@/lib/financas/transactions";
@@ -150,7 +152,9 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
     const next = t.status === "pago" ? "pendente" : "pago";
     const { error } = await supabase.from("personal_transactions").update({ status: next }).eq("id", t.id);
     if (error) return toast.error("Não foi possível atualizar.");
-    if (next === "pago") toast.success(`"${t.description}" marcado como pago`);
+    if (next === "pago") toast.success(
+      t.type === "despesa" ? `"${t.description}" marcado como pago`
+        : isCaixinha(t) ? `Depósito guardado na caixinha` : `"${t.description}" marcada como recebida`);
     qc.invalidateQueries({ queryKey: ["pf-transactions", effectiveOwner] });
   }, [isReadOnly, qc, effectiveOwner]);
 
@@ -288,6 +292,8 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
             <span className="ml-auto inline-flex items-center gap-1 font-semibold text-primary"><Crown className="h-3.5 w-3.5" />Sem limite</span>
           </button>
         )}
+
+        <CaixinhasCard all={all} />
 
         <DicasCard receitas={summary.receitas} despesas={summary.despesas} atrasadas={summary.atrasadas} pendentes={summary.pendentes} maiorCategoria={maiorCategoria} />
 
@@ -594,7 +600,7 @@ const TransactionRow = memo(function TransactionRow({ t, readOnly, onToggle, onR
     <li className={`rounded-2xl border p-3 shadow-[var(--shadow-card)] ${rowTone}`}>
       <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
         <div className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted text-lg">
-          {isIncome ? "💰" : cat?.icon ?? "💸"}
+          {isCaixinha(t) ? "🐷" : isIncome ? "💰" : cat?.icon ?? "💸"}
           {t.pinned && <span className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-primary text-primary-foreground"><Pin className="h-2.5 w-2.5" /></span>}
         </div>
         <div className="min-w-0">
@@ -622,11 +628,22 @@ const TransactionRow = memo(function TransactionRow({ t, readOnly, onToggle, onR
               : <><Circle className="h-5 w-5 shrink-0" /><span className="sm:hidden">{t.vencida ? "Pagar (vencida)" : "Marcar pago"}</span><span className="hidden sm:inline">{t.vencida ? "Vencida · marcar como pago" : "Marcar como pago"}</span></>}
           </button>
         )}
-        {isIncome && (
+        {isIncome && !paid && (
+          <button onClick={() => onToggle(t)} disabled={readOnly}
+            className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-income px-2 text-sm font-semibold text-income-foreground transition active:scale-[0.98] disabled:opacity-60">
+            <Circle className="h-5 w-5 shrink-0" />{isCaixinha(t) ? "Guardar na caixinha" : "Marcar recebida"}
+          </button>
+        )}
+        {isIncome && paid && (t.series_id ? (
+          <button onClick={() => onToggle(t)} disabled={readOnly} title="Toque para desfazer"
+            className="flex h-12 min-w-0 flex-1 items-center gap-1.5 rounded-xl px-2 text-xs font-semibold text-income transition active:scale-[0.98] disabled:opacity-100">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />{isCaixinha(t) ? "Guardado na caixinha" : isReserva(t) ? "Guardado na reserva" : "Recebida"}
+          </button>
+        ) : (
           <div className="flex h-11 flex-1 items-center gap-1.5 px-1 text-xs font-semibold text-income">
             <CheckCircle2 className="h-4 w-4" />{isReserva(t) ? "Guardado na reserva" : "Recebida"}
           </div>
-        )}
+        ))}
         {!readOnly && (
           <>
             {!isIncome && !paid && (

@@ -79,7 +79,7 @@ export function EditTransactionDialog({
       competencia: competencia || null,
       category,
       subcategory,
-      status: transaction.type === "receita" ? "pago" : status,
+      status: transaction.type === "receita" ? transaction.status : status,
       note: note.trim() || null,
     }).eq("id", transaction.id);
     setBusy(false);

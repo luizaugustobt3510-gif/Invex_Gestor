@@ -90,7 +90,8 @@ export function computeSummary(transactions: Transaction[]) {
     const v = Number(t.amount);
     if (t.type === "receita") {
       receitas += v;
-      if (t.subcategory === "Outros" && t.description.toLowerCase().includes("reserva")) {
+      // Reserva = só o que já foi guardado (depósitos de caixinha a fazer não contam)
+      if (t.status === "pago" && t.subcategory === "Outros" && t.description.toLowerCase().includes("reserva")) {
         emergencia += v;
       }
     } else {

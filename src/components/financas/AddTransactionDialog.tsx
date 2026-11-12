@@ -10,13 +10,15 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Loader2, Crown } from "lucide-react";
+import { Plus, Loader2, Crown, PiggyBank } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   EXPENSE_CATEGORIES, INCOME_CATEGORY, findCategory, PERSON_CATEGORY_KEYS,
 } from "@/lib/financas/categories";
 import { addMonthsISO, fetchTransactions } from "@/lib/financas/transactions";
+import { buildMonthlySeries, caixinhaDescription, clampMonths } from "@/lib/financas/caixinha";
+import { formatBRL } from "@/lib/financas/format";
 import { FINANCAS_FREE_MONTHLY_LIMIT, FREE_BUCKET_LABEL, freeLimitBlock, freeLimitMessage, limitErrorMessage, monthlyUsage, txBucket } from "@/lib/financas/plan";
 import { FIN_SHEET_CLASS, FIN_SHEET_FOOTER_CLASS } from "@/components/financas/sheet";
 import { monthLabel } from "@/lib/financas/format";
@@ -27,7 +29,12 @@ import { useCategories } from "@/hooks/useFinancasCategories";
 import { QuickAdd } from "@/components/financas/QuickAdd";
 import { addCategoryQuick, addSubcategoryQuick } from "@/lib/financas/categories-db";
 
-type SeriesMode = "single" | "parcelado" | "recorrente";
+type SeriesMode = "single" | "parcelado" | "recorrente" | "caixinha";
+const MODES: Record<"receita" | "despesa", SeriesMode[]> = {
+  despesa: ["single", "parcelado", "recorrente"],
+  receita: ["single", "recorrente", "caixinha"],
+};
+const MODE_LABEL: Record<SeriesMode, string> = { single: "Único", parcelado: "Parcelado", recorrente: "Recorrente", caixinha: "Caixinha" };
 
 export function AddTransactionDialog({ userId, canUsePeople = false, premium = false, onSeePlans }: {
   userId: string; canUsePeople?: boolean; premium?: boolean; onSeePlans?: () => void;
@@ -47,6 +54,7 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
   const [installments, setInstallments] = useState("2");
   const [recurrenceMonths, setRecurrenceMonths] = useState("12");
   const [personId, setPersonId] = useState<string>("none");
+  const [purpose, setPurpose] = useState("");
   const [busy, setBusy] = useState(false);
 
   const { data: people = [] } = useQuery({
@@ -69,9 +77,14 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
   const cats = type === "receita" ? INC : EXP;
   const subs = findCategory(category)?.subcategories ?? [];
   const showPerson = canUsePeople && type === "despesa" && PERSON_CATEGORY_KEYS.has(category);
-  const showSeries = type === "despesa";
+  const isCaixinhaMode = type === "receita" && seriesMode === "caixinha";
+  const isIncomeSeries = type === "receita" && seriesMode !== "single";
   const targetMonth = (type === "despesa" && competencia) || date.slice(0, 7);
-  const bucket = txBucket({ type, subcategory, description, date, competencia: type === "despesa" ? competencia : null });
+  const bucket = isCaixinhaMode
+    ? txBucket({ type, subcategory: "Outros", description: caixinhaDescription(purpose || "x"), date, competencia: null })
+    : txBucket({ type, subcategory, description, date, competencia: type === "despesa" ? competencia : null });
+  const monthlyValue = parseFloat(amount.replace(",", ".")) || 0;
+  const seriesMonths = clampMonths(recurrenceMonths);
   const used = premium ? 0 : monthlyUsage(existing, targetMonth)[bucket];
   const limitReached = !premium && used >= FINANCAS_FREE_MONTHLY_LIMIT;
 
@@ -80,7 +93,8 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
     const first = t === "receita" ? INC[0] : EXP[0];
     setCategory(first.key);
     setSubcategory(first.subcategories[0]);
-    if (t === "receita") setSeriesMode("single");
+    setSeriesMode("single");
+    setStatus(t === "receita" ? "pago" : "pendente");
   };
 
   const handleCategoryChange = (k: string) => {
@@ -95,7 +109,8 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
     setDate(new Date().toISOString().slice(0, 10));
     setCompetencia("");
     setSeriesMode("single"); setInstallments("2"); setRecurrenceMonths("12");
-    setPersonId("none");
+    setPersonId("none"); setPurpose("");
+    if (type === "receita") setStatus("pago");
   };
 
   const buildRows = (baseId: string) => {
@@ -110,13 +125,21 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
       subcategory: safeSub,
       note: note.trim() || null,
       person_id: personId !== "none" ? personId : null,
-      competencia: competencia || null,
-      status: type === "receita" ? "pago" as const : status,
+      competencia: type === "despesa" ? competencia || null : null,
     };
 
-    if (type === "receita" || seriesMode === "single") {
+    if (seriesMode === "caixinha" && type === "receita") {
+      const incCat = cats.find((c) => c.subcategories.includes("Outros")) ?? cats[0];
+      return buildMonthlySeries(
+        { ...common, category: incCat?.key ?? "receitas", subcategory: "Outros", description: caixinhaDescription(purpose), person_id: null },
+        { amount: value, date, months: seriesMonths, seriesId: baseId, firstPaid: status === "pago" },
+      );
+    }
+
+    if (seriesMode === "single" || (type === "receita" && seriesMode === "parcelado")) {
       return [{
         ...common,
+        status: type === "receita" ? "pago" as const : status,
         description: baseDescription,
         amount: value,
         date,
@@ -139,30 +162,24 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
         series_kind: "parcelado" as const,
         installment_number: i + 1,
         installment_total: total,
-        status: i === 0 ? common.status : "pendente" as const,
+        status: i === 0 ? status : "pendente" as const,
       }));
     }
 
-    // recorrente
-    const months = Math.max(2, Math.min(60, parseInt(recurrenceMonths, 10) || 12));
-    return Array.from({ length: months }, (_, i) => ({
-      ...common,
-      description: baseDescription,
-      amount: value,
-      date: addMonthsISO(date, i),
-      series_id: baseId,
-      series_kind: "recorrente" as const,
-      installment_number: i + 1,
-      installment_total: months,
-      status: i === 0 ? common.status : "pendente" as const,
-    }));
+    // recorrente (despesa ou receita): mesmo valor todo mês
+    return buildMonthlySeries(
+      { ...common, description: baseDescription },
+      { amount: value, date, months: seriesMonths, seriesId: baseId, firstPaid: status === "pago" },
+    );
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const value = parseFloat(amount.replace(",", "."));
     if (!value || value <= 0) return toast.error("Informe um valor válido");
-    if (!description.trim()) return toast.error("Informe uma descrição");
+    if (isCaixinhaMode) {
+      if (!purpose.trim()) return toast.error("Diga para que é a caixinha (ex: Viagem)");
+    } else if (!description.trim()) return toast.error("Informe uma descrição");
 
     const baseId = crypto.randomUUID();
     const rows = buildRows(baseId);
@@ -176,6 +193,7 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
     if (error) return toast.error(limitErrorMessage(error) ?? error.message);
 
     const msg =
+      isCaixinhaMode ? `Caixinha "${purpose.trim()}" criada: ${rows.length} depósitos mensais` :
       seriesMode === "parcelado" ? `${rows.length} parcelas criadas` :
       seriesMode === "recorrente" ? `Recorrência criada (${rows.length} meses)` :
       type === "receita" ? "Receita lançada" : "Despesa lançada";
@@ -226,12 +244,12 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
 
           <div className="grid grid-cols-2 gap-3">
             <div className="min-w-0">
-              <Label>Valor (R$){seriesMode === "parcelado" ? " · total" : ""}</Label>
+              <Label>{isCaixinhaMode ? "Valor por mês (R$)" : `Valor (R$)${seriesMode === "parcelado" ? " · total" : ""}`}</Label>
               <Input inputMode="decimal" className="text-base" placeholder="0,00" value={amount}
                 onChange={(e) => setAmount(e.target.value)} required />
             </div>
             <div className="min-w-0">
-              <Label>Vencimento {seriesMode !== "single" ? "(1ª)" : ""}</Label>
+              <Label>{isCaixinhaMode ? "1º depósito" : type === "receita" ? `Data ${seriesMode !== "single" ? "(1ª)" : ""}` : `Vencimento ${seriesMode !== "single" ? "(1ª)" : ""}`}</Label>
               <Input type="date" className="min-w-0 text-base" value={date} onChange={(e) => setDate(e.target.value)} required />
             </div>
           </div>
@@ -248,13 +266,21 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
             </div>
           )}
 
-          <div>
-            <Label>Descrição</Label>
-            <Input value={description} onChange={(e) => setDescription(e.target.value)}
-              placeholder="Ex: Conta de luz" maxLength={120} required className="text-base" />
-          </div>
+          {isCaixinhaMode ? (
+            <div>
+              <Label>Para que é a caixinha?</Label>
+              <Input value={purpose} onChange={(e) => setPurpose(e.target.value)}
+                placeholder="Ex: Viagem" maxLength={60} required className="text-base" />
+            </div>
+          ) : (
+            <div>
+              <Label>Descrição</Label>
+              <Input value={description} onChange={(e) => setDescription(e.target.value)}
+                placeholder={type === "receita" ? "Ex: Salário" : "Ex: Conta de luz"} maxLength={120} required className="text-base" />
+            </div>
+          )}
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {!isCaixinhaMode && <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <div className="flex flex-wrap items-center justify-between gap-1"><Label>Categoria</Label>
                 <QuickAdd what="categoria" onSave={async (n) => { const k = await addCategoryQuick(userId, type, n); await qc.invalidateQueries({ queryKey: ["pf-categories"] }); setCategory(k); setSubcategory("Geral"); }} />
@@ -279,7 +305,7 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          </div>}
 
           {showPerson && (
             <div>
@@ -303,16 +329,16 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
             </div>
           )}
 
-          {showSeries && (
+          {(
             <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-3">
-              <Label>Tipo de pagamento</Label>
+              <Label>{type === "receita" ? "Tipo de receita" : "Tipo de pagamento"}</Label>
               <div className="grid grid-cols-3 gap-1 rounded-lg bg-background p-1 text-xs">
-                {(["single", "parcelado", "recorrente"] as SeriesMode[]).map((mode) => (
+                {MODES[type].map((mode) => (
                   <button key={mode} type="button" onClick={() => setSeriesMode(mode)}
-                    className={`rounded-md py-1.5 font-semibold capitalize transition ${
+                    className={`rounded-md py-2 font-semibold transition ${
                       seriesMode === mode ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                     }`}>
-                    {mode === "single" ? "Único" : mode === "parcelado" ? "Parcelado" : "Recorrente"}
+                    {MODE_LABEL[mode]}
                   </button>
                 ))}
               </div>
@@ -332,21 +358,44 @@ export function AddTransactionDialog({ userId, canUsePeople = false, premium = f
                   <Input type="number" inputMode="numeric" className="text-base" min={2} max={60} value={recurrenceMonths}
                     onChange={(e) => setRecurrenceMonths(e.target.value)} />
                   <p className="mt-1 text-[11px] text-muted-foreground">
-                    Cria lançamentos iguais todo mês (ex: assinatura, aluguel).
+                    {type === "receita"
+                      ? "Cria a mesma receita todo mês (ex: salário, aluguel recebido). Você marca quando receber."
+                      : "Cria lançamentos iguais todo mês (ex: assinatura, aluguel)."}
                   </p>
+                </div>
+              )}
+              {isCaixinhaMode && (
+                <div className="space-y-2">
+                  <div>
+                    <Label className="text-xs">Por quantos meses guardar?</Label>
+                    <Input type="number" inputMode="numeric" className="text-base" min={2} max={60} value={recurrenceMonths}
+                      onChange={(e) => setRecurrenceMonths(e.target.value)} />
+                  </div>
+                  <div className="flex items-start gap-2 rounded-lg bg-background p-2.5 text-xs">
+                    <PiggyBank className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <p>
+                      {monthlyValue > 0
+                        ? <>Guardando <strong>{formatBRL(monthlyValue)}</strong> por mês, em {seriesMonths} meses você junta <strong>{formatBRL(monthlyValue * seriesMonths)}</strong>{purpose.trim() ? <> para <strong>{purpose.trim()}</strong></> : null}.</>
+                        : "Cria um depósito por mês para você marcar quando guardar. Ele entra na sua Reserva."}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
           )}
 
-          {type === "despesa" && (
+          {(type === "despesa" || isIncomeSeries) && (
             <div className="flex items-center justify-between rounded-xl border border-border bg-muted/30 p-3">
               <div>
                 <p className="text-sm font-medium">
-                  {seriesMode === "single" ? "Já está pago?" : "Primeira já está paga?"}
+                  {isCaixinhaMode ? "Já guardou o 1º depósito?"
+                    : type === "receita" ? "Já recebeu a primeira?"
+                    : seriesMode === "single" ? "Já está pago?" : "Primeira já está paga?"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {status === "pago" ? "Já saiu da conta" : "Ainda vai ser paga"}
+                  {type === "receita"
+                    ? (status === "pago" ? (isCaixinhaMode ? "Já está guardado" : "Já entrou na conta") : (isCaixinhaMode ? "Ainda vai guardar" : "Ainda vai receber"))
+                    : (status === "pago" ? "Já saiu da conta" : "Ainda vai ser paga")}
                 </p>
               </div>
               <Switch checked={status === "pago"}
