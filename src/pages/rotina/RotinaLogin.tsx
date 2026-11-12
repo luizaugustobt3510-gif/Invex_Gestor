@@ -26,7 +26,7 @@ const RotinaLogin = () => {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (senha.length < 8 && mode === 'criar') { toast.error('A senha precisa ter pelo menos 8 caracteres.'); return; }
+    if (senha.length < 6 && mode === 'criar') { toast.error('A senha precisa ter pelo menos 6 caracteres.'); return; }
     setLoading(true);
     try {
       if (mode === 'criar') {

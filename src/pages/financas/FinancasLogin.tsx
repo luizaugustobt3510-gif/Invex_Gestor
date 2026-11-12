@@ -41,7 +41,7 @@ const FinancasLogin = () => {
     if (mode === 'criar') {
       const msg = validateSignupProfile({ data_nascimento: nascimento, sexo, telefone, cidade, uf });
       if (msg) { toast.error(msg); return; }
-      if (senha.length < 8) { toast.error('A senha precisa ter pelo menos 8 caracteres.'); return; }
+      if (senha.length < 6) { toast.error('A senha precisa ter pelo menos 6 caracteres.'); return; }
     }
     setLoading(true);
     try {

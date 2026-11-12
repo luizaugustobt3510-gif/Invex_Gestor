@@ -231,7 +231,7 @@ export default function RotinaApp() {
     setNome(pf.nome.trim()); toast.success('Nome atualizado.');
   };
   const savePassword = async () => {
-    if (pf.senha.length < 8) return toast.error('A senha precisa ter ao menos 8 caracteres.');
+    if (pf.senha.length < 6) return toast.error('A senha precisa ter ao menos 6 caracteres.');
     if (pf.senha !== pf.senha2) return toast.error('As senhas não conferem.');
     const { error } = await supabase.auth.updateUser({ password: pf.senha });
     if (error) return toast.error(authErrorMessage(error, 'Não foi possível alterar a senha.'));
@@ -604,7 +604,7 @@ export default function RotinaApp() {
             </Card>
             <Card title="Alterar senha">
               <div className="space-y-2 max-w-md">
-                <Input type="password" className="text-base" placeholder="Nova senha (mín. 8 caracteres)" value={pf.senha} onChange={e => setPf({ ...pf, senha: e.target.value })} />
+                <Input type="password" className="text-base" placeholder="Nova senha (mín. 6 caracteres)" value={pf.senha} onChange={e => setPf({ ...pf, senha: e.target.value })} />
                 <Input type="password" className="text-base" placeholder="Repita a nova senha" value={pf.senha2} onChange={e => setPf({ ...pf, senha2: e.target.value })} />
                 <Button onClick={savePassword}>Alterar senha</Button>
               </div>

@@ -465,7 +465,7 @@ function PerfilCard({ user }: { user: User }) {
     toast.success("Nome atualizado.");
   };
   const savePassword = async () => {
-    if (senha.length < 8) return toast.error("A senha precisa ter ao menos 8 caracteres.");
+    if (senha.length < 6) return toast.error("A senha precisa ter ao menos 6 caracteres.");
     if (senha !== senha2) return toast.error("As senhas não conferem.");
     const { error } = await supabase.auth.updateUser({ password: senha });
     if (error) return toast.error(authErrorMessage(error, "Não foi possível alterar a senha."));
@@ -483,7 +483,7 @@ function PerfilCard({ user }: { user: User }) {
       </div>
       <div className="space-y-1.5">
         <Label>Nova senha</Label>
-        <Input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="Mínimo 8 caracteres" className="text-base" />
+        <Input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="Mínimo 6 caracteres" className="text-base" />
         <Input type="password" value={senha2} onChange={(e) => setSenha2(e.target.value)} placeholder="Repita a senha" className="text-base" />
         <Button variant="outline" onClick={savePassword} className="w-full sm:w-auto">Alterar senha</Button>
       </div>

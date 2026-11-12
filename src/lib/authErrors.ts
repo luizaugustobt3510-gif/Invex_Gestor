@@ -23,7 +23,7 @@ export function authErrorMessage(err: AuthLikeError | unknown, fallback = 'Não 
   if (code === 'signup_disabled' || m.includes('signups not allowed'))
     return 'O cadastro está temporariamente indisponível.';
   if (m.includes('password') && (m.includes('at least') || m.includes('characters')))
-    return 'A senha é curta demais. Use pelo menos 8 caracteres.';
+    return 'A senha é curta demais. Use pelo menos 6 caracteres.';
   if (m.includes('failed to fetch') || m.includes('network'))
     return 'Sem conexão com a internet. Verifique e tente de novo.';
   return fallback;
