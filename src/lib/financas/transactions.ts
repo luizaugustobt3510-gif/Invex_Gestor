@@ -117,7 +117,8 @@ export function computeSummary(transactions: Transaction[]) {
     receitas, receitasRecebidas, despesas, despesasPagas, dividas, emergencia, reservaAReceber, atrasadas,
     disponivelReal, saldoFinal,
     pendentes: despesas - despesasPagas,
-    aReceber: receitas - receitasRecebidas,
+    // Quem ainda não pagou: receitas pendentes + depósitos de caixinha pendentes.
+    aReceber: receitas - receitasRecebidas + reservaAReceber,
   };
 }
 

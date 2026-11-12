@@ -24,7 +24,7 @@ describe('Resumo do mês', () => {
     assert.equal(s.saldoFinal, 60);
     assert.equal(s.pendentes, 10);
   });
-  it('Receita guardada na caixinha não entra no saldo livre, vai para a reserva', () => {
+  it('Receita guardada na caixinha não entra no saldo livre; a pendente aparece em A receber', () => {
     const s = computeSummary([
       tx({ type: 'receita', amount: 100, status: 'pago' }),
       tx({ type: 'receita', amount: 300, status: 'pago', subcategory: 'Outros', description: 'Reserva · Viagem' }),
@@ -32,7 +32,8 @@ describe('Resumo do mês', () => {
     ] as any);
     assert.equal(s.saldoFinal, 100);
     assert.equal(s.receitas, 100);
-    assert.equal(s.aReceber, 0);
+    assert.equal(s.aReceber, 300);
+    assert.equal(s.disponivelReal, 100);
     assert.equal(s.emergencia, 300);
     assert.equal(s.reservaAReceber, 300);
   });

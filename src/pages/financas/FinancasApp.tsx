@@ -249,9 +249,21 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
         </div>
 
         <div className="card-gradient-available mt-4 overflow-hidden rounded-3xl p-6 text-primary-foreground">
-          <p className="text-xs font-medium uppercase tracking-wider opacity-80">Você ainda pode gastar</p>
-          <p className="mt-1 text-4xl font-bold tabular-nums sm:text-5xl">{formatBRL(summary.disponivelReal)}</p>
-          <div className="mt-3 flex items-center gap-2 text-sm opacity-90"><span>{health.emoji}</span><span className="font-semibold">{health.label}</span></div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase tracking-wider opacity-80">Você ainda pode gastar</p>
+              <p className="mt-1 truncate text-2xl font-bold tabular-nums min-[400px]:text-3xl sm:text-5xl">{formatBRL(summary.disponivelReal)}</p>
+              <div className="mt-3 flex items-center gap-2 text-sm opacity-90"><span>{health.emoji}</span><span className="font-semibold">{health.label}</span></div>
+            </div>
+            {(summary.emergencia > 0 || summary.aReceber > 0) && (
+              <div className="min-w-0 shrink-0 text-right">
+                <p className="flex items-center justify-end gap-1 text-xs font-medium uppercase tracking-wider opacity-80">
+                  {summary.emergencia > 0 ? <><Users className="h-3.5 w-3.5" />Reserva</> : "A receber"}
+                </p>
+                <p className="mt-1 text-xl font-bold tabular-nums min-[400px]:text-2xl sm:text-4xl">{formatBRL(summary.emergencia > 0 ? summary.emergencia : summary.aReceber)}</p>
+              </div>
+            )}
+          </div>
           <div className="mt-4 grid grid-cols-3 gap-2 border-t border-primary-foreground/20 pt-4 text-sm sm:gap-3">
             <div className="min-w-0"><p className="text-xs opacity-75">Saldo na conta</p><p className="truncate font-semibold tabular-nums">{formatBRL(summary.saldoFinal)}</p></div>
             <div className="min-w-0"><p className="text-xs opacity-75">A pagar ainda</p><p className="truncate font-semibold tabular-nums">{formatBRL(summary.pendentes)}</p></div>
