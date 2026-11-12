@@ -269,8 +269,9 @@ function Painel({ user, natal }: { user: User; natal: boolean }) {
             <div className="min-w-0"><p className="text-xs opacity-75">A pagar ainda</p><p className="truncate font-semibold tabular-nums">{formatBRL(summary.pendentes)}</p></div>
             <div className="min-w-0"><p className="text-xs opacity-75">A receber</p><p className="truncate font-semibold tabular-nums">{formatBRL(summary.aReceber)}</p></div>
           </div>
-          <CaixinhasCard all={all} ownerId={effectiveOwner} readOnly={isReadOnly} insideCard />
         </div>
+
+        <CaixinhasCard all={all} ownerId={effectiveOwner} readOnly={isReadOnly} />
 
         {summary.atrasadas > 0 && (
           <button type="button" onClick={() => toggleFilter("pendente")}
