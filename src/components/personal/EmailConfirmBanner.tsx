@@ -8,7 +8,7 @@ import { authErrorMessage } from '@/lib/authErrors';
 import { daysLeft, emailConfirmState, type EmailConfirmState } from '@/lib/emailConfirmPolicy';
 
 /** Aviso piscando para confirmar o e-mail; depois de 7 dias sem confirmar, bloqueia a tela. */
-export function EmailConfirmBanner({ onLogout, className }: { onLogout?: () => void; className?: string }) {
+export function EmailConfirmBanner({ onLogout, className, app }: { onLogout?: () => void; className?: string; app?: 'rotina' | 'fitness' | 'financas' }) {
   const [state, setState] = useState<EmailConfirmState>('ok');
   const [createdAt, setCreatedAt] = useState<string>('');
   const [email, setEmail] = useState('');
@@ -19,7 +19,10 @@ export function EmailConfirmBanner({ onLogout, className }: { onLogout?: () => v
     let alive = true;
     (async () => {
       const { data: u } = await supabase.auth.getUser();
-      if (!u.user?.email) return;
+      if (!u.user) return;
+      // Registra o uso do app para a lista "Contas dos apps" do Super Admin.
+      if (app) void supabase.rpc('personal_touch_app', { _app: app });
+      if (!u.user.email) return;
       const { data, error } = await supabase.rpc('personal_email_status');
       if (!alive || error || !data) return;
       const s = data as { verified: boolean; created_at: string };

@@ -183,6 +183,13 @@
       "when": 1794486851613,
       "tag": "0025_personal_email_verification_later",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1794489898104,
+      "tag": "0026_personal_app_accounts_admin",
+      "breakpoints": true
     }
   ]
 }

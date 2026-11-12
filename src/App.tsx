@@ -126,6 +126,7 @@ import Changelog from "./pages/Changelog";
 import GestaoChangelog from "./pages/GestaoChangelog";
 import GestaoSuporte from "./pages/GestaoSuporte";
 import GestaoRotina from "./pages/GestaoRotina";
+import ContasApps from "./pages/ContasApps";
 import GestaoDownloads from "./pages/GestaoDownloads";
 import RotinaLogin from "./pages/rotina/RotinaLogin";
 import RotinaApp from "./pages/rotina/RotinaApp";
@@ -318,6 +319,7 @@ const App = () => (
             <Route path="/gestao-downloads" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoDownloads /></RoleProtectedRoute>} />
             <Route path="/download" element={<Institucional />} />
             <Route path="/gestao-rotina" element={<RoleProtectedRoute allowedRoles={['superadm']}><GestaoRotina /></RoleProtectedRoute>} />
+            <Route path="/gestao-contas-apps" element={<RoleProtectedRoute allowedRoles={['superadm']}><ContasApps /></RoleProtectedRoute>} />
             <Route path="/rotina/entrar" element={<RotinaLogin />} />
             <Route path="/rotina" element={<RotinaApp />} />
             <Route path="/financeiro/pessoal/entrar" element={<FinancasLogin />} />

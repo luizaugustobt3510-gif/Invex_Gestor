@@ -46,7 +46,7 @@ export const FitnessProtectedRoute = ({ children }: Props) => {
   return (
     <>
       <div className="fixed inset-x-0 top-0 z-[60] px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pointer-events-none [&>*]:pointer-events-auto empty:hidden">
-        <EmailConfirmBanner className="mx-auto max-w-xl bg-card shadow-lg" />
+        <EmailConfirmBanner className="mx-auto max-w-xl bg-card shadow-lg" app="fitness" />
       </div>
       {children}
     </>

@@ -361,7 +361,7 @@ export default function RotinaApp() {
       </header>
 
       <main className="max-w-6xl mx-auto px-3 sm:px-5 py-4 sm:py-6 space-y-5 sm:space-y-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-        <EmailConfirmBanner onLogout={logout} />
+        <EmailConfirmBanner onLogout={logout} app="rotina" />
         <div>
           <h1 className="text-xl sm:text-2xl font-semibold truncate">Olá, {nome.split(' ')[0]}</h1>
           <p className="text-sm text-muted-foreground capitalize">{format(today, "EEEE, d 'de' MMMM", { locale: ptBR })}</p>

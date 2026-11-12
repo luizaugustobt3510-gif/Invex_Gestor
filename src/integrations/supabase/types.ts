@@ -3708,6 +3708,27 @@ export type Database = {
         }
         Relationships: []
       }
+      personal_app_usage: {
+        Row: {
+          app: string
+          first_seen: string
+          last_seen: string
+          user_id: string
+        }
+        Insert: {
+          app: string
+          first_seen?: string
+          last_seen?: string
+          user_id: string
+        }
+        Update: {
+          app?: string
+          first_seen?: string
+          last_seen?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       personal_budgets: {
         Row: {
           amount: number
@@ -5656,6 +5677,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_personal_accounts: {
+        Args: never
+        Returns: {
+          cidade: string
+          created_at: string
+          email: string
+          email_confirmado: boolean
+          empresa: string
+          financas_premium: boolean
+          fitness_premium: boolean
+          last_sign_in_at: string
+          login_google: boolean
+          nome: string
+          rotina_premium: boolean
+          telefone: string
+          tem_empresa: boolean
+          uf: string
+          usa_financas: boolean
+          usa_fitness: boolean
+          usa_rotina: boolean
+          user_id: string
+        }[]
+      }
       check_setup_needed: { Args: never; Returns: boolean }
       company_is_not_blocked: {
         Args: { _company_id: string }
@@ -5731,6 +5775,7 @@ export type Database = {
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       personal_email_status: { Args: never; Returns: Json }
       personal_is_viewer_of: { Args: { _owner: string }; Returns: boolean }
+      personal_touch_app: { Args: { _app: string }; Returns: undefined }
       personal_tx_bucket: {
         Args: { _desc: string; _sub: string; _type: string }
         Returns: string

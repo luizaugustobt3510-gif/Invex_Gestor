@@ -1019,6 +1019,12 @@ const adminGroups: MenuGroup[] = [
         allowedRoles: ["superadm"],
       },
       {
+        path: "/gestao-contas-apps",
+        label: "Contas dos apps",
+        icon: <Users className="w-4 h-4" />,
+        allowedRoles: ["superadm"],
+      },
+      {
         path: "/gestao-rotina",
         label: "Invex Rotina | Acessos",
         icon: <CalendarClock className="w-4 h-4" />,
