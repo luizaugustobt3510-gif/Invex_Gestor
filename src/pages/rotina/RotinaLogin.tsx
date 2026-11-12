@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { authErrorMessage } from '@/lib/authErrors';
 import { ChristmasScene } from "@/components/ChristmasScene";
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,8 +42,7 @@ const RotinaLogin = () => {
         navigate('/rotina');
       }
     } catch (err: any) {
-      const m = String(err?.message || '');
-      toast.error(m.includes('Invalid login') ? 'E-mail ou senha incorretos.' : m.includes('already') ? 'Este e-mail já tem conta. Entre com ele.' : 'Não foi possível continuar.');
+      toast.error(authErrorMessage(err));
     } finally { setLoading(false); }
   };
 

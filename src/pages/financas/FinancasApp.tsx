@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, memo } from "react";
+import { authErrorMessage } from '@/lib/authErrors';
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@supabase/supabase-js";
@@ -467,7 +468,7 @@ function PerfilCard({ user }: { user: User }) {
     if (senha.length < 8) return toast.error("A senha precisa ter ao menos 8 caracteres.");
     if (senha !== senha2) return toast.error("As senhas não conferem.");
     const { error } = await supabase.auth.updateUser({ password: senha });
-    if (error) return toast.error("Não foi possível alterar a senha.");
+    if (error) return toast.error(authErrorMessage(error, "Não foi possível alterar a senha."));
     setSenha(""); setSenha2(""); toast.success("Senha alterada.");
   };
   return (

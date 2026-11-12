@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { authErrorMessage } from '@/lib/authErrors';
 import { useNavigate } from 'react-router-dom';
 import { ChristmasScene } from '@/components/ChristmasScene';
 import { supabase } from '@/integrations/supabase/client';
@@ -233,7 +234,7 @@ export default function RotinaApp() {
     if (pf.senha.length < 8) return toast.error('A senha precisa ter ao menos 8 caracteres.');
     if (pf.senha !== pf.senha2) return toast.error('As senhas não conferem.');
     const { error } = await supabase.auth.updateUser({ password: pf.senha });
-    if (error) return toast.error('Não foi possível alterar a senha.');
+    if (error) return toast.error(authErrorMessage(error, 'Não foi possível alterar a senha.'));
     setPf(p => ({ ...p, senha: '', senha2: '' })); toast.success('Senha alterada.');
   };
 

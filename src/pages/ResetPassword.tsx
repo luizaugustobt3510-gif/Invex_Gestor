@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { authErrorMessage } from '@/lib/authErrors';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -40,7 +41,7 @@ const ResetPassword = () => {
       toast.success('Senha redefinida com sucesso!');
       navigate('/login');
     } catch (err: any) {
-      toast.error(err?.message || 'Erro ao redefinir senha.');
+      toast.error(authErrorMessage(err, 'Erro ao redefinir senha.'));
     } finally {
       setLoading(false);
     }

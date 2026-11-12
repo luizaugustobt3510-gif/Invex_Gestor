@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { authErrorMessage } from '@/lib/authErrors';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -54,7 +55,7 @@ const AcceptInvite = () => {
     const { error } = await supabase.auth.updateUser({ password: senha, data: { must_change_password: false } });
     if (error) {
       setLoading(false);
-      toast.error(error.message);
+      toast.error(authErrorMessage(error, 'Não foi possível definir a senha.'));
       return;
     }
     const { data: userData } = await supabase.auth.getUser();

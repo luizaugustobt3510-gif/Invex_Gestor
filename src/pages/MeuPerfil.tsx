@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { authErrorMessage } from '@/lib/authErrors';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -89,7 +90,7 @@ const MeuPerfil = () => {
       setNovaSenha('');
       setConfirmarSenha('');
     } catch (err: any) {
-      toast.error(err?.message || 'Erro ao alterar senha.');
+      toast.error(authErrorMessage(err, 'Erro ao alterar senha.'));
     } finally {
       setSavingPassword(false);
     }
