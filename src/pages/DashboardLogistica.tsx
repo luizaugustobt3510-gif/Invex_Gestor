@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit, TrendingUp, Trash2, Printer, Layers } from "lucide-react";
+import { Package, AlertTriangle, ShieldCheck, ShieldAlert, XCircle, RefreshCw, Search, DollarSign, CheckCircle, ArrowUpCircle, ArrowDownCircle, ClipboardCheck, Edit, TrendingUp, Trash2, Printer, Layers, Factory, Tag, Gauge, MapPin } from "lucide-react";
 
 import { printList } from "@/lib/printUtils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -18,10 +18,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { EditMaterialDialog } from "@/components/EditMaterialDialog";
-import { ProductionStockCard, ProductionActionsDialog, MPInfo, PFInfo } from "@/components/producao/ProductionStockCard";
+import { ProductionStockCard, ProductionActionsDialog, MPInfo, PFInfo, StockRow } from "@/components/producao/ProductionStockCard";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { rendimento } from "@/pages/producao/producaoCalc";
 
+
+const moneyBRL = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 const DashboardLogistica = () => {
   const navigate = useNavigate();
@@ -38,6 +40,8 @@ const DashboardLogistica = () => {
   const { canAccessModule } = useModuleAccess();
   const canProduce = canAccessModule('producao');
   const canSell = canAccessModule('vendas');
+  // Cartões completos de matéria-prima / produto final só aparecem para quem tem Produção e Vendas.
+  const useProductionCards = canProduce && canSell;
   const [tipoFilter, setTipoFilter] = useState<'todos' | 'materia_prima' | 'produto_final' | 'comum'>('todos');
   const [actionItem, setActionItem] = useState<InventoryItem | null>(null);
   const [mpInfo, setMpInfo] = useState<Record<string, MPInfo>>({});
@@ -46,7 +50,7 @@ const DashboardLogistica = () => {
   // Dados de produção para os cartões de matéria-prima e produto final
   useEffect(() => {
     const companyId = user?.companyId;
-    if (!companyId || !inventoryData.some(i => i.tipo !== 'comum')) { setMpInfo({}); setPfInfo({}); return; }
+    if (!companyId || !useProductionCards || !inventoryData.some(i => i.tipo !== 'comum')) { setMpInfo({}); setPfInfo({}); return; }
     let cancel = false;
     (async () => {
       const [e, o] = await Promise.all([
@@ -84,7 +88,7 @@ const DashboardLogistica = () => {
       setMpInfo(mp); setPfInfo(pf);
     })();
     return () => { cancel = true; };
-  }, [inventoryData, user?.companyId]);
+  }, [inventoryData, user?.companyId, useProductionCards]);
 
   const tipoCounts = useMemo(() => ({
     materia_prima: inventoryData.filter(i => i.tipo === 'materia_prima').length,
@@ -580,7 +584,7 @@ const DashboardLogistica = () => {
             {filteredData.map((item) => {
               const status = getStatusInfo(item);
               const abc = abcMap.get(item.material.toUpperCase().trim());
-              if (item.tipo === 'materia_prima' || item.tipo === 'produto_final') {
+              if (useProductionCards && (item.tipo === 'materia_prima' || item.tipo === 'produto_final')) {
                 return (
                   <ProductionStockCard
                     key={item.id}
@@ -596,10 +600,16 @@ const DashboardLogistica = () => {
                 );
               }
               return (
-                <Card key={item.codigo} className={`border ${status.color} transition-all hover:shadow-md`}>
-                  <CardContent className="p-4 space-y-3">
+                <Card key={item.codigo} className={`h-full flex flex-col border ${status.color} transition-all hover:shadow-md`}>
+                  <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
+                        {item.tipo !== 'comum' && (
+                          <Badge variant="outline" className="mb-1 text-[10px] gap-1">
+                            {item.tipo === 'materia_prima' ? <Factory className="w-3 h-3" /> : <Tag className="w-3 h-3" />}
+                            {item.tipo === 'materia_prima' ? 'Matéria-prima' : 'Produto final'}
+                          </Badge>
+                        )}
                         <p className="text-xs font-mono text-muted-foreground">{item.codigo}</p>
                         <p className="font-semibold text-sm text-foreground leading-snug break-words line-clamp-2" title={item.material}>
                           {item.material}
@@ -637,6 +647,14 @@ const DashboardLogistica = () => {
                           R$ {item.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </p>
                       </div>
+                    </div>
+                    <div className="mt-auto space-y-1 rounded-md border bg-background/70 p-2">
+                      <StockRow icon={<Tag className="w-3 h-3" />} label="Valor unitário" value={moneyBRL(item.preco)} />
+                      <StockRow icon={<Gauge className="w-3 h-3" />} label="Estoque mínimo" value={`${item.minimo} ${item.unidade}`} />
+                      <StockRow icon={<Package className="w-3 h-3" />} label="Estoque máximo" value={`${item.maximo} ${item.unidade}`} />
+                      <StockRow icon={<Layers className="w-3 h-3" />} label="Grupo" value={item.groupName || '-'} />
+                      <StockRow icon={<MapPin className="w-3 h-3" />} label="Localização" value={item.localizacao || '-'} />
+                      <StockRow icon={<CalendarClock className="w-3 h-3" />} label="Validade" value={item.validade ? new Date(item.validade.length <= 10 ? item.validade + 'T12:00:00' : item.validade).toLocaleDateString('pt-BR') : '-'} />
                     </div>
                     {abc && abc.compraSugerida > 0 && (
                       <div className="flex items-center gap-2 p-2 rounded-md bg-primary/5 border border-primary/20">

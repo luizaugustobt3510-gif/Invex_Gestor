@@ -28,7 +28,7 @@ interface CardProps {
   onDelete: () => void;
 }
 
-function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+export function StockRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2 text-xs">
       <span className="flex items-center gap-1 text-muted-foreground">{icon}{label}</span>
@@ -47,9 +47,9 @@ export function ProductionStockCard({ item, status, mp, pf, canEdit, onOpen, onE
       aria-label={`${isMP ? 'Matéria-prima' : 'Produto final'} ${item.material}`}
       onClick={onOpen}
       onKeyDown={(e) => { if (e.key === 'Enter') onOpen(); }}
-      className={`border-2 ${isMP ? 'border-primary/40 bg-primary/5' : 'border-dashed border-primary/50 bg-card'} cursor-pointer transition-all hover:shadow-md`}
+      className={`h-full flex flex-col border-2 ${isMP ? 'border-primary/40 bg-primary/5' : 'border-dashed border-primary/50 bg-card'} cursor-pointer transition-all hover:shadow-md`}
     >
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <Badge className="mb-1 text-[10px] gap-1" variant={isMP ? 'default' : 'secondary'}>
@@ -78,27 +78,27 @@ export function ProductionStockCard({ item, status, mp, pf, canEdit, onOpen, onE
             <p className="text-xs text-muted-foreground text-right">{brl(item.valorTotal)}</p>
           </div>
         </div>
-        <div className="space-y-1 rounded-md border bg-background/70 p-2">
+        <div className="mt-auto space-y-1 rounded-md border bg-background/70 p-2">
           {isMP ? (
             <>
-              <Row icon={<Layers className="w-3 h-3" />} label="Lotes com saldo" value={mp ? `${mp.lotesComSaldo} (${mp.saldoLotes} ${item.unidade})` : '0'} />
-              <Row icon={<PackageSearch className="w-3 h-3" />} label="Último lote" value={mp?.ultimoControle ? `${mp.ultimoControle} · ${fmtD(mp.ultimaEntrada)}` : '-'} />
-              <Row icon={<PackagePlus className="w-3 h-3" />} label="Procedência" value={mp?.procedencia || '-'} />
-              <Row icon={<Thermometer className="w-3 h-3" />} label="Temperatura" value={mp?.temperatura != null ? `${mp.temperatura} °C` : '-'} />
-              <Row icon={<Tag className="w-3 h-3" />} label="Custo médio" value={mp && mp.custoMedio > 0 ? `${brl(mp.custoMedio)}/${item.unidade}` : '-'} />
-              <Row icon={<CalendarClock className="w-3 h-3" />} label="Validade mais próxima" value={fmtD(mp?.validadeProxima ?? null)} />
+              <StockRow icon={<Layers className="w-3 h-3" />} label="Lotes com saldo" value={mp ? `${mp.lotesComSaldo} (${mp.saldoLotes} ${item.unidade})` : '0'} />
+              <StockRow icon={<PackageSearch className="w-3 h-3" />} label="Último lote" value={mp?.ultimoControle ? `${mp.ultimoControle} · ${fmtD(mp.ultimaEntrada)}` : '-'} />
+              <StockRow icon={<PackagePlus className="w-3 h-3" />} label="Procedência" value={mp?.procedencia || '-'} />
+              <StockRow icon={<Thermometer className="w-3 h-3" />} label="Temperatura" value={mp?.temperatura != null ? `${mp.temperatura} °C` : '-'} />
+              <StockRow icon={<Tag className="w-3 h-3" />} label="Custo médio" value={mp && mp.custoMedio > 0 ? `${brl(mp.custoMedio)}/${item.unidade}` : '-'} />
+              <StockRow icon={<CalendarClock className="w-3 h-3" />} label="Validade mais próxima" value={fmtD(mp?.validadeProxima ?? null)} />
             </>
           ) : (
             <>
-              <Row icon={<Tag className="w-3 h-3" />} label="Preço de venda" value={brl(item.preco)} />
-              <Row icon={<Factory className="w-3 h-3" />} label="Produções" value={pf?.producoes ?? 0} />
-              <Row icon={<PackageSearch className="w-3 h-3" />} label="Último lote" value={pf?.ultimoLote ? `${pf.ultimoLote} · ${fmtD(pf.ultimaProducao)}` : '-'} />
-              <Row icon={<Gauge className="w-3 h-3" />} label="Rendimento médio" value={pf?.rendimento != null ? `${pf.rendimento.toFixed(1)}%` : '-'} />
-              <Row icon={<CalendarClock className="w-3 h-3" />} label="Validade mais próxima" value={fmtD(pf?.validadeProxima ?? null)} />
+              <StockRow icon={<Tag className="w-3 h-3" />} label="Preço de venda" value={brl(item.preco)} />
+              <StockRow icon={<Factory className="w-3 h-3" />} label="Produções" value={pf?.producoes ?? 0} />
+              <StockRow icon={<PackageSearch className="w-3 h-3" />} label="Último lote" value={pf?.ultimoLote ? `${pf.ultimoLote} · ${fmtD(pf.ultimaProducao)}` : '-'} />
+              <StockRow icon={<Gauge className="w-3 h-3" />} label="Rendimento médio" value={pf?.rendimento != null ? `${pf.rendimento.toFixed(1)}%` : '-'} />
+              <StockRow icon={<CalendarClock className="w-3 h-3" />} label="Validade mais próxima" value={fmtD(pf?.validadeProxima ?? null)} />
             </>
           )}
         </div>
-        <p className="text-[11px] text-primary font-medium">Toque para ver as opções de {isMP ? 'produção' : 'venda e produção'}</p>
+        <p className="mt-auto text-[11px] text-primary font-medium">Toque para ver as opções de {isMP ? 'produção' : 'venda e produção'}</p>
       </CardContent>
     </Card>
   );
