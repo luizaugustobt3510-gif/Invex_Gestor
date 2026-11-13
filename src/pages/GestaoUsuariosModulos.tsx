@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, RefreshCw, Search, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { MODULES_CATALOG } from '@/config/modules';
+import { MODULES_CATALOG, isModuleOnForCompany } from '@/config/modules';
+import { ModulePermissionGrid } from '@/components/ModulePermissionGrid';
 
 /**
  * Usuário × Módulos (SuperAdmin).
@@ -127,6 +127,27 @@ const GestaoUsuariosModulos = () => {
       if (error) throw error;
     } catch (e: any) {
       setUserPerms((prev) => ({ ...prev, [moduleKey]: !next }));
+      toast({ title: 'Erro ao salvar', description: e?.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleMany = async (keys: string[], next: boolean) => {
+    if (!companyId || !selectedUserId || keys.length === 0) return;
+    const prev = userPerms;
+    setUserPerms((p) => ({ ...p, ...Object.fromEntries(keys.map((k) => [k, next])) }));
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('user_module_permissions')
+        .upsert(
+          keys.map((k) => ({ company_id: companyId, user_id: selectedUserId, module_key: k, is_active: next })),
+          { onConflict: 'company_id,user_id,module_key' },
+        );
+      if (error) throw error;
+    } catch (e: any) {
+      setUserPerms(prev);
       toast({ title: 'Erro ao salvar', description: e?.message, variant: 'destructive' });
     } finally {
       setSaving(false);
@@ -267,39 +288,14 @@ const GestaoUsuariosModulos = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {modules.map((m) => {
-                        const companyOn = companyModules[m.key] ?? true;
-                        const checked = userPerms[m.key] ?? true;
-                        return (
-                          <div
-                            key={m.key}
-                            className={`flex items-start justify-between gap-3 rounded-lg border p-3 transition ${
-                              checked ? 'bg-primary/5 border-primary/30' : 'bg-background'
-                            } ${!companyOn ? 'opacity-50' : ''}`}
-                          >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-medium text-sm">{m.label}</span>
-                                {!companyOn && (
-                                  <Badge variant="outline" className="text-[10px] py-0">
-                                    Módulo desligado
-                                  </Badge>
-                                )}
-                              </div>
-                              <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                                {m.description}
-                              </p>
-                            </div>
-                            <Switch
-                              checked={checked}
-                              disabled={saving || !companyOn}
-                              onCheckedChange={(c) => toggle(m.key, c)}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
+                    <ModulePermissionGrid
+                      modules={modules}
+                      isChecked={(k) => userPerms[k] ?? true}
+                      isCompanyOn={(k) => isModuleOnForCompany(companyModules, k)}
+                      saving={saving}
+                      onToggle={toggle}
+                      onToggleMany={toggleMany}
+                    />
                   </CardContent>
                 </>
               )}

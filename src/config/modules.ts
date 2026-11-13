@@ -56,7 +56,6 @@ export const MODULES_CATALOG: ModuleDef[] = [
       { key: 'logistica.solicitacoes', label: 'Solicitações' },
       { key: 'logistica.fornecedores', label: 'Fornecedores' },
       { key: 'logistica.curva_abc', label: 'Curva ABC' },
-      { key: 'logistica.conferencia', label: 'Conferência de Temperatura' },
       { key: 'logistica.estoque_setores', label: 'Estoque por Setor' },
 
     ],
@@ -247,3 +246,15 @@ export const CHILD_MODULES: Record<string, string[]> = MODULES_CATALOG.reduce((a
 export const MODULE_PARENT: Record<string, string> = Object.fromEntries(
   MODULES_CATALOG.filter((m) => m.parent).map((m) => [m.key, m.parent as string]),
 );
+
+/**
+ * Se o módulo está ligado na empresa. Submódulos (ex.: da Clínica) seguem o pai,
+ * salvo quando o próprio submódulo foi ligado/desligado explicitamente.
+ */
+export const isModuleOnForCompany = (companyModules: Record<string, boolean>, key: string): boolean => {
+  const own = companyModules[key];
+  if (own !== undefined) return own;
+  const parent = MODULE_PARENT[key];
+  if (parent) return companyModules[parent] !== false;
+  return true;
+};

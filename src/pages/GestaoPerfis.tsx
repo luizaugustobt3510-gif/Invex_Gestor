@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Shield, RefreshCw, Search, CheckCircle2, XCircle, Users } from 'lucide-react';
-import { MODULES_CATALOG } from '@/config/modules';
+import { MODULES_CATALOG, isModuleOnForCompany } from '@/config/modules';
+import { ModulePermissionGrid } from '@/components/ModulePermissionGrid';
 import { presetAllows } from '@/config/rolePresets';
 
 /**
@@ -156,6 +156,27 @@ const GestaoPerfis = () => {
     }
   };
 
+  const toggleMany = async (keys: string[], next: boolean) => {
+    if (!companyId || keys.length === 0) return;
+    const prev = matrix;
+    setMatrix((p) => ({ ...p, ...Object.fromEntries(keys.map((k) => [`${selectedRole}::${k}`, next])) }));
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('role_module_permissions')
+        .upsert(
+          keys.map((k) => ({ company_id: companyId, role: selectedRole as any, module_key: k, is_active: next })),
+          { onConflict: 'company_id,role,module_key' },
+        );
+      if (error) throw error;
+    } catch (e: any) {
+      setMatrix(prev);
+      toast({ title: 'Erro ao atualizar', description: e?.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const bulkSet = async (value: boolean) => {
     if (!companyId) return;
     setSaving(true);
@@ -273,45 +294,14 @@ const GestaoPerfis = () => {
                 </Button>
               </div>
 
-              <div className="grid gap-2 sm:grid-cols-2">
-                {modules.map((m) => {
-                  const key = `${selectedRole}::${m.key}`;
-                  const checked = matrix[key] ?? presetAllows(selectedRole, m.key);
-                  const companyOn = companyModules[m.key] ?? true;
-                  return (
-                    <div
-                      key={m.key}
-                      className={`flex items-start justify-between gap-3 rounded-lg border p-3 transition ${
-                        checked ? 'bg-primary/5 border-primary/30' : 'bg-background'
-                      } ${!companyOn ? 'opacity-50' : ''}`}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium text-sm">{m.label}</span>
-                          {!companyOn && (
-                            <Badge variant="outline" className="text-[10px] py-0">
-                              Módulo desligado
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                          {m.description}
-                        </p>
-                      </div>
-                      <Switch
-                        checked={checked}
-                        disabled={saving || !companyOn}
-                        onCheckedChange={(c) => toggle(m.key, c)}
-                      />
-                    </div>
-                  );
-                })}
-                {modules.length === 0 && (
-                  <div className="col-span-full text-center py-8 text-sm text-muted-foreground">
-                    Nenhum módulo encontrado.
-                  </div>
-                )}
-              </div>
+              <ModulePermissionGrid
+                modules={modules}
+                isChecked={(k) => matrix[`${selectedRole}::${k}`] ?? presetAllows(selectedRole, k)}
+                isCompanyOn={(k) => isModuleOnForCompany(companyModules, k)}
+                saving={saving}
+                onToggle={toggle}
+                onToggleMany={toggleMany}
+              />
             </CardContent>
           </Card>
         )}
