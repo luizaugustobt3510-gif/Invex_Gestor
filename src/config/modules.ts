@@ -27,6 +27,8 @@ export interface ModuleDef {
   /** Rota principal do módulo (para atalhos/dashboard) */
   route?: string;
   submodules: SubmoduleDef[];
+  /** Módulo pai (ex.: submódulos da Clínica). Só fica disponível com o pai ativo. */
+  parent?: string;
   /** Se true, é um módulo "core" que não deve aparecer no toggle
    *  (ex.: Dashboard/Perfil, sempre disponíveis) */
   core?: boolean;
@@ -131,13 +133,6 @@ export const MODULES_CATALOG: ModuleDef[] = [
     submodules: [],
   },
   {
-    key: 'conferencia_temperatura',
-    label: 'Conferência de Temperatura',
-    description: 'Controle diário de temperatura e umidade via QR Code. Vinculado à Manutenção.',
-    route: '/conferencia-temperatura',
-    submodules: [],
-  },
-  {
     key: 'solicitacao_materiais',
     label: 'Solicitar Materiais',
     description: 'Permite que qualquer setor (enfermagem, recepção, clínica, etc.) solicite materiais ao almoxarifado, buscando pelo catálogo cadastrado da empresa.',
@@ -146,16 +141,11 @@ export const MODULES_CATALOG: ModuleDef[] = [
   },
 
 
-  {
-    key: 'academia',
-    label: 'Academia',
-    description: 'Alunos, mensalidades e controle de pagamentos.',
-    submodules: [],
-  },
   // Slots para expansão futura — não têm telas ainda,
   // mas já podem ser ativados/desativados por empresa.
   {
     key: 'agenda',
+    parent: 'clinica',
     label: 'Agenda',
     description: 'Agendamentos de atendimentos para pacientes e profissionais.',
     route: '/clinica/agenda',
@@ -163,6 +153,7 @@ export const MODULES_CATALOG: ModuleDef[] = [
   },
   {
     key: 'prontuario',
+    parent: 'clinica',
     label: 'Prontuário',
     description: 'Histórico clínico dos pacientes: evoluções, anexos e atendimentos.',
     route: '/clinica/pacientes',
@@ -173,6 +164,7 @@ export const MODULES_CATALOG: ModuleDef[] = [
   },
   {
     key: 'anamnese',
+    parent: 'clinica',
     label: 'Anamnese Digital',
     description: 'Anamneses digitais, modelos personalizáveis e PDFs vinculados ao prontuário. Exclusivo para clínicas — ativado pelo Super Admin.',
     route: '/clinica/anamnese/nova',
@@ -180,6 +172,7 @@ export const MODULES_CATALOG: ModuleDef[] = [
   },
   {
     key: 'evolucao',
+    parent: 'clinica',
     label: 'Evolução Clínica',
     description: 'Registro manual de evoluções clínicas com mensagens rápidas configuráveis e assinatura eletrônica/manuscrita do paciente e do profissional.',
     route: '/clinica/evolucao',
@@ -190,6 +183,7 @@ export const MODULES_CATALOG: ModuleDef[] = [
   },
   {
     key: 'receituario',
+    parent: 'clinica',
     label: 'Receituário',
     description: 'Emissão e histórico de receitas médicas (simples, especial e controlada) vinculadas ao paciente.',
     route: '/clinica/receituario',
@@ -204,6 +198,7 @@ export const MODULES_CATALOG: ModuleDef[] = [
   },
   {
     key: 'dispensacao',
+    parent: 'clinica',
     label: 'Dispensação de Materiais',
     description: 'Registro de uso de insumos. Interna: logística disponibiliza para setor. Paciente: enfermagem/clínica registra uso por atendimento.',
     route: '/dispensacao',
@@ -214,6 +209,7 @@ export const MODULES_CATALOG: ModuleDef[] = [
   },
   {
     key: 'faturamento',
+    parent: 'clinica',
     label: 'Faturamento',
     description: 'Consulta e cobrança de dispensações. Filtros por data, paciente, exame e status.',
     route: '/faturamento',
@@ -222,7 +218,7 @@ export const MODULES_CATALOG: ModuleDef[] = [
   {
     key: 'clinica',
     label: 'Clínica',
-    description: 'Prontuários, atendimentos, prescrições (em desenvolvimento).',
+    description: 'Agenda, prontuário, anamnese, evolução, receituário, dispensação e faturamento. Ative a Clínica e escolha os submódulos.',
     submodules: [],
   },
   {
@@ -241,3 +237,13 @@ export const MODULES_CATALOG: ModuleDef[] = [
 
 export const getModuleByKey = (key: string): ModuleDef | undefined =>
   MODULES_CATALOG.find((m) => m.key === key);
+
+/** Chaves dos submódulos de cada módulo pai (ex.: clinica → agenda, prontuario...). */
+export const CHILD_MODULES: Record<string, string[]> = MODULES_CATALOG.reduce((acc, m) => {
+  if (m.parent) (acc[m.parent] ||= []).push(m.key);
+  return acc;
+}, {} as Record<string, string[]>);
+
+export const MODULE_PARENT: Record<string, string> = Object.fromEntries(
+  MODULES_CATALOG.filter((m) => m.parent).map((m) => [m.key, m.parent as string]),
+);

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { presetAllows } from "@/config/rolePresets";
+import { MODULE_PARENT } from "@/config/modules";
 
 interface ModuleAccessState {
   companyModules: Record<string, boolean>;
@@ -125,6 +126,14 @@ export function useModuleAccess() {
       // the toggle in GestaoModulos regardless. Preview/access to the module UI requires activation.
       const OPT_IN = new Set(['anamnese']);
       const isOptIn = OPT_IN.has(moduleKey.split('.')[0]);
+
+      // Submódulos da Clínica: exigem a Clínica ativa na empresa,
+      // salvo se o próprio submódulo foi ativado explicitamente.
+      const baseKey = moduleKey.split('.')[0];
+      const parentKey = MODULE_PARENT[baseKey];
+      if (parentKey && state.companyModules[baseKey] !== true && state.companyModules[parentKey] === false) {
+        return false;
+      }
 
       if (user?.role === "superadm" && !isOptIn) return true;
       if (user?.role === "admin" && !isOptIn) return true;

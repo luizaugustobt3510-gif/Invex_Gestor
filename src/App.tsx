@@ -61,7 +61,6 @@ import ImportarFuncionarios from "./pages/rh/ImportarFuncionarios";
 import Turnover from "./pages/rh/Turnover";
 import GestaoUsuarios from "./pages/GestaoUsuarios";
 import GestaoUsuariosModulos from "./pages/GestaoUsuariosModulos";
-import ConferenciaTemperatura from "./pages/logistica/ConferenciaTemperatura";
 import FitnessLogin from "./pages/fitness/FitnessLogin";
 import FitnessOnboarding from "./pages/fitness/FitnessOnboarding";
 import FitnessDashboard from "./pages/fitness/FitnessDashboard";
@@ -183,7 +182,7 @@ const App = () => (
             <Route path="/itens-criticos" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><ItensCriticos /></RoleProtectedRoute>} />
             <Route path="/controle-validades" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><ControleValidades /></RoleProtectedRoute>} />
             <Route path="/reposicao" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'usuario almox']} moduleKey="logistica" submoduleKey="logistica.estoque"><Reposicao /></RoleProtectedRoute>} />
-            <Route path="/conferencia-temperatura" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'manutencao', 'usuario almox']} moduleKey="conferencia_temperatura"><ConferenciaTemperatura /></RoleProtectedRoute>} />
+            <Route path="/conferencia-temperatura" element={<Navigate to="/" replace />} />
 
             <Route path="/fornecedores" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><Fornecedores /></RoleProtectedRoute>} />
             <Route path="/curva-abc" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica"><CurvaABCInteligente /></RoleProtectedRoute>} />

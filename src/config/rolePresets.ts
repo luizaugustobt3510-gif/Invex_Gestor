@@ -8,7 +8,7 @@ const CLINICAL = [
   'receituario', 'assinaturas', 'dispensacao', 'faturamento', 'solicitacao_materiais',
 ];
 const LOGISTICS = [
-  'dashboard', 'logistica', 'setores', 'conferencia_temperatura',
+  'dashboard', 'logistica', 'setores',
   'solicitacao_materiais', 'ordem_servico', 'relatorios',
 ];
 
@@ -24,7 +24,7 @@ export const ROLE_MODULE_PRESETS: Record<string, string[]> = {
   financeiro: ['dashboard', 'financeiro', 'vendas', 'relatorios'],
   manutencao: ['dashboard', 'manutencao', 'ordem_servico'],
   visualizador: ['dashboard', 'logistica', 'rh', 'financeiro', 'relatorios'],
-  fitness_user: ['academia'],
+  fitness_user: [],
 };
 
 export function presetAllows(dbRole: string, moduleKey: string): boolean {

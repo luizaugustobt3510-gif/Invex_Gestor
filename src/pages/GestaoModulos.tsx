@@ -8,12 +8,13 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Puzzle, RefreshCw, ChevronDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { MODULES_CATALOG } from '@/config/modules';
+import { MODULES_CATALOG, CHILD_MODULES } from '@/config/modules';
 
 // Módulos opt-in (iniciam desativados por padrão)
 const OPT_IN_MODULES = new Set(['anamnese']);
 
 const MODULE_STRUCTURE = MODULES_CATALOG.map((m) => ({
+  parent: m.parent,
   key: m.key,
   label: m.label,
   description: m.description,
@@ -39,7 +40,8 @@ const GestaoModulos = () => {
   const [saving, setSaving] = useState(false);
 
   // SuperAdmin vê todos os módulos — sem filtro por tipo de empresa.
-  const visibleModules = MODULE_STRUCTURE;
+  const visibleModules = MODULE_STRUCTURE.filter((m) => !m.parent);
+  const childrenOf = (key: string) => MODULE_STRUCTURE.filter((m) => (CHILD_MODULES[key] || []).includes(m.key));
 
 
   useEffect(() => {
@@ -120,6 +122,7 @@ const GestaoModulos = () => {
               <div className="space-y-4">
                 {visibleModules.map(mod => {
                   const isParentActive = modules[mod.key] ?? true;
+                  const children = childrenOf(mod.key);
                   return (
                     <Collapsible key={mod.key} defaultOpen={false} className="group/mod">
                       <div className="rounded-lg border">
@@ -127,7 +130,7 @@ const GestaoModulos = () => {
                         <div className="flex items-center justify-between p-4">
                           <CollapsibleTrigger asChild>
                             <button className="flex items-center gap-2 text-left flex-1">
-                              {mod.submodules.length > 0 && (
+                              {(mod.submodules.length > 0 || children.length > 0) && (
                                 <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-data-[state=open]/mod:rotate-180" />
                               )}
                               <div>
@@ -142,6 +145,42 @@ const GestaoModulos = () => {
                             disabled={saving}
                           />
                         </div>
+
+                        {/* Submódulos que são módulos próprios (ex.: Clínica) */}
+                        {children.length > 0 && (
+                          <CollapsibleContent>
+                            <div className="border-t px-4 py-2 space-y-3 bg-muted/30">
+                              {children.map(child => {
+                                const childActive = (modules[child.key] ?? true) && isParentActive;
+                                return (
+                                  <div key={child.key} className="pl-6 space-y-1">
+                                    <div className="flex items-center justify-between py-1.5">
+                                      <div>
+                                        <span className="text-sm font-semibold">{child.label}</span>
+                                        <p className="text-xs text-muted-foreground">{child.description}</p>
+                                      </div>
+                                      <Switch
+                                        checked={childActive}
+                                        onCheckedChange={(checked) => toggleModule(child.key, checked)}
+                                        disabled={saving || !isParentActive}
+                                      />
+                                    </div>
+                                    {child.submodules.map(sub => (
+                                      <div key={sub.key} className="flex items-center justify-between py-1 pl-6">
+                                        <span className="text-sm text-muted-foreground">{sub.label}</span>
+                                        <Switch
+                                          checked={(modules[sub.key] ?? true) && childActive}
+                                          onCheckedChange={(checked) => toggleModule(sub.key, checked)}
+                                          disabled={saving || !childActive}
+                                        />
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </CollapsibleContent>
+                        )}
 
                         {/* Submodules */}
                         {mod.submodules.length > 0 && (

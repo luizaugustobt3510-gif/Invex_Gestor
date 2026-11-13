@@ -368,22 +368,6 @@ const logisticsGroups: MenuGroup[] = [
 ];
 
 
-// ─── INVEX FITNESS (app pessoal — link rápido, só p/ empresa Invex Fitness) ───
-const academiaGroups: MenuGroup[] = [
-  {
-    label: "Invex Fitness",
-    icon: <Dumbbell className="w-4 h-4" />,
-    allowedRoles: ["admin", "usuario almox", "solicitante", "logistica", "rh", "financeiro", "visualizador", "manutencao"],
-    items: [
-      {
-        path: "/fitness",
-        label: "Abrir App Fitness",
-        icon: <Dumbbell className="w-4 h-4" />,
-        allowedRoles: ["admin", "usuario almox", "solicitante", "logistica", "rh", "financeiro", "visualizador", "manutencao"],
-      },
-    ],
-  },
-];
 
 // ─── CLÍNICA (Prontuário + Agenda) ───
 const clinicaGroups: MenuGroup[] = [
@@ -984,20 +968,6 @@ const manutencaoGroups: MenuGroup[] = [
       },
     ],
   },
-  {
-    label: "Conferência de Temperatura",
-    icon: <Thermometer className="w-4 h-4" />,
-    allowedRoles: ["admin", "logistica", "manutencao", "usuario almox"],
-    moduleKey: "conferencia_temperatura",
-    items: [
-      {
-        path: "/conferencia-temperatura",
-        label: "Controle Temperatura",
-        icon: <Thermometer className="w-4 h-4" />,
-        allowedRoles: ["admin", "logistica", "manutencao", "usuario almox"],
-      },
-    ],
-  },
 ];
 
 
@@ -1241,8 +1211,7 @@ export function AppSidebar() {
   };
 
   const visibleLogistics = !isSuperAdmin ? filterGroups(logisticsGroups) : [];
-  const isFitnessCompany = user?.companyId === "f54ebd25-21cc-43e8-888f-ffbbed1d4b7f";
-  const visibleAcademia = !isSuperAdmin && isFitnessCompany ? filterGroups(academiaGroups) : [];
+  const visibleAcademia: MenuGroup[] = [];
   const visibleClinica = !isSuperAdmin ? filterGroups(clinicaGroups) : [];
   const visibleVendas = !isSuperAdmin ? filterGroups(vendasGroups) : [];
   const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
@@ -1479,7 +1448,7 @@ export function AppSidebar() {
         {visibleClinica.length > 0 && (
           <>
             <SidebarSeparator className="my-2" />
-            {visibleClinica.map(renderGroup)}
+            {renderSection("Clínica", <Stethoscope className="w-4 h-4" />, visibleClinica, "clinica")}
           </>
         )}
 
