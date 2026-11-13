@@ -31,14 +31,25 @@ const uiToDbRole: Record<string, string> = {
   recepcionista: "recepcionista",
 };
 
+// Último resultado em memória: evita que o menu lateral volte ao "carregando"
+// (e perca a rolagem) a cada troca de página. Sempre revalidado em seguida.
+let cachedAccess: { key: string; state: ModuleAccessState } | null = null;
+
 export function useModuleAccess() {
   const { user } = useAuth();
-  const [state, setState] = useState<ModuleAccessState>({
-    companyModules: {},
-    userModules: {},
-    roleModules: {},
-    loading: true,
-  });
+  const cacheKey = `${user?.email ?? ""}|${user?.companyId ?? ""}|${user?.role ?? ""}`;
+  const [state, setStateRaw] = useState<ModuleAccessState>(() =>
+    cachedAccess && cachedAccess.key === cacheKey
+      ? cachedAccess.state
+      : { companyModules: {}, userModules: {}, roleModules: {}, loading: true },
+  );
+  const setState = useCallback(
+    (next: ModuleAccessState) => {
+      if (!next.loading) cachedAccess = { key: cacheKey, state: next };
+      setStateRaw(next);
+    },
+    [cacheKey],
+  );
 
   const fetchModuleAccess = useCallback(async () => {
     if (!user?.companyId) {
@@ -101,7 +112,7 @@ export function useModuleAccess() {
     } catch {
       setState({ companyModules: {}, userModules: {}, roleModules: {}, loading: false });
     }
-  }, [user?.companyId, user?.role]);
+  }, [user?.companyId, user?.role, setState]);
 
   useEffect(() => {
     fetchModuleAccess();

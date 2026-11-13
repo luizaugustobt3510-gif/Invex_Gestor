@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth, UserRole } from "@/contexts/AuthContext";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
@@ -95,6 +95,8 @@ interface MenuGroup {
   items: MenuItem[];
   allowedRoles: UserRole[];
   moduleKey?: string;
+  /** Itens aparecem como links diretos, sem grupo recolhível */
+  flat?: boolean;
 }
 
 const SIDEBAR_SCROLL_KEY = "invex:sidebar-scroll-top";
@@ -106,17 +108,41 @@ const getStoredSidebarScrollTop = () => {
   return stored ? Number(stored) || 0 : persistedSidebarScrollTop;
 };
 
+const SIDEBAR_OPEN_KEY = "invex:sidebar-open-groups";
+let persistedOpenGroups: Record<string, boolean> | null = null;
+
+const getOpenGroups = (): Record<string, boolean> => {
+  if (persistedOpenGroups) return persistedOpenGroups;
+  try {
+    const raw = typeof window !== "undefined" ? window.sessionStorage.getItem(SIDEBAR_OPEN_KEY) : null;
+    persistedOpenGroups = raw ? JSON.parse(raw) : {};
+  } catch {
+    persistedOpenGroups = {};
+  }
+  return persistedOpenGroups!;
+};
+
+const setOpenGroup = (key: string, open: boolean) => {
+  persistedOpenGroups = { ...getOpenGroups(), [key]: open };
+  try {
+    window.sessionStorage.setItem(SIDEBAR_OPEN_KEY, JSON.stringify(persistedOpenGroups));
+  } catch {
+    /* ignore */
+  }
+};
+
 // ─── LOGÍSTICA ───
 const logisticsGroups: MenuGroup[] = [
   {
-    label: "Logística",
-    icon: <Package className="w-4 h-4" />,
+    label: "Visão geral",
+    icon: <LayoutDashboard className="w-4 h-4" />,
     allowedRoles: ["admin", "logistica", "usuario almox"],
     moduleKey: "logistica",
+    flat: true,
     items: [
       {
         path: "/logistica/dashboard",
-        label: "Dashboard",
+        label: "Visão geral",
         icon: <LayoutDashboard className="w-4 h-4" />,
         allowedRoles: ["admin", "logistica", "usuario almox"],
         submoduleKey: "logistica.dashboard",
@@ -1078,22 +1104,37 @@ export function AppSidebar() {
     el.scrollTop = scrollPos.current;
   };
 
-  // Preserva a posição de scroll do sidebar entre navegações
-  useEffect(() => {
+  const sidebarReady = !isLoading && !moduleLoading;
+
+  // Preserva a posição de scroll do sidebar entre navegações.
+  // Só depois que o menu real aparece (o esqueleto de carregamento não tem rolagem).
+  useLayoutEffect(() => {
+    if (!sidebarReady) return;
     const el = scrollRef.current;
     if (!el) return;
-    restoreSidebarScroll();
+    scrollPos.current = getStoredSidebarScrollTop();
+    el.scrollTop = scrollPos.current;
+    const raf = requestAnimationFrame(restoreSidebarScroll);
     const onScroll = saveSidebarScroll;
     el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
-  }, []);
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener("scroll", onScroll);
+    };
+  }, [sidebarReady, location.pathname]);
 
-  useEffect(() => {
-    scrollPos.current = getStoredSidebarScrollTop();
-    requestAnimationFrame(restoreSidebarScroll);
-    const timeout = window.setTimeout(restoreSidebarScroll, 80);
-    return () => window.clearTimeout(timeout);
-  }, [location.pathname]);
+  // Grupos recolhíveis: SuperAdmin sempre aberto; demais lembram o que o usuário abriu
+  // e abrem automaticamente o grupo da página atual.
+  const [, forceOpenRender] = useState(0);
+  const isGroupOpen = (group: MenuGroup, scope: string) => {
+    if (user?.role === "superadm") return true;
+    if (group.items.some((item) => location.pathname === item.path)) return true;
+    return getOpenGroups()[`${scope}:${group.label}`] ?? false;
+  };
+  const toggleGroup = (group: MenuGroup, scope: string, open: boolean) => {
+    setOpenGroup(`${scope}:${group.label}`, open);
+    forceOpenRender((n) => n + 1);
+  };
 
   const navigatePreservingScroll = (path: string) => {
     saveSidebarScroll();
@@ -1154,7 +1195,12 @@ export function AppSidebar() {
     if (group.items.length === 0) return null;
 
     return (
-      <Collapsible key={group.label} defaultOpen={true} className="group/collapsible">
+      <Collapsible
+        key={group.label}
+        open={isGroupOpen(group, "main")}
+        onOpenChange={(open) => toggleGroup(group, "main", open)}
+        className="group/collapsible"
+      >
         <SidebarGroup>
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent rounded-md transition-colors px-2 py-1.5 flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -1253,8 +1299,37 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               {visibleLogistics.map((group) => {
+                if (group.flat) {
+                  return (
+                    <SidebarMenu key={group.label}>
+                      {group.items.map((item) => (
+                        <SidebarMenuItem key={item.path}>
+                          <SidebarMenuButton
+                            onClick={() => navigatePreservingScroll(item.path)}
+                            isActive={isActive(item.path)}
+                            tooltip={item.label}
+                            className={cn(
+                              "w-full justify-start gap-2 px-2 py-2 text-sm font-semibold transition-colors",
+                              isActive(item.path)
+                                ? "bg-primary/10 text-primary"
+                                : "text-foreground hover:bg-sidebar-accent",
+                            )}
+                          >
+                            {item.icon}
+                            <span>{item.label}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  );
+                }
                 return (
-                  <Collapsible key={group.label} defaultOpen={true} className="group/collapsible">
+                  <Collapsible
+                    key={group.label}
+                    open={isGroupOpen(group, "logistica")}
+                    onOpenChange={(open) => toggleGroup(group, "logistica", open)}
+                    className="group/collapsible"
+                  >
                     <CollapsibleTrigger asChild>
                       <button
                         type="button"
@@ -1310,7 +1385,12 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 {visibleRHGroups.map((group) => {
                   return (
-                    <Collapsible key={group.label} defaultOpen={true} className="group/collapsible">
+                    <Collapsible
+                      key={group.label}
+                      open={isGroupOpen(group, "rh")}
+                      onOpenChange={(open) => toggleGroup(group, "rh", open)}
+                      className="group/collapsible"
+                    >
                       <CollapsibleTrigger asChild>
                         <button
                           type="button"
