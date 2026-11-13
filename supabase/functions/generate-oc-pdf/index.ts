@@ -45,12 +45,14 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Get user's company and role
+    // Get user's company (a user may have several role rows; use the company one)
     const { data: userRole } = await supabase
       .from("user_roles")
       .select("role, company_id")
       .eq("user_id", userId)
-      .single();
+      .not("company_id", "is", null)
+      .limit(1)
+      .maybeSingle();
 
     if (!userRole || !userRole.company_id) {
       return new Response(
@@ -62,25 +64,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Permission check: super_admin, primary logistics roles, OR users with the
-    // 'logistica' module granted via user_module_permissions can generate OCs.
-    // admin_empresa is management-only and needs an explicit module grant.
-    const logisticsRoles = ["super_admin", "logistica", "usuario_almox", "solicitante"];
-    let canGenerate = logisticsRoles.includes(userRole.role);
+    // Permission check delegated to the same DB rule used by RLS:
+    // super_admin, admin_empresa of this company, logistics roles, or an
+    // explicit 'logistica' module grant.
+    const { data: canGenerate, error: permError } = await supabase.rpc(
+      "user_can_write_module",
+      { _user_id: userId, _company_id: userRole.company_id, _module_key: "logistica" }
+    );
 
-    if (!canGenerate) {
-      const { data: grant } = await supabase
-        .from("user_module_permissions")
-        .select("is_active")
-        .eq("user_id", userId)
-        .eq("company_id", userRole.company_id)
-        .eq("module_key", "logistica")
-        .eq("is_active", true)
-        .maybeSingle();
-      canGenerate = !!grant;
-    }
-
-    if (!canGenerate) {
+    if (permError || !canGenerate) {
       return new Response(
         JSON.stringify({ error: "Sem permissão para gerar Ordem de Compra" }),
         {
