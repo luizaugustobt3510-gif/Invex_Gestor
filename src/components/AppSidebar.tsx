@@ -1152,10 +1152,9 @@ export function AppSidebar() {
 
   const renderGroup = (group: MenuGroup) => {
     if (group.items.length === 0) return null;
-    const isGroupActive = group.items.some((item) => isActive(item.path));
 
     return (
-      <Collapsible key={group.label} defaultOpen={isGroupActive} className="group/collapsible">
+      <Collapsible key={group.label} defaultOpen={true} className="group/collapsible">
         <SidebarGroup>
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent rounded-md transition-colors px-2 py-1.5 flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -1254,9 +1253,8 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               {visibleLogistics.map((group) => {
-                const isGroupActive = group.items.some((item) => isActive(item.path));
                 return (
-                  <Collapsible key={group.label} defaultOpen={isGroupActive} className="group/collapsible">
+                  <Collapsible key={group.label} defaultOpen={true} className="group/collapsible">
                     <CollapsibleTrigger asChild>
                       <button
                         type="button"
@@ -1311,9 +1309,8 @@ export function AppSidebar() {
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 {visibleRHGroups.map((group) => {
-                  const isGroupActive = group.items.some((item) => isActive(item.path));
                   return (
-                    <Collapsible key={group.label} defaultOpen={isGroupActive} className="group/collapsible">
+                    <Collapsible key={group.label} defaultOpen={true} className="group/collapsible">
                       <CollapsibleTrigger asChild>
                         <button
                           type="button"
