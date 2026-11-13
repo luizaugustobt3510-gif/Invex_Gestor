@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { InventoryItem } from '@/hooks/useInventoryData';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MaterialGroupSelect } from '@/components/MaterialGroupSelect';
+import { dbErrorMessage } from '@/lib/dbErrors';
 import { useMaterialGroups } from '@/hooks/useMaterialGroups';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -25,7 +26,7 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
   const [validade, setValidade] = useState('');
   const [groupId, setGroupId] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const { groups } = useMaterialGroups();
+  const { groups, createGroup, loading: loadingGroups } = useMaterialGroups();
 
   useEffect(() => {
     if (item) {
@@ -67,6 +68,8 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
         } as any)
         .eq('id', item.id);
 
+      if (error) throw error;
+
       // Audit log
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -79,13 +82,11 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
         });
       }
 
-      if (error) throw error;
-
       toast.success('Material atualizado com sucesso!');
       onSaved();
       onOpenChange(false);
     } catch (err: any) {
-      toast.error(err?.message || 'Erro ao atualizar material.');
+      toast.error(dbErrorMessage(err, 'Erro ao atualizar material.'));
     } finally {
       setLoading(false);
     }
@@ -110,16 +111,7 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Grupo</Label>
-                <Select value={groupId} onValueChange={setGroupId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o grupo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {groups.map(g => (
-                      <SelectItem key={g.id} value={g.id}>{g.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <MaterialGroupSelect value={groupId} onChange={setGroupId} groups={groups} loading={loadingGroups} createGroup={createGroup} />
               </div>
               <div className="space-y-2">
                 <Label>Validade</Label>

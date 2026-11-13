@@ -204,6 +204,13 @@
       "when": 1794568200423,
       "tag": "0028_producao_materia_prima",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794571568270,
+      "tag": "0029_company_admin_can_write_modules",
+      "breakpoints": true
     }
   ]
 }

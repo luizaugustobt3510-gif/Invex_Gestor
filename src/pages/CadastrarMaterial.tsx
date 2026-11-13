@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MaterialGroupSelect } from '@/components/MaterialGroupSelect';
+import { useAuth } from '@/contexts/AuthContext';
+import { dbErrorMessage } from '@/lib/dbErrors';
 import { useMaterialGroups } from '@/hooks/useMaterialGroups';
 import { Package, Save } from 'lucide-react';
 
@@ -26,7 +28,8 @@ interface MaterialForm {
 const CadastrarMaterial = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const { groups, seedDefaults, loading: loadingGroups } = useMaterialGroups();
+  const { user: authUser } = useAuth();
+  const { groups, seedDefaults, createGroup, loading: loadingGroups } = useMaterialGroups();
   const [formData, setFormData] = useState<MaterialForm>({
     codigo: '', material: '', unidade: '', localizacao: '', validade: '',
     quantidade: '', minimo: '', maximo: '', preco: '', group_id: '',
@@ -51,21 +54,11 @@ const CadastrarMaterial = () => {
 
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Não autenticado');
-
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('company_id')
-        .eq('user_id', user.id)
-        .not('company_id', 'is', null)
-        .limit(1)
-        .single();
-
-      if (!roleData?.company_id) throw new Error('Empresa não encontrada');
+      const companyId = authUser?.companyId;
+      if (!companyId) throw new Error('Empresa não encontrada');
 
       const { error } = await supabase.from('materials').insert({
-        company_id: roleData.company_id,
+        company_id: companyId,
         codigo: formData.codigo,
         material: formData.material,
         unidade: formData.unidade,
@@ -83,7 +76,7 @@ const CadastrarMaterial = () => {
       toast({ title: 'Sucesso!', description: 'Material cadastrado com sucesso.' });
       setFormData({ codigo: '', material: '', unidade: '', localizacao: '', validade: '', quantidade: '', minimo: '', maximo: '', preco: '', group_id: '' });
     } catch (err: any) {
-      toast({ title: 'Erro', description: err?.message || 'Erro ao cadastrar material.', variant: 'destructive' });
+      toast({ title: 'Erro', description: dbErrorMessage(err, 'Erro ao cadastrar material.'), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -115,21 +108,15 @@ const CadastrarMaterial = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="group_id">Grupo *</Label>
-                <Select value={formData.group_id} onValueChange={(v) => handleChange('group_id', v)}>
-                  <SelectTrigger id="group_id">
-                    <SelectValue placeholder={loadingGroups ? 'Carregando...' : 'Selecione o grupo'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {groups.map(g => (
-                      <SelectItem key={g.id} value={g.id}>{g.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!loadingGroups && groups.length === 0 && (
-                  <Button type="button" variant="outline" size="sm" onClick={seedDefaults}>
-                    Criar grupos padrão
-                  </Button>
-                )}
+                <MaterialGroupSelect
+                  id="group_id"
+                  value={formData.group_id}
+                  onChange={(v) => handleChange('group_id', v)}
+                  groups={groups}
+                  loading={loadingGroups}
+                  createGroup={createGroup}
+                  seedDefaults={seedDefaults}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="localizacao">Localização</Label>
