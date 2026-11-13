@@ -66,3 +66,4 @@
 - [x] Produtos finais no dashboard, disponíveis para venda
 - [x] Consumo/venda/produção descontam estoque; zerado vira crítico
 - [x] Corrigir seleção de produto processado que fecha sozinha
+- [x] Cards de material comum proporcionais (mesma altura, bloco de dados na base); cards completos de MP/PF só para quem tem Produção e Vendas
