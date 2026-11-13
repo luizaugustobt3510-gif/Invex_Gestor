@@ -1245,6 +1245,125 @@ export type Database = {
           },
         ]
       }
+      customer_evaluations: {
+        Row: {
+          avaliador_id: string | null
+          comentario: string | null
+          company_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          nota: number
+          pontualidade: number
+        }
+        Insert: {
+          avaliador_id?: string | null
+          comentario?: string | null
+          company_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          nota?: number
+          pontualidade?: number
+        }
+        Update: {
+          avaliador_id?: string | null
+          comentario?: string | null
+          company_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          nota?: number
+          pontualidade?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_evaluations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_evaluations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          ativo: boolean
+          cidade: string | null
+          company_id: string
+          created_at: string
+          documento: string | null
+          email: string | null
+          endereco: string | null
+          id: string
+          limite_credito: number
+          nome: string
+          nota: number
+          observacoes: string | null
+          prazo_pagamento_dias: number
+          segmento: string
+          telefone: string | null
+          tipo_pessoa: string
+          uf: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          cidade?: string | null
+          company_id: string
+          created_at?: string
+          documento?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          limite_credito?: number
+          nome: string
+          nota?: number
+          observacoes?: string | null
+          prazo_pagamento_dias?: number
+          segmento?: string
+          telefone?: string | null
+          tipo_pessoa?: string
+          uf?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          cidade?: string | null
+          company_id?: string
+          created_at?: string
+          documento?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          limite_credito?: number
+          nome?: string
+          nota?: number
+          observacoes?: string | null
+          prazo_pagamento_dias?: number
+          segmento?: string
+          telefone?: string | null
+          tipo_pessoa?: string
+          uf?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       development_plans: {
         Row: {
           company_id: string
@@ -4022,11 +4141,78 @@ export type Database = {
           },
         ]
       }
+      product_lots: {
+        Row: {
+          company_id: string
+          created_at: string
+          custo_total: number
+          data_producao: string
+          id: string
+          lote: string
+          material_id: string
+          observacoes: string
+          origem: string
+          origem_id: string | null
+          quantidade: number
+          quantidade_restante: number
+          user_id: string | null
+          validade: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          custo_total?: number
+          data_producao?: string
+          id?: string
+          lote?: string
+          material_id: string
+          observacoes?: string
+          origem?: string
+          origem_id?: string | null
+          quantidade?: number
+          quantidade_restante?: number
+          user_id?: string | null
+          validade?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          custo_total?: number
+          data_producao?: string
+          id?: string
+          lote?: string
+          material_id?: string
+          observacoes?: string
+          origem?: string
+          origem_id?: string | null
+          quantidade?: number
+          quantidade_restante?: number
+          user_id?: string | null
+          validade?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_lots_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_lots_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       production_orders: {
         Row: {
           company_id: string
           created_at: string
           custo_materia_prima: number
+          data_producao: string | null
           entry_id: string
           id: string
           lote_produto: string
@@ -4041,6 +4227,7 @@ export type Database = {
           company_id: string
           created_at?: string
           custo_materia_prima?: number
+          data_producao?: string | null
           entry_id: string
           id?: string
           lote_produto?: string
@@ -4055,6 +4242,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           custo_materia_prima?: number
+          data_producao?: string | null
           entry_id?: string
           id?: string
           lote_produto?: string
@@ -4785,11 +4973,82 @@ export type Database = {
           },
         ]
       }
+      sale_item_lots: {
+        Row: {
+          company_id: string
+          created_at: string
+          data_producao: string | null
+          id: string
+          lote: string
+          lote_id: string | null
+          lote_tipo: string
+          material_id: string
+          quantidade: number
+          sale_id: string
+          sale_item_id: string
+          validade: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          data_producao?: string | null
+          id?: string
+          lote?: string
+          lote_id?: string | null
+          lote_tipo?: string
+          material_id: string
+          quantidade?: number
+          sale_id: string
+          sale_item_id: string
+          validade?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          data_producao?: string | null
+          id?: string
+          lote?: string
+          lote_id?: string | null
+          lote_tipo?: string
+          material_id?: string
+          quantidade?: number
+          sale_id?: string
+          sale_item_id?: string
+          validade?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_item_lots_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_item_lots_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_item_lots_sale_item_id_fkey"
+            columns: ["sale_item_id"]
+            isOneToOne: false
+            referencedRelation: "sale_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sale_items: {
         Row: {
           company_id: string
           created_at: string
           id: string
+          lote: string
+          lote_modo: string
+          lote_ref_id: string | null
+          lote_ref_tipo: string | null
           material_id: string
           preco_unitario: number
           quantidade: number
@@ -4800,6 +5059,10 @@ export type Database = {
           company_id: string
           created_at?: string
           id?: string
+          lote?: string
+          lote_modo?: string
+          lote_ref_id?: string | null
+          lote_ref_tipo?: string | null
           material_id: string
           preco_unitario?: number
           quantidade?: number
@@ -4810,6 +5073,10 @@ export type Database = {
           company_id?: string
           created_at?: string
           id?: string
+          lote?: string
+          lote_modo?: string
+          lote_ref_id?: string | null
+          lote_ref_tipo?: string | null
           material_id?: string
           preco_unitario?: number
           quantidade?: number
@@ -4842,8 +5109,10 @@ export type Database = {
       }
       sales: {
         Row: {
+          cliente_nome: string
           company_id: string
           created_at: string
+          customer_id: string | null
           desconto: number
           desconto_tipo: string
           estoque_baixado: boolean
@@ -4856,8 +5125,10 @@ export type Database = {
           valor_total: number
         }
         Insert: {
+          cliente_nome?: string
           company_id: string
           created_at?: string
+          customer_id?: string | null
           desconto?: number
           desconto_tipo?: string
           estoque_baixado?: boolean
@@ -4870,8 +5141,10 @@ export type Database = {
           valor_total?: number
         }
         Update: {
+          cliente_nome?: string
           company_id?: string
           created_at?: string
+          customer_id?: string | null
           desconto?: number
           desconto_tipo?: string
           estoque_baixado?: boolean
@@ -4889,6 +5162,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
             referencedColumns: ["id"]
           },
         ]
@@ -5921,6 +6201,10 @@ export type Database = {
         Args: { _company: string; _uid: string }
         Returns: boolean
       }
+      check_qty_unit: {
+        Args: { _nome: string; _qtd: number; _unidade: string }
+        Returns: undefined
+      }
       check_setup_needed: { Args: never; Returns: boolean }
       company_is_not_blocked: {
         Args: { _company_id: string }
@@ -5932,6 +6216,19 @@ export type Database = {
       }
       evaluate_subscription_status: {
         Args: { _company_id: string }
+        Returns: string
+      }
+      finalize_sale: {
+        Args: {
+          _company_id: string
+          _customer_id?: string
+          _desconto?: number
+          _desconto_tipo?: string
+          _forma_pagamento: string
+          _items: Json
+          _observacoes?: string
+          _vencimento?: string
+        }
         Returns: string
       }
       financas_admin_grant: {
@@ -6005,8 +6302,21 @@ export type Database = {
         Args: { _competencia: string; _date: string }
         Returns: string
       }
+      register_product_lot: {
+        Args: {
+          _company_id: string
+          _data_producao: string
+          _lote: string
+          _material_id: string
+          _observacoes?: string
+          _quantidade: number
+          _validade: string
+        }
+        Returns: string
+      }
       register_production: {
         Args: {
+          _data_producao?: string
           _entry_id: string
           _lote_produto: string
           _observacoes: string
@@ -6055,6 +6365,18 @@ export type Database = {
       routine_has_access: { Args: { _uid: string }; Returns: boolean }
       routine_is_premium: { Args: { _uid: string }; Returns: boolean }
       routine_join: { Args: never; Returns: string }
+      save_sale_product: {
+        Args: {
+          _codigo: string
+          _company_id: string
+          _id: string
+          _material: string
+          _minimo?: number
+          _preco: number
+          _unidade: string
+        }
+        Returns: string
+      }
       transfer_material_to_sector: {
         Args: {
           _company_id: string
@@ -6065,6 +6387,7 @@ export type Database = {
         }
         Returns: string
       }
+      unit_is_fractional: { Args: { _u: string }; Returns: boolean }
       user_can_write_module: {
         Args: { _company_id: string; _module_key: string; _user_id: string }
         Returns: boolean

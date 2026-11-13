@@ -225,6 +225,20 @@
       "when": 1794574719427,
       "tag": "0031_reverse_sale_stock",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794578322721,
+      "tag": "0032_vendas_compradores_lotes_unidades",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794578341733,
+      "tag": "0033_raw_entry_unit_check",
+      "breakpoints": true
     }
   ]
 }

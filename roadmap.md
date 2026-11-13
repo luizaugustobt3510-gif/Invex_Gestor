@@ -67,3 +67,9 @@
 - [x] Consumo/venda/produção descontam estoque; zerado vira crítico
 - [x] Corrigir seleção de produto processado que fecha sozinha
 - [x] Cards de material comum proporcionais (mesma altura, bloco de dados na base); cards completos de MP/PF só para quem tem Produção e Vendas
+
+## Vendas — compradores, lotes e unidades (nov/2026)
+- [ ] Cadastro de compradores com avaliação e análise (como fornecedores) + consumidor não identificado
+- [ ] PDV: escolher comprador, lote (data de produção/validade), vender do lote mais antigo, quantidade digitada
+- [ ] Unidades (un, kg, t, pacote...) respeitadas na venda, produção e entrada de matéria-prima
+- [ ] Funcionar sem Produção/Logística/Financeiro: produtos e lotes dentro de Vendas, financeiro gerado no servidor
