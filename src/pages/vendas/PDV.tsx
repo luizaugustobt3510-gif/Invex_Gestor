@@ -168,20 +168,25 @@ const PDV = () => {
         });
       }
 
-      // Create financial entry
-      await supabase.from('financial_entries').insert({
+      // Create financial entry (aparece em Contas a Receber)
+      const hoje = new Date().toISOString().split('T')[0];
+      const { error: finError } = await supabase.from('financial_entries').insert({
         company_id: user.companyId!,
         user_id: userId,
         tipo: 'receita',
         descricao: `Venda #${sale.id.slice(0, 8)} - ${cart.length} item(ns)`,
         valor: total,
-        data: new Date().toISOString().split('T')[0],
+        data: hoje,
+        data_vencimento: hoje,
         status: 'pago',
-        data_pagamento: new Date().toISOString().split('T')[0],
+        data_pagamento: hoje,
         forma_pagamento: formaPagamento,
         origem: 'vendas',
         origem_id: sale.id,
       });
+      if (finError) {
+        toast({ title: 'Venda salva, mas não entrou no Financeiro', description: finError.message, variant: 'destructive' });
+      }
 
       toast({ title: 'Venda finalizada!', description: `Total: R$ ${total.toFixed(2)}` });
       setCart([]);

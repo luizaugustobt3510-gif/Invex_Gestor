@@ -532,20 +532,29 @@ const clinicaGroups: MenuGroup[] = [
 ];
 
 
-// ─── VENDAS ───
+// ─── VENDAS (inclui Produção) ───
 const vendasGroups: MenuGroup[] = [
   {
-    label: "Vendas",
+    label: "Visão geral",
+    icon: <LayoutDashboard className="w-4 h-4" />,
+    allowedRoles: ["admin", "logistica", "financeiro"],
+    moduleKey: "vendas",
+    flat: true,
+    items: [
+      {
+        path: "/vendas",
+        label: "Visão geral",
+        icon: <LayoutDashboard className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "financeiro"],
+      },
+    ],
+  },
+  {
+    label: "Ponto de Venda",
     icon: <ShoppingCart className="w-4 h-4" />,
     allowedRoles: ["admin", "logistica", "financeiro"],
     moduleKey: "vendas",
     items: [
-      {
-        path: "/vendas",
-        label: "Dashboard",
-        icon: <LayoutDashboard className="w-4 h-4" />,
-        allowedRoles: ["admin", "logistica", "financeiro"],
-      },
       {
         path: "/vendas/pdv",
         label: "PDV",
@@ -554,22 +563,12 @@ const vendasGroups: MenuGroup[] = [
       },
       {
         path: "/vendas/historico",
-        label: "Histórico",
+        label: "Histórico de Vendas",
         icon: <History className="w-4 h-4" />,
-        allowedRoles: ["admin", "logistica", "financeiro"],
-      },
-      {
-        path: "/vendas/relatorios",
-        label: "Relatórios",
-        icon: <BarChart2 className="w-4 h-4" />,
         allowedRoles: ["admin", "logistica", "financeiro"],
       },
     ],
   },
-];
-
-// ─── PRODUÇÃO ───
-const producaoGroups: MenuGroup[] = [
   {
     label: "Produção",
     icon: <Factory className="w-4 h-4" />,
@@ -584,23 +583,46 @@ const producaoGroups: MenuGroup[] = [
       },
     ],
   },
+  {
+    label: "Relatórios",
+    icon: <BarChart2 className="w-4 h-4" />,
+    allowedRoles: ["admin", "logistica", "financeiro"],
+    moduleKey: "vendas",
+    items: [
+      {
+        path: "/vendas/relatorios",
+        label: "Relatórios de Vendas",
+        icon: <BarChart2 className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "financeiro"],
+      },
+    ],
+  },
 ];
 
 // ─── FINANCEIRO ───
 const financeiroGroups: MenuGroup[] = [
   {
-    label: "Financeiro",
-    icon: <Wallet className="w-4 h-4" />,
+    label: "Visão geral",
+    icon: <LayoutDashboard className="w-4 h-4" />,
     allowedRoles: ["admin", "financeiro", "logistica"],
     moduleKey: "financeiro",
+    flat: true,
     items: [
       {
         path: "/financeiro",
-        label: "Dashboard",
+        label: "Visão geral",
         icon: <LayoutDashboard className="w-4 h-4" />,
         allowedRoles: ["admin", "financeiro", "logistica"],
         submoduleKey: "financeiro.dashboard",
       },
+    ],
+  },
+  {
+    label: "Lançamentos",
+    icon: <Receipt className="w-4 h-4" />,
+    allowedRoles: ["admin", "financeiro", "logistica"],
+    moduleKey: "financeiro",
+    items: [
       {
         path: "/financeiro/lancamentos",
         label: "Lançamentos",
@@ -611,30 +633,24 @@ const financeiroGroups: MenuGroup[] = [
       {
         path: "/financeiro/importar",
         label: "Importar Lançamentos",
-        icon: <Receipt className="w-4 h-4" />,
+        icon: <FileSpreadsheet className="w-4 h-4" />,
         allowedRoles: ["admin", "financeiro"],
         submoduleKey: "financeiro.lancamentos",
       },
+    ],
+  },
+  {
+    label: "Contas",
+    icon: <CalendarClock className="w-4 h-4" />,
+    allowedRoles: ["admin", "financeiro", "logistica"],
+    moduleKey: "financeiro",
+    items: [
       {
-        path: "/financeiro/fluxo-caixa",
-        label: "Fluxo de Caixa",
-        icon: <DollarSign className="w-4 h-4" />,
+        path: "/financeiro/contas-pagar",
+        label: "Contas a Pagar",
+        icon: <ArrowDownCircle className="w-4 h-4" />,
         allowedRoles: ["admin", "financeiro", "logistica"],
-        submoduleKey: "financeiro.fluxo_caixa",
-      },
-      {
-        path: "/financeiro/relatorios",
-        label: "Relatórios",
-        icon: <BarChart2 className="w-4 h-4" />,
-        allowedRoles: ["admin", "financeiro"],
-        submoduleKey: "financeiro.relatorios",
-      },
-      {
-        path: "/financeiro/vencimentos",
-        label: "Vencimentos",
-        icon: <CalendarClock className="w-4 h-4" />,
-        allowedRoles: ["admin", "financeiro", "logistica"],
-        submoduleKey: "financeiro.vencimentos",
+        submoduleKey: "financeiro.contas_pagar",
       },
       {
         path: "/financeiro/contas-receber",
@@ -644,12 +660,42 @@ const financeiroGroups: MenuGroup[] = [
         submoduleKey: "financeiro.contas_receber",
       },
       {
+        path: "/financeiro/vencimentos",
+        label: "Vencimentos",
+        icon: <CalendarClock className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro", "logistica"],
+        submoduleKey: "financeiro.vencimentos",
+      },
+    ],
+  },
+  {
+    label: "Caixa e Bancos",
+    icon: <DollarSign className="w-4 h-4" />,
+    allowedRoles: ["admin", "financeiro", "logistica"],
+    moduleKey: "financeiro",
+    items: [
+      {
+        path: "/financeiro/fluxo-caixa",
+        label: "Fluxo de Caixa",
+        icon: <DollarSign className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro", "logistica"],
+        submoduleKey: "financeiro.fluxo_caixa",
+      },
+      {
         path: "/financeiro/conciliacao",
         label: "Conciliação Bancária",
         icon: <Landmark className="w-4 h-4" />,
         allowedRoles: ["admin", "financeiro"],
         submoduleKey: "financeiro.conciliacao",
       },
+    ],
+  },
+  {
+    label: "Planejamento",
+    icon: <Target className="w-4 h-4" />,
+    allowedRoles: ["admin", "financeiro"],
+    moduleKey: "financeiro",
+    items: [
       {
         path: "/financeiro/orcamentos",
         label: "Orçamentos",
@@ -664,6 +710,21 @@ const financeiroGroups: MenuGroup[] = [
         allowedRoles: ["admin", "financeiro"],
         submoduleKey: "financeiro.centros_custo",
       },
+    ],
+  },
+  {
+    label: "Relatórios",
+    icon: <FileBarChart className="w-4 h-4" />,
+    allowedRoles: ["admin", "financeiro"],
+    moduleKey: "financeiro",
+    items: [
+      {
+        path: "/financeiro/relatorios",
+        label: "Relatórios",
+        icon: <BarChart2 className="w-4 h-4" />,
+        allowedRoles: ["admin", "financeiro"],
+        submoduleKey: "financeiro.relatorios",
+      },
       {
         path: "/financeiro/dre",
         label: "DRE",
@@ -671,6 +732,14 @@ const financeiroGroups: MenuGroup[] = [
         allowedRoles: ["admin", "financeiro"],
         submoduleKey: "financeiro.dre",
       },
+    ],
+  },
+  {
+    label: "Pessoal",
+    icon: <Wallet className="w-4 h-4" />,
+    allowedRoles: ["admin", "financeiro"],
+    moduleKey: "financeiro",
+    items: [
       {
         path: "/financeiro/pessoal",
         label: "Invex Finanças (pessoal)",
@@ -1175,7 +1244,7 @@ export function AppSidebar() {
   const isFitnessCompany = user?.companyId === "f54ebd25-21cc-43e8-888f-ffbbed1d4b7f";
   const visibleAcademia = !isSuperAdmin && isFitnessCompany ? filterGroups(academiaGroups) : [];
   const visibleClinica = !isSuperAdmin ? filterGroups(clinicaGroups) : [];
-  const visibleVendas = !isSuperAdmin ? filterGroups([...producaoGroups, ...vendasGroups]) : [];
+  const visibleVendas = !isSuperAdmin ? filterGroups(vendasGroups) : [];
   const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
   const visibleManutencao = !isSuperAdmin ? filterGroups(manutencaoGroups) : [];
   const visibleBeneficios: MenuGroup[] = [];
@@ -1240,6 +1309,89 @@ export function AppSidebar() {
     );
   };
 
+  // Seção com título (ex.: LOGÍSTICA) e subgrupos em negrito, recolhíveis.
+  const renderSection = (title: string, icon: React.ReactNode, groups: MenuGroup[], scope: string) => (
+    <SidebarGroup>
+      <SidebarGroupLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <div className="flex items-center gap-2">
+          {icon}
+          <span>{title}</span>
+        </div>
+      </SidebarGroupLabel>
+      <SidebarGroupContent>
+        {groups.map((group) => {
+          if (group.flat) {
+            return (
+              <SidebarMenu key={group.label}>
+                {group.items.map((item) => (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton
+                      onClick={() => navigatePreservingScroll(item.path)}
+                      isActive={isActive(item.path)}
+                      tooltip={item.label}
+                      className={cn(
+                        "w-full justify-start gap-2 px-2 py-2 text-sm font-semibold transition-colors",
+                        isActive(item.path)
+                          ? "bg-primary/10 text-primary"
+                          : "text-foreground hover:bg-sidebar-accent",
+                      )}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            );
+          }
+          return (
+            <Collapsible
+              key={group.label}
+              open={isGroupOpen(group, scope)}
+              onOpenChange={(open) => toggleGroup(group, scope, open)}
+              className="group/collapsible"
+            >
+              <CollapsibleTrigger asChild>
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between px-2 py-2 text-sm font-semibold text-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    {group.icon}
+                    <span>{group.label}</span>
+                  </div>
+                  <ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarMenu>
+                  {group.items.map((item) => (
+                    <SidebarMenuItem key={item.path}>
+                      <SidebarMenuButton
+                        onClick={() => navigatePreservingScroll(item.path)}
+                        isActive={isActive(item.path)}
+                        tooltip={item.label}
+                        className={cn(
+                          "w-full justify-start gap-3 pl-8 py-2 text-sm transition-colors",
+                          isActive(item.path)
+                            ? "bg-primary/10 text-primary font-medium"
+                            : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
+                        )}
+                      >
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+
   // Flash-fix: skeleton até auth+módulos carregarem
   if (isLoading || moduleLoading) {
     return (
@@ -1289,163 +1441,29 @@ export function AppSidebar() {
         )}
 
         {/* Logística - parent group with collapsible subgroups */}
-        {visibleLogistics.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              <div className="flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                <span>Logística</span>
-              </div>
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              {visibleLogistics.map((group) => {
-                if (group.flat) {
-                  return (
-                    <SidebarMenu key={group.label}>
-                      {group.items.map((item) => (
-                        <SidebarMenuItem key={item.path}>
-                          <SidebarMenuButton
-                            onClick={() => navigatePreservingScroll(item.path)}
-                            isActive={isActive(item.path)}
-                            tooltip={item.label}
-                            className={cn(
-                              "w-full justify-start gap-2 px-2 py-2 text-sm font-semibold transition-colors",
-                              isActive(item.path)
-                                ? "bg-primary/10 text-primary"
-                                : "text-foreground hover:bg-sidebar-accent",
-                            )}
-                          >
-                            {item.icon}
-                            <span>{item.label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  );
-                }
-                return (
-                  <Collapsible
-                    key={group.label}
-                    open={isGroupOpen(group, "logistica")}
-                    onOpenChange={(open) => toggleGroup(group, "logistica", open)}
-                    className="group/collapsible"
-                  >
-                    <CollapsibleTrigger asChild>
-                      <button
-                        type="button"
-                        className="w-full flex items-center justify-between px-2 py-2 text-sm font-semibold text-foreground hover:bg-sidebar-accent rounded-md transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          {group.icon}
-                          <span>{group.label}</span>
-                        </div>
-                        <ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                      </button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenu>
-                        {group.items.map((item) => (
-                          <SidebarMenuItem key={item.path}>
-                            <SidebarMenuButton
-                              onClick={() => navigatePreservingScroll(item.path)}
-                              isActive={isActive(item.path)}
-                              tooltip={item.label}
-                              className={cn(
-                                "w-full justify-start gap-3 pl-8 py-2 text-sm transition-colors",
-                                isActive(item.path)
-                                  ? "bg-primary/10 text-primary font-medium"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
-                              )}
-                            >
-                              {item.icon}
-                              <span>{item.label}</span>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        ))}
-                      </SidebarMenu>
-                    </CollapsibleContent>
-                  </Collapsible>
-                );
-              })}
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        {visibleLogistics.length > 0 && renderSection("Logística", <Package className="w-4 h-4" />, visibleLogistics, "logistica")}
 
         {/* Gestão de Pessoas (RH) - parent group with collapsible subgroups */}
         {visibleRHGroups.length > 0 && (
           <>
             <SidebarSeparator className="my-2" />
-            <SidebarGroup>
-              <SidebarGroupLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  <span>Gestão de Pessoas</span>
-                </div>
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                {visibleRHGroups.map((group) => {
-                  return (
-                    <Collapsible
-                      key={group.label}
-                      open={isGroupOpen(group, "rh")}
-                      onOpenChange={(open) => toggleGroup(group, "rh", open)}
-                      className="group/collapsible"
-                    >
-                      <CollapsibleTrigger asChild>
-                        <button
-                          type="button"
-                          className="w-full flex items-center justify-between px-2 py-2 text-sm font-semibold text-foreground hover:bg-sidebar-accent rounded-md transition-colors"
-                        >
-                          <div className="flex items-center gap-2">
-                            {group.icon}
-                            <span>{group.label}</span>
-                          </div>
-                          <ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                        </button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenu>
-                          {group.items.map((item) => (
-                            <SidebarMenuItem key={item.path}>
-                              <SidebarMenuButton
-                                onClick={() => navigatePreservingScroll(item.path)}
-                                isActive={isActive(item.path)}
-                                tooltip={item.label}
-                                className={cn(
-                                  "w-full justify-start gap-3 pl-8 py-2 text-sm transition-colors",
-                                  isActive(item.path)
-                                    ? "bg-primary/10 text-primary font-medium"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent",
-                                )}
-                              >
-                                {item.icon}
-                                <span>{item.label}</span>
-                              </SidebarMenuButton>
-                            </SidebarMenuItem>
-                          ))}
-                        </SidebarMenu>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  );
-                })}
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {renderSection("Gestão de Pessoas", <Users className="w-4 h-4" />, visibleRHGroups, "rh")}
           </>
         )}
 
-        {/* Vendas */}
+        {/* Vendas - parent group with collapsible subgroups */}
         {visibleVendas.length > 0 && (
           <>
             <SidebarSeparator className="my-2" />
-            {visibleVendas.map(renderGroup)}
+            {renderSection("Vendas", <ShoppingCart className="w-4 h-4" />, visibleVendas, "vendas")}
           </>
         )}
 
-        {/* Financeiro */}
+        {/* Financeiro - parent group with collapsible subgroups */}
         {visibleFinanceiro.length > 0 && (
           <>
             <SidebarSeparator className="my-2" />
-            {visibleFinanceiro.map(renderGroup)}
+            {renderSection("Financeiro", <Wallet className="w-4 h-4" />, visibleFinanceiro, "financeiro")}
           </>
         )}
 

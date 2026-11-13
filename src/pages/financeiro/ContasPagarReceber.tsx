@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { CheckCircle, Search, AlertTriangle, CalendarClock } from 'lucide-react';
 import { format, parseISO, differenceInCalendarDays } from 'date-fns';
+import { DEFAULT_STATUS_FILTER, matchesOrigem, origemLabel, type OrigemFiltro } from './contasUtils';
 
 type Props = { tipo: 'despesa' | 'receita' };
 
@@ -23,7 +24,8 @@ const ContasPagarReceber = ({ tipo }: Props) => {
   const [entries, setEntries] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('aberto');
+  const [statusFilter, setStatusFilter] = useState<string>(DEFAULT_STATUS_FILTER);
+  const [origemFilter, setOrigemFilter] = useState<OrigemFiltro>('todas');
   const [tab, setTab] = useState('todas');
 
   const isPagar = tipo === 'despesa';
@@ -69,7 +71,20 @@ const ContasPagarReceber = ({ tipo }: Props) => {
     return statusFilter === 'aberto' ? buckets.abertas : statusFilter === 'pago' ? buckets.pagas : base;
   };
 
-  const rows = listFor(tab).filter(e => e.descricao.toLowerCase().includes(search.toLowerCase()));
+  const rows = listFor(tab)
+    .filter(e => matchesOrigem(e.origem, origemFilter))
+    .filter(e => (e.descricao || '').toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      // Em aberto: vencimento mais próximo primeiro; quitadas: mais recentes primeiro.
+      const da = dueDateOf(a), db = dueDateOf(b);
+      const abertaA = a.status !== 'pago', abertaB = b.status !== 'pago';
+      if (abertaA !== abertaB) return abertaA ? -1 : 1;
+      return abertaA ? da.localeCompare(db) : db.localeCompare(da);
+    });
+
+  const origemBadge = (e: any) => (
+    <Badge variant="outline" className="text-[10px] font-normal">{origemLabel(e.origem)}</Badge>
+  );
 
   const sum = (arr: any[]) => arr.reduce((s, e) => s + Number(e.valor), 0);
 
@@ -117,6 +132,16 @@ const ContasPagarReceber = ({ tipo }: Props) => {
                   </SelectContent>
                 </Select>
               )}
+              <Select value={origemFilter} onValueChange={(v) => setOrigemFilter(v as OrigemFiltro)}>
+                <SelectTrigger className="w-full sm:w-48"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">Todas as origens</SelectItem>
+                  {isPagar
+                    ? <SelectItem value="producao">Compras de matéria-prima</SelectItem>
+                    : <SelectItem value="vendas">Vendas</SelectItem>}
+                  <SelectItem value="outras">Lançamentos manuais</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <Tabs value={tab} onValueChange={setTab}>
               <TabsList className="flex flex-wrap h-auto">
@@ -136,7 +161,7 @@ const ContasPagarReceber = ({ tipo }: Props) => {
                 <div key={e.id} className="rounded-lg border p-3 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="font-medium truncate">{e.descricao}</p>
+                      <div className="flex items-center gap-2 min-w-0"><p className="font-medium truncate">{e.descricao}</p>{origemBadge(e)}</div>
                       <p className="text-xs text-muted-foreground">Venc. {format(parseISO(dueDateOf(e)), 'dd/MM/yyyy')} · {catMap.get(e.categoria_id) || 'Sem categoria'}</p>
                     </div>
                     <p className={`font-bold whitespace-nowrap ${isPagar ? 'text-red-600' : 'text-green-600'}`}>{fmt(Number(e.valor))}</p>
@@ -154,6 +179,7 @@ const ContasPagarReceber = ({ tipo }: Props) => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Descrição</TableHead>
+                    <TableHead>Origem</TableHead>
                     <TableHead>Categoria</TableHead>
                     <TableHead>Vencimento</TableHead>
                     <TableHead>Valor</TableHead>
@@ -163,10 +189,11 @@ const ContasPagarReceber = ({ tipo }: Props) => {
                 </TableHeader>
                 <TableBody>
                   {rows.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma conta</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Nenhuma conta</TableCell></TableRow>
                   ) : rows.map(e => (
                     <TableRow key={e.id}>
                       <TableCell className="font-medium max-w-[240px] truncate">{e.descricao}</TableCell>
+                      <TableCell>{origemBadge(e)}</TableCell>
                       <TableCell>{catMap.get(e.categoria_id) || '—'}</TableCell>
                       <TableCell>{format(parseISO(dueDateOf(e)), 'dd/MM/yyyy')}</TableCell>
                       <TableCell className={isPagar ? 'text-red-600 font-medium' : 'text-green-600 font-medium'}>{fmt(Number(e.valor))}</TableCell>
@@ -187,4 +214,5 @@ const ContasPagarReceber = ({ tipo }: Props) => {
 };
 
 export const ContasReceber = () => <ContasPagarReceber tipo="receita" />;
+export const ContasPagar = () => <ContasPagarReceber tipo="despesa" />;
 export default ContasPagarReceber;
