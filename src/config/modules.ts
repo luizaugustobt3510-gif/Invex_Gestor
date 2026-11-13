@@ -101,9 +101,14 @@ export const MODULES_CATALOG: ModuleDef[] = [
   {
     key: 'producao',
     label: 'Produção',
-    description: 'Entrada de matéria-prima com lote, procedência, temperatura, boletim, FOP e foto; transformação em produto processado com rastreio de lote. Custo vai para o Financeiro.',
+    description: 'Transformação de matéria-prima em produto final com rastreio de lote, fichas técnicas, indicadores e gráficos. A entrada de matéria-prima fica em Logística > Estoque e o custo vai para o Financeiro.',
     route: '/producao',
-    submodules: [],
+    submodules: [
+      { key: 'producao.dashboard', label: 'Visão geral' },
+      { key: 'producao.processar', label: 'Processar' },
+      { key: 'producao.lotes', label: 'Lotes e rastreio' },
+      { key: 'producao.fichas', label: 'Fichas técnicas' },
+    ],
   },
   {
     key: 'vendas',

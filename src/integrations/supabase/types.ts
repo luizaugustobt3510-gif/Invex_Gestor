@@ -3044,6 +3044,7 @@ export type Database = {
           preco: number
           preco_unitario: number | null
           quantidade: number
+          tipo: string
           unidade: string
           updated_at: string
           validade: string | null
@@ -3061,6 +3062,7 @@ export type Database = {
           preco?: number
           preco_unitario?: number | null
           quantidade?: number
+          tipo?: string
           unidade?: string
           updated_at?: string
           validade?: string | null
@@ -3078,6 +3080,7 @@ export type Database = {
           preco?: number
           preco_unitario?: number | null
           quantidade?: number
+          tipo?: string
           unidade?: string
           updated_at?: string
           validade?: string | null
@@ -4023,6 +4026,7 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string
+          custo_materia_prima: number
           entry_id: string
           id: string
           lote_produto: string
@@ -4031,10 +4035,12 @@ export type Database = {
           quantidade_consumida: number
           quantidade_produzida: number
           user_id: string
+          validade: string | null
         }
         Insert: {
           company_id: string
           created_at?: string
+          custo_materia_prima?: number
           entry_id: string
           id?: string
           lote_produto?: string
@@ -4043,10 +4049,12 @@ export type Database = {
           quantidade_consumida: number
           quantidade_produzida: number
           user_id: string
+          validade?: string | null
         }
         Update: {
           company_id?: string
           created_at?: string
+          custo_materia_prima?: number
           entry_id?: string
           id?: string
           lote_produto?: string
@@ -4055,6 +4063,7 @@ export type Database = {
           quantidade_consumida?: number
           quantidade_produzida?: number
           user_id?: string
+          validade?: string | null
         }
         Relationships: [
           {
@@ -4073,6 +4082,64 @@ export type Database = {
           },
           {
             foreignKeyName: "production_orders_produto_material_id_fkey"
+            columns: ["produto_material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_recipes: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          materia_prima_id: string
+          observacoes: string
+          produto_material_id: string
+          rendimento_esperado: number
+          updated_at: string
+          validade_dias: number | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          materia_prima_id: string
+          observacoes?: string
+          produto_material_id: string
+          rendimento_esperado?: number
+          updated_at?: string
+          validade_dias?: number | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          materia_prima_id?: string
+          observacoes?: string
+          produto_material_id?: string
+          rendimento_esperado?: number
+          updated_at?: string
+          validade_dias?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_recipes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_recipes_materia_prima_id_fkey"
+            columns: ["materia_prima_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_recipes_produto_material_id_fkey"
             columns: ["produto_material_id"]
             isOneToOne: false
             referencedRelation: "materials"
@@ -4287,6 +4354,7 @@ export type Database = {
           quantidade_restante: number
           temperatura: number | null
           user_id: string
+          validade: string | null
         }
         Insert: {
           boletim?: boolean
@@ -4307,6 +4375,7 @@ export type Database = {
           quantidade_restante: number
           temperatura?: number | null
           user_id: string
+          validade?: string | null
         }
         Update: {
           boletim?: boolean
@@ -4327,6 +4396,7 @@ export type Database = {
           quantidade_restante?: number
           temperatura?: number | null
           user_id?: string
+          validade?: string | null
         }
         Relationships: [
           {
@@ -4776,6 +4846,7 @@ export type Database = {
           created_at: string
           desconto: number
           desconto_tipo: string
+          estoque_baixado: boolean
           forma_pagamento: string
           id: string
           observacoes: string | null
@@ -4789,6 +4860,7 @@ export type Database = {
           created_at?: string
           desconto?: number
           desconto_tipo?: string
+          estoque_baixado?: boolean
           forma_pagamento?: string
           id?: string
           observacoes?: string | null
@@ -4802,6 +4874,7 @@ export type Database = {
           created_at?: string
           desconto?: number
           desconto_tipo?: string
+          estoque_baixado?: boolean
           forma_pagamento?: string
           id?: string
           observacoes?: string | null
@@ -5843,6 +5916,7 @@ export type Database = {
         Args: { _app: string; _ativo: boolean; _fim: string; _user_id: string }
         Returns: undefined
       }
+      apply_sale_stock: { Args: { _sale_id: string }; Returns: undefined }
       can_write_producao: {
         Args: { _company: string; _uid: string }
         Returns: boolean
@@ -5939,6 +6013,7 @@ export type Database = {
           _produto_material_id: string
           _quantidade_consumida: number
           _quantidade_produzida: number
+          _validade?: string
         }
         Returns: string
       }
@@ -5957,6 +6032,7 @@ export type Database = {
           _procedencia: string
           _quantidade: number
           _temperatura: number
+          _validade?: string
           _vencimento: string
         }
         Returns: string
@@ -5970,6 +6046,7 @@ export type Database = {
         }
         Returns: string
       }
+      reverse_sale_stock: { Args: { _sale_id: string }; Returns: undefined }
       role_has_module: {
         Args: { _company_id: string; _module_key: string; _user_id: string }
         Returns: boolean

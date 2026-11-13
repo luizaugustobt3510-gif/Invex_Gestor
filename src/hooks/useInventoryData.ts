@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { stockStatus } from '@/pages/producao/producaoCalc';
 
 export interface InventoryItem {
   id: string;
@@ -19,6 +20,8 @@ export interface InventoryItem {
   curva: string;
   groupId: string | null;
   groupName: string;
+  /** comum | materia_prima | produto_final */
+  tipo: string;
 }
 
 export interface InventorySummary {
@@ -122,9 +125,8 @@ export const useInventoryData = () => {
         const smartMin = abc && abc.consumoMensal > 0 ? Math.max(0, Math.ceil(consumoDiario * cov.minDays)) : Number(m.minimo);
         const smartMax = abc && abc.consumoMensal > 0 ? Math.max(smartMin, Math.ceil(consumoDiario * cov.maxDays)) : Number(m.maximo);
 
-        let status = 'OK';
-        if (qty === 0) status = 'Zerado';
-        else if (qty < smartMin) status = 'Abaixo do Mínimo';
+        // Zerado (ou negativo) = crítico; abaixo do mínimo = alerta.
+        const status: string = stockStatus(qty, smartMin);
 
         return {
           id: m.id,
@@ -142,6 +144,7 @@ export const useInventoryData = () => {
           curva: abc?.classe || 'C',
           groupId: (m as any).group_id || null,
           groupName: (m as any).group_id ? (groupMap.get((m as any).group_id) || '') : '',
+          tipo: (m as any).tipo || 'comum',
         };
       });
 

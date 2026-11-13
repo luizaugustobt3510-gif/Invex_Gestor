@@ -9,6 +9,7 @@ import { dbErrorMessage } from '@/lib/dbErrors';
 import { useMaterialGroups } from '@/hooks/useMaterialGroups';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface EditMaterialDialogProps {
   item: InventoryItem | null;
@@ -25,6 +26,8 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
   const [unidade, setUnidade] = useState('');
   const [validade, setValidade] = useState('');
   const [groupId, setGroupId] = useState<string>('');
+  const [preco, setPreco] = useState('');
+  const [tipo, setTipo] = useState('comum');
   const [loading, setLoading] = useState(false);
   const { groups, createGroup, loading: loadingGroups } = useMaterialGroups();
 
@@ -37,6 +40,8 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
       setUnidade(item.unidade || 'UNIDADE');
       setValidade(item.validade ? String(item.validade).slice(0, 10) : '');
       setGroupId(item.groupId || '');
+      setPreco(String(item.preco ?? 0));
+      setTipo(item.tipo || 'comum');
     }
   }, [item]);
 
@@ -48,10 +53,12 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
     const numMin = Number(minimo);
     const numMax = Number(maximo);
     const numQtd = Number(quantidade);
+    const numPreco = Number(String(preco).replace(',', '.'));
 
     if (isNaN(numMin) || numMin < 0) { toast.error('Mínimo inválido.'); return; }
     if (isNaN(numMax) || numMax < 0) { toast.error('Máximo inválido.'); return; }
     if (isNaN(numQtd) || numQtd < 0) { toast.error('Quantidade inválida.'); return; }
+    if (isNaN(numPreco) || numPreco < 0) { toast.error('Preço inválido.'); return; }
 
     setLoading(true);
     try {
@@ -65,6 +72,8 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
           unidade: unidade.trim() || 'UNIDADE',
           validade: validade || null,
           group_id: groupId || null,
+          preco: numPreco,
+          tipo,
         } as any)
         .eq('id', item.id);
 
@@ -78,7 +87,7 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
           action: 'update_material',
           entity_type: 'material',
           entity_id: item.id,
-          details: { codigo: item.codigo, changes: { material: material.trim(), minimo: numMin, maximo: numMax, quantidade: numQtd, unidade: unidade.trim() } },
+          details: { codigo: item.codigo, changes: { material: material.trim(), minimo: numMin, maximo: numMax, quantidade: numQtd, unidade: unidade.trim(), preco: numPreco, tipo } },
         });
       }
 
@@ -104,9 +113,26 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
               <Label>Nome do Material</Label>
               <Input value={material} onChange={(e) => setMaterial(e.target.value)} />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Unidade</Label>
+                <Input value={unidade} onChange={(e) => setUnidade(e.target.value)} placeholder="UNIDADE" />
+              </div>
+              <div className="space-y-2">
+                <Label>Preço (R$)</Label>
+                <Input type="number" step="0.01" min="0" inputMode="decimal" value={preco} onChange={(e) => setPreco(e.target.value)} placeholder="0,00" />
+              </div>
+            </div>
             <div className="space-y-2">
-              <Label>Unidade</Label>
-              <Input value={unidade} onChange={(e) => setUnidade(e.target.value)} placeholder="UNIDADE" />
+              <Label>Tipo</Label>
+              <Select value={tipo} onValueChange={(v) => v && setTipo(v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="comum">Material comum</SelectItem>
+                  <SelectItem value="materia_prima">Matéria-prima (usada na produção)</SelectItem>
+                  <SelectItem value="produto_final">Produto final (produzido, para venda)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">

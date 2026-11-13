@@ -18,6 +18,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { EditMaterialDialog } from "@/components/EditMaterialDialog";
+import { ProductionStockCard, ProductionActionsDialog, MPInfo, PFInfo } from "@/components/producao/ProductionStockCard";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { rendimento } from "@/pages/producao/producaoCalc";
 
 
 const DashboardLogistica = () => {
@@ -30,8 +33,64 @@ const DashboardLogistica = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteItem, setDeleteItem] = useState<InventoryItem | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const { hasPermission } = useAuth();
+  const { hasPermission, user } = useAuth();
   const isAdmin = hasPermission(['superadm', 'admin', 'logistica', 'usuario almox']);
+  const { canAccessModule } = useModuleAccess();
+  const canProduce = canAccessModule('producao');
+  const canSell = canAccessModule('vendas');
+  const [tipoFilter, setTipoFilter] = useState<'todos' | 'materia_prima' | 'produto_final' | 'comum'>('todos');
+  const [actionItem, setActionItem] = useState<InventoryItem | null>(null);
+  const [mpInfo, setMpInfo] = useState<Record<string, MPInfo>>({});
+  const [pfInfo, setPfInfo] = useState<Record<string, PFInfo>>({});
+
+  // Dados de produção para os cartões de matéria-prima e produto final
+  useEffect(() => {
+    const companyId = user?.companyId;
+    if (!companyId || !inventoryData.some(i => i.tipo !== 'comum')) { setMpInfo({}); setPfInfo({}); return; }
+    let cancel = false;
+    (async () => {
+      const [e, o] = await Promise.all([
+        supabase.from('raw_material_entries').select('material_id, quantidade, quantidade_restante, custo_total, created_at, procedencia, temperatura, validade, numero_controle').eq('company_id', companyId).order('created_at', { ascending: false }),
+        supabase.from('production_orders').select('produto_material_id, quantidade_consumida, quantidade_produzida, lote_produto, created_at, validade').eq('company_id', companyId).order('created_at', { ascending: false }),
+      ]);
+      if (cancel || e.error || o.error) return;
+      const mp: Record<string, MPInfo> = {};
+      const custoAcc: Record<string, { c: number; q: number }> = {};
+      (e.data || []).forEach((r) => {
+        const id = r.material_id;
+        const cur = mp[id] ?? { lotesComSaldo: 0, saldoLotes: 0, ultimoControle: r.numero_controle, ultimaEntrada: r.created_at, procedencia: r.procedencia, temperatura: r.temperatura != null ? Number(r.temperatura) : null, custoMedio: 0, validadeProxima: null };
+        const rest = Number(r.quantidade_restante) || 0;
+        if (rest > 0) {
+          cur.lotesComSaldo += 1; cur.saldoLotes += rest;
+          if (r.validade && (!cur.validadeProxima || r.validade < cur.validadeProxima)) cur.validadeProxima = r.validade;
+        }
+        const acc = custoAcc[id] ?? { c: 0, q: 0 };
+        acc.c += Number(r.custo_total) || 0; acc.q += Number(r.quantidade) || 0; custoAcc[id] = acc;
+        mp[id] = cur;
+      });
+      Object.keys(mp).forEach((id) => { const a = custoAcc[id]; mp[id].custoMedio = a.q > 0 ? a.c / a.q : 0; });
+      const pf: Record<string, PFInfo> = {};
+      const rendAcc: Record<string, { c: number; p: number }> = {};
+      (o.data || []).forEach((r) => {
+        const id = r.produto_material_id;
+        const cur = pf[id] ?? { producoes: 0, ultimoLote: r.lote_produto, ultimaProducao: r.created_at, rendimento: null, validadeProxima: null };
+        cur.producoes += 1;
+        if (r.validade && (!cur.validadeProxima || r.validade < cur.validadeProxima)) cur.validadeProxima = r.validade;
+        const acc = rendAcc[id] ?? { c: 0, p: 0 };
+        acc.c += Number(r.quantidade_consumida) || 0; acc.p += Number(r.quantidade_produzida) || 0; rendAcc[id] = acc;
+        pf[id] = cur;
+      });
+      Object.keys(pf).forEach((id) => { const a = rendAcc[id]; pf[id].rendimento = a.c > 0 ? rendimento(a.c, a.p).rendimento : null; });
+      setMpInfo(mp); setPfInfo(pf);
+    })();
+    return () => { cancel = true; };
+  }, [inventoryData, user?.companyId]);
+
+  const tipoCounts = useMemo(() => ({
+    materia_prima: inventoryData.filter(i => i.tipo === 'materia_prima').length,
+    produto_final: inventoryData.filter(i => i.tipo === 'produto_final').length,
+    comum: inventoryData.filter(i => i.tipo === 'comum').length,
+  }), [inventoryData]);
 
   const handleDelete = async () => {
     if (!deleteItem) return;
@@ -138,8 +197,11 @@ const DashboardLogistica = () => {
     if (groupFilter) {
       filtered = filtered.filter(item => (item.groupName || 'Sem grupo') === groupFilter);
     }
+    if (tipoFilter !== 'todos') {
+      filtered = filtered.filter(item => item.tipo === tipoFilter);
+    }
     return filtered;
-  }, [inventoryData, searchQuery, statusFilter, groupFilter]);
+  }, [inventoryData, searchQuery, statusFilter, groupFilter, tipoFilter]);
 
   // Lista de grupos disponíveis (para o filtro)
   const groupList = useMemo(() => {
@@ -403,6 +465,20 @@ const DashboardLogistica = () => {
             </Card>
           </div>
 
+          {/* Filtro por tipo: matéria-prima / produto final / material */}
+          {(tipoCounts.materia_prima > 0 || tipoCounts.produto_final > 0) && (
+            <div className="flex flex-wrap gap-2">
+              {([
+                ['todos', `Todos (${inventoryData.length})`],
+                ['materia_prima', `Matérias-primas (${tipoCounts.materia_prima})`],
+                ['produto_final', `Produtos finais (${tipoCounts.produto_final})`],
+                ['comum', `Outros materiais (${tipoCounts.comum})`],
+              ] as const).map(([k, label]) => (
+                <Button key={k} size="sm" variant={tipoFilter === k ? 'default' : 'outline'} onClick={() => setTipoFilter(k)}>{label}</Button>
+              ))}
+            </div>
+          )}
+
           {/* Filtro por grupo de materiais */}
           {groupList.length > 1 && (
             <Card>
@@ -504,6 +580,21 @@ const DashboardLogistica = () => {
             {filteredData.map((item) => {
               const status = getStatusInfo(item);
               const abc = abcMap.get(item.material.toUpperCase().trim());
+              if (item.tipo === 'materia_prima' || item.tipo === 'produto_final') {
+                return (
+                  <ProductionStockCard
+                    key={item.id}
+                    item={item}
+                    status={status}
+                    mp={mpInfo[item.id]}
+                    pf={pfInfo[item.id]}
+                    canEdit={isAdmin}
+                    onOpen={() => setActionItem(item)}
+                    onEdit={() => { setEditItem(item); setEditOpen(true); }}
+                    onDelete={() => setDeleteItem(item)}
+                  />
+                );
+              }
               return (
                 <Card key={item.codigo} className={`border ${status.color} transition-all hover:shadow-md`}>
                   <CardContent className="p-4 space-y-3">
@@ -574,6 +665,14 @@ const DashboardLogistica = () => {
         open={editOpen}
         onOpenChange={setEditOpen}
         onSaved={refetch}
+      />
+
+      <ProductionActionsDialog
+        item={actionItem}
+        canProduce={canProduce}
+        canSell={canSell}
+        onClose={() => setActionItem(null)}
+        onEdit={(it) => { setEditItem(it); setEditOpen(true); }}
       />
 
       <AlertDialog open={!!deleteItem} onOpenChange={(o) => !o && setDeleteItem(null)}>

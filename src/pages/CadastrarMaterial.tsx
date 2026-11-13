@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,6 +25,7 @@ interface MaterialForm {
   maximo: string;
   preco: string;
   group_id: string;
+  tipo: string;
 }
 
 const CadastrarMaterial = () => {
@@ -30,9 +33,11 @@ const CadastrarMaterial = () => {
   const [loading, setLoading] = useState(false);
   const { user: authUser } = useAuth();
   const { groups, seedDefaults, createGroup, loading: loadingGroups } = useMaterialGroups();
+  const [params] = useSearchParams();
+  const tipoInicial = ['materia_prima', 'produto_final'].includes(params.get('tipo') || '') ? params.get('tipo')! : 'comum';
   const [formData, setFormData] = useState<MaterialForm>({
     codigo: '', material: '', unidade: '', localizacao: '', validade: '',
-    quantidade: '', minimo: '', maximo: '', preco: '', group_id: '',
+    quantidade: '', minimo: '', maximo: '', preco: '', group_id: '', tipo: tipoInicial,
   });
 
   const handleChange = (field: keyof MaterialForm, value: string) => {
@@ -69,12 +74,13 @@ const CadastrarMaterial = () => {
         maximo: Number(formData.maximo) || 0,
         preco: Number(formData.preco) || 0,
         group_id: formData.group_id,
+        tipo: formData.tipo,
       } as any);
 
       if (error) throw error;
 
       toast({ title: 'Sucesso!', description: 'Material cadastrado com sucesso.' });
-      setFormData({ codigo: '', material: '', unidade: '', localizacao: '', validade: '', quantidade: '', minimo: '', maximo: '', preco: '', group_id: '' });
+      setFormData({ codigo: '', material: '', unidade: '', localizacao: '', validade: '', quantidade: '', minimo: '', maximo: '', preco: '', group_id: '', tipo: formData.tipo });
     } catch (err: any) {
       toast({ title: 'Erro', description: dbErrorMessage(err, 'Erro ao cadastrar material.'), variant: 'destructive' });
     } finally {
@@ -138,7 +144,18 @@ const CadastrarMaterial = () => {
                 <Label htmlFor="maximo">Máximo</Label>
                 <Input id="maximo" type="number" value={formData.maximo} onChange={(e) => handleChange('maximo', e.target.value)} placeholder="0" />
               </div>
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
+                <Label htmlFor="tipo">Tipo</Label>
+                <Select value={formData.tipo} onValueChange={(v) => v && handleChange('tipo', v)}>
+                  <SelectTrigger id="tipo"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="comum">Material comum</SelectItem>
+                    <SelectItem value="materia_prima">Matéria-prima (usada na produção)</SelectItem>
+                    <SelectItem value="produto_final">Produto final (produzido, para venda)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="preco">Preço</Label>
                 <Input id="preco" type="number" step="0.01" value={formData.preco} onChange={(e) => handleChange('preco', e.target.value)} placeholder="0.00" />
               </div>

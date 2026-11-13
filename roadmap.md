@@ -56,3 +56,13 @@
 ## Finanças: caixinhas
 - [x] Guardar receita numa caixinha pela edição (com opção para toda a série), fora do saldo livre
 - [x] Meta por caixinha e gráfico de metas
+
+## Produção, estoque e vendas integrados (nov/2026)
+- [x] Editar preço do material
+- [x] Produção como módulo próprio no menu (fora de Vendas)
+- [x] Entrada de matéria-prima em Logística > Estoque, abaixo de Cadastrar Material
+- [x] Produção: Visão geral com indicadores e gráficos, Processar, Lotes e rastreio, Fichas técnicas
+- [x] Matéria-prima com cartão próprio e completo no dashboard (clique abre opções de produção)
+- [x] Produtos finais no dashboard, disponíveis para venda
+- [x] Consumo/venda/produção descontam estoque; zerado vira crítico
+- [x] Corrigir seleção de produto processado que fecha sozinha

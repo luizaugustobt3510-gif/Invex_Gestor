@@ -60,6 +60,7 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   Landmark,
+  PackageSearch,
 } from "lucide-react";
 import { InvexLogo } from "@/components/InvexLogo";
 import {
@@ -159,6 +160,13 @@ const logisticsGroups: MenuGroup[] = [
         path: "/cadastrar-material",
         label: "Cadastrar Material",
         icon: <PackagePlus className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+        submoduleKey: "logistica.estoque",
+      },
+      {
+        path: "/logistica/entrada-materia-prima",
+        label: "Entrada de Matéria-prima",
+        icon: <Factory className="w-4 h-4" />,
         allowedRoles: ["admin", "logistica"],
         submoduleKey: "logistica.estoque",
       },
@@ -516,7 +524,64 @@ const clinicaGroups: MenuGroup[] = [
 ];
 
 
-// ─── VENDAS (inclui Produção) ───
+// ─── PRODUÇÃO ───
+const producaoGroups: MenuGroup[] = [
+  {
+    label: "Visão geral",
+    icon: <LayoutDashboard className="w-4 h-4" />,
+    allowedRoles: ["admin", "logistica"],
+    moduleKey: "producao",
+    flat: true,
+    items: [
+      {
+        path: "/producao",
+        label: "Visão geral",
+        icon: <LayoutDashboard className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+        submoduleKey: "producao.dashboard",
+      },
+    ],
+  },
+  {
+    label: "Processamento",
+    icon: <Factory className="w-4 h-4" />,
+    allowedRoles: ["admin", "logistica"],
+    moduleKey: "producao",
+    items: [
+      {
+        path: "/producao/processar",
+        label: "Processar",
+        icon: <Factory className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+        submoduleKey: "producao.processar",
+      },
+      {
+        path: "/producao/fichas",
+        label: "Fichas técnicas",
+        icon: <ClipboardList className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+        submoduleKey: "producao.fichas",
+      },
+    ],
+  },
+  {
+    label: "Rastreabilidade",
+    icon: <PackageSearch className="w-4 h-4" />,
+    allowedRoles: ["admin", "logistica"],
+    moduleKey: "producao",
+    items: [
+      {
+        path: "/producao/lotes",
+        label: "Lotes e rastreio",
+        icon: <PackageSearch className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+        submoduleKey: "producao.lotes",
+      },
+    ],
+  },
+];
+
+// ─── VENDAS ───
 const vendasGroups: MenuGroup[] = [
   {
     label: "Visão geral",
@@ -550,20 +615,6 @@ const vendasGroups: MenuGroup[] = [
         label: "Histórico de Vendas",
         icon: <History className="w-4 h-4" />,
         allowedRoles: ["admin", "logistica", "financeiro"],
-      },
-    ],
-  },
-  {
-    label: "Produção",
-    icon: <Factory className="w-4 h-4" />,
-    allowedRoles: ["admin", "logistica"],
-    moduleKey: "producao",
-    items: [
-      {
-        path: "/producao",
-        label: "Entrada e Produção",
-        icon: <Factory className="w-4 h-4" />,
-        allowedRoles: ["admin", "logistica"],
       },
     ],
   },
@@ -1214,6 +1265,7 @@ export function AppSidebar() {
   const visibleAcademia: MenuGroup[] = [];
   const visibleClinica = !isSuperAdmin ? filterGroups(clinicaGroups) : [];
   const visibleVendas = !isSuperAdmin ? filterGroups(vendasGroups) : [];
+  const visibleProducao = !isSuperAdmin ? filterGroups(producaoGroups) : [];
   const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
   const visibleManutencao = !isSuperAdmin ? filterGroups(manutencaoGroups) : [];
   const visibleBeneficios: MenuGroup[] = [];
@@ -1417,6 +1469,14 @@ export function AppSidebar() {
           <>
             <SidebarSeparator className="my-2" />
             {renderSection("Gestão de Pessoas", <Users className="w-4 h-4" />, visibleRHGroups, "rh")}
+          </>
+        )}
+
+        {/* Produção - módulo próprio */}
+        {visibleProducao.length > 0 && (
+          <>
+            <SidebarSeparator className="my-2" />
+            {renderSection("Produção", <Factory className="w-4 h-4" />, visibleProducao, "producao")}
           </>
         )}
 

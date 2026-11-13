@@ -94,40 +94,10 @@ const HistoricoVendas = () => {
   const cancelSale = async () => {
     if (!cancelSaleId || !user?.companyId) return;
     try {
-      const { data: authData } = await supabase.auth.getUser();
-      const userId = authData?.user?.id;
 
-      // Get sale items to restore stock
-      const { data: items } = await supabase
-        .from('sale_items')
-        .select('material_id, quantidade')
-        .eq('sale_id', cancelSaleId);
-
-      // Restore stock
-      if (items) {
-        for (const item of items) {
-          const { data: mat } = await supabase
-            .from('materials')
-            .select('quantidade')
-            .eq('id', item.material_id)
-            .single();
-          if (mat) {
-            await supabase
-              .from('materials')
-              .update({ quantidade: mat.quantidade + item.quantidade })
-              .eq('id', item.material_id);
-            // Record return movement
-            await supabase.from('stock_movements').insert({
-              company_id: user.companyId!,
-              material_id: item.material_id,
-              quantidade: item.quantidade,
-              tipo: 'entrada',
-              user_id: userId!,
-              obs: `Estorno venda #${cancelSaleId.slice(0, 8)}`,
-            });
-          }
-        }
-      }
+      // Restore stock (no servidor: devolve ao saldo e registra a entrada de estorno)
+      const { error: stockError } = await supabase.rpc('reverse_sale_stock', { _sale_id: cancelSaleId });
+      if (stockError) throw stockError;
 
       // Update sale status
       await supabase.from('sales').update({ status: 'cancelada' }).eq('id', cancelSaleId);

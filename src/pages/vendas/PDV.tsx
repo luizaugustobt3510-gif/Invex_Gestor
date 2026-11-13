@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MainLayout } from '@/components/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ interface Material {
   quantidade: number;
   preco: number;
   unidade: string;
+  tipo?: string;
 }
 
 interface CartItem {
@@ -49,6 +51,8 @@ const PDV = () => {
   const [descontoTipo, setDescontoTipo] = useState<'valor' | 'percentual'>('valor');
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [params] = useSearchParams();
+  const preAdded = useRef(false);
 
   useEffect(() => {
     if (user?.companyId) fetchMaterials();
@@ -57,16 +61,19 @@ const PDV = () => {
   const fetchMaterials = async () => {
     const { data } = await supabase
       .from('materials')
-      .select('id, codigo, material, quantidade, preco, unidade')
+      .select('id, codigo, material, quantidade, preco, unidade, tipo')
       .eq('company_id', user!.companyId!)
       .order('material');
-    if (data) setMaterials(data);
+    if (data) setMaterials(data.map(m => ({ ...m, quantidade: Number(m.quantidade) || 0, preco: Number(m.preco) || 0 })));
   };
 
-  const filteredMaterials = materials.filter(m =>
-    m.material.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.codigo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Produtos finais da Produção aparecem primeiro
+  const filteredMaterials = materials
+    .filter(m =>
+      m.material.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      m.codigo.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => Number(b.tipo === 'produto_final') - Number(a.tipo === 'produto_final'));
 
   const addToCart = (material: Material) => {
     const existing = cart.find(c => c.material.id === material.id);
@@ -105,6 +112,16 @@ const PDV = () => {
   const removeFromCart = (materialId: string) => {
     setCart(prev => prev.filter(c => c.material.id !== materialId));
   };
+
+  // Vindo do dashboard/Produção com ?material=: já coloca o produto no carrinho
+  useEffect(() => {
+    const id = params.get('material');
+    if (!id || preAdded.current || materials.length === 0) return;
+    const m = materials.find(x => x.id === id);
+    preAdded.current = true;
+    if (m && m.quantidade > 0) addToCart(m);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params, materials]);
 
   const subtotal = cart.reduce((acc, c) => acc + c.subtotal, 0);
   const descontoValor = descontoTipo === 'percentual' ? (subtotal * desconto) / 100 : desconto;
@@ -148,24 +165,11 @@ const PDV = () => {
       const { error: itemsError } = await supabase.from('sale_items').insert(items);
       if (itemsError) throw itemsError;
 
-      // Update stock (decrease quantities)
-      for (const c of cart) {
-        const newQty = c.material.quantidade - c.quantidade;
-        const { error: stockError } = await supabase
-          .from('materials')
-          .update({ quantidade: newQty })
-          .eq('id', c.material.id);
-        if (stockError) throw stockError;
-
-        // Record stock movement
-        await supabase.from('stock_movements').insert({
-          company_id: user.companyId!,
-          material_id: c.material.id,
-          quantidade: c.quantidade,
-          tipo: 'saida',
-          user_id: userId,
-          obs: `Venda #${sale.id.slice(0, 8)}`,
-        });
+      // Baixa o estoque no servidor (desconta do saldo atual e registra a saída)
+      const { error: stockError } = await supabase.rpc('apply_sale_stock', { _sale_id: sale.id });
+      if (stockError) {
+        await supabase.from('sales').update({ status: 'cancelada' }).eq('id', sale.id);
+        throw stockError;
       }
 
       // Create financial entry (aparece em Contas a Receber)
@@ -231,6 +235,7 @@ const PDV = () => {
                       disabled={m.quantidade <= 0}
                     >
                       <p className="font-medium text-sm text-foreground truncate">{m.material}</p>
+                      {m.tipo === 'produto_final' && <Badge variant="secondary" className="text-[10px] mt-0.5">Produzido</Badge>}
                       <p className="text-xs text-muted-foreground">{m.codigo}</p>
                       <div className="flex justify-between items-center mt-1">
                         <span className="text-sm font-semibold text-primary">R$ {m.preco.toFixed(2)}</span>
