@@ -197,6 +197,13 @@
       "when": 1794490683408,
       "tag": "0027_admin_set_app_premium",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1794568200423,
+      "tag": "0028_producao_materia_prima",
+      "breakpoints": true
     }
   ]
 }

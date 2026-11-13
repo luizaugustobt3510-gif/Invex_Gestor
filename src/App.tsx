@@ -103,6 +103,7 @@ import PDV from "./pages/vendas/PDV";
 import HistoricoVendas from "./pages/vendas/HistoricoVendas";
 import RelatoriosVendas from "./pages/vendas/RelatoriosVendas";
 import Fornecedores from "./pages/logistica/Fornecedores";
+import Producao from "./pages/producao/Producao";
 import Reposicao from "./pages/logistica/Reposicao";
 import CurvaABCInteligente from "./pages/logistica/CurvaABCInteligente";
 import EstoqueInteligente from "./pages/logistica/EstoqueInteligente";
@@ -294,6 +295,7 @@ const App = () => (
 
             {/* === VENDAS === */}
             <Route path="/vendas" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']} moduleKey="vendas"><DashboardVendas /></RoleProtectedRoute>} />
+            <Route path="/producao" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="producao"><Producao /></RoleProtectedRoute>} />
             <Route path="/vendas/pdv" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="vendas"><PDV /></RoleProtectedRoute>} />
             <Route path="/vendas/historico" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']} moduleKey="vendas"><HistoricoVendas /></RoleProtectedRoute>} />
             <Route path="/vendas/relatorios" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']} moduleKey="vendas"><RelatoriosVendas /></RoleProtectedRoute>} />

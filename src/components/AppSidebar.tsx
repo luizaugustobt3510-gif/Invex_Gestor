@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth, UserRole } from "@/contexts/AuthContext";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import {
+  Factory,
   LayoutDashboard,
   Package,
   PackagePlus,
@@ -536,6 +537,24 @@ const vendasGroups: MenuGroup[] = [
         label: "Relatórios",
         icon: <BarChart2 className="w-4 h-4" />,
         allowedRoles: ["admin", "logistica", "financeiro"],
+      },
+    ],
+  },
+];
+
+// ─── PRODUÇÃO ───
+const producaoGroups: MenuGroup[] = [
+  {
+    label: "Produção",
+    icon: <Factory className="w-4 h-4" />,
+    allowedRoles: ["admin", "logistica"],
+    moduleKey: "producao",
+    items: [
+      {
+        path: "/producao",
+        label: "Entrada e Produção",
+        icon: <Factory className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
       },
     ],
   },
@@ -1115,7 +1134,7 @@ export function AppSidebar() {
   const isFitnessCompany = user?.companyId === "f54ebd25-21cc-43e8-888f-ffbbed1d4b7f";
   const visibleAcademia = !isSuperAdmin && isFitnessCompany ? filterGroups(academiaGroups) : [];
   const visibleClinica = !isSuperAdmin ? filterGroups(clinicaGroups) : [];
-  const visibleVendas = !isSuperAdmin ? filterGroups(vendasGroups) : [];
+  const visibleVendas = !isSuperAdmin ? filterGroups([...producaoGroups, ...vendasGroups]) : [];
   const visibleFinanceiro = !isSuperAdmin ? filterGroups(financeiroGroups) : [];
   const visibleManutencao = !isSuperAdmin ? filterGroups(manutencaoGroups) : [];
   const visibleBeneficios: MenuGroup[] = [];

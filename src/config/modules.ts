@@ -98,6 +98,13 @@ export const MODULES_CATALOG: ModuleDef[] = [
     ],
   },
   {
+    key: 'producao',
+    label: 'Produção',
+    description: 'Entrada de matéria-prima com lote, procedência, temperatura, boletim, FOP e foto; transformação em produto processado com rastreio de lote. Custo vai para o Financeiro.',
+    route: '/producao',
+    submodules: [],
+  },
+  {
     key: 'vendas',
     label: 'Comercial / Vendas',
     description: 'PDV, histórico de vendas, relatórios de vendas.',

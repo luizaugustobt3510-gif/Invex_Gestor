@@ -4019,6 +4019,67 @@ export type Database = {
           },
         ]
       }
+      production_orders: {
+        Row: {
+          company_id: string
+          created_at: string
+          entry_id: string
+          id: string
+          lote_produto: string
+          observacoes: string | null
+          produto_material_id: string
+          quantidade_consumida: number
+          quantidade_produzida: number
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          entry_id: string
+          id?: string
+          lote_produto?: string
+          observacoes?: string | null
+          produto_material_id: string
+          quantidade_consumida: number
+          quantidade_produzida: number
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          entry_id?: string
+          id?: string
+          lote_produto?: string
+          observacoes?: string | null
+          produto_material_id?: string
+          quantidade_consumida?: number
+          quantidade_produzida?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_orders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_orders_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "raw_material_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_orders_produto_material_id_fkey"
+            columns: ["produto_material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           accepted_invite_at: string | null
@@ -4202,6 +4263,84 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      raw_material_entries: {
+        Row: {
+          boletim: boolean
+          company_id: string
+          created_at: string
+          custo_total: number
+          especificacao: string | null
+          financial_entry_id: string | null
+          fop: string | null
+          foto_path: string | null
+          id: string
+          lote: string
+          material_id: string
+          numero_controle: string
+          observacoes: string | null
+          procedencia: string
+          quantidade: number
+          quantidade_restante: number
+          temperatura: number | null
+          user_id: string
+        }
+        Insert: {
+          boletim?: boolean
+          company_id: string
+          created_at?: string
+          custo_total?: number
+          especificacao?: string | null
+          financial_entry_id?: string | null
+          fop?: string | null
+          foto_path?: string | null
+          id?: string
+          lote?: string
+          material_id: string
+          numero_controle?: string
+          observacoes?: string | null
+          procedencia?: string
+          quantidade: number
+          quantidade_restante: number
+          temperatura?: number | null
+          user_id: string
+        }
+        Update: {
+          boletim?: boolean
+          company_id?: string
+          created_at?: string
+          custo_total?: number
+          especificacao?: string | null
+          financial_entry_id?: string | null
+          fop?: string | null
+          foto_path?: string | null
+          id?: string
+          lote?: string
+          material_id?: string
+          numero_controle?: string
+          observacoes?: string | null
+          procedencia?: string
+          quantidade?: number
+          quantidade_restante?: number
+          temperatura?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "raw_material_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "raw_material_entries_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
             referencedColumns: ["id"]
           },
         ]
@@ -5704,6 +5843,10 @@ export type Database = {
         Args: { _app: string; _ativo: boolean; _fim: string; _user_id: string }
         Returns: undefined
       }
+      can_write_producao: {
+        Args: { _company: string; _uid: string }
+        Returns: boolean
+      }
       check_setup_needed: { Args: never; Returns: boolean }
       company_is_not_blocked: {
         Args: { _company_id: string }
@@ -5786,6 +5929,36 @@ export type Database = {
       }
       personal_tx_month: {
         Args: { _competencia: string; _date: string }
+        Returns: string
+      }
+      register_production: {
+        Args: {
+          _entry_id: string
+          _lote_produto: string
+          _observacoes: string
+          _produto_material_id: string
+          _quantidade_consumida: number
+          _quantidade_produzida: number
+        }
+        Returns: string
+      }
+      register_raw_entry: {
+        Args: {
+          _boletim: boolean
+          _company_id: string
+          _custo_total: number
+          _especificacao: string
+          _fop: string
+          _foto_path: string
+          _lote: string
+          _material_id: string
+          _numero_controle: string
+          _observacoes: string
+          _procedencia: string
+          _quantidade: number
+          _temperatura: number
+          _vencimento: string
+        }
         Returns: string
       }
       register_subscription_payment: {
