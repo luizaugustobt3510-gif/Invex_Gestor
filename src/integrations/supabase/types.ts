@@ -6201,6 +6201,7 @@ export type Database = {
         Args: { _company: string; _uid: string }
         Returns: boolean
       }
+      cancel_sale: { Args: { _sale_id: string }; Returns: undefined }
       check_qty_unit: {
         Args: { _nome: string; _qtd: number; _unidade: string }
         Returns: undefined
