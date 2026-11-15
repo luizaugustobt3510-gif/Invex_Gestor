@@ -69,7 +69,8 @@
 - [x] Cards de material comum proporcionais (mesma altura, bloco de dados na base); cards completos de MP/PF só para quem tem Produção e Vendas
 
 ## Vendas — compradores, lotes e unidades (nov/2026)
-- [ ] Cadastro de compradores com avaliação e análise (como fornecedores) + consumidor não identificado
-- [ ] PDV: escolher comprador, lote (data de produção/validade), vender do lote mais antigo, quantidade digitada
-- [ ] Unidades (un, kg, t, pacote...) respeitadas na venda, produção e entrada de matéria-prima
-- [ ] Funcionar sem Produção/Logística/Financeiro: produtos e lotes dentro de Vendas, financeiro gerado no servidor
+- [x] Cadastro de compradores com avaliação e análise (como fornecedores) + consumidor não identificado
+- [x] PDV: escolher comprador, lote (data de produção/validade), vender do lote mais antigo, quantidade digitada
+- [x] Unidades (un, kg, t, pacote...) respeitadas na venda, produção e entrada de matéria-prima
+- [x] Funcionar sem Produção/Logística/Financeiro: produtos e lotes dentro de Vendas, financeiro gerado no servidor
+- [x] Histórico: comprador, lotes por item e cancelamento num único passo no servidor
