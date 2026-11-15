@@ -101,6 +101,8 @@ import DashboardVendas from "./pages/vendas/DashboardVendas";
 import PDV from "./pages/vendas/PDV";
 import HistoricoVendas from "./pages/vendas/HistoricoVendas";
 import RelatoriosVendas from "./pages/vendas/RelatoriosVendas";
+import Compradores from "./pages/vendas/Compradores";
+import ProdutosVendas from "./pages/vendas/ProdutosVendas";
 import Fornecedores from "./pages/logistica/Fornecedores";
 import ProducaoDashboard from "./pages/producao/ProducaoDashboard";
 import ProducaoProcessar from "./pages/producao/Processar";
@@ -305,6 +307,8 @@ const App = () => (
             <Route path="/logistica/entrada-materia-prima" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="logistica" submoduleKey="logistica.estoque"><EntradaMateriaPrima /></RoleProtectedRoute>} />
             <Route path="/vendas/pdv" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="vendas"><PDV /></RoleProtectedRoute>} />
             <Route path="/vendas/historico" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']} moduleKey="vendas"><HistoricoVendas /></RoleProtectedRoute>} />
+            <Route path="/vendas/compradores" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']} moduleKey="vendas"><Compradores /></RoleProtectedRoute>} />
+            <Route path="/vendas/produtos" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica']} moduleKey="vendas"><ProdutosVendas /></RoleProtectedRoute>} />
             <Route path="/vendas/relatorios" element={<RoleProtectedRoute allowedRoles={['admin', 'logistica', 'financeiro']} moduleKey="vendas"><RelatoriosVendas /></RoleProtectedRoute>} />
 
             {/* === MANUTENÇÃO === */}

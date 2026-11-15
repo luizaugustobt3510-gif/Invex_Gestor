@@ -619,6 +619,26 @@ const vendasGroups: MenuGroup[] = [
     ],
   },
   {
+    label: "Cadastros",
+    icon: <Users className="w-4 h-4" />,
+    allowedRoles: ["admin", "logistica", "financeiro"],
+    moduleKey: "vendas",
+    items: [
+      {
+        path: "/vendas/compradores",
+        label: "Compradores",
+        icon: <Users className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica", "financeiro"],
+      },
+      {
+        path: "/vendas/produtos",
+        label: "Produtos e lotes",
+        icon: <Package className="w-4 h-4" />,
+        allowedRoles: ["admin", "logistica"],
+      },
+    ],
+  },
+  {
     label: "Relatórios",
     icon: <BarChart2 className="w-4 h-4" />,
     allowedRoles: ["admin", "logistica", "financeiro"],

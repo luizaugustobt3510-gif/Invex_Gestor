@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { PackagePlus, Camera, Clock, Factory, PackageSearch } from 'lucide-react';
 import { useProducaoData, fmtDT, fmtD, brl, parseNum } from '@/pages/producao/useProducaoData';
 import { LiveClock } from '@/pages/producao/LiveClock';
+import { formatQty, unitShort, isFractionalUnit } from '@/lib/units';
 import { dbErrorMessage } from '@/lib/dbErrors';
 
 export default function EntradaMateriaPrima() {
@@ -51,6 +52,8 @@ export default function EntradaMateriaPrima() {
   const salvar = async () => {
     const quantidade = parseNum(qtd);
     if (!companyId || !matId || !(quantidade && quantidade > 0)) { toast.error('Escolha a matéria-prima e a quantidade'); return; }
+    const un = matById[matId]?.unidade;
+    if (!isFractionalUnit(un) && !Number.isInteger(quantidade)) { toast.error(`Este material é contado em ${unitShort(un)}: use número inteiro`); return; }
     setSaving(true);
     try {
       let foto_path: string | null = null;
@@ -114,19 +117,19 @@ export default function EntradaMateriaPrima() {
                 <SelectContent>
                   {materiasPrimas.length > 0 && (
                     <SelectGroup><SelectLabel>Matérias-primas</SelectLabel>
-                      {materiasPrimas.map((m) => <SelectItem key={m.id} value={m.id}>{m.codigo} · {m.material} ({m.quantidade} {m.unidade})</SelectItem>)}
+                      {materiasPrimas.map((m) => <SelectItem key={m.id} value={m.id}>{m.codigo} · {m.material} ({formatQty(m.quantidade, m.unidade)})</SelectItem>)}
                     </SelectGroup>
                   )}
                   {outros.length > 0 && (
                     <SelectGroup><SelectLabel>Outros materiais (viram matéria-prima)</SelectLabel>
-                      {outros.map((m) => <SelectItem key={m.id} value={m.id}>{m.codigo} · {m.material} ({m.quantidade} {m.unidade})</SelectItem>)}
+                      {outros.map((m) => <SelectItem key={m.id} value={m.id}>{m.codigo} · {m.material} ({formatQty(m.quantidade, m.unidade)})</SelectItem>)}
                     </SelectGroup>
                   )}
                 </SelectContent>
               </Select>
-              {matId && <p className="text-xs text-muted-foreground mt-1">Estoque atual: {matById[matId]?.quantidade} {matById[matId]?.unidade}</p>}
+              {matId && <p className="text-xs text-muted-foreground mt-1">Estoque atual: {formatQty(matById[matId]?.quantidade ?? 0, matById[matId]?.unidade)}</p>}
             </div>
-            <div><Label>Quantidade *</Label><Input inputMode="decimal" value={qtd} onChange={(e) => setQtd(e.target.value)} /></div>
+            <div><Label>Quantidade *{matId ? ` (${unitShort(matById[matId]?.unidade)})` : ''}</Label><Input inputMode={!matId || isFractionalUnit(matById[matId]?.unidade) ? 'decimal' : 'numeric'} value={qtd} onChange={(e) => setQtd(e.target.value)} /></div>
             <div><Label>Lote</Label><Input value={lote} onChange={(e) => setLote(e.target.value)} /></div>
             <div><Label>Procedência</Label><Input value={proc} onChange={(e) => setProc(e.target.value)} placeholder="Fornecedor / origem" /></div>
             <div><Label>Nº de controle</Label><Input value={ctrl} onChange={(e) => setCtrl(e.target.value)} placeholder="Automático se vazio" /></div>

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { UnitSelect } from '@/components/UnitSelect';
 import { supabase } from '@/integrations/supabase/client';
 import { MaterialGroupSelect } from '@/components/MaterialGroupSelect';
 import { useAuth } from '@/contexts/AuthContext';
@@ -110,7 +111,7 @@ const CadastrarMaterial = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="unidade">Unidade *</Label>
-                <Input id="unidade" value={formData.unidade} onChange={(e) => handleChange('unidade', e.target.value)} placeholder="Ex: UNIDADE, CX, PCT" />
+                <UnitSelect id="unidade" value={formData.unidade} onChange={(v) => handleChange('unidade', v)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="group_id">Grupo *</Label>

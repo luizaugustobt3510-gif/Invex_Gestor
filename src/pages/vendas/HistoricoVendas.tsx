@@ -11,7 +11,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Search, Eye, XCircle, ShoppingCart } from 'lucide-react';
+import { Eye, XCircle } from 'lucide-react';
+import { formatQty, unitShort } from '@/lib/units';
+import { dbErrorMessage } from '@/lib/dbErrors';
+import { CONSUMIDOR_NAO_IDENTIFICADO } from './vendasCalc';
 import {
   Dialog,
   DialogContent,
@@ -37,6 +40,8 @@ interface Sale {
   status: string;
   created_at: string;
   observacoes: string | null;
+  customer_id: string | null;
+  cliente_nome: string | null;
 }
 
 interface SaleItem {
@@ -45,7 +50,15 @@ interface SaleItem {
   preco_unitario: number;
   subtotal: number;
   material_id: string;
-  materials?: { material: string; codigo: string } | null;
+  materials?: { material: string; codigo: string; unidade: string | null } | null;
+}
+
+interface ItemLot {
+  sale_item_id: string;
+  lote: string | null;
+  data_producao: string | null;
+  validade: string | null;
+  quantidade: number;
 }
 
 const paymentLabels: Record<string, string> = {
@@ -53,7 +66,11 @@ const paymentLabels: Record<string, string> = {
   pix: 'Pix',
   cartao_credito: 'Cartão Crédito',
   cartao_debito: 'Cartão Débito',
+  a_prazo: 'A prazo',
 };
+
+const fmtD = (d: string | null) => (d ? format(parseISO(d), 'dd/MM/yyyy') : '-');
+const compradorDe = (s: Sale) => s.cliente_nome || CONSUMIDOR_NAO_IDENTIFICADO;
 
 const HistoricoVendas = () => {
   const { user } = useAuth();
@@ -66,6 +83,9 @@ const HistoricoVendas = () => {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [saleItems, setSaleItems] = useState<SaleItem[]>([]);
   const [cancelSaleId, setCancelSaleId] = useState<string | null>(null);
+  const [itemLots, setItemLots] = useState<ItemLot[]>([]);
+  const [filterComprador, setFilterComprador] = useState('');
+  const [canceling, setCanceling] = useState(false);
 
   useEffect(() => {
     if (user?.companyId) fetchSales();
@@ -84,43 +104,36 @@ const HistoricoVendas = () => {
 
   const viewDetails = async (sale: Sale) => {
     setSelectedSale(sale);
-    const { data } = await supabase
-      .from('sale_items')
-      .select('*, materials(material, codigo)')
-      .eq('sale_id', sale.id);
-    if (data) setSaleItems(data as unknown as SaleItem[]);
+    setSaleItems([]);
+    setItemLots([]);
+    const [items, lots] = await Promise.all([
+      supabase.from('sale_items').select('*, materials(material, codigo, unidade)').eq('sale_id', sale.id),
+      supabase.from('sale_item_lots').select('sale_item_id, lote, data_producao, validade, quantidade').eq('sale_id', sale.id).order('data_producao', { ascending: true }),
+    ]);
+    if (items.data) setSaleItems(items.data as unknown as SaleItem[]);
+    if (lots.data) setItemLots(lots.data as ItemLot[]);
   };
 
   const cancelSale = async () => {
-    if (!cancelSaleId || !user?.companyId) return;
-    try {
-
-      // Restore stock (no servidor: devolve ao saldo e registra a entrada de estorno)
-      const { error: stockError } = await supabase.rpc('reverse_sale_stock', { _sale_id: cancelSaleId });
-      if (stockError) throw stockError;
-
-      // Update sale status
-      await supabase.from('sales').update({ status: 'cancelada' }).eq('id', cancelSaleId);
-
-      // Update financial entry
-      await supabase
-        .from('financial_entries')
-        .update({ status: 'cancelado' })
-        .eq('origem', 'vendas')
-        .eq('origem_id', cancelSaleId);
-
-      toast({ title: 'Venda cancelada', description: 'Estoque restaurado e financeiro ajustado.' });
-      setCancelSaleId(null);
-      fetchSales();
-    } catch (err: any) {
-      toast({ title: 'Erro ao cancelar', description: err.message, variant: 'destructive' });
+    if (!cancelSaleId || !user?.companyId || canceling) return;
+    setCanceling(true);
+    // Tudo no servidor numa única operação: devolve estoque e lotes, cancela a venda e o lançamento financeiro
+    const { error } = await supabase.rpc('cancel_sale', { _sale_id: cancelSaleId });
+    setCanceling(false);
+    if (error) {
+      toast({ title: 'Erro ao cancelar', description: dbErrorMessage(error), variant: 'destructive' });
+      return;
     }
+    toast({ title: 'Venda cancelada', description: 'Estoque e lotes restaurados, financeiro ajustado.' });
+    setCancelSaleId(null);
+    fetchSales();
   };
 
   const filtered = sales.filter(s => {
     if (searchDate && !s.created_at.startsWith(searchDate)) return false;
     if (filterPayment !== 'todos' && s.forma_pagamento !== filterPayment) return false;
     if (filterStatus !== 'todos' && s.status !== filterStatus) return false;
+    if (filterComprador.trim() && !compradorDe(s).toLowerCase().includes(filterComprador.trim().toLowerCase())) return false;
     return true;
   });
 
@@ -133,6 +146,7 @@ const HistoricoVendas = () => {
           <CardHeader className="pb-3">
             <div className="flex flex-wrap gap-3">
               <Input type="date" value={searchDate} onChange={e => setSearchDate(e.target.value)} className="w-40" />
+              <Input placeholder="Comprador" value={filterComprador} onChange={e => setFilterComprador(e.target.value)} className="w-48" />
               <Select value={filterPayment} onValueChange={setFilterPayment}>
                 <SelectTrigger className="w-40"><SelectValue placeholder="Pagamento" /></SelectTrigger>
                 <SelectContent>
@@ -141,6 +155,7 @@ const HistoricoVendas = () => {
                   <SelectItem value="pix">Pix</SelectItem>
                   <SelectItem value="cartao_credito">Cartão Crédito</SelectItem>
                   <SelectItem value="cartao_debito">Cartão Débito</SelectItem>
+                  <SelectItem value="a_prazo">A prazo</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -164,6 +179,7 @@ const HistoricoVendas = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Data</TableHead>
+                      <TableHead>Comprador</TableHead>
                       <TableHead>Total</TableHead>
                       <TableHead>Desconto</TableHead>
                       <TableHead>Pagamento</TableHead>
@@ -175,6 +191,7 @@ const HistoricoVendas = () => {
                     {filtered.map(sale => (
                       <TableRow key={sale.id} className={sale.status === 'cancelada' ? 'opacity-50' : ''}>
                         <TableCell>{format(parseISO(sale.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</TableCell>
+                        <TableCell className={sale.customer_id ? '' : 'text-muted-foreground'}>{compradorDe(sale)}</TableCell>
                         <TableCell className="font-semibold">R$ {sale.valor_total.toFixed(2)}</TableCell>
                         <TableCell>{sale.desconto > 0 ? `R$ ${sale.desconto.toFixed(2)}` : '-'}</TableCell>
                         <TableCell>{paymentLabels[sale.forma_pagamento] || sale.forma_pagamento}</TableCell>
@@ -207,7 +224,7 @@ const HistoricoVendas = () => {
 
       {/* Sale details dialog */}
       <Dialog open={!!selectedSale} onOpenChange={() => setSelectedSale(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalhes da Venda</DialogTitle>
           </DialogHeader>
@@ -218,6 +235,10 @@ const HistoricoVendas = () => {
                 <div><span className="text-muted-foreground">Status:</span> {selectedSale.status}</div>
                 <div><span className="text-muted-foreground">Pagamento:</span> {paymentLabels[selectedSale.forma_pagamento]}</div>
                 <div><span className="text-muted-foreground">Total:</span> R$ {selectedSale.valor_total.toFixed(2)}</div>
+                <div className="col-span-2"><span className="text-muted-foreground">Comprador:</span> {compradorDe(selectedSale)}</div>
+                {selectedSale.observacoes && (
+                  <div className="col-span-2"><span className="text-muted-foreground">Observações:</span> {selectedSale.observacoes}</div>
+                )}
               </div>
               <Table>
                 <TableHeader>
@@ -229,14 +250,29 @@ const HistoricoVendas = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {saleItems.map(item => (
-                    <TableRow key={item.id}>
-                      <TableCell>{(item.materials as any)?.material || '-'}</TableCell>
-                      <TableCell>{item.quantidade}</TableCell>
-                      <TableCell>R$ {item.preco_unitario.toFixed(2)}</TableCell>
-                      <TableCell>R$ {item.subtotal.toFixed(2)}</TableCell>
-                    </TableRow>
-                  ))}
+                  {saleItems.map(item => {
+                    const un = item.materials?.unidade;
+                    const lots = itemLots.filter(l => l.sale_item_id === item.id);
+                    return (
+                      <TableRow key={item.id}>
+                        <TableCell>
+                          <div>{item.materials?.material || '-'}</div>
+                          {lots.length > 0 && (
+                            <div className="mt-1 space-y-0.5">
+                              {lots.map((l, i) => (
+                                <div key={i} className="text-xs text-muted-foreground">
+                                  Lote {l.lote || 's/ nº'} · prod. {fmtD(l.data_producao)}{l.validade ? ` · val. ${fmtD(l.validade)}` : ''} · {formatQty(Number(l.quantidade), un)}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">{formatQty(Number(item.quantidade), un)}</TableCell>
+                        <TableCell className="whitespace-nowrap">R$ {Number(item.preco_unitario).toFixed(2)}/{unitShort(un)}</TableCell>
+                        <TableCell>R$ {Number(item.subtotal).toFixed(2)}</TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -250,12 +286,12 @@ const HistoricoVendas = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Cancelar Venda</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação irá restaurar o estoque e ajustar o lançamento financeiro. Deseja continuar?
+              Esta ação irá devolver o estoque aos lotes de origem e cancelar o lançamento financeiro. Deseja continuar?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Não</AlertDialogCancel>
-            <AlertDialogAction onClick={cancelSale}>Sim, cancelar</AlertDialogAction>
+            <AlertDialogAction onClick={cancelSale} disabled={canceling}>{canceling ? 'Cancelando...' : 'Sim, cancelar'}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -14,6 +14,7 @@ import { Factory, ShoppingCart, PackagePlus, ClipboardList } from 'lucide-react'
 import { rendimento, custoConsumo, custoUnitario, desvioFicha, producaoEsperada } from './producaoCalc';
 import { useProducaoData, fmtDT, fmtD, brl, parseNum } from './useProducaoData';
 import { dbErrorMessage } from '@/lib/dbErrors';
+import { formatQty, unitShort, isFractionalUnit } from '@/lib/units';
 
 const addDays = (days: number) => {
   const d = new Date(); d.setDate(d.getDate() + days);
@@ -34,6 +35,7 @@ export default function Processar() {
   const [loteProd, setLoteProd] = useState('');
   const [obsProd, setObsProd] = useState('');
   const [validade, setValidade] = useState('');
+  const [dataProducao, setDataProducao] = useState(addDays(0));
 
   const abertos = useMemo(() => entries.filter((e) => e.quantidade_restante > 0), [entries]);
   const selEntry = entryById[entryId];
@@ -64,6 +66,8 @@ export default function Processar() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ficha]);
 
+  const unMp = selEntry ? matById[selEntry.material_id]?.unidade : undefined;
+  const unPf = prodId ? matById[prodId]?.unidade : undefined;
   const nConsumo = parseNum(consumo) ?? 0;
   const nProduzido = parseNum(produzido) ?? 0;
   const rend = rendimento(nConsumo, nProduzido);
@@ -72,18 +76,22 @@ export default function Processar() {
 
   const salvar = async () => {
     if (!entryId || !prodId || !(nConsumo > 0)) { toast.error('Escolha o lote, o produto e a quantidade consumida'); return; }
-    if (selEntry && nConsumo > selEntry.quantidade_restante) { toast.error(`O lote só tem ${selEntry.quantidade_restante} disponível`); return; }
+    if (selEntry && nConsumo > selEntry.quantidade_restante) { toast.error(`O lote só tem ${formatQty(selEntry.quantidade_restante, unMp)} disponível`); return; }
+    if (!isFractionalUnit(unMp) && !Number.isInteger(nConsumo)) { toast.error(`A matéria-prima é contada em ${unitShort(unMp)}: use número inteiro`); return; }
+    if (nProduzido > 0 && !isFractionalUnit(unPf) && !Number.isInteger(nProduzido)) { toast.error(`O produto é contado em ${unitShort(unPf)}: use número inteiro`); return; }
+    if (!dataProducao) { toast.error('Informe a data de produção'); return; }
     setSaving(true);
     const { error } = await supabase.rpc('register_production', {
       _entry_id: entryId, _produto_material_id: prodId, _quantidade_consumida: nConsumo,
       _quantidade_produzida: nProduzido, _lote_produto: loteProd, _observacoes: obsProd,
       _validade: (validade || null) as string,
+      _data_producao: dataProducao,
     });
     setSaving(false);
     if (error) { toast.error(dbErrorMessage(error, 'Erro ao registrar produção')); return; }
     toast.success('Produção registrada: matéria-prima baixada e produto no estoque');
     setDone({ prodId, nome: matById[prodId]?.material ?? '' });
-    setConsumo(''); setProduzido(''); setLoteProd(''); setObsProd(''); setValidade(''); setEntryId('');
+    setConsumo(''); setProduzido(''); setLoteProd(''); setObsProd(''); setValidade(''); setEntryId(''); setDataProducao(addDays(0));
     load();
   };
 
@@ -121,13 +129,13 @@ export default function Processar() {
                 <SelectTrigger><SelectValue placeholder={abertos.length ? 'Selecione' : 'Nenhum lote com saldo'} /></SelectTrigger>
                 <SelectContent>
                   {abertos.map((e) => (
-                    <SelectItem key={e.id} value={e.id}>{e.numero_controle} · {matById[e.material_id]?.material} · lote {e.lote || '-'} (saldo {e.quantidade_restante})</SelectItem>
+                    <SelectItem key={e.id} value={e.id}>{e.numero_controle} · {matById[e.material_id]?.material} · lote {e.lote || '-'} (saldo {formatQty(e.quantidade_restante, matById[e.material_id]?.unidade)})</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {selEntry && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Saldo do lote: {selEntry.quantidade_restante} {matById[selEntry.material_id]?.unidade} · procedência {selEntry.procedencia || '-'} · validade {fmtD(selEntry.validade)}
+                  Saldo do lote: {formatQty(selEntry.quantidade_restante, unMp)} · procedência {selEntry.procedencia || '-'} · validade {fmtD(selEntry.validade)}
                 </p>
               )}
             </div>
@@ -149,8 +157,9 @@ export default function Processar() {
               </Select>
               <button type="button" className="text-xs text-primary underline mt-1" onClick={() => navigate('/cadastrar-material?tipo=produto_final')}>Cadastrar novo produto final</button>
             </div>
-            <div><Label>Quantidade consumida *</Label><Input inputMode="decimal" value={consumo} onChange={(e) => setConsumo(e.target.value)} /></div>
-            <div><Label>Quantidade produzida *</Label><Input inputMode="decimal" value={produzido} onChange={(e) => setProduzido(e.target.value)} placeholder={esperado ? `Esperado pela ficha: ${esperado}` : ''} /></div>
+            <div><Label>Quantidade consumida *{unMp ? ` (${unitShort(unMp)})` : ''}</Label><Input inputMode={isFractionalUnit(unMp) ? 'decimal' : 'numeric'} value={consumo} onChange={(e) => setConsumo(e.target.value)} /></div>
+            <div><Label>Quantidade produzida *{unPf ? ` (${unitShort(unPf)})` : ''}</Label><Input inputMode={isFractionalUnit(unPf) ? 'decimal' : 'numeric'} value={produzido} onChange={(e) => setProduzido(e.target.value)} placeholder={esperado ? `Esperado pela ficha: ${esperado}` : ''} /></div>
+            <div><Label>Data de produção *</Label><Input type="date" value={dataProducao} onChange={(e) => setDataProducao(e.target.value)} /></div>
             <div><Label>Lote do produto</Label><Input value={loteProd} onChange={(e) => setLoteProd(e.target.value)} placeholder="Automático se vazio" /></div>
             <div><Label>Validade do produto</Label><Input type="date" value={validade} onChange={(e) => setValidade(e.target.value)} /></div>
             <div className="md:col-span-2"><Label>Observações</Label><Input value={obsProd} onChange={(e) => setObsProd(e.target.value)} /></div>
@@ -189,8 +198,8 @@ export default function Processar() {
                       <TableCell>{o.lote_produto}</TableCell>
                       <TableCell>{matById[o.produto_material_id]?.material}</TableCell>
                       <TableCell>{e?.numero_controle} · {e ? matById[e.material_id]?.material : ''}</TableCell>
-                      <TableCell>{o.quantidade_consumida}</TableCell>
-                      <TableCell>{o.quantidade_produzida}</TableCell>
+                      <TableCell className="whitespace-nowrap">{formatQty(o.quantidade_consumida, e ? matById[e.material_id]?.unidade : undefined)}</TableCell>
+                      <TableCell className="whitespace-nowrap">{formatQty(o.quantidade_produzida, matById[o.produto_material_id]?.unidade)}</TableCell>
                       <TableCell>{rendimento(o.quantidade_consumida, o.quantidade_produzida).rendimento.toFixed(1)}%</TableCell>
                       <TableCell>{brl(custoUnitario(o.custo_materia_prima, o.quantidade_produzida))}</TableCell>
                     </TableRow>

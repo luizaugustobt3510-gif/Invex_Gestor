@@ -8,6 +8,7 @@ import { MaterialGroupSelect } from '@/components/MaterialGroupSelect';
 import { dbErrorMessage } from '@/lib/dbErrors';
 import { useMaterialGroups } from '@/hooks/useMaterialGroups';
 import { supabase } from '@/integrations/supabase/client';
+import { UnitSelect } from '@/components/UnitSelect';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -116,7 +117,7 @@ export const EditMaterialDialog = ({ item, open, onOpenChange, onSaved }: EditMa
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Unidade</Label>
-                <Input value={unidade} onChange={(e) => setUnidade(e.target.value)} placeholder="UNIDADE" />
+                <UnitSelect key={item?.id} value={unidade} onChange={setUnidade} />
               </div>
               <div className="space-y-2">
                 <Label>Preço (R$)</Label>
