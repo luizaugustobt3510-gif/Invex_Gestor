@@ -37,8 +37,8 @@ const Index = () => {
     );
   }
 
-  // Admin da empresa sempre tem dashboard
-  const hasDashboard = user.role === 'admin' ? true : canAccessModule('dashboard');
+  // Dashboard segue a mesma regra dos demais módulos (inclusive para o admin).
+  const hasDashboard = canAccessModule('dashboard');
 
   if (hasDashboard) return <DashboardEmpresa />;
 

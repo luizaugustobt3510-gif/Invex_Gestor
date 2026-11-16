@@ -11,6 +11,7 @@ import { Users, RefreshCw, Search, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MODULES_CATALOG, isModuleOnForCompany } from '@/config/modules';
 import { ModulePermissionGrid } from '@/components/ModulePermissionGrid';
+import { presetAllows } from '@/config/rolePresets';
 
 /**
  * Usuário × Módulos (SuperAdmin).
@@ -36,6 +37,7 @@ const GestaoUsuariosModulos = () => {
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [companyModules, setCompanyModules] = useState<Record<string, boolean>>({});
   const [userPerms, setUserPerms] = useState<Record<string, boolean>>({});
+  const [roleMatrix, setRoleMatrix] = useState<Record<string, boolean>>({}); // `${role}::${module}`
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -55,11 +57,16 @@ const GestaoUsuariosModulos = () => {
       setSelectedUserId('');
       setUserPerms({});
 
-      const [rolesRes, profilesRes, modsRes] = await Promise.all([
+      const [rolesRes, profilesRes, modsRes, roleModsRes] = await Promise.all([
         supabase.from('user_roles').select('user_id, role').eq('company_id', companyId),
         supabase.from('profiles').select('user_id, nome, email, company_id').eq('company_id', companyId),
         supabase.from('company_modules').select('module_key, is_active').eq('company_id', companyId),
+        supabase.from('role_module_permissions').select('role, module_key, is_active').eq('company_id', companyId),
       ]);
+
+      const rmap: Record<string, boolean> = {};
+      (roleModsRes.data || []).forEach((r: any) => { rmap[`${r.role}::${r.module_key}`] = r.is_active; });
+      setRoleMatrix(rmap);
 
       const roleByUser = new Map<string, string>();
       (rolesRes.data || []).forEach((r: any) => roleByUser.set(r.user_id, r.role));
@@ -181,6 +188,14 @@ const GestaoUsuariosModulos = () => {
 
   const selectedUser = users.find((u) => u.user_id === selectedUserId);
 
+  // Sem ajuste próprio, o switch mostra o que o perfil do usuário já libera.
+  const effectiveChecked = (k: string) => {
+    if (userPerms[k] !== undefined) return userPerms[k];
+    const role = selectedUser?.role || '';
+    if (role === 'admin_empresa' || role === 'super_admin') return true;
+    return roleMatrix[`${role}::${k}`] ?? presetAllows(role, k);
+  };
+
   return (
     <MainLayout>
       <div className="max-w-6xl mx-auto space-y-6">
@@ -290,7 +305,7 @@ const GestaoUsuariosModulos = () => {
                   <CardContent>
                     <ModulePermissionGrid
                       modules={modules}
-                      isChecked={(k) => userPerms[k] ?? true}
+                      isChecked={effectiveChecked}
                       isCompanyOn={(k) => isModuleOnForCompany(companyModules, k)}
                       saving={saving}
                       onToggle={toggle}

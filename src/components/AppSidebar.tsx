@@ -1577,7 +1577,7 @@ export function AppSidebar() {
               <span className="truncate">{user?.nome || "Perfil"}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          {!isSuperAdmin && (
+          {!isSuperAdmin && canAccessModule("assinaturas") && (
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => navigatePreservingScroll("/assinaturas")}

@@ -6292,6 +6292,10 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      module_is_switched_off: {
+        Args: { _company_id: string; _module_key: string; _user_id: string }
+        Returns: boolean
+      }
       personal_email_status: { Args: never; Returns: Json }
       personal_is_viewer_of: { Args: { _owner: string }; Returns: boolean }
       personal_touch_app: { Args: { _app: string }; Returns: undefined }

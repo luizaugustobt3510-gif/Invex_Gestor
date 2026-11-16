@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { presetAllows } from "@/config/rolePresets";
-import { MODULE_PARENT } from "@/config/modules";
+import { resolveModuleAccess } from "@/lib/moduleAccess";
 
 interface ModuleAccessState {
   companyModules: Record<string, boolean>;
@@ -10,9 +9,6 @@ interface ModuleAccessState {
   roleModules: Record<string, boolean>;
   loading: boolean;
 }
-
-// Sidebar module keys mirror the MODULES_CATALOG keys 1:1.
-const MODULE_KEY_MAP: Record<string, string> = {};
 
 // UI role → DB role (mirrors AuthContext).
 const uiToDbRole: Record<string, string> = {
@@ -58,9 +54,8 @@ export function useModuleAccess() {
       return;
     }
 
-    // SuperAdmin and admin da empresa mostly bypass the matrix, but we still need
-    // company_modules to enforce opt-in modules (e.g., 'anamnese').
-    if (user.role === "superadm" || user.role === "admin") {
+    // Super Admin só precisa do que está ligado na empresa.
+    if (user.role === "superadm") {
       try {
         const { data } = await supabase
           .from("company_modules")
@@ -119,52 +114,19 @@ export function useModuleAccess() {
     fetchModuleAccess();
   }, [fetchModuleAccess]);
 
+  // Regra única (empresa → usuário → perfil), também válida para o admin da empresa.
   const canAccessModule = useCallback(
-    (moduleKey: string): boolean => {
-      // 'anamnese' is opt-in — must be explicitly activated by Super Admin per company.
-      // superadm bypasses this too? No: super_admin is the one who activates, they still see
-      // the toggle in GestaoModulos regardless. Preview/access to the module UI requires activation.
-      const OPT_IN = new Set(['anamnese']);
-      const isOptIn = OPT_IN.has(moduleKey.split('.')[0]);
-
-      // Submódulos da Clínica: exigem a Clínica ativa na empresa,
-      // salvo se o próprio submódulo foi ativado explicitamente.
-      const baseKey = moduleKey.split('.')[0];
-      const parentKey = MODULE_PARENT[baseKey];
-      if (parentKey && state.companyModules[baseKey] !== true && state.companyModules[parentKey] === false) {
-        return false;
-      }
-
-      if (user?.role === "superadm" && !isOptIn) return true;
-      if (user?.role === "admin" && !isOptIn) return true;
-
-      // Composite submodule keys (e.g., "logistica.estoque")
-      if (moduleKey.includes(".")) {
-        const [parentKey] = moduleKey.split(".");
-        if (!canAccessModule(parentKey)) return false;
-        const companyActive = state.companyModules[moduleKey] ?? true;
-        if (!companyActive) return false;
-        const userActive = state.userModules[moduleKey] ?? true;
-        return userActive;
-      }
-
-      const dbKey = MODULE_KEY_MAP[moduleKey] || moduleKey;
-      const defaultActive = isOptIn ? false : true;
-
-      const companyActive = state.companyModules[dbKey] ?? defaultActive;
-      if (!companyActive) return false;
-
-      // For opt-in modules, superadm/admin can access once activated.
-      if (isOptIn && (user?.role === "superadm" || user?.role === "admin")) return true;
-
-      // Role matrix: saved value wins; otherwise use the role's safe preset (deny by default).
-      const dbRole = uiToDbRole[user?.role || ""] || user?.role || "";
-      const roleActive = state.roleModules[dbKey] ?? presetAllows(dbRole, dbKey);
-      const userOverride = state.userModules[dbKey];
-      // User-level override wins over role.
-      if (userOverride !== undefined) return userOverride;
-      return roleActive;
-    },
+    (moduleKey: string): boolean =>
+      resolveModuleAccess(
+        {
+          role: user?.role || "",
+          dbRole: uiToDbRole[user?.role || ""] || user?.role || "",
+          companyModules: state.companyModules,
+          userModules: state.userModules,
+          roleModules: state.roleModules,
+        },
+        moduleKey,
+      ),
     [user?.role, state.companyModules, state.userModules, state.roleModules],
   );
 

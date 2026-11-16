@@ -252,14 +252,20 @@ export const MODULE_PARENT: Record<string, string> = Object.fromEntries(
   MODULES_CATALOG.filter((m) => m.parent).map((m) => [m.key, m.parent as string]),
 );
 
+/** Módulos que começam desligados até o Super Admin ligar na empresa. */
+export const OPT_IN_MODULES = new Set(['anamnese']);
+
 /**
- * Se o módulo está ligado na empresa. Submódulos (ex.: da Clínica) seguem o pai,
- * salvo quando o próprio submódulo foi ligado/desligado explicitamente.
+ * Se o módulo está ligado na empresa. Submódulos da Clínica ficam desligados
+ * sempre que a Clínica estiver desligada; chaves compostas ("logistica.estoque")
+ * exigem o módulo base ligado.
  */
 export const isModuleOnForCompany = (companyModules: Record<string, boolean>, key: string): boolean => {
-  const own = companyModules[key];
-  if (own !== undefined) return own;
+  if (key.includes('.')) {
+    const [base] = key.split('.');
+    return isModuleOnForCompany(companyModules, base) && companyModules[key] !== false;
+  }
   const parent = MODULE_PARENT[key];
-  if (parent) return companyModules[parent] !== false;
-  return true;
+  if (parent && companyModules[parent] === false) return false;
+  return companyModules[key] ?? !OPT_IN_MODULES.has(key);
 };

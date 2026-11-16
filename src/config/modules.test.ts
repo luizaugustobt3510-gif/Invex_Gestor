@@ -12,8 +12,8 @@ describe('Clínica e submódulos', () => {
     assert.equal(isModuleOnForCompany({ clinica: false }, 'prontuario'), false);
     assert.equal(isModuleOnForCompany({ clinica: true }, 'prontuario'), true);
   });
-  it('submódulo ligado explicitamente continua ligado', () => {
-    assert.equal(isModuleOnForCompany({ clinica: false, prontuario: true }, 'prontuario'), true);
+  it('Clínica desligada desliga o submódulo mesmo marcado', () => {
+    assert.equal(isModuleOnForCompany({ clinica: false, prontuario: true }, 'prontuario'), false);
   });
   it('conferência de temperatura não existe mais no catálogo', () => {
     const keys = MODULES_CATALOG.flatMap((m) => [m.key, ...m.submodules.map((s) => s.key)]);
