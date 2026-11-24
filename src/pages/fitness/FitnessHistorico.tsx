@@ -6,6 +6,8 @@ import { useFitnessDailyLog } from '@/hooks/useFitnessDailyLog';
 import { useFitnessProfile } from '@/hooks/useFitnessProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { Moon, Smile, Droplet, TrendingUp, TrendingDown, Minus, Dumbbell, Trash2, Pencil, Check, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { inFitnessDateRange, validFitnessDateRange } from '@/lib/fitnessHistoryDates';
 import { toast } from 'sonner';
 
 const last7 = (history: any[]) => history.slice(0, 7);
@@ -14,8 +16,12 @@ const prev7 = (history: any[]) => history.slice(7, 14);
 const avg = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
 
 const FitnessHistorico = () => {
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const rangeValid = validFitnessDateRange(from, to);
+  const customRange = !!(from || to);
   const { profile, loading: lp } = useFitnessProfile();
-  const { history, loading: lh } = useFitnessDailyLog();
+  const { history, loading: lh } = useFitnessDailyLog(rangeValid ? { from, to } : undefined);
   const [logs, setLogs] = useState<any[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
   const [editDur, setEditDur] = useState('');
@@ -24,15 +30,19 @@ const FitnessHistorico = () => {
     (async () => {
       const { data: { user: au } } = await supabase.auth.getUser();
       if (!au) return;
-      const { data } = await supabase
+      if (!rangeValid) return;
+      let query = supabase
         .from('fitness_workout_logs')
         .select('*, fitness_workouts(nome, cor)')
         .eq('user_id', au.id)
-        .order('data_treino', { ascending: false })
-        .limit(30);
+        .order('data_treino', { ascending: false });
+      if (from) query = query.gte('data_treino', from);
+      if (to) query = query.lte('data_treino', to);
+      if (!customRange) query = query.limit(30);
+      const { data } = await query;
       setLogs(data || []);
     })();
-  }, []);
+  }, [from, to, rangeValid, customRange]);
 
   const podeEditar = (data: string) => {
     const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
@@ -74,6 +84,9 @@ const FitnessHistorico = () => {
   if (lp || lh || !profile) {
     return <FitnessLayout><div className="text-center py-20 text-cyan-300">Carregando histórico...</div></FitnessLayout>;
   }
+
+  const visibleHistory = history.filter(h => inFitnessDateRange(h.data, from, to));
+  const visibleLogs = logs.filter(l => inFitnessDateRange(l.data_treino, from, to));
 
   const metaSono = Number(profile.meta_sono_horas ?? 8);
   const metaAgua = profile.agua_meta_ml ?? 2500;
@@ -141,7 +154,15 @@ const FitnessHistorico = () => {
   return (
     <FitnessLayout>
       <h1 className="text-2xl font-black mb-1">Histórico</h1>
-      <p className="text-sm text-slate-400 mb-4">Últimos 7 dias vs 7 anteriores</p>
+      <div className="grid grid-cols-2 gap-3 mb-4 text-foreground">
+        <label className="text-sm min-w-0">De<input aria-label="Data inicial" type="date" value={from} max={to || undefined} onChange={e => setFrom(e.target.value)} className="mt-1 block w-full min-w-0 h-12 rounded-md border border-input bg-background px-2 text-base" /></label>
+        <label className="text-sm min-w-0">Até<input aria-label="Data final" type="date" value={to} min={from || undefined} onChange={e => setTo(e.target.value)} className="mt-1 block w-full min-w-0 h-12 rounded-md border border-input bg-background px-2 text-base" /></label>
+        {customRange && <Button variant="outline" className="col-span-2" onClick={() => { setFrom(''); setTo(''); }}>Limpar período</Button>}
+        {!rangeValid && <p role="alert" className="col-span-2 text-sm text-destructive">A data final deve ser igual ou posterior à inicial.</p>}
+      </div>
+      {!customRange && <p className="text-sm text-muted-foreground mb-4">Últimos 7 dias vs 7 anteriores</p>}
+
+      {!customRange && <>
 
       <FitnessCard className="mb-4">
         <div className="flex items-center gap-4">
@@ -192,13 +213,14 @@ const FitnessHistorico = () => {
         })}
       </div>
 
+      </>}
       <FitnessCard className="mb-4">
         <h2 className="text-sm font-semibold mb-3">Diário recente</h2>
-        {history.length === 0 ? (
-          <p className="text-xs text-slate-400 text-center py-4">Sem registros ainda. Comece hoje!</p>
+        {visibleHistory.length === 0 ? (
+          <p className="text-xs text-slate-400 text-center py-4">Nenhum registro neste período.</p>
         ) : (
           <div className="space-y-2">
-            {history.slice(0, 14).map(h => (
+            {(customRange ? visibleHistory : visibleHistory.slice(0, 14)).map(h => (
               <div key={h.id} className="flex items-center justify-between text-xs py-2 border-b border-slate-800/60 last:border-0">
                 <span className="text-slate-300 font-mono">
                   {new Date(h.data + 'T00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', weekday: 'short' })}
@@ -224,11 +246,11 @@ const FitnessHistorico = () => {
         <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <Dumbbell className="w-4 h-4 text-cyan-300" /> Treinos realizados
         </h2>
-        {logs.length === 0 ? (
-          <p className="text-xs text-slate-400 text-center py-4">Nenhum treino registrado ainda.</p>
+        {visibleLogs.length === 0 ? (
+          <p className="text-xs text-slate-400 text-center py-4">Nenhum treino neste período.</p>
         ) : (
           <div className="space-y-2">
-            {logs.map(l => {
+            {visibleLogs.map(l => {
               const editavel = podeEditar(l.data_treino);
               const feitos = Array.isArray(l.exercicios) ? l.exercicios.filter((e: any) => e.feito).length : 0;
               const total = Array.isArray(l.exercicios) ? l.exercicios.length : 0;

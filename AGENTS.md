@@ -17,3 +17,5 @@
 - Sidebar module sections with sub-sections (Logística, Gestão de Pessoas, Vendas, Financeiro) render through the single `renderSection` in AppSidebar with bold subgroups; this keeps every module's menu identical in look and open/scroll behavior.
 - Finance entries created by other modules carry `origem` (`vendas` from PDV, `producao` from raw-material entries) and Contas a Pagar/Receber label and filter by it; this lets finance see where each bill came from without duplicating data.
 - Module access is decided by one rule, `resolveModuleAccess` in the UI and `module_is_switched_off` inside `user_can_write_module` on the server: a module switched off for the company (Clínica off turns off its sub-modules) or for the user blocks everyone except Super Admin, admin_empresa included; this keeps Super Admin's switches binding in both the menu and the data.
+
+- Fitness floating records and focus exercises use FitnessPopup with product-scoped theme tokens; this preserves the chosen theme in portalled windows without recoloring Gestor.

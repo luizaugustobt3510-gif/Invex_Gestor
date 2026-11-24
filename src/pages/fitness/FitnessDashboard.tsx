@@ -17,6 +17,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { playSfx, celebrate } from '@/lib/fitnessFeedback';
 
 
+import { Button } from '@/components/ui/button';
+import { FitnessPopup } from '@/components/fitness/FitnessPopup';
+
 const HUMORES = ['😄', '🙂', '😐', '😞', '😤'];
 
 const FitnessDashboard = () => {
@@ -25,6 +28,7 @@ const FitnessDashboard = () => {
   const { log, upsertToday, loading: lLog } = useFitnessDailyLog();
   const { totals: mealTotals, meta: mealMeta } = useFitnessTodayMeals();
   useFitnessAchievementsAutoUnlock();
+  const [dailyPopup, setDailyPopup] = useState<'water' | 'mood' | 'sleep' | null>(null);
   const [aiMsg, setAiMsg] = useState<string | null>(null);
   const [sonoLocal, setSonoLocal] = useState<string>('');
   const sonoDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -276,7 +280,13 @@ const FitnessDashboard = () => {
 
 
 
-      <FitnessCard className="mb-4">
+      <div className="fitness-daily-dock fixed right-3 z-40 flex flex-col gap-2">
+        {([{ key: 'water', label: 'Hidratação', icon: Droplet }, { key: 'mood', label: 'Como você está hoje?', icon: Smile }, { key: 'sleep', label: 'Sono', icon: Moon }] as const).map(({ key, label, icon: Icon }) => (
+          <Button key={key} variant="outline" size="icon" className="h-12 w-12 rounded-full shadow-lg" aria-label={label} title={label} onClick={() => setDailyPopup(key)}><Icon className="h-5 w-5" /></Button>
+        ))}
+      </div>
+      <FitnessPopup open={dailyPopup === 'water'} onOpenChange={open => { if (!open) setDailyPopup(null); }} title="Hidratação">
+
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Droplet className="w-4 h-4 text-cyan-300" />
@@ -286,28 +296,27 @@ const FitnessDashboard = () => {
         </div>
         <div className="h-2 rounded-full bg-slate-800/60 overflow-hidden mb-3">
           <div
-            className="h-full transition-all duration-300"
-            style={{ width: `${aguaPct}%`, background: 'linear-gradient(90deg, #22d3ee, #67e8f9)' }}
+            className="h-full bg-primary transition-all duration-300" style={{ width: `${aguaPct}%` }}
           />
         </div>
         <div className="flex gap-2">
-          <button
+          <Button variant="outline"
+            aria-label="Retirar 250 ml"
             onClick={() => updateAgua(-250)}
             className="flex-1 h-10 rounded-lg bg-slate-800/60 border border-slate-700 flex items-center justify-center active:scale-95"
           >
             <Minus className="w-4 h-4" />
-          </button>
-          <button
+          </Button>
+          <Button variant="outline"
             onClick={() => updateAgua(250)}
-            className="flex-[2] h-10 rounded-lg flex items-center justify-center gap-2 font-semibold text-slate-900 active:scale-95"
-            style={{ background: 'linear-gradient(90deg, #22d3ee, #06b6d4)' }}
+            className="flex-[2] h-10 rounded-lg flex items-center justify-center gap-2 font-semibold text-foreground active:scale-95"
           >
             <Plus className="w-4 h-4" /> 250 ml
-          </button>
+          </Button>
         </div>
-      </FitnessCard>
+      </FitnessPopup>
+      <FitnessPopup open={dailyPopup === 'mood'} onOpenChange={open => { if (!open) setDailyPopup(null); }} title="Como você está hoje?">
 
-      <FitnessCard className="mb-4">
         <div className="flex items-center gap-2 mb-3">
           <Smile className="w-4 h-4 text-fuchsia-300" />
           <span className="text-sm font-semibold">Como você está hoje?</span>
@@ -322,19 +331,19 @@ const FitnessDashboard = () => {
         ) : (
           <div className="grid grid-cols-5 gap-2">
             {HUMORES.map(h => (
-              <button
+              <Button variant="outline"
                 key={h}
                 onClick={() => setHumor(h)}
                 className="h-12 rounded-xl text-2xl transition-all bg-slate-800/40 border border-slate-700 active:scale-95"
               >
                 {h}
-              </button>
+              </Button>
             ))}
           </div>
         )}
-      </FitnessCard>
+      </FitnessPopup>
+      <FitnessPopup open={dailyPopup === 'sleep'} onOpenChange={open => { if (!open) setDailyPopup(null); }} title="Sono">
 
-      <FitnessCard className="mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Moon className="w-4 h-4 text-indigo-300" />
@@ -365,10 +374,7 @@ const FitnessDashboard = () => {
             <span>{sonoStatus.txt}</span>
           </div>
         )}
-      </FitnessCard>
-
-
-
+      </FitnessPopup>
 
       <button
         onClick={() => {

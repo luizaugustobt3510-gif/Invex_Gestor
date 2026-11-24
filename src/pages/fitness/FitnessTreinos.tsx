@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/button';
+import { FitnessPopup } from '@/components/fitness/FitnessPopup';
 import { exerciseImage } from '@/lib/exerciseImages';
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { FitnessLayout } from '@/components/fitness/FitnessLayout';
@@ -118,7 +120,8 @@ const FitnessTreinos = () => {
       .single();
     if (error) return toast.error(error.message);
     setWorkouts(w => [...w, data as any]);
-    setActiveId(data!.id);
+    if (!data) return;
+    setActiveId(data.id);
     setView('edit');
   };
 
@@ -743,6 +746,7 @@ const SessaoTreino = ({
   }, [session?.restEndsAt]);
 
   const [muted, setMuted] = useState(isFitnessMuted());
+  const [focusOpen, setFocusOpen] = useState(true);
   const [modo, setModo] = useState<'foco' | 'lista'>(() => (localStorage.getItem('fitness_session_mode') as any) === 'lista' ? 'lista' : 'foco');
   const allDoneRef = useRef(false);
   useEffect(() => {
@@ -852,317 +856,72 @@ const SessaoTreino = ({
 
   const feitos = exs.filter(e => e.feito).length;
   const pct = exs.length ? (feitos / exs.length) * 100 : 0;
-  const avatarState = descansoSeg > 0 ? 'Descansando 🌬️' : (feitos === exs.length ? 'Treino completo! 🏆' : 'Treinando 💪');
-
-  return (
-    <FitnessLayout hideNav>
-      <div className="flex items-center justify-between mb-3">
-        <button onClick={onCancel} className="flex items-center gap-1 text-sm text-slate-400 hover:text-rose-400">
-          <X className="w-4 h-4" /> Cancelar
-        </button>
-        <h1 className="text-base font-bold truncate max-w-[60%]">{w.nome}</h1>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => { const m = !muted; setMuted(m); setFitnessMuted(m); if (!m) playSfx('tap'); }}
-            aria-label={muted ? 'Ativar sons' : 'Silenciar sons'}
-            className="h-8 w-8 rounded-lg bg-slate-800/60 border border-slate-700 text-sm"
-          >{muted ? '🔇' : '🔊'}</button>
-          <span className="text-[11px] text-slate-500">{feitos}/{exs.length}</span>
-        </div>
+  const current = exs[Math.min(session.currentIndex, Math.max(0, exs.length - 1))];
+  const allFinished = exs.length > 0 && exs.every(e => e.feito || e.pulado);
+  const controls = <div className="flex justify-center gap-2">
+    <Button variant="outline" className="h-11" onClick={togglePause}>{pausado ? <Play /> : <Pause />}{pausado ? 'Retomar' : 'Pausar'}</Button>
+    <Button variant="outline" className="h-11 text-destructive" onClick={onCancel}><X />Cancelar</Button>
+  </div>;
+  const exerciseContent = current && <>
+    <div className="flex items-center justify-between text-sm text-muted-foreground">
+      <span>Exercício {session.currentIndex + 1}/{exs.length}</span><span className="tabular-nums">{fmt(seg)}{pausado ? ' · pausado' : ''}</span>
+    </div>
+    {controls}
+    {session.pendingRestSeg && descansoSeg === 0 ? <div className="space-y-3 py-4 text-center">
+      <h2 className="font-semibold">Descansar antes do próximo?</h2>
+      <div className="flex flex-wrap justify-center gap-2">
+        {[session.pendingRestSeg, 60, 90].filter((v, i, a) => a.indexOf(v) === i).map(seconds => <Button key={seconds} onClick={() => iniciarDescanso(seconds)}>{seconds}s</Button>)}
       </div>
-
-      {/* Avatar visual durante treino */}
-      {profile && (
-        <div className="mb-3 flex flex-col items-center">
-          <AvatarMascote
-            avatarId={profile.avatar_id}
-            mascoteNome={profile.mascote_nome}
-            mensagem={avatarState}
-            size="md"
-          />
-        </div>
-      )}
-
-      <FitnessCard className="mb-3 text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Timer className="w-5 h-5 text-cyan-300" />
-          <p className="text-4xl font-black tabular-nums">{fmt(seg)}</p>
-        </div>
-        <button
-          onClick={togglePause}
-          className="h-9 px-4 rounded-lg text-xs font-semibold bg-slate-800/60 border border-slate-700 inline-flex items-center gap-1.5"
-        >
-          {pausado ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
-          {pausado ? 'Retomar' : 'Pausar'}
-        </button>
-        <div className="h-1.5 mt-3 rounded-full bg-slate-800/60 overflow-hidden">
-          <div className="h-full transition-all" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #22d3ee, #e879f9)' }} />
-        </div>
-      </FitnessCard>
-
-      {/* Pergunta de descanso ao concluir um exercício */}
-      {!!session.pendingRestSeg && descansoSeg === 0 && (
-        <FitnessCard glow="fuchsia" className="mb-3 !py-3">
-          <p className="text-[10px] uppercase tracking-widest text-fuchsia-300 text-center">
-            {session.pendingRestExercicio ? `${session.pendingRestExercicio} concluído` : 'Exercício concluído'}
-          </p>
-          <p className="text-sm font-bold text-center mt-0.5 mb-2.5">Quer descansar antes do próximo?</p>
-          <div className="grid grid-cols-3 gap-1.5">
-            {[Math.max(15, session.pendingRestSeg), 60, 90].filter((v, i, a) => a.indexOf(v) === i).map(s => (
-              <button
-                key={s}
-                onClick={() => iniciarDescanso(s)}
-                className="h-10 rounded-lg text-xs font-bold text-slate-900 active:scale-95"
-                style={{ background: 'linear-gradient(90deg, #22d3ee, #67e8f9)' }}
-              >
-                {s}s
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={dispensarDescanso}
-            className="w-full mt-1.5 h-10 rounded-lg text-xs font-semibold bg-slate-800/60 border border-slate-700 text-slate-300 active:scale-95"
-          >
-            Sem descanso — seguir direto
-          </button>
-        </FitnessCard>
-      )}
-
-      {descansoSeg > 0 && (
-        <FitnessCard glow="fuchsia" className="mb-3 text-center !py-3">
-          <p className="text-[10px] uppercase tracking-widest text-fuchsia-300">Descanso</p>
-          {(() => {
-            const total = Math.max(descansoSeg, session.restTotalSeg || descansoSeg);
-            const R = 54, C = 2 * Math.PI * R;
-            const frac = total > 0 ? descansoSeg / total : 0;
-            const urgent = descansoSeg <= 10;
-            const col = urgent ? '#fb7185' : '#e879f9';
-            return (
-              <div className={`relative mx-auto my-2 w-40 h-40 ${urgent ? 'animate-pulse' : ''}`}>
-                <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
-                  <circle cx="60" cy="60" r={R} stroke="rgba(148,163,184,0.2)" strokeWidth="8" fill="none" />
-                  <circle cx="60" cy="60" r={R} stroke={col} strokeWidth="8" fill="none" strokeLinecap="round"
-                    strokeDasharray={C} strokeDashoffset={C * (1 - frac)}
-                    style={{ transition: 'stroke-dashoffset 0.5s linear, stroke 0.3s', filter: `drop-shadow(0 0 6px ${col})` }} />
-                </svg>
-                <p className="absolute inset-0 flex items-center justify-center text-4xl font-black tabular-nums" style={{ color: urgent ? col : undefined }}>{fmt(descansoSeg)}</p>
-              </div>
-            );
-          })()}
-          <div className="flex gap-1.5 justify-center mt-2">
-            <button onClick={() => addDescanso(30)} className="h-9 px-3 rounded-lg text-[11px] font-semibold bg-slate-800/60 border border-slate-700">+30s</button>
-            <button onClick={() => addDescanso(-15)} className="h-9 px-3 rounded-lg text-[11px] font-semibold bg-slate-800/60 border border-slate-700">-15s</button>
-            <button onClick={() => patch({ restEndsAt: null })} className="h-9 px-3 rounded-lg text-[11px] font-semibold bg-emerald-500/15 border border-emerald-400/40 text-emerald-300">Pular</button>
-          </div>
-        </FitnessCard>
-      )}
-
-      <div className="grid grid-cols-2 gap-1 p-1 mb-3 rounded-xl bg-slate-800/60 border border-slate-700">
-        {(['foco', 'lista'] as const).map(m => (
-          <button key={m} onClick={() => { setModo(m); localStorage.setItem('fitness_session_mode', m); playSfx('tap'); }}
-            className={`h-9 rounded-lg text-xs font-bold ${modo === m ? 'text-slate-900' : 'text-slate-300'}`}
-            style={modo === m ? { background: 'linear-gradient(90deg, #22d3ee, #e879f9)' } : undefined}>
-            {m === 'foco' ? '🎯 Modo foco' : '📋 Lista'}
-          </button>
-        ))}
+      <Button variant="outline" className="w-full h-12" onClick={dispensarDescanso}>Seguir sem descanso</Button>
+    </div> : descansoSeg > 0 ? <div className="text-center space-y-4 py-4">
+      <h2 className="font-semibold">Descanso</h2><p className="text-5xl font-bold tabular-nums text-primary">{fmt(descansoSeg)}</p>
+      <div className="flex justify-center gap-2"><Button variant="outline" onClick={() => addDescanso(-15)}>-15s</Button><Button variant="outline" onClick={() => addDescanso(30)}>+30s</Button><Button onClick={dispensarDescanso}>Pular</Button></div>
+    </div> : <>
+      {exerciseImage(current.nome) && <img src={exerciseImage(current.nome)} alt={current.nome} className="w-32 h-32 object-cover rounded-lg mx-auto" />}
+      <div className="text-center">
+        <h2 className="text-xl font-bold leading-snug break-words">{current.nome}</h2>
+        <p className="text-sm text-muted-foreground mt-2">{current.tipo === 'musculacao' ? `${current.series} séries × ${current.repeticoes} reps · ${current.descanso_seg || 0}s descanso` : `${current.duracao_min || 0} min${current.intensidade ? ` · ${current.intensidade}` : ''}${current.distancia_km ? ` · ${current.distancia_km} km` : ''}`}</p>
+        {current.feito && <p className="text-primary mt-2">Concluído</p>}
+        {current.pulado && <p className="text-muted-foreground mt-2">Pulado</p>}
       </div>
-
-      {modo === 'foco' && (() => {
-        const i = Math.min(session.currentIndex, Math.max(0, exs.length - 1));
-        const ex = exs[i];
-        if (!ex) return null;
-        const carga = ex.cargaReal ?? (ex.carga_kg != null ? String(ex.carga_kg) : '');
-        const cargaNum = parseFloat(String(carga).replace(',', '.')) || 0;
-        const stepCarga = (d: number) => { playSfx('tap'); setCargaReal(ex.id, String(Math.max(0, Math.round((cargaNum + d) * 2) / 2))); };
-        const sugestao = ex.tipo === 'musculacao' ? sugerirProgressao(ex.cargaUltima) : null;
-        const goto = (n: number) => { if (n >= 0 && n < exs.length) { playSfx('tap'); patch({ currentIndex: n }); } };
-        return (
-          <div className="mb-4">
-            <div className="flex gap-1 mb-3">
-              {exs.map((e, k) => (
-                <button key={e.id} onClick={() => goto(k)} aria-label={`Exercício ${k + 1}`}
-                  className={`flex-1 h-2 rounded-full ${e.feito ? 'bg-emerald-400' : e.pulado ? 'bg-amber-400' : k === i ? 'bg-cyan-300 animate-pulse' : 'bg-slate-700'}`} />
-              ))}
-            </div>
-            <FitnessCard glow="cyan" className={`!p-5 text-center ${ex.feito ? 'ring-2 ring-emerald-400/60' : ''}`}>
-              <p className="text-[10px] uppercase tracking-widest text-cyan-300">Exercício {i + 1} de {exs.length}</p>
-              {exerciseImage(ex.nome) && (
-                <img src={exerciseImage(ex.nome)!} alt={ex.nome} className="w-28 h-28 mx-auto my-3 rounded-2xl object-cover" />
-              )}
-              <h2 className="text-2xl font-black leading-tight mt-1">{ex.nome}</h2>
-              <p className="text-sm text-slate-300 mt-1">
-                {ex.tipo === 'musculacao' && `${ex.series} séries × ${ex.repeticoes} reps · ${ex.descanso_seg || 0}s descanso`}
-                {ex.tipo === 'cardio' && `${ex.duracao_min || 0} min ${ex.intensidade ? `· ${ex.intensidade}` : ''}`}
-                {ex.tipo === 'alongamento' && `${ex.duracao_min || 0} min`}
-              </p>
-              {ex.tipo === 'musculacao' && (
-                <div className="mt-4">
-                  <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-1">Carga</p>
-                  <div className="flex items-center justify-center gap-3">
-                    <button onClick={() => stepCarga(-2.5)} className="w-16 h-16 rounded-2xl bg-slate-800/80 border border-slate-600 text-2xl font-black active:scale-90">−</button>
-                    <div className="min-w-[96px]">
-                      <input inputMode="decimal" value={carga} onChange={e => setCargaReal(ex.id, e.target.value)}
-                        className="w-24 bg-transparent text-center text-5xl font-black tabular-nums focus:outline-none" placeholder="0" />
-                      <p className="text-xs text-slate-400">kg {ex.cargaUltima != null && `· antes ${ex.cargaUltima}`}</p>
-                    </div>
-                    <button onClick={() => stepCarga(2.5)} className="w-16 h-16 rounded-2xl bg-slate-800/80 border border-slate-600 text-2xl font-black active:scale-90">+</button>
-                  </div>
-                  {sugestao != null && cargaNum < sugestao && !ex.feito && (
-                    <button onClick={() => aplicarSugestao(ex.id, sugestao)} className="mt-3 h-9 px-4 rounded-full border border-emerald-400/40 bg-emerald-500/10 text-xs font-semibold text-emerald-300 inline-flex items-center gap-1.5">
-                      <TrendingUp className="w-3.5 h-3.5" /> Progredir para {sugestao}kg
-                    </button>
-                  )}
-                </div>
-              )}
-              <button onClick={() => ex.feito ? goto(i + 1) : concluir(ex.id)}
-                className="mt-5 w-full h-20 rounded-2xl text-xl font-black text-slate-900 flex items-center justify-center gap-2 active:scale-[0.97]"
-                style={{ background: ex.feito ? '#34d399' : 'linear-gradient(90deg, #34d399, #22d3ee)', boxShadow: '0 10px 30px rgba(52,211,153,0.3)' }}>
-                <Check className="w-7 h-7" /> {ex.feito ? 'Feito · próximo' : 'Concluir exercício'}
-              </button>
-              <div className="grid grid-cols-3 gap-2 mt-2">
-                <button onClick={() => goto(i - 1)} disabled={i === 0} className="h-12 rounded-xl bg-slate-800/60 border border-slate-700 text-xs font-semibold disabled:opacity-30">← Anterior</button>
-                <button onClick={() => pularEx(ex.id)} disabled={ex.feito || ex.pulado} className="h-12 rounded-xl bg-amber-500/10 border border-amber-400/40 text-amber-300 text-xs font-semibold disabled:opacity-30">Pular</button>
-                <button onClick={() => goto(i + 1)} disabled={i >= exs.length - 1} className="h-12 rounded-xl bg-slate-800/60 border border-slate-700 text-xs font-semibold disabled:opacity-30">Seguinte →</button>
-              </div>
-            </FitnessCard>
-          </div>
-        );
-      })()}
-
-      {modo === 'lista' && <>
-      <div className="flex gap-2 mb-3">
-        <button
-          onClick={proximoEx}
-          className="flex-1 h-10 rounded-lg bg-emerald-500/15 border border-emerald-400/50 text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95"
-        >
-          <Check className="w-3.5 h-3.5" /> Próximo (concluir atual)
-        </button>
+      {current.tipo === 'musculacao' && <div>
+        <label htmlFor="focus-load" className="block text-center text-sm text-muted-foreground mb-2">Carga (kg){current.cargaUltima != null ? ` · anterior ${current.cargaUltima}` : ''}</label>
+        <div className="flex justify-center items-center gap-3">
+          <Button variant="outline" size="icon" className="h-12 w-12" aria-label="Diminuir carga" onClick={() => setCargaReal(current.id, String(Math.max(0, (parseFloat((current.cargaReal || '0').replace(',', '.')) || 0) - 2.5)))}>−</Button>
+          <input id="focus-load" inputMode="decimal" value={current.cargaReal || ''} onChange={e => setCargaReal(current.id, e.target.value)} placeholder="0" className="fitness-focus-load w-28 h-14 rounded-lg border border-input bg-muted text-center font-bold" />
+          <Button variant="outline" size="icon" className="h-12 w-12" aria-label="Aumentar carga" onClick={() => setCargaReal(current.id, String((parseFloat((current.cargaReal || '0').replace(',', '.')) || 0) + 2.5))}>+</Button>
+        </div>
+        {(() => { const suggestion = sugerirProgressao(current.cargaUltima); return suggestion != null && !current.feito && !current.pulado && (parseFloat((current.cargaReal || '0').replace(',', '.')) || 0) < suggestion ? <Button variant="ghost" className="w-full mt-2" onClick={() => aplicarSugestao(current.id, suggestion)}><TrendingUp />Usar {suggestion} kg</Button> : null; })()}
+      </div>}
+      <Button className="w-full h-14 text-base" disabled={pausado} onClick={() => { if (allFinished) { onFinish(); return; } if (current.feito || current.pulado) { const next = exs.findIndex(e => !e.feito && !e.pulado); if (next >= 0) patch({ currentIndex: next }); } else concluir(current.id); }}><Check />{allFinished ? 'Finalizar treino' : current.feito || current.pulado ? 'Próximo exercício' : 'Concluir exercício'}</Button>
+      <div className="grid grid-cols-3 gap-2">
+        <Button variant="outline" aria-label="Exercício anterior" disabled={session.currentIndex === 0} onClick={() => patch({ currentIndex: session.currentIndex - 1 })}>←</Button>
+        <Button variant="outline" disabled={pausado || current.feito || current.pulado} onClick={() => pularEx(current.id)}><SkipForward />Pular</Button>
+        <Button variant="outline" aria-label="Exercício seguinte" disabled={session.currentIndex >= exs.length - 1} onClick={() => patch({ currentIndex: session.currentIndex + 1 })}>→</Button>
       </div>
-
-      <div className="space-y-2 mb-4">
-        {exs.map((ex, i) => {
-          const isCurrent = i === session.currentIndex && !ex.feito && !ex.pulado;
-          // ESTADOS VISUAIS:
-          // - feito (clicou "Próximo" ou marcou): VERDE
-          // - pulado: AMARELO
-          // - atual: ring ciano
-          const stateClass = ex.feito
-            ? 'bg-emerald-500/10 border-emerald-400/40 opacity-90'
-            : ex.pulado
-              ? 'bg-amber-500/10 border-amber-400/50 opacity-90'
-              : isCurrent
-                ? 'ring-2 ring-cyan-400/60'
-                : '';
-          const cargaAtualNum = ex.cargaReal ? parseFloat(ex.cargaReal.replace(',', '.')) : NaN;
-          const delta = (Number.isFinite(cargaAtualNum) && ex.cargaUltima != null)
-            ? cargaAtualNum - ex.cargaUltima
-            : null;
-          const sugestao = ex.tipo === 'musculacao' ? sugerirProgressao(ex.cargaUltima) : null;
-          const mostrarSugestao = sugestao != null && !ex.feito && !ex.pulado &&
-            (!Number.isFinite(cargaAtualNum) || cargaAtualNum < sugestao);
-          return (
-            <FitnessCard
-              key={ex.id}
-              className={`!p-3 transition-all ${stateClass}`}
-            >
-              <div className="flex items-center gap-2">
-                <div className="flex flex-col gap-0.5">
-                  <button onClick={() => moveEx(i, -1)} disabled={i === 0} className="p-0.5 text-slate-500 disabled:opacity-30 hover:text-cyan-300">
-                    <ArrowUp className="w-3 h-3" />
-                  </button>
-                  <button onClick={() => moveEx(i, 1)} disabled={i === exs.length - 1} className="p-0.5 text-slate-500 disabled:opacity-30 hover:text-cyan-300">
-                    <ArrowDown className="w-3 h-3" />
-                  </button>
-                </div>
-                <button
-                  onClick={() => toggleDone(ex.id)}
-                  className={`w-9 h-9 rounded-full shrink-0 flex items-center justify-center border-2 ${
-                    ex.feito
-                      ? 'bg-emerald-400 border-emerald-300 text-slate-900'
-                      : ex.pulado
-                        ? 'bg-amber-400 border-amber-300 text-slate-900'
-                        : 'border-slate-600 text-slate-400'
-                  }`}
-                >
-                  {ex.feito
-                    ? <Check className="w-4 h-4" />
-                    : ex.pulado
-                      ? <SkipForward className="w-4 h-4" />
-                      : <span className="text-xs font-bold">{i + 1}</span>}
-                </button>
-                {exerciseImage(ex.nome) && (
-                  <img src={exerciseImage(ex.nome)!} alt={ex.nome} loading="lazy" width={48} height={48} className="w-12 h-12 rounded-lg object-cover shrink-0" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className={`font-semibold text-sm truncate ${ex.feito ? 'line-through' : ''}`}>{ex.nome}</p>
-                  <p className="text-[11px] text-slate-400">
-                    {ex.tipo === 'musculacao' && `${ex.series}x${ex.repeticoes} · ${ex.descanso_seg || 0}s desc`}
-                    {ex.tipo === 'cardio' && `${ex.duracao_min || 0}min · ${ex.intensidade || ''} ${ex.distancia_km ? `· ${ex.distancia_km}km` : ''}`}
-                    {ex.tipo === 'alongamento' && `${ex.duracao_min || 0}min`}
-                    {ex.pulado && ' · PULADO'}
-                  </p>
-                </div>
-                {ex.tipo === 'musculacao' && (
-                  <div className="flex flex-col items-end gap-0.5">
-                    <div className="flex items-center gap-1">
-                      <input
-                        inputMode="decimal"
-                        value={ex.cargaReal || ''}
-                        onChange={e => setCargaReal(ex.id, e.target.value)}
-                        className="w-14 h-9 rounded-lg bg-slate-800/60 border border-slate-700 text-right text-sm px-2 focus:outline-none focus:border-cyan-400"
-                        placeholder="kg"
-                      />
-                      <span className="text-[10px] text-slate-500">kg</span>
-                    </div>
-                    {ex.cargaUltima != null && (
-                      <span className="text-[9px] text-slate-500">
-                        ant: {ex.cargaUltima}kg
-                        {delta != null && delta !== 0 && (
-                          <span className={delta > 0 ? ' text-emerald-400 font-bold' : ' text-rose-400 font-bold'}>
-                            {' '}({delta > 0 ? '+' : ''}{delta.toFixed(1)})
-                          </span>
-                        )}
-                      </span>
-                    )}
-                  </div>
-                )}
-                {!ex.feito && !ex.pulado && (
-                  <button onClick={() => pularEx(ex.id)} className="p-1.5 text-amber-400 hover:text-amber-300" title="Pular">
-                    <SkipForward className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-              {mostrarSugestao && (
-                <button
-                  onClick={() => aplicarSugestao(ex.id, sugestao!)}
-                  className="mt-2 w-full h-8 rounded-lg border border-emerald-400/40 bg-emerald-500/10 text-[11px] font-semibold text-emerald-300 flex items-center justify-center gap-1.5 active:scale-[0.98]"
-                >
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  Progredir para {sugestao}kg (antes {ex.cargaUltima}kg)
-                </button>
-              )}
-            </FitnessCard>
-
-          );
-        })}
-        {exs.length === 0 && (
-          <FitnessCard className="text-center py-6 text-xs text-slate-400">
-            Esta ficha não tem exercícios. Volte e cadastre antes de treinar.
-          </FitnessCard>
-        )}
+    </>}
+  </>;
+  return <FitnessLayout hideNav>
+    <div className="max-w-md mx-auto space-y-5 text-foreground">
+      <h1 className="text-xl font-bold pr-10 break-words">{w.nome}</h1>
+      <div className="flex items-center justify-between"><span className="text-3xl font-bold tabular-nums">{fmt(seg)}</span><span className="text-sm text-muted-foreground">{feitos}/{exs.length} concluídos</span></div>
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} /></div>
+      {controls}
+      <div className="flex items-center gap-2">
+        <Button variant={modo === 'foco' ? 'default' : 'outline'} className="flex-1" onClick={() => { setModo('foco'); setFocusOpen(true); localStorage.setItem('fitness_session_mode', 'foco'); }}>Modo foco</Button>
+        <Button variant={modo === 'lista' ? 'default' : 'outline'} className="flex-1" onClick={() => { setModo('lista'); setFocusOpen(false); localStorage.setItem('fitness_session_mode', 'lista'); }}>Exercícios</Button>
+        <Button variant="outline" size="icon" aria-label={muted ? 'Ativar sons' : 'Silenciar sons'} title={muted ? 'Ativar sons' : 'Silenciar sons'} onClick={() => { setMuted(!muted); setFitnessMuted(!muted); }}>{muted ? '🔇' : '🔊'}</Button>
       </div>
-      </>}
-
-      <button
-        onClick={onFinish}
-        disabled={exs.length === 0}
-        className="w-full h-14 rounded-2xl font-black text-slate-900 text-base flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
-        style={{ background: 'linear-gradient(90deg, #22d3ee, #e879f9)', boxShadow: '0 8px 24px rgba(34,211,238,0.25)' }}
-      >
-        <Check className="w-5 h-5" /> Finalizar treino
-      </button>
-    </FitnessLayout>
-  );
+      {modo === 'foco' ? <Button variant="outline" className="w-full h-auto py-5 whitespace-normal text-left justify-between" onClick={() => setFocusOpen(true)}><span><span className="block text-xs text-muted-foreground mb-1">Exercício atual</span>{current?.nome || 'Treino'}</span><ChevronRight /></Button> : <div className="divide-y divide-border">
+        {exs.map((ex, index) => <Button key={ex.id} variant="ghost" className="w-full h-auto min-h-16 whitespace-normal justify-start py-3 rounded-none" onClick={() => { patch({ currentIndex: index }); setFocusOpen(true); }}>
+          <span className="w-7 shrink-0 text-primary">{ex.feito ? <Check /> : ex.pulado ? <SkipForward /> : index + 1}</span>
+          <span className="flex-1 text-left break-words">{ex.nome}<span className="block text-xs text-muted-foreground">{ex.tipo === 'musculacao' ? `${ex.series} × ${ex.repeticoes}${ex.cargaReal ? ` · ${ex.cargaReal} kg` : ''}` : `${ex.duracao_min || 0} min`}</span></span><ChevronRight />
+        </Button>)}
+      </div>}
+      <Button variant="outline" className="w-full h-12" disabled={!exs.length} onClick={onFinish}><Check />Finalizar treino</Button>
+    </div>
+    <FitnessPopup open={focusOpen} onOpenChange={setFocusOpen} title="Treino · foco">{exerciseContent}</FitnessPopup>
+  </FitnessLayout>;
 };
 
 /* helpers */

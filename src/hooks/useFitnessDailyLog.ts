@@ -16,7 +16,7 @@ export interface FitnessDailyLog {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function useFitnessDailyLog() {
+export function useFitnessDailyLog(range?: { from: string; to: string }) {
   const { user } = useAuth();
   const [log, setLog] = useState<FitnessDailyLog | null>(null);
   const [history, setHistory] = useState<FitnessDailyLog[]>([]);
@@ -34,17 +34,20 @@ export function useFitnessDailyLog() {
       .eq('data', today())
       .maybeSingle();
 
-    const { data: hist } = await (supabase as any)
+    let historyQuery = (supabase as any)
       .from('fitness_daily_logs')
       .select('*')
       .eq('user_id', au.id)
-      .order('data', { ascending: false })
-      .limit(30);
+      .order('data', { ascending: false });
+    if (range?.from) historyQuery = historyQuery.gte('data', range.from);
+    if (range?.to) historyQuery = historyQuery.lte('data', range.to);
+    if (!range?.from && !range?.to) historyQuery = historyQuery.limit(30);
+    const { data: hist } = await historyQuery;
 
     setLog(todayLog || null);
     setHistory(hist || []);
     setLoading(false);
-  }, [user]);
+  }, [user, range?.from, range?.to]);
 
   useEffect(() => { load(); }, [load]);
 

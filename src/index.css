@@ -565,3 +565,37 @@ All colors MUST be HSL.
 @keyframes email-confirm-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 .email-confirm-blink { animation: email-confirm-blink 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .email-confirm-blink { animation: none; } }
+
+/* Fitness controls and portalled windows share product-scoped semantic tokens. */
+.fitness-theme {
+  --background: 230 30% 5%; --foreground: 210 40% 98%;
+  --card: 225 25% 10%; --card-foreground: 210 40% 98%;
+  --primary: 188 86% 53%; --primary-foreground: 230 30% 5%;
+  --muted: 220 23% 17%; --muted-foreground: 215 20% 70%;
+  --accent: 188 40% 17%; --accent-foreground: 188 85% 80%;
+  --border: 220 20% 25%; --input: 220 20% 25%; --ring: 188 86% 53%;
+}
+.fitness-theme.fitness-light {
+  --background: 210 40% 98%; --foreground: 222 47% 11%;
+  --card: 0 0% 100%; --card-foreground: 222 47% 11%;
+  --primary: 192 91% 36%; --primary-foreground: 0 0% 100%;
+  --muted: 210 40% 96%; --muted-foreground: 215 16% 40%;
+  --accent: 188 70% 94%; --accent-foreground: 192 91% 30%;
+  --border: 214 32% 88%; --input: 214 32% 88%;
+}
+.fitness-theme.fitness-neon {
+  --background: 258 39% 14%; --foreground: 250 100% 98%;
+  --card: 256 38% 22%; --card-foreground: 250 100% 98%;
+  --primary: 166 76% 70%; --primary-foreground: 258 39% 14%;
+  --muted: 256 35% 26%; --muted-foreground: 253 75% 83%;
+  --accent: 166 25% 25%; --accent-foreground: 166 76% 85%;
+  --border: 256 28% 40%; --input: 256 28% 40%;
+}
+.fitness-popup { background: hsl(var(--background)); color: hsl(var(--foreground)); letter-spacing: 0; }
+.fitness-daily-dock { bottom: calc(80px + env(safe-area-inset-bottom)); }
+.fitness-theme input { font-size: 16px; }
+.fitness-theme .fitness-focus-load { font-size: 32px; }
+.fitness-theme .fitness-health-nav { letter-spacing: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .fitness-popup { animation: none !important; }
+}

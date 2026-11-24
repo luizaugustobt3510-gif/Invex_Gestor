@@ -74,3 +74,10 @@
 - [x] Unidades (un, kg, t, pacote...) respeitadas na venda, produção e entrada de matéria-prima
 - [x] Funcionar sem Produção/Logística/Financeiro: produtos e lotes dentro de Vendas, financeiro gerado no servidor
 - [x] Histórico: comprador, lotes por item e cancelamento num único passo no servidor
+
+## Fitness — uso no celular
+- [x] Registros de hidratação, humor e sono em ícones flutuantes com janelas
+- [x] Evolução, Alimentação e Emagrecer no topo; Histórico apenas pelo Perfil
+- [x] Histórico com período por datas
+- [x] Treino mais limpo, exercício em janela de foco e Cancelar ao lado de Pausar
+- [x] Verificar navegação e treino no celular
