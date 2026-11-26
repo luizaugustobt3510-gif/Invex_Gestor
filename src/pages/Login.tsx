@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Mail, Lock, ArrowRight, MessageCircle, Eye, EyeOff, CalendarCheck, Dumbbell, Wallet } from 'lucide-react';
+import { Mail, Lock, ArrowRight, MessageCircle, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
@@ -283,36 +283,6 @@ const Login = () => {
           O acesso é liberado manualmente pelo administrador.
         </p>
       </div>
-
-      <section
-        className="inv-site relative z-10 mt-4 w-full max-w-md rounded-xl border border-border bg-card/80 px-3 py-3 shadow-sm backdrop-blur"
-        aria-labelledby="outros-acessos-title"
-      >
-        <div className="mb-2 text-center">
-          <h2 id="outros-acessos-title" className="text-xs font-semibold text-foreground">Outros acessos</h2>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Entre diretamente no app que deseja usar</p>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { name: 'Invex Fitness', shortName: 'Fitness', to: '/fitness/login', icon: Dumbbell, tone: 'bg-inv-blue' },
-            { name: 'Invex Rotina', shortName: 'Rotina', to: '/rotina/entrar', icon: CalendarCheck, tone: 'bg-inv-orange' },
-            { name: 'Invex Finanças', shortName: 'Finanças', to: '/financeiro/pessoal/entrar', icon: Wallet, tone: 'bg-inv-teal' },
-          ].map((app) => (
-            <a
-              key={app.to}
-              href={app.to}
-              onClick={(e) => { e.preventDefault(); navigate(app.to); }}
-              className="group flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-lg border border-border bg-background/70 px-2 py-2 text-center transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-sm active:scale-[0.98]"
-              aria-label={`Acessar ${app.name}`}
-            >
-              <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${app.tone} text-primary-foreground`}>
-                <app.icon className="h-4 w-4" aria-hidden="true" />
-              </span>
-              <span className="text-xs font-medium text-foreground">{app.shortName}</span>
-            </a>
-          ))}
-        </div>
-      </section>
 
       <p className="login-footer relative z-10 mt-6 text-center text-[10px] tracking-wide">
         Invex Gestor Soluções - IGS®
