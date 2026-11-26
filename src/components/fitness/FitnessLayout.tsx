@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Dumbbell, TrendingUp, Apple, User, LogOut, Flame } from 'lucide-react';
+import { Home, Dumbbell, TrendingUp, Apple, User, LogOut, Flame, Play, ChevronRight } from 'lucide-react';
+import { readSession } from '@/hooks/useFitnessActiveSession';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFitnessTheme } from '@/hooks/useFitnessTheme';
 import { cn } from '@/lib/utils';
@@ -23,6 +24,9 @@ export const FitnessLayout = ({ children, hideNav }: Props) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { theme, isLight, isNeon } = useFitnessTheme();
+  // Treino minimizado: atalho para voltar a ele
+  const running = hideNav ? null : readSession();
+  const activeWorkout = running && running.startedAt > 0 ? running : null;
 
   const bgStyle = isLight
     ? {
@@ -70,7 +74,20 @@ export const FitnessLayout = ({ children, hideNav }: Props) => {
         </div>
       </nav>}
       <div className="relative z-10 pb-24">
-        <div className="max-w-3xl mx-auto px-3 sm:px-4 pt-5 sm:pt-6">{children}</div>
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 pt-5 sm:pt-6">
+          {activeWorkout && (
+            <button onClick={() => navigate('/fitness/treinos')}
+              className="w-full mb-4 min-h-14 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 flex items-center gap-3 text-left">
+              <span className="h-9 w-9 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center"><Play className="w-4 h-4" /></span>
+              <span className="flex-1 min-w-0">
+                <span className="block text-xs text-primary font-semibold">Treino em andamento</span>
+                <span className="block truncate font-semibold text-foreground">{activeWorkout.workoutNome}</span>
+              </span>
+              <ChevronRight className="w-5 h-5 shrink-0 text-primary" />
+            </button>
+          )}
+          {children}
+        </div>
       </div>
 
       {!hideNav && (
