@@ -288,7 +288,10 @@ const Login = () => {
         className="inv-site relative z-10 mt-4 w-full max-w-md rounded-xl border border-border bg-card/80 px-3 py-3 shadow-sm backdrop-blur"
         aria-labelledby="outros-acessos-title"
       >
-        <h2 id="outros-acessos-title" className="mb-2 text-center text-xs font-semibold text-foreground">Outros acessos</h2>
+        <div className="mb-2 text-center">
+          <h2 id="outros-acessos-title" className="text-xs font-semibold text-foreground">Outros acessos</h2>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Entre diretamente no app que deseja usar</p>
+        </div>
         <div className="grid grid-cols-3 gap-2">
           {[
             { name: 'Invex Fitness', shortName: 'Fitness', to: '/fitness/login', icon: Dumbbell, tone: 'bg-inv-blue' },
